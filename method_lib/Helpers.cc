@@ -988,7 +988,7 @@ string Helpers::stringToLowerCase(string in)
 {
 	string str = "";
 	cout << "in: " << in << endl;
-	for (int i=0;i<in.length();i++)
+	for (int i=0;i<(int)in.length();i++)
 	{
 		cout << "in[i]: " << endl;
 		try
@@ -4899,7 +4899,7 @@ void Helpers::readReferenceFile(DataSet* set, StepOptions options, InputFilter* 
 	//build a map of the markers keyed on their rsid for quick access when reading the reference allele file
 	map<string, Methods::Marker*> markers_map;
 	vector<Methods::Marker*>* markers = set->get_markers();
-	for(int i = 0; i < markers->size(); i++)
+	for(int i = 0; i < (int)markers->size(); i++)
 	{
 		markers_map[(*markers)[i]->getRSID()] = (*markers)[i];
 	}
