@@ -46,6 +46,8 @@ class Process{
 		virtual void setOverwrite(bool) = 0;
 		virtual bool hasIncExc() = 0;
 		StepOptions* getOptions(){return &options;}
+		StepOptions get_options(){return options;}
+		void set_options(StepOptions* opts){options = *opts;}
 		void set_db(Database* pdb){db = pdb;}
 		bool has_results(){return hasresults;}
 		vector<string> get_tablename(){return tablename;}

@@ -214,6 +214,7 @@ class ProcessAlleleFrequency : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		void create_tables();
 		bool hasIncExc(){return options.doIncExcludedSamples();};
+		void run(DataSetObject*);
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

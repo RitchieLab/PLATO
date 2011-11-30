@@ -3329,4 +3329,17 @@ void ProcessAlleleFrequency::create_tables(){
     }
 }
 
+#ifdef PLATOLIB
+    void ProcessAlleleFrequency::run(DataSetObject* ds)
+    {
+    	data_set = ds;
+    	if (options.doGroupFile())
+    	{
+    		options.readGroups(data_set->get_samples());
+    	}
+    	processtest();
+    	return;
+    }
+#endif
+
 }//end namespace PlatoLib
