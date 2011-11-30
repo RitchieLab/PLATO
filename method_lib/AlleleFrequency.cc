@@ -30,7 +30,6 @@
 #include <cstdlib>
 #include <ctime>
 #include "AlleleFrequency.h"
-//#include "Chrom.h"
 #include "General.h"
 #include "Helpers.h"
 namespace Methods{
@@ -168,7 +167,6 @@ void AlleleFrequency::filterOne(Marker* mark){
 				}
 
 				if(Helpers::dLess(minfreq, options.getThreshMarkersLow()) && options.doThreshMarkersLow()){
-				//cout << (*markers)[i]->getRSID() << "\t" << minfreq << endl;
 					mark->setEnabled(false);
 					if(inc == false){
 						orig_num_markers++;
@@ -244,33 +242,6 @@ void AlleleFrequency::filterOne(Marker* mark){
 	}
 }
 
-/*hwe rules?
-	for(int i = 0; i < ssize; i++){
-		//nuclear fam, already got affected child
-		if((*samples)[i]->isEnabled() && (*samples)[i]->getDadID() != "0" && (*samples)[i]->getMomID() != "0" && (*samples)[i]->getPheno() == 2 && (*samples)[i]->getSex() && (*samples)[i]->getFamily()->isFlaggedAFCM()){
-			continue;
-		}
-		if((*samples)[i]->isEnabled() && (*samples)[i]->getDadID() != "0" && (*samples)[i]->getMomID() != "0" && (*samples)[i]->getPheno() == 2 && !(*samples)[i]->getSex() && (*samples)[i]->getFamily()->isFlaggedAFCF()){
-			continue;
-		}
-
-		//nuclear fam, don't do unaffected child
-		if((*samples)[i]->isEnabled() && (*samples)[i]->getDadID() != "0" && (*samples)[i]->getMomID() != "0" && (*samples)[i]->getPheno() != 2){
-			continue;
-		}
-		if((*samples)[i]->isEnabled()){
-			//nuclear fam, set family as done for affected child
-			if(((*samples)[i]->getDadID() != "0" || (*samples)[i]->getMomID() != "0") && (*samples)[i]->getPheno() == 2 && !(*samples)[i]->getFamily()->isFlaggedAFCM() && (*samples)[i]->getSex()){
-				(*samples)[i]->getFamily()->setFlagAFCM(true);
-			}
-			if(((*samples)[i]->getDadID() != "0" || (*samples)[i]->getMomID() != "0") && (*samples)[i]->getPheno() == 2 && !(*samples)[i]->getFamily()->isFlaggedAFCF() && !(*samples)[i]->getSex()){
-				(*samples)[i]->getFamily()->setFlagAFCF(true);
-			}
-						if(isX && (*samples)[i]->getSex()){
-							continue;
-						}
-*/
-
 /*
  *Function: flagSamples
  *Description:
@@ -283,7 +254,6 @@ void AlleleFrequency::flagSamples(){
 		useoverall = true;
 	}
 
-//	srand((unsigned) time(0));
 	if(sample_flags.size() == 0){
 		sample_flags.resize(samples->size(), false);
 	}
@@ -293,7 +263,6 @@ void AlleleFrequency::flagSamples(){
 	for(int s = 0; s < ssize; s++){
 		Sample* samp = (*samples)[s];
 		//set enabled initially
-		//////samp->setFlag(true);
 
 		//set everyone to usuable
 		sample_flags[s] = true;
@@ -304,14 +273,12 @@ void AlleleFrequency::flagSamples(){
 		else if(options.doAllChildren()){
 			//this is a founder, disable them
 			if(samp->getDad() == NULL && samp->getMom() == NULL){
-				//////samp->setFlag(false);
 				sample_flags[s] = false;
 			}
 		}
 		else if(options.doFoundersOnly()){
 			//this is a child, disable it
 			if(!samp->isFounder()){
-//////				samp->setFlag(false);
 				sample_flags[s] = false;
 			}
 		}
@@ -320,17 +287,14 @@ void AlleleFrequency::flagSamples(){
 			Sample* mom = samp->getMom();
 			if(dad && dad->isEnabled() && dad->getDad() == NULL && dad->getMom() == NULL){
 				if(dad->getPheno() != 1){
-//////					dad->setFlag(false);
 					sample_flags[dad->getLoc()] = false;
 				}
 			}
 			if(mom && mom->isEnabled() && mom->getDad() == NULL && mom->getMom() == NULL){
 				if(mom->getPheno() != 1){
-//////					mom->setFlag(false);
 					sample_flags[mom->getLoc()] = false;
 				}
 			}
-//////			samp->setFlag(false);
 			sample_flags[s] = false;
 		}
 		else if(options.doUnknownSpouses()){
@@ -338,22 +302,16 @@ void AlleleFrequency::flagSamples(){
 			Sample* mom = samp->getMom();
 			if(dad && dad->isEnabled() && dad->getDad() == NULL && dad->getMom() == NULL){
 				if(dad->getPheno() == 0 || dad->getPheno() == 1){
-//////					dad->setFlag(true);
 					sample_flags[dad->getLoc()] = true;
 				}
 			}
 			if(mom && mom->isEnabled() && mom->getDad() == NULL && mom->getMom() == NULL){
 				if(mom->getPheno() == 0 || mom->getPheno() == 1){
-//////					mom->setFlag(true);
 					sample_flags[mom->getLoc()] = true;
 				}
 			}
-//////			samp->setFlag(false);
 			sample_flags[s] = false;
 		}
-		//if(samp->isFlagged()){
-		//	cout << samp->toString() << endl;
-		//}
 	}
 
 	//foreach family find a random child
@@ -376,17 +334,13 @@ void AlleleFrequency::flagSamples(){
 				random = int(nf_enabled.size() * rand() / (RAND_MAX + 1.0));
 				Sample* samp = nf_enabled[random];
 				sample_flags[samp->getLoc()] = false;
-//////				samp->setFlag(false);
 				vector<Sample*>* samples = fam->getSamples();
 				for(int i = 0; i < (int)samples->size(); i++){
 					Sample* temp = (*samples)[i];
-//////					if(temp->isFlagged()){
-//////						temp->setFlag(false);
 					if(sample_flags[temp->getLoc()]){
 						sample_flags[temp->getLoc()] = false;
 					}
 					else{
-//////						temp->setFlag(true);
 						sample_flags[temp->getLoc()] = true;
 					}
 				}
@@ -469,19 +423,16 @@ void AlleleFrequency::initializeCounts(int v){
 Sample* AlleleFrequency::findRandomSample(Sample* tsamp, vector<int>& rsamps, Marker* mark){
 	Family* fam = tsamp->getFamily();
 	vector<Sample*>* samps = fam->getSamples();
-//	srand((unsigned) time(0));
 	int random;
 	random = int(rsamps.size() * rand() / (RAND_MAX + 1.0));
 	Sample* samp = (*samps)[rsamps[random]];
 	vector<int>::iterator found = find(rsamps.begin(), rsamps.end(), rsamps[random]);
 	rsamps.erase(found);
-	if(sample_flags[samp->getLoc()]){//////samp->isFlagged()){
-		//cout << "Rand found: " << samp->toString() << " however is already enabled.\n";
+	if(sample_flags[samp->getLoc()]){
 		return NULL;
 	}
 	if(!mark->isMicroSat()){
 		if(samp->getAone(mark->getLoc()) && samp->getAtwo(mark->getLoc()) && samp->getAmissing(mark->getLoc())){
-			//cout << "Rand found: " << samp->toString() << " however is 0/0 genotyped\n";
 			return NULL;
 		}
 	}
@@ -518,10 +469,8 @@ void AlleleFrequency::calcOneGroups(Marker* mark){
 				if(!mark->isMicroSat()){
 					if(isX && fsamps[i]->getSex()){
 						if(!fsamps[i]->getAone(loc) && !fsamps[i]->getAtwo(loc)){
-//							ga1_count[mygroup]++;
 						}
 						else if(fsamps[i]->getAone(loc) && fsamps[i]->getAtwo(loc) && !fsamps[i]->getAmissing(loc)){
-//							ga2_count[mygroup]++;
 						}
 					}
 					else{
@@ -554,7 +503,8 @@ void AlleleFrequency::calcOneGroups(Marker* mark){
 						ga2_homo_count[mygroup]++;
 					}
 				}//end !microsat
-				else{//is microsat
+				else
+				{//is microsat
 					if(gm_allele_counts_o[mygroup].size() == 0){
 						int numalleles = mark->getNumAlleles();
 						gm_allele_counts_o[mygroup].resize(numalleles, 0);
@@ -564,11 +514,8 @@ void AlleleFrequency::calcOneGroups(Marker* mark){
 						int a2 = fsamps[i]->getAbtwo(loc);
 						if(isX && fsamps[i]->getSex()){
 							if(a1 == a2){
-				//				gm_allele_counts_o[mygroup][a1]++;
 							}
 							else{
-				//				gm_allele_counts_o[mygroup][a1]++;
-				//				gm_allele_counts_o[mygroup][a2]++;
 							}
 						}
 						else{
@@ -594,7 +541,6 @@ void AlleleFrequency::calcOneGroups(Marker* mark){
  *Performs calculations for a single marker.
  */
 void AlleleFrequency::calcOne(Marker* mark){
-//	int ssize = samples->size();
 	initializeCounts(0);
 	int fsize = families->size();
 	for(int f = 0; f < fsize; f++){
@@ -656,31 +602,17 @@ void AlleleFrequency::calcOne(Marker* mark){
 								indcount++;
 							}
 							if(randsamp == NULL){
-								//cout << "no random found for " << (*fsamps)[i]->toString() << "\t" << famsamps << endl;
 								continue;
 							}
 							else{
-								//cout << "using: " << randsamp->toString() << endl;
 								famdone = true;
 								if(isX && randsamp->getSex()){
 									if(!randsamp->getAone(loc) && !randsamp->getAtwo(loc)){
-								//		a1_count++;
-								//		a1_countM++;
-								//		a1_homo_count++;
-								//		a1_homo_countM++;
 									}
 									else if(randsamp->getAone(loc) && randsamp->getAtwo(loc) && !randsamp->getAmissing(loc)){
-								//		a2_count++;
-								//		a2_countM++;
-								//		a2_homo_count++;
-								//		a2_homo_countM++;
 									}
 								}
 								else{
-									//F suffixes are Female, M = Male
-									//a1 = allele1
-									//a2 = allele2
-									//a12 = het
 									if(!randsamp->getAone(loc) && !randsamp->getAtwo(loc)){
 										a1_count++;
 										a1_count++;
@@ -729,65 +661,43 @@ void AlleleFrequency::calcOne(Marker* mark){
 								}
 							}
 						}
-					//	else{
 							continue;
-					//	}
 					}
 
 					//look at a family only once
-					if(sample_flags[(*fsamps)[i]->getLoc()] &&  (*fsamps)[i]->isFounder() && options.doFoundersOnly()){//////(*fsamps)[i]->isFlagged() && (*fsamps)[i]->isFounder() && options.doFoundersOnly()){
+					if(sample_flags[(*fsamps)[i]->getLoc()] &&  (*fsamps)[i]->isFounder() && options.doFoundersOnly()){
 						famdone = true;
 					}
 
 					if(isX && (*fsamps)[i]->getSex()){
 						if(!(*fsamps)[i]->getAone(loc) && !(*fsamps)[i]->getAtwo(loc)){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
-					//			a1_count++;
-					//			a1_countM++;
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 							}
 							if((*fsamps)[i]->getPheno() == 2){
-					//			a1_countCa++;
-					//			a1_countCaM++;
 							}
 							else if((*fsamps)[i]->getPheno() == 1){
-					//			a1_countCon++;
-					//			a1_countConM++;
 							}
 							if((*fsamps)[i]->isFounder()){
-					//			a1_countP++;
-					//			a1_countPM++;
 							}
 							else{
-					//			a1_countC++;
-					//			a1_countCM++;
 							}
 						}
 						else if((*fsamps)[i]->getAone(loc) && (*fsamps)[i]->getAtwo(loc) && (*fsamps)[i]->getAmissing(loc)){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
-					//			a2_count++;
-					//			a2_countM++;
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 							}
 							if((*fsamps)[i]->getPheno() == 2){
-					//			a2_countCa++;
-					//			a2_countCaM++;
 							}
 							else if((*fsamps)[i]->getPheno() == 1){
-					//			a2_countCon++;
-					//			a2_countConM++;
 							}
 							if((*fsamps)[i]->isFounder()){
-					//			a2_countP++;
-					//			a2_countPM++;
 							}
 							else{
-					//			a2_countC++;
-					//			a2_countCM++;
 							}
 						}
 					}
 					else{
 						if(!(*fsamps)[i]->getAone(loc)){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								a1_count++;
 								if((*fsamps)[i]->getSex()){
 									a1_countM++;
@@ -796,7 +706,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a1_countF++;
 								}
 							}
-							if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+							if((*fsamps)[i]->getPheno() == 2){
 								a1_countCa++;
 								if((*fsamps)[i]->getSex()){
 									a1_countCaM++;
@@ -814,8 +724,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a1_countConF++;
 								}
 							}
-				//		if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-				//				(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 							if((*fsamps)[i]->isFounder()){
 								a1_countP++;
 								if((*fsamps)[i]->getSex()){
@@ -835,7 +743,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 							}
 						}
 						else if((*fsamps)[i]->getAone(loc) && (*fsamps)[i]->getAtwo(loc) && !(*fsamps)[i]->getAmissing(loc)){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								a2_count++;
 								if((*fsamps)[i]->getSex()){
 									a2_countM++;
@@ -844,7 +752,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a2_countF++;
 								}
 							}
-							if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+							if((*fsamps)[i]->getPheno() == 2){
 								a2_countCa++;
 								if((*fsamps)[i]->getSex()){
 									a2_countCaM++;
@@ -863,8 +771,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 								}
 							}
 
-					//if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-					//			(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 							if((*fsamps)[i]->isFounder()){
 								a2_countP++;
 								if((*fsamps)[i]->getSex()){
@@ -885,7 +791,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 						}
 
 						if(!(*fsamps)[i]->getAtwo(loc) && !(*fsamps)[i]->getAone(loc)){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								a1_count++;
 								if((*fsamps)[i]->getSex()){
 									a1_countM++;
@@ -894,7 +800,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a1_countF++;
 								}
 							}
-							if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+							if((*fsamps)[i]->getPheno() == 2){
 								a1_countCa++;
 								if((*fsamps)[i]->getSex()){
 									a1_countCaM++;
@@ -912,8 +818,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a1_countConF++;
 								}
 							}
-					//	if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-					//			(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 							if((*fsamps)[i]->isFounder()){
 								a1_countP++;
 								if((*fsamps)[i]->getSex()){
@@ -933,7 +837,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 							}
 						}
 						else if((*fsamps)[i]->getAtwo(loc)){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								a2_count++;
 								if((*fsamps)[i]->getSex()){
 									a2_countM++;
@@ -942,7 +846,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a2_countF++;
 								}
 							}
-							if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+							if((*fsamps)[i]->getPheno() == 2){
 								a2_countCa++;
 								if((*fsamps)[i]->getSex()){
 									a2_countCaM++;
@@ -960,8 +864,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 									a2_countConF++;
 								}
 							}
-					//	if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-					//			(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 							if((*fsamps)[i]->isFounder()){
 								a2_countP++;
 								if((*fsamps)[i]->getSex()){
@@ -986,7 +888,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 						continue;
 					}
 					if(!(*fsamps)[i]->getAone(loc) && !(*fsamps)[i]->getAtwo(loc)){
-						if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+						if(sample_flags[(*fsamps)[i]->getLoc()]){
 							a1_homo_count++;
 							if((*fsamps)[i]->getSex()){
 								a1_homo_countM++;
@@ -995,7 +897,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 								a1_homo_countF++;
 							}
 						}
-						if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+						if((*fsamps)[i]->getPheno() == 2){
 							a1_homo_countCa++;
 							if((*fsamps)[i]->getSex()){
 								a1_homo_countCaM++;
@@ -1013,8 +915,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 								a1_homo_countConF++;
 							}
 						}
-					//	if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-					//			(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 						if((*fsamps)[i]->isFounder()){
 							a1_homo_countP++;
 							if((*fsamps)[i]->getSex()){
@@ -1034,7 +934,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 						}
 					}
 					if(!(*fsamps)[i]->getAone(loc) && (*fsamps)[i]->getAtwo(loc)){
-						if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+						if(sample_flags[(*fsamps)[i]->getLoc()]){
 							a12_count++;
 							if((*fsamps)[i]->getSex()){
 								a12_countM++;
@@ -1043,7 +943,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 								a12_countF++;
 							}
 						}
-						if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+						if((*fsamps)[i]->getPheno() == 2){
 							a12_countCa++;
 							if((*fsamps)[i]->getSex()){
 								a12_countCaM++;
@@ -1061,8 +961,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 								a12_countConF++;
 							}
 						}
-					//	if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-					//			(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 						if((*fsamps)[i]->isFounder()){
 							a12_countP++;
 							if((*fsamps)[i]->getSex()){
@@ -1082,7 +980,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 						}
 					}
 					if((*fsamps)[i]->getAone(loc) && (*fsamps)[i]->getAtwo(loc) && !(*fsamps)[i]->getAmissing(loc)){
-						if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+						if(sample_flags[(*fsamps)[i]->getLoc()]){
 							a2_homo_count++;
 							if((*fsamps)[i]->getSex()){
 								a2_homo_countM++;
@@ -1091,7 +989,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 								a2_homo_countF++;
 							}
 						}
-						if((*fsamps)[i]->getPheno() == 2){//getAffected()){
+						if((*fsamps)[i]->getPheno() == 2){
 							a2_homo_countCa++;
 							if((*fsamps)[i]->getSex()){
 								a2_homo_countCaM++;
@@ -1109,8 +1007,6 @@ void AlleleFrequency::calcOne(Marker* mark){
 								a2_homo_countConF++;
 							}
 						}
-					//	if((*fsamps)[i]->getDadID() == "0" && (*fsamps)[i]->getMomID() == "0" &&
-					//			(*fsamps)[i]->getDad() == NULL && (*fsamps)[i]->getMom() == NULL){
 						if((*fsamps)[i]->isFounder()){
 							a2_homo_countP++;
 							if((*fsamps)[i]->getSex()){
@@ -1163,28 +1059,16 @@ void AlleleFrequency::calcOne(Marker* mark){
 								indcount++;
 							}
 							if(randsamp == NULL){
-								//cout << "no random found for " << (*fsamps)[i]->toString() << "\t" << famsamps << endl;
 								continue;
 							}
 							else{
-								//cout << "using: " << randsamp->toString() << endl;
 								famdone = true;
 								int a1 = randsamp->getAbone(loc);
 								int a2 = randsamp->getAbtwo(loc);
 								if(isX && randsamp->getSex()){
 									if(a1 == a2){
-					//					m_allele_counts_o[a1]++;
-					//					m_allele_counts_om[a1]++;
-								//		m_geno_counts_o[getString<int>(a1) + "_" + getString<int>(a1)]++;
-								//		m_geno_counts_om[getString<int>(a1) + "_" + getString<int>(a1)]++;
 									}
 									else{
-					//					m_allele_counts_o[a1]++;
-					//					m_allele_counts_o[a2]++;
-					//					m_allele_counts_om[a1]++;
-					//					m_allele_counts_om[a2]++;
-								//		m_geno_counts_o[getString<int>(a1) + "_" + getString<int>(a2)]++;
-								//		m_geno_counts_om[getString<int>(a1) + "_" + getString<int>(a2)]++;
 									}
 								}
 								else{
@@ -1230,67 +1114,37 @@ void AlleleFrequency::calcOne(Marker* mark){
 						int a2 = (*fsamps)[i]->getAbtwo(loc);
 						if(isX && (*fsamps)[i]->getSex()){
 							if(a1 == a2){
-								if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
-					//				m_allele_counts_o[a1]++;
-					//				m_allele_counts_om[a1]++;
+								if(sample_flags[(*fsamps)[i]->getLoc()]){
 								}
 								if((*fsamps)[i]->getPheno() == 2){
-					//				m_allele_counts_ca[a1]++;
-					//				m_allele_counts_cam[a1]++;
 								}
 								else if((*fsamps)[i]->getPheno() == 1){
-					//				m_allele_counts_con[a1]++;
-					//				m_allele_counts_conm[a1]++;
 								}
 								if((*fsamps)[i]->isFounder()){
-					//				m_allele_counts_p[a1]++;
-					//				m_allele_counts_pm[a1]++;
 								}
 								else{
-					//				m_allele_counts_c[a1]++;
-					//				m_allele_counts_cm[a1]++;
 								}
 							}
 							else{
-								if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
-					//				m_allele_counts_o[a1]++;
-					//				m_allele_counts_o[a2]++;
-					//				m_allele_counts_om[a1]++;
-					//				m_allele_counts_om[a2]++;
+								if(sample_flags[(*fsamps)[i]->getLoc()]){
 								}
 								if((*fsamps)[i]->getPheno() == 2){
-					//				m_allele_counts_ca[a1]++;
-					//				m_allele_counts_ca[a2]++;
-					//				m_allele_counts_cam[a1]++;
-					//				m_allele_counts_cam[a2]++;
 								}
 								else if((*fsamps)[i]->getPheno() == 1){
-					//				m_allele_counts_con[a1]++;
-					//				m_allele_counts_con[a2]++;
-					//				m_allele_counts_conm[a1]++;
-					//				m_allele_counts_conm[a2]++;
 								}
 								if((*fsamps)[i]->isFounder()){
-					//				m_allele_counts_p[a1]++;
-					//				m_allele_counts_p[a2]++;
-					//				m_allele_counts_pm[a1]++;
-					//				m_allele_counts_pm[a2]++;
 								}
 								else{
-					//				m_allele_counts_c[a1]++;
-					//				m_allele_counts_c[a2]++;
-					//				m_allele_counts_cm[a1]++;
-					//				m_allele_counts_cm[a2]++;
 								}
 							}
 						}
 						else{
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								m_allele_counts_o[a1]++;
 								m_allele_counts_o[a2]++;
 							}
 							if((*fsamps)[i]->getSex()){
-								if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+								if(sample_flags[(*fsamps)[i]->getLoc()]){
 									m_allele_counts_om[a1]++;
 									m_allele_counts_om[a2]++;
 								}
@@ -1321,7 +1175,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 
 							}
 							else{
-								if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+								if(sample_flags[(*fsamps)[i]->getLoc()]){
 									m_allele_counts_of[a1]++;
 									m_allele_counts_of[a2]++;
 								}
@@ -1356,11 +1210,11 @@ void AlleleFrequency::calcOne(Marker* mark){
 							continue;
 						}
 						//genotype counts
-						if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+						if(sample_flags[(*fsamps)[i]->getLoc()]){
 							m_geno_counts_o[getString<int>(a1) + "_" + getString<int>(a2)]++;
 						}
 						if((*fsamps)[i]->getSex()){
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								m_geno_counts_om[getString<int>(a1) + "_" + getString<int>(a2)]++;
 							}
 							if((*fsamps)[i]->getPheno() == 2){
@@ -1382,7 +1236,7 @@ void AlleleFrequency::calcOne(Marker* mark){
 
 						}
 						else{
-							if(sample_flags[(*fsamps)[i]->getLoc()]){//////(*fsamps)[i]->isFlagged()){
+							if(sample_flags[(*fsamps)[i]->getLoc()]){
 								m_geno_counts_of[getString<int>(a1) + "_" + getString<int>(a2)]++;
 							}
 							if((*fsamps)[i]->getPheno() == 2){
@@ -1419,48 +1273,48 @@ void AlleleFrequency::calcOne(Marker* mark){
  *
  */
 void AlleleFrequency::processtest(){
-	string afname = opts::_OUTPREFIX_ + "allele_freq" + options.getOut() + ".txt";//+ getString<int>(order) + ".txt";
+	string afname = opts::_OUTPREFIX_ + "allele_freq" + options.getOut() + ".txt";
 	if(!overwrite){
 		afname += "." + getString<int>(order);
 	}
-	string gfname = opts::_OUTPREFIX_ + "allele_freq_genotype" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string gfname = opts::_OUTPREFIX_ + "allele_freq_genotype" + options.getOut() + ".txt";
 	if(!overwrite){
 		gfname += "." + getString<int>(order);
 	}
 	string gafname;
 	string ggfname;
 	if(options.doGroupFile()){
-		gafname = opts::_OUTPREFIX_ + "allele_freq_group" + options.getOut() + ".txt";//+ getString<int>(order) + ".txt";
+		gafname = opts::_OUTPREFIX_ + "allele_freq_group" + options.getOut() + ".txt";
 		if(!overwrite){
 			gafname += "." + getString<int>(order);
 		}
-		ggfname = opts::_OUTPREFIX_ + "allele_freq_genotype_group" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		ggfname = opts::_OUTPREFIX_ + "allele_freq_genotype_group" + options.getOut() + ".txt";
 		if(!overwrite){
 			ggfname += "." + getString<int>(order);
 		}
 	}
 
-    string pfname = opts::_OUTPREFIX_ + "allele_freq_parental" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+    string pfname = opts::_OUTPREFIX_ + "allele_freq_parental" + options.getOut() + ".txt";
 	if(!overwrite){
 		pfname += "." + getString<int>(order);
 	}
-    string pgfname = opts::_OUTPREFIX_ + "allele_freq_parental_genotype" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+    string pgfname = opts::_OUTPREFIX_ + "allele_freq_parental_genotype" + options.getOut() + ".txt";
 	if(!overwrite){
 		pgfname += "." + getString<int>(order);
 	}
-    string gendfname = opts::_OUTPREFIX_ + "allele_freq_gender" + options.getOut() + ".txt"; //getString<int>(order) + ".txt";
+    string gendfname = opts::_OUTPREFIX_ + "allele_freq_gender" + options.getOut() + ".txt";
 	if(!overwrite){
 		gendfname += "." + getString<int>(order);
 	}
-    string gendgfname = opts::_OUTPREFIX_ + "allele_freq_gender_genotype" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+    string gendgfname = opts::_OUTPREFIX_ + "allele_freq_gender_genotype" + options.getOut() + ".txt";
 	if(!overwrite){
 		gendgfname += "." + getString<int>(order);
 	}
-    string ccfname = opts::_OUTPREFIX_ + "allele_freq_casecontrol" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+    string ccfname = opts::_OUTPREFIX_ + "allele_freq_casecontrol" + options.getOut() + ".txt";
 	if(!overwrite){
 		ccfname += "." + getString<int>(order);
 	}
-    string ccgfname = opts::_OUTPREFIX_ + "allele_freq_casecontrol_genotype" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+    string ccgfname = opts::_OUTPREFIX_ + "allele_freq_casecontrol_genotype" + options.getOut() + ".txt";
 	if(!overwrite){
 		ccgfname += "." + getString<int>(order);
 	}
@@ -1477,12 +1331,10 @@ void AlleleFrequency::processtest(){
 	opts::addFile("Marker", stepname, gfname);
     if(!myoutput){
         opts::printLog("Error opening: " + afname + ".  Exiting!\n");
-        //exit(1);
         throw MethodException("Error opening: " + afname + ".  Exiting!\n");
     }
     if(!mygeno){
         opts::printLog("Error opening: " + gfname + ".  Exiting!\n");
-        //exit(1);
         throw MethodException("Error opening: " + gfname + ".  Exiting!\n");
     }
 
@@ -1495,12 +1347,10 @@ void AlleleFrequency::processtest(){
 		opts::addFile("Marker", stepname, ggfname);
     	if(!gmyoutput){
 	        opts::printLog("Error opening: " + gafname + ".  Exiting!\n");
-        	//exit(1);
 	        throw MethodException("Error opening: " + gafname + ".  Exiting!\n");
     	}
     	if(!gmygeno){
         	opts::printLog("Error opening: " + ggfname + ".  Exiting!\n");
-        	//exit(1);
         	throw MethodException("Error opening: " + ggfname + ".  Exiting!\n");
     	}
 		gmyoutput.precision(4);
@@ -1751,12 +1601,10 @@ void AlleleFrequency::processtest(){
 		opts::addFile("Marker", stepname, ccgfname);
         if(!cc){
             opts::printLog("Error opening: " + ccfname + ". Exiting!\n");
-            //exit(1);
             throw MethodException("Error opening: " + ccfname + ".  Exiting!\n");
         }
         if(!ccg){
             opts::printLog("Error opening: " + ccgfname + ". Exiting!\n");
-            //exit(1);
             throw MethodException("Error opening: " + ccgfname + ".  Exiting!\n");
         }
         cc.precision(4);
@@ -1839,30 +1687,6 @@ void AlleleFrequency::processtest(){
 	for(int k = 0; k < msize; k++){
 		if((*markers)[k]->isEnabled() && Helpers::isValidMarker((*markers)[k], &options, prev_base, prev_chrom)){
 			//flag markers to be ignored
-//			if(options.doChrom()){
-//				if(!options.checkChrom((*markers)[k]->getChrom())){
-//					(*markers)[k]->setFlag(true);
-//				    continue;
-//			    }
-//			    if(!options.checkBp((*markers)[k]->getBPLOC())){
-//					(*markers)[k]->setFlag(true);
-//				    continue;
-//			    }
-//			}
-  //          if(options.doBpSpace()){
-//				if(prev_base == 0){
-//			 	   prev_base = (*markers)[k]->getBPLOC();
-//			       prev_chrom = (*markers)[k]->getChrom();
-//			    }
-//			    else{
-//			 	   if((*markers)[k]->getChrom() == prev_chrom && (((*markers)[k]->getBPLOC() - prev_base) < options.getBpSpace())){
-//						(*markers)[k]->setFlag(true);
-//					   continue;
-//			       }
-//			       prev_base = (*markers)[k]->getBPLOC();
-//			       prev_chrom = (*markers)[k]->getChrom();
-//			    }
-//		    }
 
 			//perform calculations
 			calcOne((*markers)[k]);
@@ -2373,9 +2197,6 @@ void AlleleFrequency::processtest(){
 						<< a2_homo_countP << "\t";
 				}
 
-	//			mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t" << a1_homo_countP << "\t"
-	//				<< a12_countP << "\t"
-	//				<< a2_homo_countP << "\t";
 				//case overall
 				freq1 = ((float) a1_homo_countCa)/(a1_homo_countCa + a12_countCa + a2_homo_countCa);
 				freq2 = ((float) a12_countCa)/(a1_homo_countCa + a12_countCa + a2_homo_countCa);
@@ -2393,7 +2214,6 @@ void AlleleFrequency::processtest(){
 
 				//groups?
 				if(options.doGroupFile()){
-					////int gm_total = 0;
 					map<string, vector<Sample*> > groups = options.getGroups();
 					map<string, vector<Sample*> >::iterator giter;
 					for(giter = groups.begin(); giter != groups.end(); giter++){
@@ -2907,8 +2727,8 @@ float AlleleFrequency::getHetC_exp(){
 }
 float AlleleFrequency::getAoneC_freq(){
 	float percent = 0.0f;
-	int countone = a1_countC;//(aone_count[i] - aone_countP[i]);
-	int counttwo = a2_countC;//(atwo_count[i] - atwo_countP[i]);
+	int countone = a1_countC;
+	int counttwo = a2_countC;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)countone/(float)denom);
@@ -2917,8 +2737,8 @@ float AlleleFrequency::getAoneC_freq(){
 }
 float AlleleFrequency::getAtwoC_freq(){
 	float percent = 0.0f;
-	int countone = a1_countC;//(aone_count[i] - aone_countP[i]);
-	int counttwo = a2_countC;//(atwo_count[i] - atwo_countP[i]);
+	int countone = a1_countC;
+	int counttwo = a2_countC;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)counttwo/(float)denom);
@@ -2983,8 +2803,8 @@ float AlleleFrequency::getHetCF_exp(){
 }
 float AlleleFrequency::getAoneCF_freq(){
 	float percent = 0.0f;
-	int countone = a1_countCF;//(aone_count[i] - aone_countP[i] - aone_countCM[i]);
-	int counttwo = a2_countCF;//(atwo_count[i] - atwo_countP[i] - atwo_countCM[i]);
+	int countone = a1_countCF;
+	int counttwo = a2_countCF;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)countone/(float)denom);
@@ -2993,8 +2813,8 @@ float AlleleFrequency::getAoneCF_freq(){
 }
 float AlleleFrequency::getAtwoCF_freq(){
 	float percent = 0.0f;
-	int countone = a1_countCF;//(aone_count[i] - aone_countP[i] - aone_countCM[i]);
-	int counttwo = a2_countCF;//(atwo_count[i] - atwo_countP[i] - atwo_countCM[i]);
+	int countone = a1_countCF;
+	int counttwo = a2_countCF;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)counttwo/(float)denom);
@@ -3059,8 +2879,8 @@ float AlleleFrequency::getHetCaF_exp(){
 }
 float AlleleFrequency::getAoneCaF_freq(){
 	float percent = 0.0f;
-	int countone = a1_countCaF;//(aone_countCa[i] - aone_countCaM[i]);
-	int counttwo = a2_countCaF;//(atwo_countCa[i] - atwo_countCaM[i]);
+	int countone = a1_countCaF;
+	int counttwo = a2_countCaF;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)countone/(float)denom);
@@ -3069,8 +2889,8 @@ float AlleleFrequency::getAoneCaF_freq(){
 }
 float AlleleFrequency::getAtwoCaF_freq(){
 	float percent = 0.0f;
-	int countone = a1_countCaF;//(aone_countCa[i] - aone_countCaM[i]);
-	int counttwo = a2_countCaF;//(atwo_countCa[i] - atwo_countCaM[i]);
+	int countone = a1_countCaF;
+	int counttwo = a2_countCaF;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)counttwo/(float)denom);
@@ -3135,8 +2955,8 @@ float AlleleFrequency::getHetCon_exp(){
 }
 float AlleleFrequency::getAoneCon_freq(){
 	float percent = 0.0f;
-	int countone = a1_countCon;//(aone_count[i] - aone_countCa[i]);
-	int counttwo = a2_countCon;//(atwo_count[i] - atwo_countCa[i]);
+	int countone = a1_countCon;
+	int counttwo = a2_countCon;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)countone/(float)denom);
@@ -3145,8 +2965,8 @@ float AlleleFrequency::getAoneCon_freq(){
 }
 float AlleleFrequency::getAtwoCon_freq(){
 	float percent = 0.0f;
-	int countone = a1_countCon;//(aone_count[i] - aone_countCa[i]);
-	int counttwo = a2_countCon;//(atwo_count[i] - atwo_countCa[i]);
+	int countone = a1_countCon;
+	int counttwo = a2_countCon;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)counttwo/(float)denom);
@@ -3175,8 +2995,8 @@ float AlleleFrequency::getHetConF_exp(){
 }
 float AlleleFrequency::getAoneConF_freq(){
 	float percent = 0.0f;
-	int countone = a1_countConF;//(aone_countCon[i] - aone_countConM[i]);
-	int counttwo = a2_countConF;//(atwo_countCon[i] - atwo_countConM[i]);
+	int countone = a1_countConF;
+	int counttwo = a2_countConF;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)countone/(float)denom);
@@ -3185,8 +3005,8 @@ float AlleleFrequency::getAoneConF_freq(){
 }
 float AlleleFrequency::getAtwoConF_freq(){
 	float percent = 0.0f;
-	int countone = a1_countConF;//(aone_countCon[i] - aone_countConM[i]);
-	int counttwo = a2_countConF;//(atwo_countCon[i] - atwo_countConM[i]);
+	int countone = a1_countConF;
+	int counttwo = a2_countConF;
 	int denom = countone + counttwo;
 	if(denom > 0){
 		percent = ((float)counttwo/(float)denom);

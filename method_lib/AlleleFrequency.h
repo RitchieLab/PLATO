@@ -14,8 +14,6 @@
 #include "Marker.h"
 #include "Family.h"
 #include "Globals.h"
-//#include "Chrom.h"
-//#include "Process.h"
 #include "Options.h"
 #include "StepOptions.h"
 #include "DataSet.h"
@@ -32,8 +30,6 @@ class AlleleFrequency{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-//		Markers* markers;
-//		Families* families;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -182,14 +178,10 @@ class AlleleFrequency{
 		void filter();
 		void setThreshold(string s){
 			options.setUp(s);
-			//threshold = std::atof(s.c_str());
 		};
 		void set_parameters(StepOptions* o){setOptions(*o);};
 		void setOptions(StepOptions o){
 			options = o;
-//			if(options.doRandomChild() || options.doAll() || options.doAllChildren()){
-//				useoverall = true;
-//			}
 			if(options.doRandomChild() || options.doAll() || options.doAllChildren() || options.doUnaffSpousesOnly() || options.doUnknownSpouses()){
 				flagSamples();
 			}
@@ -203,13 +195,8 @@ class AlleleFrequency{
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};
-//		void hw_process(Connection*, Families*, Markers*);
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
         void setDBOUT(){_DBOUTPUT_ = true;};
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
