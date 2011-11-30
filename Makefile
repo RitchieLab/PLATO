@@ -5,10 +5,11 @@ LIBPLATODIR=lib/
 LIBPLATO=$(LIBPLATODIR)libplato.a
 PLATO_AS_LIB=methods $(LIBPLATO)
 METHODDIR=method_lib
-LIBDIR=-Llib -L/opt/local/lib -L/home/gilesjt/boost/stage/lib
+LIBDIR=-Llib -L/opt/local/lib -L/home/cozartc/boost/stage/lib -L/home/cozartc/sqlitewrapped/lib
 LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/gilesjt/boost#-I/usr/local/include
+INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/cozartc/boost#-I/usr/local/include
 SYS=WIN
+DB=USE_DB
 #R=USE_R
 
 #
@@ -67,6 +68,10 @@ ifeq ($(R),USE_R)
 	CC += -DUSE_R
 	OBJECTS += ProcessEarth.o
 	LIB += -lR
+endif
+ifeq ($(DB),USE_DB)
+	CC += -DUSE_DB
+	LIB += -lsqlitewrapped
 endif
 
 #

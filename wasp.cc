@@ -2028,10 +2028,12 @@ ORDER parseInput(string file){
 		}
 		count++;
 		bool overwrite = true;
+		//remove white space at end of line (command to process)
 		while(line.length() > 0 && (line.at(line.length() - 1) == ' ' || line.at(line.length() - 1) == '\t')){
 			line.erase(line.length() - 1);
 		}
 		map<string, int>::iterator found = allsteps.find(line);
+		//if the command is a duplicate
 		if(found != allsteps.end()){
 			overwrite = false;
 		}

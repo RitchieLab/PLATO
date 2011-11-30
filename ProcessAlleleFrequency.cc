@@ -335,7 +335,14 @@ void ProcessAlleleFrequency::initializeCounts(int v) {
  *
  */
 void ProcessAlleleFrequency::processtest() {
-
+#ifdef USE_DB
+	//create a Query object if set to use a database
+	Query myQuery(*db);
+	//TODO:  create the following method...
+	create_tables();
+#else
+	//this section sets up the output files, headers and filestreams
+	//and is not included if USE_DB is defined
 	map<string, double> group_avg;
 	int total_snps = 0;
 
@@ -449,6 +456,8 @@ void ProcessAlleleFrequency::processtest() {
 		opts::addHeader(gafnameavg, "N");
 	}
 
+#endif
+
 	int msize = data_set->num_loci();
 
 	int maxalleles = 0;
@@ -460,6 +469,8 @@ void ProcessAlleleFrequency::processtest() {
 		}
 	}
 
+#ifndef USE_DB
+	//the following code is needed only for the file output
 	myoutput.precision(4);
 	mygeno.precision(4);
 	if (data_set->get_locus(0)->getDetailHeaders().size() > 0) {
@@ -807,8 +818,13 @@ void ProcessAlleleFrequency::processtest() {
 		}
 		cc << endl;
 	}
-
+#endif
 	//begin processing
+#ifdef USE_DB
+	//need these strings to hold DB insert statements if using DB
+	string insert = "";
+	string ginsert = "";
+#endif
 	AlleleFrequency af;
 	af.resetDataSet(data_set);
 	af.initializeCounts(0);
@@ -825,8 +841,10 @@ void ProcessAlleleFrequency::processtest() {
 		useoverall = true;
 	}
 
-//	int prev_base = 0;
-//	int prev_chrom = -1;
+#ifdef USE_DB
+	//open a transaction for the following insert statements if using DB
+	myQuery.transaction();
+#endif
 	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 	msize = good_markers.size();
 
@@ -844,18 +862,53 @@ void ProcessAlleleFrequency::processtest() {
 			doFilter(mark, &af);//data_set->get_locus(k), &af);
 
 			if (mark->isMicroSat()){//data_set->get_locus(k)->isMicroSat()) {
+#ifndef USE_DB
 				myoutput << mark->toString();//data_set->get_locus(k)->toString();
+#else
+				string insert = defaultinsert;
+				insert += "," + mark.toString();
+				string geninsert = defaultgenoinsert;
+				geninsert += "," + mark.toString();
+#endif
 				if (options.doGroupFile()) {
+#ifndef USE_DB
 					gmyoutput << mark->toString();//data_set->get_locus(k)->toString();
+#else
+					string ginsert = groupinsert;
+					ginsert += "," + mark.toString();
+					string ggeninsert = groupgenoinsert;
+					ggeninsert += "," + mark.toString();
+#endif
 				}
 				if (options.doParental()) {
+#ifndef USE_DB
 					paren << mark->toString();//data_set->get_locus(k)->toString();
+#else
+					string pinsert = parentalinsert;
+					pinsert += "," + mark->toString();
+					string pgeninsert = parentalgenoinsert;
+					pgeninsert += "," + mark->toString();
+#endif
 				}
 				if (options.doGender()) {
+#ifndef USE_DB
 					gend << mark->toString();//data_set->get_locus(k)->toString();
+#else
+					string gendinsert = genderinsert;
+					gendinsert += "," + mark->toString();
+					string gendgeninsert = gendergenoinsert;
+					gendgeninsert += "," + mark->toString();
+#endif
 				}
 				if (options.doCaseControl()) {
+#ifndef USE_DB
 					cc << mark->toString();//data_set->get_locus(k)->toString();
+#else
+					string ccinsert = casecontrolinsert;
+					ccinsert += "," mark->toString();
+					string ccgeninsert = casecontrolgenoinsert;
+					ccgeninsert += "," + mark->toString();
+#endif
 				}
 				int total_o = 0;
 				int total_ca = 0;
@@ -871,34 +924,74 @@ void ProcessAlleleFrequency::processtest() {
 					total_con += af.getMicroCountCon(a);
 				}
 				for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 					myoutput << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
+#else
+					insert += ",'" + mark->getAllele(a) + "'";
+#endif
 					if (options.doGroupFile()) {
+#ifndef USE_DB
 						gmyoutput << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
+#else
+						ginsert += ",'" + mark->getAllele(a) + "'";
+#endif
 					}
 					if (options.doParental()) {
+#ifndef USE_DB
 						paren << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
+#else
+						pinsert += ",'" + mark->getAllele(a) + "'";
+#endif
 					}
 					if (options.doGender()) {
+#ifndef USE_DB
 						gend << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
+#else
+						gendinsert += ",'" + mark->getAllele(a) + "'";
+#endif
 					}
 					if (options.doCaseControl()) {
+#ifndef USE_DB
 						cc << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
+#else
+						ccinsert += ",'" + mark->getAllele(a) = "'";
+#endif
 					}
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 						if (options.doGroupFile()) {
+#ifndef USE_DB
 							gmyoutput << "\tNA";
+#else
+							ginsert += ",NULL";
+#endif
 						}
 						if (options.doParental()) {
+#ifndef USE_DB
 							paren << "\tNA";
+#else
+							pinsert += ",NULL";
+#endif
 						}
 						if (options.doGender()) {
+#ifndef USE_DB
 							gend << "\tNA";
+#else
+							geninsert += ",NULL";
+#endif
 						}
 						if (options.doCaseControl()) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 				}
@@ -910,67 +1003,123 @@ void ProcessAlleleFrequency::processtest() {
 					} else {
 						freq = ((float) af.getMicroCountP(a) / (float) total_o);
 					}
+#ifndef USE_DB
 					myoutput << "\t" << freq;
+#else
+					insert += "," + getString<float>freq;
+#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 				}
 				for (int a = 0; a < numalleles; a++) {
 					if (useoverall) {
+#ifndef USE_DB
 						myoutput << "\t" << af.getMicroCount(a);
+#else
+						insert += "," + getString<int>(af.getMicroCount(a));
+#endif
 					} else {
+#ifndef USE_DB
 						myoutput << "\t" << af.getMicroCountP(a);
+#else
+						insert += "," + getString<int>(af.getMicroCountP(a));
+#endif
 					}
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 				}
 				//case
 				for (int a = 0; a < numalleles; a++) {
 					float freq = ((float) af.getMicroCountCa(a)
 							/ (float) total_ca);
+#ifndef USE_DB
 					myoutput << "\t" << freq;
+#else
+					insert += "," + getString<float>(freq);
+#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 				}
 				for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 					myoutput << "\t" << af.getMicroCountCa(a);
+#else
+					insert += "," + getString<int>(af.getMicroCountCa(a));
+#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 				}
 				//control
 				for (int a = 0; a < numalleles; a++) {
 					float freq = ((float) af.getMicroCountCon(a)
 							/ (float) total_con);
+#ifndef USE_DB
 					myoutput << "\t" << freq;
+#else
+					insert += "," + getString<float>(freq);
+#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 				}
 				for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 					myoutput << "\t" << af.getMicroCountCon(a);
+#else
+					insert += "," + getString<int>(af.getMicroCountCon(a));
+#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 						myoutput << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 				}
 				//groups?
+#ifndef USE_DB
 				mygeno << mark->toString();//data_set->get_locus(k)->toString();
+#endif
 				if (options.doGroupFile()) {
+#ifndef USE_DB
 					gmygeno << mark->toString();//data_set->get_locus(k)->toString();
+#endif
 					int gm_total = 0;
 					map<string, vector<Sample*> > groups = options.getGroups();
 					map<string, vector<Sample*> >::iterator giter;
@@ -983,41 +1132,94 @@ void ProcessAlleleFrequency::processtest() {
 							float freq =
 									((float) af.getGroupMicroCount(mygroup, a)
 											/ (float) gm_total);
+#ifndef USE_DB
 							gmyoutput << "\t" << freq;
+#else
+							ginsert += "," + getString<float>(freq);
+#endif
 						}
 						if (maxalleles > numalleles) {
 							for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 								gmyoutput << "\tNA";
+#else
+								ginsert += ",NULL";
+#endif
 							}
 						}
 						for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 							gmyoutput << "\t" << af.getGroupMicroCount(mygroup, a);
+#else
+							ginsert += "," + getString<int>(af.getGroupMicroCount(mygroup, a));
+#endif
 						}
 						if (maxalleles > numalleles) {
 							for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 								gmyoutput << "\tNA";
+#else
+								ginsert += ",NULL";
+#endif
 							}
 						}
+#ifndef USE_DB
 						gmygeno << "\tNA\tNA\tNA\tNA\tNA\tNA";
+#else
+						ginsert += ",NULL,NULL,NULL,NULL,NULL,NULL";
+#endif
 					}
+#ifndef USE_DB
 					gmyoutput << endl;
+#else
+					ginsert += ")";
+					//TODO: add Controller to Plato library
+					Controller::execute_sql(myQuery, ginsert);
+#endif
 				}
+#ifndef USE_DB
 				myoutput << endl;
+#else
+				insert += ")";
+				//TODO: add Controller to Plato library
+				Controller::execute_sql(myQuery, insert);
+#endif
 
 				for (int l = 0; l < 21; l++) {
+#ifndef USE_DB
 					mygeno << "\tNA";
+#else
+					geninsert += ",NULL";
+#endif
 					if (options.doGroupFile()) {
+#ifndef USE_DB
 						gmygeno << "\tNA";
+#else
+						ggeninsert += ",NULL";
+#endif
 					}
 				}
-
+#ifndef USE_DB
 				mygeno << endl;
+#else
+				geninsert += ")";
+				//TODO:  Controller
+				Controller::execute_sql(myQuery, geninsert);
+#endif
 				if (options.doGroupFile()) {
+#ifndef USE_DB
 					gmygeno << endl;
+#else
+					ggeninsert += ")";
+					//TODO: controller
+					Controller::execute_sql(myQuery, ggeninsert);
+#endif
 				}
 
 				if (options.doParental()) {
+#ifndef USE_DB
 					pareng << mark->toString();//data_set->get_locus(k)->toString();
+#endif
 					int total_pm = 0;
 					int total_pf = 0;
 					for (int a = 0; a < numalleles; a++) {
@@ -1028,50 +1230,100 @@ void ProcessAlleleFrequency::processtest() {
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountPM(a)
 								/ (float) total_pm);
+#ifndef USE_DB
 						paren << "\t" << freq;
+#else
+						pinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							paren << "\tNA";
+#else
+							pinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 						paren << "\t" << af.getMicroCountPM(a);
+#else
+						pinsert += "," + af.getMicroCountPM(a);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							paren << "\tNA";
+#else
+							pinsert += ",NULL";
+#endif
 						}
 					}
 					//Female
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountPF(a)
 								/ (float) total_pf);
+#ifndef USE_DB
 						paren << "\t" << freq;
+#else
+						pinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							paren << "\tNA";
+#else
+							pinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 						paren << "\t" << af.getMicroCountPF(a);
+#else
+						pinsert += "," + getString<int>(af.getMicroCountPF(a));
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							paren << "\tNA";
+#else
+							pinsert += ",NULL";
+#endif
 						}
 					}
+#ifndef USE_DB
 					paren << endl;
+#else
+					pinsert += ")";
+					//TODO: controller
+					Controller::execute_sql(myQuery, pinsert);
+#endif
 
 					for (int l = 0; l < 15; l++) {
+#ifndef USE_DB
 						pareng << "\tNA";
+#else
+						pgeninsert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					pareng << endl;
+#else
+					pgeninsert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, pgeninsert);
+#endif
 
 				}
 				if (options.doGender()) {
+#ifndef USE_DB
 					gendg << mark->toString();//data_set->get_locus(k)->toString();
+#endif
 					int total_pm = 0;
 					int total_pf = 0;
 					for (int a = 0; a < numalleles; a++) {
@@ -1093,23 +1345,43 @@ void ProcessAlleleFrequency::processtest() {
 							freq = ((float) af.getMicroCountPM(a)
 									/ (float) total_pm);
 						}
+#ifndef USE_DB
 						gend << "\t" << freq;
+#else
+						gendinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							gend << "\tNA";
+#else
+							gendinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
 						if (useoverall) {
+#ifndef USE_DB
 							gend << "\t" << af.getMicroCountM(a);
+#else
+							gendinsert += "," + getString<int>(af.getMicroCountM(a));
+#endif
 						} else {
+#ifndef USE_DB
 							gend << "\t" << af.getMicroCountPM(a);
+#else
+							gendinsert += "," + getString<int>(af.getMicroCountPM(a));
+#endif
 						}
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							gend << "\tNA";
+#else
+							gendinsert += ",NULL";
+#endif
 						}
 					}
 					//Female
@@ -1122,35 +1394,73 @@ void ProcessAlleleFrequency::processtest() {
 							freq = ((float) af.getMicroCountPF(a)
 									/ (float) total_pf);
 						}
+#ifndef USE_DB
 						gend << "\t" << freq;
+#else
+						gendinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							gend << "\tNA";
+#else
+							gendinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
 						if (useoverall) {
+#ifndef USE_DB
 							gend << "\t" << af.getMicroCountF(a);
+#else
+							gendinsert += "," + getString<int>(af.getMicroCountF(a));
+#endif
 						} else {
+#ifndef USE_DB
 							gend << "\t" << af.getMicroCountPF(a);
+#else
+							gendinsert += "," + getString<int>(af.getMicroCountPF(a));
+#endif
 						}
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							gend << "\tNA";
+#else
+							gendinsert += ",NULL";
+#endif
 						}
 					}
+#ifndef USE_DB
 					gend << endl;
+#else
+					geninsert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, gendinsert);
+#endif
 
 					for (int l = 0; l < 15; l++) {
+#ifndef USE_DB
 						gendg << "\tNA";
+#else
+						gendgeninsert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					gendg << endl;
+#else
+					gendgeninsert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, gendgeninsert);
+#endif
 
 				}
 				if (options.doCaseControl()) {
+#ifndef USE_DB
 					ccg << mark->toString();//data_set->get_locus(k)->toString();
+#endif
 					int total_cam = 0;
 					int total_caf = 0;
 					int total_conm = 0;
@@ -1165,99 +1475,201 @@ void ProcessAlleleFrequency::processtest() {
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountCaM(a)
 								/ (float) total_cam);
+#ifndef USE_DB
 						cc << "\t" << freq;
+#else
+						ccinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 						cc << "\t" << af.getMicroCountCaM(a);
+#else
+						ccinsert += "," + getString<float>(af.getMicroCountCaM(a));
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					//Case Female
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountCaF(a)
 								/ (float) total_caf);
+#ifndef USE_DB
 						cc << "\t" << freq;
+#else
+						ccinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 						cc << "\t" << af.getMicroCountCaF(a);
+#else
+						ccinsert += "," + getString<int>(af.getMicroCountCaF(a));
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					//Control Male
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountConM(a)
 								/ (float) total_conm);
+#ifndef USE_DB
 						cc << "\t" << freq;
+#else
+						ccinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 						cc << "\t" << af.getMicroCountConM(a);
+#else
+						ccinsert += "," + getString<int>(af.getMicroCountConM(a));
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					//Control Female
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountConF(a)
 								/ (float) total_conf);
+#ifndef USE_DB
 						cc << "\t" << freq;
+#else
+						ccinsert += "," + getString<float>(freq);
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
+#ifndef USE_DB
 						cc << "\t" << af.getMicroCountConF(a);
+#else
+						ccinsert += "," + getString<int>(af.getMicroCountConF(a));
+#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
+#ifndef USE_DB
 							cc << "\tNA";
+#else
+							ccinsert += ",NULL";
+#endif
 						}
 					}
+#ifndef USE_DB
 					cc << endl;
+#else
+					ccinsert += ")";
+					//TODO: controller
+					Controller::execute_sql(myQuery, ccinsert);
+#endif
 
 					for (int l = 0; l < 27; l++) {
+#ifndef USE_DB
 						ccg << "\tNA";
+#else
+						ccgeninsert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					ccg << endl;
+#else
+					ccgeninsert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, ccgeninsert);
+#endif
 
 				}
 			} else { //not microsats
+#ifndef USE_DB
 				myoutput << mark->toString() << "\t"
 						<< mark->getAllele1() << "\t"
 						<< mark->getAllele2();
+#else
+				insert = defaultinsert;
+				insert += "," + mark->toString();
+				insert += ",'" + mark->getAllele1() + "'";
+				insert += ",'" + mark->getAllele2() + "'";
+#endif
 				if (options.doGroupFile()) {
+#ifndef USE_DB
 					gmyoutput << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
+#else
+					ginsert = groupinsert;
+					ginsert += "," + mark->toString();
+					ginsert += ",'" + mark->getAllele1() + "'";
+					ginsert += ",'" + mark->getAllele2() + "'";
+#endif
 				}
 				for (int l = 2; l < maxalleles; l++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 					if (options.doGroupFile()) {
+#ifndef USE_DB
 						gmyoutput << "\tNA";
+#else
+						ginsert += ",NULL";
+#endif
 					}
 				}
 
@@ -1269,39 +1681,98 @@ void ProcessAlleleFrequency::processtest() {
 					majfreq = af.getAoneP_freq();
 				}
 				float minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 				myoutput << "\t" << majfreq << "\t" << minfreq;
+#else
+				insert += "," + getString<float>(majfreq);
+				insert += "," + getString<float>(minfreq);
+#endif
 				for (int l = 2; l < maxalleles; l++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 				}
 				if (useoverall) {
+#ifndef USE_DB
 					myoutput << "\t" << af.getAone_count() << "\t" << af.getAtwo_count();
+#else
+					insert += "," + getString<int>(af.getAone_count());
+					insert += "," + getStirng<int>(af.getAtwo_count());
+#endif
 				} else {
+#ifndef USE_DB
 					myoutput << "\t" << af.getAoneP_count() << "\t" << af.getAtwoP_count();
+#else
+					insert += "," + getString<int>(af.getAoneP_count());
+					insert += "," + getString<int>(af.getAtwoP_count());
+#endif
 				}
 				for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 				}
 				//case
 				majfreq = af.getAoneCa_freq();
 				minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 				myoutput << "\t" << majfreq << "\t" << minfreq;
+#else
+				insert += "," + getString<float>(majfreq);
+				insert += "," + getString<float>(minfreq);
+#endif
 				for (int l = 2; l < maxalleles; l++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 				}
+#ifndef USE_DB
 				myoutput << "\t" << af.getAoneCa_count() << "\t" << af.getAtwoCa_count();
+#else
+				insert += "," + getString<int>(af.getAoneCa_count());
+				insert += "," + getString<int>(af.getAtwoCa_count());
+#endif
 				for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 				}
 				//control
 				majfreq = af.getAoneCon_freq();
 				minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 				myoutput << "\t" << majfreq << "\t" << minfreq;
+#else
+				insert += "," + getString<float>(majfreq);
+				insert += "," + getString<float>(minfreq);
+#endif
 				for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 				}
+#ifndef USE_DB
 				myoutput << "\t" << af.getAoneCon_count() << "\t" << af.getAtwoCon_count();
+#else
+				insert += "," + getString<int>(af.getAoneCon_count());
+				insert += "," + getString<int>(af.getAtwoCon_count());
+#endif
 				for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 					myoutput << "\tNA";
+#else
+					insert += ",NULL";
+#endif
 				}
 
 				//groups?
@@ -1315,14 +1786,32 @@ void ProcessAlleleFrequency::processtest() {
 						float freq = ((float) af.getGroupAone_count(mygroup)
 								/ (float) gm_total);
 						float freq2 = 1.0f - freq;
+#ifndef USE_DB
 						gmyoutput << "\t" << freq << "\t" << freq2;
+#else
+						ginsert += "," + getString<float>(freq);
+						ginsert += "," + getString<float>(freq2);
+#endif
 						for (int b = 2; b < maxalleles; b++) {
+#ifndef USE_DB
 							gmyoutput << "\tNA";
+#else
+							ginsert += ",NULL";
+#endif
 						}
+#ifndef USE_DB
 						gmyoutput << "\t" << af.getGroupAone_count(mygroup) << "\t"
 								<< af.getGroupAtwo_count(mygroup);
+#else
+						ginsert += "," + getString<int>(af.getGroupAone_count(mygroup));
+						ginsert += "," + getString<int>(af.getGroupAtwo_count(mygroup));
+#endif
 						for (int b = 2; b < maxalleles; b++) {
+#ifndef USE_DB
 							gmyoutput << "\tNA";
+#else
+							ginsert += ",NULL";
+#endif
 						}
 
 						if(freq < freq2){
@@ -1332,11 +1821,22 @@ void ProcessAlleleFrequency::processtest() {
 							group_avg[mygroup] += freq2;
 						}
 					}
+#ifndef USE_DB
 					gmyoutput << endl;
+#else
+					ginsert += ")";
+					//TODO: controller
+					Controller::execute_sql(myQuery, ginsert);
+#endif
 				}
-
+#ifndef USE_DB
 				myoutput << endl;
-
+#else
+				insert += ")";
+				//TODO: Controller
+				Controller::execute_sql(myQuery, insert);
+#endif
+#ifndef USE_DB
 				mygeno << mark->toString() << "\t"
 						<< mark->getAllele1() << "_"
 						<< mark->getAllele1() << "\t"
@@ -1344,7 +1844,15 @@ void ProcessAlleleFrequency::processtest() {
 						<< mark->getAllele2() << "\t"
 						<< mark->getAllele2() << "_"
 						<< mark->getAllele2();
+#else
+				insert = defaultgenoinsert;
+				insert += "," + mark->toString();
+				insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
+				insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
+				insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
+#endif
 				if (options.doGroupFile()) {
+#ifndef USE_DB
 					gmygeno << mark->toString() << "\t"
 							<< mark->getAllele1() << "_"
 							<< mark->getAllele1() << "\t"
@@ -1352,6 +1860,13 @@ void ProcessAlleleFrequency::processtest() {
 							<< mark->getAllele2() << "\t"
 							<< mark->getAllele2() << "_"
 							<< mark->getAllele2();
+#else
+					ginsert = groupgenoinsert;
+					ginsert += "," + mark->toString();
+					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
+					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
+					ginsert += ",'" + mark->getallele2() + "_" + mark->getallele2() + "'";
+#endif
 				}
 				//overall
 				float freq1 = 0.0f;
@@ -1361,16 +1876,40 @@ void ProcessAlleleFrequency::processtest() {
 					freq1 = ((float) af.getAonehomo()) / (af.getPop());
 					freq2 = ((float) af.getHet()) / (af.getPop());
 					freq3 = ((float) af.getAtwohomo()) / (af.getPop());
+#ifndef USE_DB
 					mygeno << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomo() << "\t" << af.getHet()
 							<< "\t" << af.getAtwohomo() << "\t";
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2)  || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomo());
+					insert += "," + getString<int>(af.getHet());
+					insert += "," + getString<int>(af.getAtwohomo());
+#endif
 				} else {
 					freq1 = ((float) af.getAonehomoP()) / (af.getPopP());
 					freq2 = ((float) af.getHetP()) / (af.getPopP());
 					freq3 = ((float) af.getAtwohomoP()) / (af.getPopP());
+#ifndef USE_DB
 					mygeno << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoP() << "\t" << af.getHetP()
 							<< "\t" << af.getAtwohomoP() << "\t";
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoP());
+					insert += "," + getString<int>(af.getHetP());
+					insert += "," + getString<int>(af.getAtwohomoP());
+#endif
 				}
 
 				//			mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t" << a1_homo_countP << "\t"
@@ -1380,16 +1919,40 @@ void ProcessAlleleFrequency::processtest() {
 				freq1 = ((float) af.getAonehomoCa()) / (af.getPopCa());
 				freq2 = ((float) af.getHetCa()) / (af.getPopCa());
 				freq3 = ((float) af.getAtwohomoCa()) / (af.getPopCa());
+#ifndef USE_DB
 				mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t"
 						<< af.getAonehomoCa() << "\t" << af.getHetCa() << "\t"
 						<< af.getAtwohomoCa() << "\t";
+#else
+				insert += ",";
+				insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+				insert += ",";
+				insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+				insert += ",";
+				insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+				insert += "," + getString<int>(af.getAonehomoCa());
+				insert += "," + getString<int>(af.getHetCa());
+				insert += "," + getString<int>(af.getAtwohomoCa());
+#endif
 				//control overall
 				freq1 = ((float) af.getAonehomoCon()) / (af.getPopCon());
 				freq2 = ((float) af.getHetCon()) / (af.getPopCon());
 				freq3 = ((float) af.getAtwohomoCon()) / (af.getPopCon());
+#ifndef USE_DB
 				mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t"
 						<< af.getAonehomoCon() << "\t" << af.getHetCon() << "\t"
 						<< af.getAtwohomoCon();
+#else
+				insert += ",";
+				insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+				insert += ",";
+				insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+				insert += ",";
+				insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+				insert += "," + getString<int>(af.getAonehomoCon());
+				insert += "," + getString<int>(af.gethetCon());
+				insert += "," + getString<int>(af.getAtwohomoCon());
+#endif
 
 				//groups?
 				if (options.doGroupFile()) {
@@ -1402,21 +1965,56 @@ void ProcessAlleleFrequency::processtest() {
 						freq1 = ((float) af.getGroupAonehomo(mygroup) / genotot);
 						freq2 = ((float) af.getGroupHet(mygroup) / genotot);
 						freq3 = ((float) af.getGroupAtwohomo(mygroup) / genotot);
+#ifndef USE_DB
 						gmygeno << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getGroupAonehomo(mygroup)
 								<< "\t" << af.getGroupHet(mygroup) << "\t"
 								<< af.getGroupAtwohomo(mygroup);
+#else
+						ginsert += ",";
+						ginsert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+						ginsert += ",";
+						ginsert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+						ginsert += ",";
+						ginsert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+						ginsert += "," + getString<int>(af.getGroupAonehomo(mygroup));
+						ginsert += "," + getString<int>(af.getGroupHet(mygroup));
+						ginsert += "," + getString<int>(af.getGroupAtwohomo(mygroup));
+#endif
 					}
+#ifndef USE_DB
 					gmygeno << endl;
+#else
+					ginsert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, ginsert);
+#endif
 				}
+#ifndef USE_DB
 				mygeno << endl;
+#else
+				insert += ")";
+				//TODO: Controller
+				Controller::execute_sql(myQuery, insert);
+#endif
 
 				if (options.doParental()) {
+#ifndef USE_DB
 					paren << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
+#else
+					insert = parentalinsert;
+					insert + "," + mark->toString();
+					insert += ",'" + mark->getAllele1() + "'";
+					insert += ",'" + mark->getAllele2() + "'";
+#endif
 					for (int l = 2; l < maxalleles; l++) {
+#ifndef USE_DB
 						paren << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					//parent male
 					float majfreq = af.getAonePM_freq();
@@ -1425,55 +2023,144 @@ void ProcessAlleleFrequency::processtest() {
 						majfreq = 0;
 						minfreq = 0;
 					}
+#ifndef USE_DB
 					paren << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," = getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						paren << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					paren << "\t" << af.getAonePM_count() << "\t" << af.getAtwoPM_count();
+#else
+					insert += "," + getString<int>(af.getAonePM_count());
+					insert += "," + getString<int>(af.getAtwoPM_count());
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						paren << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					//parent female
 					majfreq = af.getAonePF_freq();
 					minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 					paren << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," + getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						paren << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					paren << "\t" << af.getAonePF_count() << "\t" << af.getAtwoPF_count();
+#else
+					insert += "," + getString<int>(af.getAonePF_count());
+					insert += "," + getString<int>(af.getAtwoPF_count());
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						paren << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					paren << endl;
 
 					pareng << mark->toString() << "\t"
-							<< mark->getAllele1() << "_"
-							<< mark->getAllele1() << "\t"
-							<< mark->getAllele1() << "_"
-							<< mark->getAllele2() << "\t"
-							<< mark->getAllele2() << "_"
-							<< mark->getAllele2();
+					<< mark->getAllele1() << "_"
+					<< mark->getAllele1() << "\t"
+					<< mark->getAllele1() << "_"
+					<< mark->getAllele2() << "\t"
+					<< mark->getAllele2() << "_"
+					<< mark->getAllele2();
+#else
+					insert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, insert);
+
+					insert = parentalgenoinsert;
+					insert += "," + mark->toString();
+					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
+					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
+					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
+#endif
+
+
 					float freq1 = ((float) af.getAonehomoPM()) / (af.getPopPM());
 					float freq2 = ((float) af.getHetPM()) / (af.getPopPM());
 					float freq3 = ((float) af.getAtwohomoPM()) / (af.getPopPM());
+#ifndef USE_DB
 					pareng << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoPM() << "\t" << af.getHetPM()
 							<< "\t" << af.getAtwohomoPM();
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoPM());
+					insert += "," + getString<int>(af.getHetPM());
+					insert += "," + getString<int>(af.getAtwohomoPM());
+#endif
 					freq1 = ((float) af.getAonehomoPF()) / (af.getPopPF());
 					freq2 = ((float) af.getHetPF()) / (af.getPopPF());
 					freq3 = ((float) af.getAtwohomoPF()) / (af.getPopPF());
+#ifndef USE_DB
 					pareng << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoPF() << "\t" << af.getHetPF()
 							<< "\t" << af.getAtwohomoPF();
 					pareng << endl;
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoPF());
+					insert += "," + getString<int>(af.getHetPF());
+					insert += "," + getString<int>(af.getAtwohomoPF());
+
+					insert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, insert);
+#endif
 				}
 				if (options.doGender()) {
 					//overall male
+#ifndef USE_DB
 					gend << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
+#else
+					insert = genderinsert;
+					insert += "," = mark->toString();
+					insert += ",'" + mark->getAllele1() + "'";
+					insert += ",'" + mark->getAllele2() + "'";
+#endif
 					for (int l = 2; l < maxalleles; l++) {
+#ifndef USE_DB
 						gend << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					float majfreq = 0.0f;
 					if (useoverall) {
@@ -1489,17 +2176,40 @@ void ProcessAlleleFrequency::processtest() {
 						majfreq = 0;
 						minfreq = 0;
 					}
+#ifndef USE_DB
 					gend << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," + getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						gend << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					if (useoverall) {
+#ifndef USE_DB
 						gend << "\t" << af.getAoneM_count() << "\t" << af.getAtwoM_count();
+#else
+						insert += "," + getString<int>(af.getAoneM_count());
+						insert += "," + getString<int>(af.getAtwoM_count());
+#endif
 					} else {
+#ifndef USE_DB
 						gend << "\t" << af.getAonePM_count() << "\t" << af.getAtwoPM_count();
+#else
+						insert += "," + getString<int>(af.getAonePM_count());
+						insert += "," + getString<int>(af.getAtwoPM_count());
+#endif
 					}
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						gend << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					//overall female
 					if (useoverall) {
@@ -1508,18 +2218,42 @@ void ProcessAlleleFrequency::processtest() {
 						majfreq = af.getAonePF_freq();
 					}
 					minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 					gend << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," + getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						gend << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					if (useoverall) {
+#ifndef USE_DB
 						gend << "\t" << af.getAoneF_count() << "\t" << af.getAtwoF_count();
+#else
+						insert += "," + getString<int>(af.getAoneF_count());
+						insert += "," + getString<int>(af.getAtwoF_count());
+#endif
 					} else {
+#ifndef USE_DB
 						gend << "\t" << af.getAonePF_count() << "\t" << af.getAtwoPF_count();
+#else
+						insert += "," + getString<int>(af.getAonePF_count());
+						insert += "," + getString<int>(af.getAtwoPF_count());
+#endif
 					}
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						gend << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					gend << endl;
 
 					gendg << mark->toString() << "\t"
@@ -1529,47 +2263,123 @@ void ProcessAlleleFrequency::processtest() {
 							<< mark->getAllele2() << "\t"
 							<< mark->getAllele2() << "_"
 							<< mark->getAllele2();
+#else
+					insert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, insert);
+
+					insert = gendergenoinsert;
+					insert += "," + mark->toString();
+					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
+					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
+					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
+#endif
 					if (useoverall) {
 						float freq1 =
 								((float) af.getAonehomoM()) / (af.getPopM());
 						float freq2 = ((float) af.getHetM()) / (af.getPopM());
 						float freq3 =
 								((float) af.getAtwohomoM()) / (af.getPopM());
+#ifndef USE_DB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoM() << "\t"
 								<< af.getHetM() << "\t" << af.getAtwohomoM();
+#else
+						insert += ",";
+						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+						insert += ",";
+						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+						insert += ",";
+						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+						insert += "," + getString<int>(af.getAonehomoM());
+						insert += "," + getString<int>(af.getHetM());
+						insert += "," + getString<int>(af.getAtwohomoM());
+#endif
 						freq1 = ((float) af.getAonehomoF()) / (af.getPopF());
 						freq2 = ((float) af.getHetF()) / (af.getPopF());
 						freq3 = ((float) af.getAtwohomoF()) / (af.getPopF());
+#ifndef USE_DB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoF() << "\t"
 								<< af.getHetF() << "\t" << af.getAtwohomoF();
+#else
+						insert += ",";
+						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+						insert += ",";
+						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+						insert += ",";
+						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+						insert += "," + getString<int>(af.getAonehomoF());
+						insert += "," + getString<int>(af.getHetF());
+						insert += "," + getString<int>(af.getAtwohomoF());
+#endif
 					} else {
 						float freq1 = ((float) af.getAonehomoPM())
 								/ (af.getPopPM());
 						float freq2 = ((float) af.getHetPM()) / (af.getPopPM());
 						float freq3 = ((float) af.getAtwohomoPM())
 								/ (af.getPopPM());
+#ifndef USE_DB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoPM() << "\t"
 								<< af.getHetPM() << "\t" << af.getAtwohomoPM();
+#else
+						insert += ",";
+						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+						insert += ",";
+						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+						insert += ",";
+						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+						insert += "," + getString<int>(af.getAonehomoPM());
+						insert += "," + getString<int>(af.getHetPM());
+						insert += "," + getString<int>(af.getAtwohomoPM());
+#endif
 						freq1 = ((float) af.getAonehomoPF()) / (af.getPopPF());
 						freq2 = ((float) af.getHetPF()) / (af.getPopPF());
 						freq3 = ((float) af.getAtwohomoPF()) / (af.getPopPF());
+#ifndef USE_DB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoPF() << "\t"
 								<< af.getHetPF() << "\t" << af.getAtwohomoPF();
+#else
+						insert += ",";
+						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+						insert += ",";
+						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+						insert += ",";
+						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
+						insert += "," + getString<int>(af.getAonehomoPF());
+						insert += "," + getString<int>(af.getHetPF());
+						insert += "," + getString<int>(af.getAtwohomoPF());
+#endif
 					}
+#ifndef USE_DB
 					gendg << endl;
+#else
+					insert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, insert);
+#endif
 
 				}
 				if (options.doCaseControl()) {
 					//case male
+#ifndef USE_DB
 					cc << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
+#else
+					insert = casecontrolinsert;
+					insert += "," + mark->toString();
+					insert += ",'" + mark->getAllele1() + "'";
+					insert += ",'" + mark->getAllele2() + "'";
+#endif
 					for (int l = 2; l < maxalleles; l++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					float majfreq = af.getAoneCaM_freq();
 					float minfreq = 1.0f - majfreq;
@@ -1577,24 +2387,60 @@ void ProcessAlleleFrequency::processtest() {
 						majfreq = 0;
 						minfreq = 0;
 					}
+#ifndef USE_DB
 					cc << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," + getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					cc << "\t" << af.getAoneCaM_count() << "\t" << af.getAtwoCaM_count();
+#else
+					insert += "," + getString<int>(af.getAoneCaM_count());
+					insert += "," + getString<int>(af.getAtwoCaM_count());
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					//case female
 					majfreq = af.getAoneCaF_freq();
 					minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 					cc << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," + getString<float>(majfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					cc << "\t" << af.getAoneCaF_count() << "\t" << af.getAtwoCaF_count();
+#else
+					insert += "," + getString<int>(af.getAoneCaF_count());
+					insert += "," + getString<int>(af.getAtwoCaF_count());
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					//control male
 					majfreq = af.getAoneConM_freq();
@@ -1603,25 +2449,62 @@ void ProcessAlleleFrequency::processtest() {
 						majfreq = 0;
 						minfreq = 0;
 					}
+#ifndef USE_DB
 					cc << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert + "," + getString<float>(majfreq);
+					insert += "," + getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					cc << "\t" << af.getAoneConM_count() << "\t" << af.getAtwoConM_count();
+#else
+					insert += "," + getString<int>(af.getAoneConM_count());
+					insert += "," + getString<int>(af.getAtwoConM_count());
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
 					//control female
 					majfreq = af.getAoneConF_freq();
 					minfreq = 1.0f - majfreq;
+#ifndef USE_DB
 					cc << "\t" << majfreq << "\t" << minfreq;
+#else
+					insert += "," + getString<float>(majfreq);
+					insert += "," + getString<float>(minfreq);
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					cc << "\t" << af.getAoneConF_count() << "\t" << af.getAtwoConF_count();
+#else
+					insert += "," + getString<int>(af.getAoneConF_count());
+					insert += "," + getString<int>(af.getAtwoConF_count());
+#endif
 					for (int t = 2; t < maxalleles; t++) {
+#ifndef USE_DB
 						cc << "\tNA";
+#else
+						insert += ",NULL";
+#endif
 					}
+#ifndef USE_DB
 					cc << endl;
 
 					ccg << mark->toString() << "\t"
@@ -1631,33 +2514,96 @@ void ProcessAlleleFrequency::processtest() {
 							<< mark->getAllele2() << "\t"
 							<< mark->getAllele2() << "_"
 							<< mark->getAllele2();
+#else
+					insert += ")";
+					//TODO: controller
+					Controller::execute_sql(myQuery, insert);
+
+					insert = casecontrolgenoinsert;
+					insert += "," mark->toString();
+					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
+					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
+					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
+#endif
 					float freq1 = ((float) af.getAonehomoCaM())
 							/ (af.getPopCaM());
 					float freq2 = ((float) af.getHetCaM()) / (af.getPopCaM());
 					float freq3 = ((float) af.getAtwohomoCaM())
 							/ (af.getPopCaM());
+#ifndef USE_DB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoCaM() << "\t" << af.getHetCaM()
 							<< "\t" << af.getAtwohomoCaM();
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoCaM());
+					insert += "," + getString<int>(af.getHetCaM());
+					insert += "," + getString<int>(af.getAtwohomoCaM());
+#endif
 					freq1 = ((float) af.getAonehomoCaF()) / (af.getPopCaF());
 					freq2 = ((float) af.getHetCaF()) / (af.getPopCaF());
 					freq3 = ((float) af.getAtwohomoCaF()) / (af.getPopCaF());
+#ifndef
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoCaF() << "\t" << af.getHetCaF()
 							<< "\t" << af.getAtwohomoCaF();
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoCaF());
+					insert += "," + getString<int>(af.getHetCaF());
+					insert += "," + getString<int>(af.getAtwohomoCaF());
+#endif
 					freq1 = ((float) af.getAonehomoConM()) / (af.getPopConM());
 					freq2 = ((float) af.getHetConM()) / (af.getPopConM());
 					freq3 = ((float) af.getAtwohomoConM()) / (af.getPopConM());
+#ifndef USE_DB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoConM() << "\t"
 							<< af.getHetConM() << "\t" << af.getAtwohomoConM();
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoConM());
+					insert += "," + getString<int>(af.getHetConM());
+					insert += "," + getString<int>(af.getAtwohomoConM());
+#endif
 					freq1 = ((float) af.getAonehomoConF()) / (af.getPopConF());
 					freq2 = ((float) af.getHetConF()) / (af.getPopConF());
 					freq3 = ((float) af.getAtwohomoConF()) / (af.getPopConF());
+#ifndef USE_DB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoConF() << "\t"
 							<< af.getHetConF() << "\t" << af.getAtwohomoConF();
 					ccg << endl;
+#else
+					insert += ",";
+					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
+					insert += ",";
+					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
+					insert += ",";
+					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
+					insert += "," + getString<int>(af.getAonehomoConF());
+					insert += "," + getString<int>(af.getHetConF());
+					insert += "," + getString<int>(af.getAtwohomoConF());
+
+					insert += ")";
+					//TODO: Controller
+					Controller::execute_sql(myQuery, insert);
+#endif
 
 				}
 			}
@@ -1666,7 +2612,8 @@ void ProcessAlleleFrequency::processtest() {
 			//doFilter(mark, &af);
 		}
 	}
-
+//TODO:  not sure if this block should have a database version or not...
+#ifndef USE_DB
 	if(options.doGroupFile()){
 		map<string, vector<Sample*> > groups = options.getGroups();
 		map<string, vector<Sample*> >::iterator giter;
@@ -1682,9 +2629,13 @@ void ProcessAlleleFrequency::processtest() {
 			}
 			gmyoutputavg << mygroup << "\t" << val << "\t" << goodsamps << endl;
 		}
-
 	}
 
+#endif
+//need to commit the above DB statements to the database
+#ifdef USE_DB
+	myQuery.commit();
+#endif
 }
 
 /*
