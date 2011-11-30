@@ -36,6 +36,11 @@
 #include <General.h>
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessClusterMissing::FilterSummary(){
 }
 
@@ -62,4 +67,6 @@ void ProcessClusterMissing::process(DataSet* ds){
 	miss.calculate(opts::_OUTPREFIX_, (options.getOut() + ".txt"));
 
 }
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif

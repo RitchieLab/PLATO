@@ -39,7 +39,10 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
-
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 void ProcessMDR::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
@@ -285,3 +288,6 @@ void ProcessMDR::process(DataSet* ds){
     	mdrout.close();
     }
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

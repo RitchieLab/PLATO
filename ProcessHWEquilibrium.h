@@ -26,6 +26,10 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessHWEquilibrium : public Process{
 	static string stepname;
@@ -146,5 +150,7 @@ class ProcessHWEquilibrium : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

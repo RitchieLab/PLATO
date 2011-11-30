@@ -24,6 +24,11 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessRunTDT::stepname = "tdt";
 
 void ProcessRunTDT::PrintSummary(){
@@ -236,4 +241,6 @@ void ProcessRunTDT::process(DataSet* ds){
 		}
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

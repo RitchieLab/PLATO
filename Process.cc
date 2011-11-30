@@ -4,6 +4,12 @@
 #include "Process.h"
 using namespace std;
 using namespace Methods;
+
+//define the PlatoLib namespace for use with Plato as a Library
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 Process::~Process(){}
 void Process::PrintSummary(){}
 void Process::filter(){};
@@ -20,3 +26,6 @@ void Process::setStratify(){};
 void Process::setOrder(int o){};
 void Process::setOverwrite(bool v){};
 bool Process::hasIncExc(){};
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

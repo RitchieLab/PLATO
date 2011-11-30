@@ -22,6 +22,13 @@
 #include <AlleleFrequency.h>
 using namespace std;
 using namespace Methods;
+
+//define the PlatoLib namespace for use with Plato as a library
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 class ProcessAlleleFrequency : public Process{
 	static string stepname;
 	private:
@@ -208,5 +215,7 @@ class ProcessAlleleFrequency : public Process{
 		void create_tables();
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

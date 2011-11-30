@@ -33,6 +33,11 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessLAPISOutput::stepname = "output-lapis";
 
 void ProcessLAPISOutput::FilterSummary(){
@@ -83,4 +88,6 @@ void ProcessLAPISOutput::process(DataSet* ds){
 
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

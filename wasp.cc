@@ -26,6 +26,9 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+using namespace PlatoLib;
+#endif
 
 static string _WASPVER_ = "0.83";
 //enum for batch file step switch
@@ -2365,7 +2368,7 @@ Step initializeSteps(string i){
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
-				tempproc = new ProcessAlleleFrequency();
+				tempproc = new PlatoLib::ProcessAlleleFrequency();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -3214,7 +3217,7 @@ STEPS initializeSteps(){
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
-				tempproc = new ProcessAlleleFrequency();
+				tempproc = new PlatoLib::ProcessAlleleFrequency();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}

@@ -36,6 +36,11 @@
 #include <General.h>
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessEpistasis::FilterSummary(){
 }
 
@@ -61,4 +66,6 @@ void ProcessEpistasis::process(DataSet* ds){
 	epi.setOptions(options);
 	epi.calculate(data_set);
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

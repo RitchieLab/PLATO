@@ -24,7 +24,10 @@
 
 using namespace std;
 using namespace Methods;
-
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessIBS : public Process{
 	static string stepname;
@@ -133,5 +136,7 @@ class ProcessIBS : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

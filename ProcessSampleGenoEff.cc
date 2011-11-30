@@ -20,6 +20,11 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessSampleGenoEff::stepname = "sample-geno-eff";
 
 void ProcessSampleGenoEff::process(DataSet* ds){
@@ -197,3 +202,6 @@ void ProcessSampleGenoEff::FilterSummary(){
 	opts::_SAMPLES_WORKING_ -= orig_num_samples;
 
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

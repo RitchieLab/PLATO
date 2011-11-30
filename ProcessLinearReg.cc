@@ -41,6 +41,10 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessLinearReg::FilterSummary(){
 
@@ -229,3 +233,6 @@ void ProcessLinearReg::process(DataSet* ds){
 		lrout.close();
 	}
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

@@ -36,6 +36,10 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 string ProcessIBS::stepname = "ibs";
 
 void ProcessIBS::FilterSummary(){
@@ -291,4 +295,6 @@ void ProcessIBS::process(DataSet* ds){
 	}
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

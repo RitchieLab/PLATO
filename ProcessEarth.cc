@@ -40,6 +40,11 @@
 //#include "Families.h"
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessEarth::FilterSummary() {
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
@@ -346,3 +351,6 @@ void ProcessEarth::process(DataSet* ds) {
 	 */
 	eout.close();
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

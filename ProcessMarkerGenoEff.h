@@ -25,6 +25,10 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessMarkerGenoEff : public Process{
 	static string stepname;
@@ -113,5 +117,7 @@ class ProcessMarkerGenoEff : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

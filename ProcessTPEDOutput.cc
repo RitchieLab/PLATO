@@ -36,6 +36,10 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessTPEDOutput::FilterSummary(){
 }
@@ -84,4 +88,6 @@ void ProcessTPEDOutput::process(DataSet* ds){
 	ped.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

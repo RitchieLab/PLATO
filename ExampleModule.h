@@ -24,6 +24,9 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+using namespace PlatoLib;
+#endif
 
 class ExampleModule : public Process{
 	private:

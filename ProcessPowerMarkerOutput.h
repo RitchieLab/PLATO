@@ -24,7 +24,10 @@
 
 using namespace std;
 using namespace Methods;
-
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessPowerMarkerOutput : public Process{
 	private:
@@ -129,5 +132,7 @@ class ProcessPowerMarkerOutput : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

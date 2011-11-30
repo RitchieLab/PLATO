@@ -36,6 +36,10 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessPHASEOutput::FilterSummary(){
 }
@@ -83,6 +87,8 @@ void ProcessPHASEOutput::process(DataSet* ds){
 	phase.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif
 
 

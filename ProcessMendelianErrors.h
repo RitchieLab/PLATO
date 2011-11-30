@@ -25,6 +25,10 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessMendelianErrors : public Process{
 	static string stepname;
@@ -119,4 +123,7 @@ class ProcessMendelianErrors : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

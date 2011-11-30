@@ -33,6 +33,11 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessSuperlinkOutput::stepname = "output-superlink";
 
 void ProcessSuperlinkOutput::FilterSummary(){
@@ -81,4 +86,6 @@ void ProcessSuperlinkOutput::process(DataSet* ds){
 	so.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

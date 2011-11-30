@@ -31,6 +31,11 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessMitoCheck::stepname = "mito-check";
 
 void ProcessMitoCheck::Tokenize(const string& str, vector<string>& tokens, const string& delimiter){
@@ -322,3 +327,6 @@ void ProcessMitoCheck::process(DataSet* ds){
 	serrors = mc.getNumSampleErrors();
 	error_map = mc.getErrorMap();
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

@@ -15,6 +15,9 @@
 #include "Process.h"
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+using namespace PlatoLib;
+#endif
 class Step{
 	private:
 		string name;

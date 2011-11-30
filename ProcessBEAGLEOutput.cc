@@ -32,6 +32,13 @@
 #include <Helpers.h>
 
 using namespace Methods;
+
+//define the PlatoLib namespace for use with Plato as a library
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 /*
  *Function: FilterSummary
  *Description:
@@ -102,5 +109,7 @@ void ProcessBEAGLEOutput::process(DataSet* ds){
 	bo.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}
+#endif
 

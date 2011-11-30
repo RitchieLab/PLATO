@@ -10,6 +10,7 @@ LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadl
 INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
 SYS=WIN
 DB=USE_DB
+COMPASLIB=PLATOLIB
 #R=USE_R
 
 #
@@ -60,9 +61,9 @@ INTERFACES = ProcessKinship.h ProcessFst.h Step.h Process.h Percent.h Chrom.h Pr
 		  sockets.h ProcessSuperlinkOutput.h ProcessTPEDOutput.h ProcessLogReg.h ProcessCMH.h ProcessLinearReg.h ProcessIBS.h ProcessFilterProcess.h \
 		  ProcessMDR.h ProcessClusterMissing.h ProcessMDRPDT.h ProcessEpistasis.h ProcessImputeOutput.h Controller.h
 
-LIB_OBJECTS = $(OBJECTS)
+LIB_OBJECTS := $(OBJECTS)
 
-$(OBJECTS) += wasp.o
+OBJECTS += wasp.o
 
 ifeq ($(R),USE_R)
 	CC += -DUSE_R
@@ -72,6 +73,9 @@ endif
 ifeq ($(DB),USE_DB)
 	CC += -DUSE_DB
 	LIB += -lsqlitewrapped
+endif
+ifeq ($(COMPASLIB), PLATOLIB)
+	CC += -DPLATOLIB
 endif
 
 #

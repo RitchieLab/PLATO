@@ -35,6 +35,10 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessPDT2Output::FilterSummary(){
 }
@@ -81,5 +85,7 @@ void ProcessPDT2Output::process(DataSet* ds){
 	}
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif
 

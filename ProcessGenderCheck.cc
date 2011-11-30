@@ -25,6 +25,13 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
+
 string ProcessGenderCheck::stepname = "gender-error";
 
 void ProcessGenderCheck::setThreshold(string thresh){
@@ -276,4 +283,6 @@ void ProcessGenderCheck::process(DataSet* ds){
 	senzyme_tot = gc.getEnzymeTotals();
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

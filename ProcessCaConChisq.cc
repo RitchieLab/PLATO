@@ -29,6 +29,12 @@
 #include <MethodException.h>
 #include "ProcessCaConChisq.h"
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessCaConChisq::stepname = "chisquare";
 
 /*
@@ -452,5 +458,7 @@ void ProcessCaConChisq::process(DataSet* ds){
 	}
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif
 

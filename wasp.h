@@ -87,6 +87,9 @@
 //string DBNAME = "";
 #define TOTAL_STEPS 15
 using namespace Methods;
+#ifdef PLATOLIB
+using namespace PlatoLib;
+#endif
 
 typedef map<string,Step> STEPS;
 typedef vector<Step> ORDER;

@@ -40,6 +40,11 @@
 //#include "Families.h"
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessFst::stepname = "fst";
 
 
@@ -228,3 +233,6 @@ void ProcessFst::process(DataSet* ds) {
 	 */
 	eout.close();
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

@@ -36,6 +36,11 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessPowerMarkerOutput::stepname = "output-powermarker";
 
 
@@ -86,3 +91,6 @@ void ProcessPowerMarkerOutput::process(DataSet* ds){
 	pmo.calculate(data_set);
 	}
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

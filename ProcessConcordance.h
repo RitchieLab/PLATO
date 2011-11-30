@@ -27,6 +27,11 @@
 using namespace std;
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 class ProcessConcordance : public Process{
 	static string stepname;
 	private:
@@ -117,5 +122,7 @@ class ProcessConcordance : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

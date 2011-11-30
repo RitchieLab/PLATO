@@ -36,6 +36,11 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 string ProcessConcordance::stepname = "concordance";
 
 void ProcessConcordance::FilterSummary(){
@@ -63,4 +68,6 @@ void ProcessConcordance::process(DataSet* ds){
 	con.calculate();
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

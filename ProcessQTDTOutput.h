@@ -27,7 +27,10 @@
 
 using namespace std;
 using namespace Methods;
-
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessQTDTOutput : public Process{
 	private:
@@ -129,5 +132,7 @@ class ProcessQTDTOutput : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

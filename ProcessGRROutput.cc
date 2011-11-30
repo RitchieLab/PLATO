@@ -31,6 +31,11 @@
 #include <Helpers.h>
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessGRROutput::FilterSummary(){
 }
 
@@ -76,3 +81,6 @@ void ProcessGRROutput::process(DataSet* ds){
 	grr.calculate(data_set);
 	}
 }
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif

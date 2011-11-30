@@ -42,6 +42,10 @@
 
 using namespace Methods;
 
+//create a namespace to use when using Plato as a library
+namespace PlatoLib
+{
+
 string ProcessAlleleFrequency::stepname = "allele-freq";
 
 /*
@@ -342,14 +346,17 @@ void ProcessAlleleFrequency::initializeCounts(int v) {
  */
 void ProcessAlleleFrequency::processtest()
 {
+	cout << "Starting ProcessAlleleFrequency::processtest()\n";
 	int total_snps = 0;
 	map<string, double> group_avg;
 	string afname;
 
 #ifdef USE_DB
 	//create a Query object if set to use a database
+	cout << "Instantiating myQuery(*db)\n";
 	Query myQuery(*db);
 	//TODO:  create the following method...
+	cout << "starting create_tables \n";
 	create_tables();
 	string insert, pinsert, pgeninsert, gendinsert, ginsert;
 	string ccgeninsert, gendgeninsert, ccinsert, ggeninsert;
@@ -3322,3 +3329,4 @@ void ProcessAlleleFrequency::create_tables(){
     }
 }
 
+}//end namespace PlatoLib

@@ -36,6 +36,12 @@
 
 using namespace std;
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessDeletions::stepname="deletions";
 
 void ProcessDeletions::setThreshold(string thresh){
@@ -100,4 +106,6 @@ void ProcessDeletions::filter_markers(){
 void ProcessDeletions::filter(){
 	return;
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

@@ -24,6 +24,10 @@
 #include <DataSet.h>
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessCaConChisq : public Process{
 	static string stepname;
@@ -122,5 +126,7 @@ class ProcessCaConChisq : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

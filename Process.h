@@ -15,9 +15,16 @@
 #include <StepOptions.h>
 #include <sqlite3.h>
 #include <libsqlitewrapped.h>
+#include "DataSetObject.h"
 
 using namespace std;
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 class Process{
 	public:
 		StepOptions options;
@@ -46,6 +53,11 @@ class Process{
         vector<string> get_headers(string table){return headers[table];}
         vector<string> get_primary_table(string table){return primary_table[table];}
         string get_table_nickname(int i){return tablenicknames[i];}
+        string get_name(){return name;}
+        int get_position(){return position;}
+        vector<string> get_filenames(){return filenames;}
+        virtual void run(DataSetObject*) = 0;
+        virtual void dump2db();
 
 	protected:
 		Database* db;
@@ -57,6 +69,9 @@ class Process{
 		map<string, vector<string> > headers;
 		map<string, vector<string> > primary_table;
         vector<string> tablenicknames;
+        vector<string> filenames;
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

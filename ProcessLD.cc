@@ -40,6 +40,11 @@
 //#include "Families.h"
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessLD::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
@@ -73,3 +78,6 @@ void ProcessLD::process(DataSet* ds){
 
 	orig_num_markers = ld.getOrigNumMarkers();
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

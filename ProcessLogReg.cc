@@ -40,6 +40,10 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessLogReg::FilterSummary(){
 
@@ -372,3 +376,6 @@ void ProcessLogReg::process(DataSet* ds){
 
 	lrout.close();
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

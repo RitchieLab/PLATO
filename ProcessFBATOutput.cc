@@ -32,6 +32,11 @@
 #include <Helpers.h>
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessFBATOutput::FilterSummary(){
 }
 
@@ -77,5 +82,7 @@ void ProcessFBATOutput::process(DataSet* ds){
 	fbat.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif
 

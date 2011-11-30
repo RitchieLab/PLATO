@@ -37,6 +37,11 @@
 #include <Helpers.h>
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessEigenstratOutput::stepname = "output-eigenstrat";
 
 
@@ -89,3 +94,6 @@ void ProcessEigenstratOutput::process(DataSet* ds){
 
 }
 
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

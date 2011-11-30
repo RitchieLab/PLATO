@@ -27,6 +27,10 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 string ProcessHWEquilibrium::stepname = "hw";
 
 /*
@@ -643,4 +647,6 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	}
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

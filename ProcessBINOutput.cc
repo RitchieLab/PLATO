@@ -37,6 +37,11 @@
 #include <Helpers.h>
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 void ProcessBINOutput::FilterSummary(){
 }
 
@@ -84,4 +89,6 @@ void ProcessBINOutput::process(DataSet* ds){
 	BIN.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

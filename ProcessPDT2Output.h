@@ -26,7 +26,10 @@
 
 using namespace std;
 using namespace Methods;
-
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessPDT2Output : public Process{
 	private:
@@ -131,5 +134,7 @@ class ProcessPDT2Output : public Process{
 
 
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif

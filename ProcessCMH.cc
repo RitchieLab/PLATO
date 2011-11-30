@@ -40,6 +40,12 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessCMH::stepname = "cmh";
 
 void ProcessCMH::FilterSummary(){
@@ -279,3 +285,6 @@ void ProcessCMH::process(DataSet* ds){
 		MHOUT.close();
 	}
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

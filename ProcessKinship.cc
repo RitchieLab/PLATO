@@ -39,6 +39,10 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessKinship::FilterSummary() {
 
@@ -143,3 +147,6 @@ void ProcessKinship::process(DataSet* ds) {
 		}
 	eout.close();
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

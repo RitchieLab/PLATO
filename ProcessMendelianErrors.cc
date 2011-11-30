@@ -39,6 +39,11 @@
 
 using namespace std;
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessMendelianErrors::stepname = "mendelian-error";
 
 void ProcessMendelianErrors::setThreshold(string thresh){
@@ -321,3 +326,6 @@ void ProcessMendelianErrors::filter(){
 		}
 	}
 }
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

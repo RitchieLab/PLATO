@@ -27,7 +27,11 @@
 
 using namespace std;
 using namespace Methods;
-
+//define the PlatoLib namespace for use with Plato as a library
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 class ProcessBEAGLEOutput : public Process{
 	private:
 		DataSet* data_set;
@@ -127,5 +131,7 @@ class ProcessBEAGLEOutput : public Process{
 		void setOverwrite(bool v){overwrite = v;};
         bool hasIncExc(){return options.doIncExcludedSamples();};
 };
-
+#ifdef PLATOLIB
+};
+#endif
 #endif

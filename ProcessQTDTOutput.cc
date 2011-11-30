@@ -31,6 +31,10 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 void ProcessQTDTOutput::FilterSummary(){
 }
@@ -77,4 +81,6 @@ void ProcessQTDTOutput::process(DataSet* ds){
 	qtdt.calculate(data_set);
 	}
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

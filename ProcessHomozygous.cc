@@ -38,6 +38,12 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessHomozygous::stepname = "homozygous";
 
 void ProcessHomozygous::FilterSummary(){
@@ -112,4 +118,6 @@ void ProcessHomozygous::process(DataSet* ds){
 
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

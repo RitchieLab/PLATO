@@ -39,6 +39,11 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
+
 string ProcessMarkerGenoEff::stepname = "marker-geno-eff";
 
 void ProcessMarkerGenoEff::FilterSummary(){
@@ -315,4 +320,6 @@ void ProcessMarkerGenoEff::process(DataSet* ds){
 	}
 
 }
-
+#ifdef PLATOLIB
+}//end namespace PlatoLib
+#endif

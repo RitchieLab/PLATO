@@ -27,6 +27,10 @@
 using namespace std;
 using namespace Methods;
 
+#ifdef PLATOLIB
+namespace PlatoLib
+{
+#endif
 
 class ProcessHomozygous : public Process{
 	static string stepname;
@@ -122,5 +126,7 @@ class ProcessHomozygous : public Process{
 		void perform_homozyg_permutations();
 		Sample* findRandomSample(map<Sample*, bool>);
 };
-
+#ifdef PLATOLIB
+};//end namespace PlatoLib
+#endif
 #endif
