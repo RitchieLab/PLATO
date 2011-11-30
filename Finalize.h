@@ -8,7 +8,6 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
-//#include <occi.h>
 #include <string>
 #include <list>
 #include <algorithm>
@@ -19,8 +18,6 @@
 #include "Marker.h"
 #include "Sample.h"
 #include "Family.h"
-//#include "Helper.h"
-//using namespace oracle::occi;
 using namespace std;
 using namespace Methods;
 
