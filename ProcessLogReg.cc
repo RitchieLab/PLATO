@@ -242,12 +242,14 @@ void ProcessLogReg::process(DataSet* ds)
 		Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 #ifndef PLATOLIB
-			if(options.doOutputSynthView()){
+			if(options.doOutputSynthView())
+			{
 				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
 			}
 #endif
 
-	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++)
+	{
 		DataSet* tempds = new DataSet();
 		tempds->set_markers(ds->get_markers());
 		tempds->set_samples(&group_iter->second);
@@ -264,9 +266,11 @@ void ProcessLogReg::process(DataSet* ds)
 
 			#ifndef PLATOLIB
 			int nmiss = 0;
-			for(int s = 0; s < tempds->num_inds(); s++){
+			for(int s = 0; s < tempds->num_inds(); s++)
+			{
 				Sample* samp = tempds->get_sample(s);
-				if(samp->isEnabled() && !samp->getAmissing(mark->getLoc()) && (samp->getPheno() == 1 || samp->getPheno() == 2)){
+				if(samp->isEnabled() && !samp->getAmissing(mark->getLoc()) && (samp->getPheno() == 1 || samp->getPheno() == 2))
+				{
 					nmiss++;
 				}
 			}
@@ -275,10 +279,13 @@ void ProcessLogReg::process(DataSet* ds)
 			vector<unsigned int> covs;
 			vector<unsigned int> traits;
 			model.push_back(good_markers[m]);
-			if(cov_use){
-				for(int c = 0; c < ds->num_covariates(); c++){
+			if(cov_use)
+			{
+				for(int c = 0; c < ds->num_covariates(); c++)
+				{
 					bool use = true;
-					for(int f = 0; f < ct_filter.num_covariate_filters(); f++){
+					for(int f = 0; f < ct_filter.num_covariate_filters(); f++)
+					{
 						use = ct_filter.run_covariate_filter(f, tempds->get_covariate_name(c));
 					}
 					if(use){
