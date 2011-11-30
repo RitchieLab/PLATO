@@ -105,7 +105,14 @@ void ProcessCMH::process(DataSet* ds){
 
 	CMH cmh;
 
-	#ifdef PLATOLIB
+	if(options.doGroupFile()){
+		options.readGroups(ds->get_samples());
+	}
+
+	if(options.doGroupFile()){
+	}
+
+#ifdef PLATOLIB
 	options.readClustersFromString(data_set->get_samples());
 	cmh.setOverwrite(true);
 	#else

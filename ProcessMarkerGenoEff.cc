@@ -6,12 +6,9 @@
 *            Center for Human Genetics Research
 *
 * Iterates over all genotypes and generates a genotype efficiency for all markers.
+* Results are percentages in the range of 0-1
 *
 *
-* Files generated:
-*	percent_breakdown_by_marker.txt
-*	percent_breakdown_by_chrom.txt
-*       post_marker_geno_eff_filter_summary.txt
 *
 *File: ProcessMarkerGenoEff.cc
 **********************************************************************************/
@@ -67,6 +64,7 @@ void ProcessMarkerGenoEff::FilterSummary(){
 
 }
 
+//generate output files
 void ProcessMarkerGenoEff::PrintSummary(){
 	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
@@ -242,6 +240,7 @@ void ProcessMarkerGenoEff::PrintSummary(){
 
 }
 
+//perform filtering based on overall efficiency
 void ProcessMarkerGenoEff::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int size = good_markers.size();
@@ -283,6 +282,8 @@ void ProcessMarkerGenoEff::filter(){
 	}
 }
 
+
+//start processing step
 void ProcessMarkerGenoEff::process(DataSet* ds){
 	data_set = ds;
 	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);

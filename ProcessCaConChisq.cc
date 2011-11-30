@@ -446,7 +446,7 @@ void ProcessCaConChisq::process(DataSet* ds){
 
 		}
 	}
-#else
+//#else
 
 	int msize = good_markers.size();//data_set->num_loci();
 //	int prev_base = 0;

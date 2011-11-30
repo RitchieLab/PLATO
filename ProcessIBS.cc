@@ -42,6 +42,7 @@ namespace PlatoLib
 #endif
 string ProcessIBS::stepname = "ibs";
 
+//no filter summary since no filtering done
 #ifdef PLATOLIB
 ProcessIBS::ProcessIBS(string bn, int pos, Database* pdb, string projPath)
 {
@@ -57,6 +58,7 @@ ProcessIBS::ProcessIBS(string bn, int pos, Database* pdb, string projPath)
 void ProcessIBS::FilterSummary(){
 }
 
+//print summary not used except to reset flags
 void ProcessIBS::PrintSummary(){
 	int msize = data_set->num_loci();
 
@@ -66,10 +68,12 @@ void ProcessIBS::PrintSummary(){
 
 }
 
+//no filtering
+void ProcessIBS::filter(){
+}
 void ProcessIBS::resize(int i){}
 
-void ProcessIBS::filter(){}
-
+//main process
 void ProcessIBS::process(DataSet* ds){
 	data_set = ds;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
@@ -84,6 +88,7 @@ void ProcessIBS::process(DataSet* ds){
 #endif
 ////	int msize = data_set->num_loci();
 
+	//calculate IBS by all pairs
 	if (options.getDoIBSAllPairs()) {
 		string filename = opts::_OUTPREFIX_ + "ibs" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 		if (options.getOverrideOut().length() > 0)
@@ -122,6 +127,7 @@ void ProcessIBS::process(DataSet* ds){
 		}
 	}
 
+	//calculate IBS by all predefined pairs
 	if(options.getDoIBSPairs()){
 		string filename2 = opts::_OUTPREFIX_ + "ibs_raw" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 		if (options.getOverrideOut().length() > 0)
@@ -185,6 +191,7 @@ void ProcessIBS::process(DataSet* ds){
 		}
 	}
 
+	//calculate IBS by trio pairs predefined or all trios
 	if(options.getDoIBSTrioPairs() || options.getDoIBSAllTrioPairs()){
 		string filename2 = opts::_OUTPREFIX_ + "ibs_trios" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 		if (options.getOverrideOut().length() > 0)
@@ -334,6 +341,47 @@ void ProcessIBS::process(DataSet* ds){
 		}
 		if(fullraw.is_open()){
 			fullraw.close();
+		}
+	}
+
+	//calculates transmissions by trio and breaks down by maternal and paternal
+	//uses a special coding of 1 and -1
+	//see Will Bush for full explanation
+	if(options.getDoIBSTrioTransmissions()){
+		string filename2 = opts::_OUTPREFIX_ + "ibs_trio_trans" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if(!overwrite){
+			filename2 += "." + getString<int>(order);
+		}
+
+		ofstream transout (filename2.c_str());
+		if(!transout.is_open()){
+			opts::printLog("Unable to open " + filename2 + "\n");
+			throw MethodException("Unable to open " + filename2 + "\n");
+		}
+
+		transout.precision(4);
+		transout << "RSID REF";
+
+		int fsize = data_set->num_pedigrees();
+		int msize = good_markers.size();
+
+		for(int f1 = 0; f1 < fsize; f1++){
+			Family* fam1 = data_set->get_pedigree(f1);
+			transout << " " << fam1->getFamID() << "_pat " << fam1->getFamID() << "_mat";
+		}
+		transout << endl;
+
+		for(int m = 0; m < msize; m++){
+			Marker* mark = good_markers[m];//data_set->get_locus(m);
+			if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_bploc, prev_chrom)){
+				transout << mark->getRSID() << " " << mark->getReferent();
+				for(int f1 = 0; f1 < fsize; f1++){
+//					Family* fam1 = data_set->get_pedigree(f1);
+					vector<int> count = ibs.calcTrioTransmission(f1, mark);
+					transout << " " << count[0] << " " << count[1];
+				}
+				transout << endl;
+			}
 		}
 	}
 
