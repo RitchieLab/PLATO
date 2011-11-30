@@ -62,6 +62,7 @@
 #include "ProcessMDRPDT.h"
 #include "ProcessClusterMissing.h"
 #include "ProcessFilterProcess.h"
+#include "ProcessFst.h"
 #include "Finalize.h"
 #include "Process.h"
 //#include "Finalize.h"
