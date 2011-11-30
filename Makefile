@@ -11,7 +11,7 @@ INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include #-I/home/cozartc/boost -I/hom
 SYS=MAC
 #DB=USE_DB
 #COMPASLIB=PLATOLIB
-#R=USE_R
+R=USE_R
 
 #
 # # Default target builds all programs: (make)
@@ -68,7 +68,7 @@ OBJECTS += wasp.o
 ifeq ($(R),USE_R)
 	CC += -DUSE_R
 	OBJECTS += ProcessEarth.o
-	LIB += -lR
+	LIB += -lR -lintl
 endif
 ifeq ($(COMPASLIB), PLATOLIB)
 	CC += -DPLATOLIB

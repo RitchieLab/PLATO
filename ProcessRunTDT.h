@@ -61,6 +61,14 @@ class ProcessRunTDT : public Process{
 		vector<double> trans;
 		vector<double> untrans;
 
+		//by group variables
+		vector<vector<double> > gchi;
+		vector<vector<long double> > gpval;
+		vector<vector<int> > gfams_used;
+		vector<vector<float> > gmaf;
+		vector<vector<double> > gtrans;
+		vector<vector<double> > guntrans;
+
 		vector<Marker*> good_markers;
 
 	public:

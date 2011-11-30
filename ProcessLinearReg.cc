@@ -112,7 +112,13 @@ void ProcessLinearReg::process(DataSet* ds){
 		create_tables();
 	#endif
 
+		if(options.doGroupFile()){
+			options.readGroups(ds->get_samples());
+		}
+
 	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
+	map<string, vector<Sample*> > groups = options.getGroups();
+	map<string, vector<Sample*> >::iterator group_iter;
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -129,15 +135,46 @@ void ProcessLinearReg::process(DataSet* ds){
     }
     lrout.precision(4);
 
-    lrout << "Chrom\trsID\tProbeID\tBPLOC\tReference_Allele\tTest\tNMISS\tBeta\tOR\tSE\tSTAT\tPvalue\n";
+    lrout << "Chrom\trsID\tProbeID\tBPLOC\t";
+    if(options.doGroupFile()){
+    	lrout << "GRP\t";
+    }
+    lrout << "Reference_Allele\tTest\tNMISS\tBeta\tOR\tSE\tSTAT\tPvalue\n";
+
+    string fnamesv = opts::_OUTPREFIX_ + "linearreg_synthview" + options.getOut() + ".txt";
+    if(!overwrite){
+    	fnamesv += "." + getString<int>(order);
+    }
+    ofstream lrsvout;
+    if(options.doOutputSynthView()){
+    	lrsvout.open(fnamesv.c_str());
+    	if(!lrsvout){
+    		opts::printLog("Error opening " + fnamesv + "! Exiting!\n");
+    		throw MethodException("Error opening " + fnamesv + "! Exiting!\n");
+    	}
+    	lrsvout.precision(4);
+    	lrsvout << "SNP\tChromosome\tLocation";
+    }
 #endif
 
 	LinearRegression lr;
 	lr.setOptions(options);
-	lr.resetDataSet(ds);
 #ifdef PLATOLIB
 	ds->set_missing_covalues(-99999);
 #endif
+
+	if(groups.size() == 0){
+		groups["GROUP_1"] = *(ds->get_samples());
+	}
+
+	if(options.doOutputSynthView()){
+		for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+			lrsvout << "\t" << group_iter->first << ":pval" << "\t" << group_iter->first << ":beta" << "\t" << group_iter->first << ":N";
+		}
+		lrsvout << endl;
+	}
+
+	//lr.resetDataSet(ds);
 
 	vector<double> chis(ds->num_loci(), 0);
 	vector<double> main_pvals(ds->num_loci(), 0);
@@ -153,7 +190,25 @@ void ProcessLinearReg::process(DataSet* ds){
 	for(int i = 0; i < msize; i++){
 		Marker* mark = good_markers[i];//ds->get_locus(i);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
-			lr.calculate(mark);//i);
+			if(options.doOutputSynthView()){
+				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
+			}
+
+			for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+				DataSet* tempds = new DataSet();
+				tempds->set_markers(ds->get_markers());
+				tempds->set_samples(&group_iter->second);
+				tempds->recreate_family_vector();
+				tempds->set_affection_vectors();
+				tempds->set_marker_map(ds->get_marker_map());
+				tempds->set_covariates(ds->get_covariates());
+				tempds->set_covariate_map(ds->get_covariate_map());
+				tempds->set_traits(ds->get_traits());
+				tempds->set_trait_map(ds->get_trait_map());
+
+				lr.resetDataSet(tempds);
+
+				lr.calculate(mark);//i);
 			vector<double>pvals = lr.getPvalues();
 			vector<double>coefs = lr.getCoefs();
 			vector<string>labels = lr.getLabels();
@@ -182,14 +237,26 @@ void ProcessLinearReg::process(DataSet* ds){
 					se = sqrt(vars[l]);
 				}
 				lrout << mark->getChrom() << "\t" << mark->getRSID() << "\t" << mark->getProbeID() << "\t";
-				lrout << mark->getBPLOC() << "\t" << mark->getReferent() << "\t";
+				lrout << mark->getBPLOC();
+				if(options.doGroupFile()){
+					lrout << "\t" << group_iter->first;
+				}
+				lrout << "\t" << mark->getReferent() << "\t";
 				lrout << labels[l] << "\t" << lr.getCalcMissing() << "\t" << coefs[l] << "\t" << exp(coefs[l]) << "\t" << se << "\t" << zs[l] << "\t" << pvals[l] << endl;
+
+				if(options.doOutputSynthView()){
+					lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();
+				}
 				#endif
 			}
 			#ifndef PLATOLIB
 			chis[i] = lr.getStatistic();
 			main_pvals[i] = pvals[1];
 			#endif
+			}
+			if(options.doOutputSynthView()){
+				lrsvout << endl;
+			}
 		}
 		#ifdef PLATOLIB
 				hasresults = true;

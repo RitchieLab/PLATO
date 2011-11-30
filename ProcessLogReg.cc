@@ -111,6 +111,11 @@ void ProcessLogReg::process(DataSet* ds)
 	data_set = ds;
 	vector<int> good_markers = Helpers::findValidMarkersIndexes(data_set->get_markers(), &options);
 
+	if(options.doGroupFile()){
+		opts::printLog("Reading group information [" + options.getGroupFile() + "]\n");
+		options.readGroups(ds->get_samples());
+	}
+
 	#ifdef PLATOLIB
 		Query myQuery(*db);
 		create_tables();
@@ -129,8 +134,26 @@ void ProcessLogReg::process(DataSet* ds)
     }
     lrout.precision(4);
 
-    lrout << "Chrom\trsID\tProbeID\tBPLOC\tReference_Allele\tTest\tNMISS\tBETA\tOR\tSE\tL" << getString<double>(options.getCI()*100) << "\t" << "U" << getString<double>(options.getCI()*100) << "\tSTAT\tPvalue\n";
+    lrout << "Chrom\trsID\tProbeID\tBPLOC\t";
+    if(options.doGroupFile()){
+    	lrout << "GRP\t";
+    }
+    lrout << "Reference_Allele\tTest\tNMISS\tBETA\tOR\tSE\tL" << getString<double>(options.getCI()*100) << "\t" << "U" << getString<double>(options.getCI()*100) << "\tSTAT\tPvalue\n";
 
+    string fnamesv = opts::_OUTPREFIX_ + "logreg_synthview" + options.getOut() + ".txt";
+    if(!overwrite){
+    	fnamesv += "." + getString<int>(order);
+    }
+    ofstream lrsvout;
+    if(options.doOutputSynthView()){
+    	lrsvout.open(fnamesv.c_str());
+    	if(!lrsvout){
+    		opts::printLog("Error opening " + fnamesv + "! Exiting!\n");
+    		throw MethodException("Error opening " + fnamesv + "! Exiting!\n");
+    	}
+    	lrsvout.precision(4);
+    	lrsvout << "SNP\tChromosome\tLocation";
+    }
 //    DataSet* trimmed_data = new DataSet();
 //    trimmed_data->set_markers(ds->get_markers());
 //    trimmed_data->set_covariates(ds->get_covariates());
@@ -148,16 +171,42 @@ void ProcessLogReg::process(DataSet* ds)
 	LogisticRegression lr;
 	lr.set_parameters(&options);
 	ds->set_missing_covalues(-99999);
-	lr.resetDataSet(ds);
+	map<string, vector<Sample*> > groups = options.getGroups();
+	map<string, vector<Sample*> >::iterator group_iter;
+	if(groups.size() == 0){
+		groups["GROUP_1"] = *(ds->get_samples());
+	}
+
+	if(options.doOutputSynthView()){
+		for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+			lrsvout << "\t" << group_iter->first << ":pval" << "\t" << group_iter->first << ":beta" << "\t" << group_iter->first << ":N";
+		}
+		lrsvout << endl;
+	}
+
+
+	vector<vector<double> > gchis(ds->num_loci());
+	vector<vector<double> > gpvals(ds->num_loci());
+	vector<vector<int> > gnmiss(ds->num_loci());
+	vector<vector<double> > gcoefs(ds->num_loci());
+	vector<vector<double> > gexpcoefs(ds->num_loci());
+	vector<vector<double> > gupper(ds->num_loci());
+	vector<vector<double> > glower(ds->num_loci());
+	vector<vector<double> > gstat(ds->num_loci());
+
+	vector<double> chis(ds->num_loci(), 0);
+	vector<double> pvals(ds->num_loci(), 0);
+	int prev_base = 0;
+	int prev_chrom = -1;
+
 	if(ds->num_covariates() == 0 && ds->num_traits() == 0)
 		lr.setFullInteraction(true);
 
 	lr.setModelType(options.getLRModelType());
 
 	double zt = Helpers::ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
-	int prev_base = 0;
-	int prev_chrom = -1;
 	InputFilter ct_filter;
+
 	vector<string> use_covs = options.getCovars();
 	vector<string> use_traits = options.getTraits();
 	if(options.doCovarsName()){
@@ -171,7 +220,9 @@ void ProcessLogReg::process(DataSet* ds)
 	}
 	myQuery.transaction();
 #endif
+
 	bool cov_use = true;
+
 #ifdef PLATOLIB
 	bool trait_use = true;
 	if(options.doCovarsName() && !options.doTraitsName())
@@ -183,17 +234,35 @@ void ProcessLogReg::process(DataSet* ds)
 		cov_use = false;
 	}
 #else
-	vector<double> chis(ds->num_loci(), 0);
-	vector<double> pvals(ds->num_loci(), 0);
+
 #endif
 
 	for(int m = 0; m < (int)good_markers.size(); m++){//(int)ds->num_loci(); m++){
 		Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+			if(options.doOutputSynthView()){
+				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
+			}
+
+	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+		DataSet* tempds = new DataSet();
+		tempds->set_markers(ds->get_markers());
+		tempds->set_samples(&group_iter->second);
+		tempds->recreate_family_vector();
+		tempds->set_affection_vectors();
+		tempds->set_marker_map(ds->get_marker_map());
+		tempds->set_covariates(ds->get_covariates());
+		tempds->set_covariate_map(ds->get_covariate_map());
+		tempds->set_traits(ds->get_traits());
+		tempds->set_trait_map(ds->get_trait_map());
+
+		lr.resetDataSet(tempds);
+
+
 			#ifndef PLATOLIB
 			int nmiss = 0;
-			for(int s = 0; s < ds->num_inds(); s++){
-				Sample* samp = ds->get_sample(s);
+			for(int s = 0; s < tempds->num_inds(); s++){
+				Sample* samp = tempds->get_sample(s);
 				if(samp->isEnabled() && !samp->getAmissing(mark->getLoc()) && (samp->getPheno() == 1 || samp->getPheno() == 2)){
 					nmiss++;
 				}
@@ -207,19 +276,20 @@ void ProcessLogReg::process(DataSet* ds)
 				for(int c = 0; c < ds->num_covariates(); c++){
 					bool use = true;
 					for(int f = 0; f < ct_filter.num_covariate_filters(); f++){
-						use = ct_filter.run_covariate_filter(f, ds->get_covariate_name(c));
+						use = ct_filter.run_covariate_filter(f, tempds->get_covariate_name(c));
 					}
 					if(use){
 						covs.push_back(c);
 					}
 				}
 			}
+
 			#ifdef PLATOLIB
 			if(trait_use){
-				for(int c = 0; c < ds->num_traits(); c++){
+				for(int c = 0; c < tempds->num_traits(); c++){
 					bool use = true;
 					for(int f = 0; f < ct_filter.num_trait_filters(); f++){
-						use = ct_filter.run_trait_filter(f, ds->get_trait_name(c));
+						use = ct_filter.run_trait_filter(f, tempds->get_trait_name(c));
 					}
 					if(use){
 						traits.push_back(c);
@@ -227,6 +297,7 @@ void ProcessLogReg::process(DataSet* ds)
 				}
 			}
 			#endif
+
 			if(covs.size() == 0){// && traits.size() == 0){
 			//	cout << "on " << m << endl;
 				lr.calculate(model);
@@ -239,6 +310,7 @@ void ProcessLogReg::process(DataSet* ds)
 			vector<double> ses = lr.getCoeffStandardErr();
 			//cout << "stderr\n";
 			for(unsigned int c = 0; c < model.size(); c++){
+
 				#ifdef PLATOLIB
 				string sql = defaultinsert;
 				sql += "," + getString<int>(mark->getSysprobe());
@@ -246,7 +318,11 @@ void ProcessLogReg::process(DataSet* ds)
 				sql += ",'" + options.getLRModelType() + "',";
 				sql += (isnan(exp(coefs[c])) || isinf(exp(coefs[c]))) ? "NULL," : (getString<double>(exp(coefs[c])) + ",");
 				#else
-				lrout << mark->toString() << "\t" << mark->getReferent() << "\t" << options.getLRModelType();
+				lrout << mark->toString() << "\t";
+				if(options.doGroupFile()){
+					lrout << group_iter->first << "\t";
+				}
+				lrout << mark->getReferent() << "\t" << options.getLRModelType();
 				lrout << "\t" << nmiss;
 				lrout << "\t" << coefs[c];
 				lrout << "\t" << exp(coefs[c]);
@@ -281,7 +357,7 @@ void ProcessLogReg::process(DataSet* ds)
 				else
 				{
 					//TODO:  pvalue is null or < 0...
-					pvalue = 0;
+					pvalue = -1;
 				}
                 sql += (isnan(pvalue) || isinf(pvalue)) ? "NULL" : getString<double>(pvalue);
 				#else
@@ -295,6 +371,10 @@ void ProcessLogReg::process(DataSet* ds)
 				}
 				chis[m] = zz;
 				pvals[m] = pvalue;
+
+				gchis[m].push_back(zz);
+				gpvals[m].push_back(pvalue);
+
 				#endif
 //				if(covs.size() == 0 && traits.size() == 0){
 //					lrout << "\t" << lr.getFullInteractionP();
@@ -307,6 +387,11 @@ void ProcessLogReg::process(DataSet* ds)
 				Controller::execute_sql(myQuery, sql);
 				#else
 				lrout << endl;
+
+				if(options.doOutputSynthView()){
+					lrsvout << "\t" << pvalue << "\t" << coefs[c] << "\t" << nmiss;
+				}
+
 				#endif
 				//cout << "calc done " << c << endl;
 			}
@@ -320,18 +405,25 @@ void ProcessLogReg::process(DataSet* ds)
 				sql += ",'" + ds->get_covariate_name(covs[c]) + "',";
 				sql += (isnan(exp(coefs[buffer + c])) || isinf(exp(coefs[buffer + c]))) ? "NULL," : (getString<double>(exp(coefs[buffer + c])) + ",");
 				#else
-				lrout << mark->toString() << "\t" << mark->getReferent() << "\t" << ds->get_covariate_name(covs[c]);
+				lrout << mark->toString() << "\t";
+				if(options.doGroupFile()){
+					lrout << group_iter->first << "\t";
+				}
+				lrout << mark->getReferent() << "\t" << ds->get_covariate_name(covs[c]);
 				lrout << "\t" << coefs[buffer + c];
 				lrout << "\t" << exp(coefs[buffer + c]);
 				#endif
+
 				double se = ses[buffer + c];
 				double Z = coefs[buffer + c] / se;
+
 				#ifndef PLATOLIB
 				lrout << "\t" << se
 					<< "\t" << exp(coefs[buffer + c] - zt * se)
 					<< "\t" << exp(coefs[buffer + c] + zt * se)
 					<< "\t" << Z;
 				#endif
+
 				double zz = Z*Z;
 				double pvalue, df = 1;
 //				int code = 1, status;
@@ -361,6 +453,7 @@ void ProcessLogReg::process(DataSet* ds)
 				lrout << endl;
 				#endif
 			}
+
 			#ifdef PLATOLIB
 			buffer += covs.size();
 			for(int c = 0; c < (int)traits.size(); c++)
@@ -392,8 +485,14 @@ void ProcessLogReg::process(DataSet* ds)
 				Controller::execute_sql(myQuery, sql);
 			}
 			#endif
-		}
+
+		}//end group_iter
+	if(options.doOutputSynthView()){
+		lrsvout << endl;
 	}
+	}
+	}
+
 	#ifndef PLATOLIB
 	if(options.doMultCompare())
 	{
@@ -477,6 +576,7 @@ void ProcessLogReg::process(DataSet* ds)
 		}
 	}
 #endif
+
 #ifdef PLATOLIB
 	myQuery.commit();
 	hasresults = true;

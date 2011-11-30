@@ -71,6 +71,25 @@ void ProcessRunTDT::PrintSummary(){
 	opts::addHeader(fname1, "L" + getString<double>(options.getCI()*100));
 	opts::addHeader(fname1, "U" + getString<double>(options.getCI()*100));
 
+	ofstream groupout;
+	if(options.doGroupFile()){
+		string fnameg = opts::_OUTPREFIX_ + "tdt_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if(!overwrite){
+			fnameg += "." + getString<int>(order);
+		}
+		groupout.open(fnameg.c_str());
+		if(!groupout){
+			opts::printLog("Error opening " + fname1 + ". Exiting!\n");
+			throw MethodException("");
+		}
+//		opts::addFile("Marker", stepname, fname1);
+		groupout.precision(4);
+		groupout << "Chrom\trsID\tProbeID\tbploc";
+		if(data_set->get_locus(0)->getDetailHeaders().size() > 0){
+			groupout << "\t" << data_set->get_locus(0)->getDetailHeaders();
+		}
+		groupout << "\tGRP\tChi_square\tTDT_pvalue\tTDT_neglog(pvalue)\tNum_Fams\tT:U\tA1:A2\tOR\tL" + getString<double>(options.getCI()*100) + "\t" + "U" + getString<double>(options.getCI()*100) << endl;
+	}
 	ofstream compout;
 	if(options.doMultCompare()){
 		string fname2 = opts::_OUTPREFIX_ + "tdt_comparisons" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
@@ -135,6 +154,34 @@ void ProcessRunTDT::PrintSummary(){
 			output << "\t" << OR_lower << "\t" << OR_upper;
 
 				output << endl;
+				if(options.doGroupFile()){
+					int gcount = 0;
+					map<string, vector<Sample*> > groups = options.getGroups();
+					map<string, vector<Sample*> >::iterator group_iter;
+					for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+						groupout << good_markers[i]->toString() << "\t";
+						groupout << group_iter->first << "\t";
+						groupout << gchi[i][gcount] << "\t"
+						<< gpval[i][gcount] << "\t"
+						<< (double)abs(log10(gpval[i][gcount])) << "\t"
+						<< gfams_used[i][gcount] << "\t"
+						<< gtrans[i][gcount] << ":"
+						<< guntrans[i][gcount] << "\t";
+						if(!good_markers[i]->isMicroSat()){
+							groupout << good_markers[i]->getAllele1() << ":" << good_markers[i]->getAllele2();
+						}
+						else{
+							groupout << "NA";
+						}
+						OR = (double)gtrans[i][gcount] / (double)guntrans[i][gcount];
+						groupout << "\t" << OR;
+						OR_lower = exp(log(OR) - zt * sqrt(1/gtrans[i][gcount] + 1/guntrans[i][gcount]));
+						OR_upper = exp(log(OR) + zt * sqrt(1/gtrans[i][gcount] + 1/guntrans[i][gcount]));
+						groupout << "\t" << OR_lower << "\t" << OR_upper;
+						groupout << endl;
+						gcount++;
+					}
+				}
 /*
 			if(options.doMultCompare()){
 				MultComparison mc(options);
@@ -184,6 +231,9 @@ void ProcessRunTDT::PrintSummary(){
 	if(compout.is_open()){
 		compout.close();
 	}
+	if(groupout.is_open()){
+		groupout.close();
+	}
 }
 
 void ProcessRunTDT::filter()
@@ -232,6 +282,9 @@ void ProcessRunTDT::process(DataSet* ds)
 
 	RunTDT tdt(data_set);
 	tdt.setOptions(options);
+	if(options.doGroupFile()){
+		options.readGroups(data_set->get_samples());
+	}
 
 	int msize = good_markers.size();//data_set->num_loci();
 	chi.resize(msize);
@@ -240,6 +293,13 @@ void ProcessRunTDT::process(DataSet* ds)
 	maf.resize(msize);
 	trans.resize(msize);
 	untrans.resize(msize);
+
+	gpval.resize(msize);
+	gchi.resize(msize);
+	gfams_used.resize(msize);
+	gmaf.resize(msize);
+	gtrans.resize(msize);
+	guntrans.resize(msize);
 ////	int ssize = data_set->num_inds();
 
 //	int prev_base = 0;
@@ -248,14 +308,28 @@ void ProcessRunTDT::process(DataSet* ds)
 	{
 		if(good_markers[m]->isEnabled())
 		{//data_set->get_locus(m)->isEnabled() && isValidMarker(data_set->get_locus(m), &options, prev_base, prev_chrom)){
-			tdt.calculate(good_markers[m]);
+				tdt.calculate(good_markers[m]);
 
-			pval[m] = tdt.getPval();
-			chi[m] = tdt.getChi();
-			fams_used[m] = tdt.getFamsUsed();
-			maf[m] = -1;
-			trans[m] = tdt.getTransmitted();
-			untrans[m] = tdt.getUntransmitted();
+				pval[m] = tdt.getPval();
+				chi[m] = tdt.getChi();
+				fams_used[m] = tdt.getFamsUsed();
+				maf[m] = -1;
+				trans[m] = tdt.getTransmitted();
+				untrans[m] = tdt.getUntransmitted();
+			if(options.doGroupFile()){
+				map<string, vector<Sample*> > groups = options.getGroups();
+				map<string, vector<Sample*> >::iterator group_iter;
+				for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+					tdt.calculate(good_markers[m], group_iter->second);
+					gpval[m].push_back(tdt.getPval());
+					gchi[m].push_back(tdt.getChi());
+					gfams_used[m].push_back(tdt.getFamsUsed());
+					gmaf[m].push_back(-1);
+					gtrans[m].push_back(tdt.getTransmitted());
+					guntrans[m].push_back(tdt.getUntransmitted());
+				//	cout << group_iter->first << ":" << gpval[m][0] << ":" << gfams_used[m][0] << endl;
+				}
+			}
 		}
 	}
 }//end method process(DataSet* ds)

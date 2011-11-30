@@ -362,6 +362,21 @@ void ProcessCaConChisq::process(DataSet* ds){
 		options.readGroups(ds->get_samples());
 	}
 
+	string fnamesv = opts::_OUTPREFIX_ + "chisquare_synthview" + options.getOut() + ".txt";
+	if(!overwrite){
+		fnamesv += "." + getString<int>(order);
+	}
+	ofstream svout;
+	if(options.doOutputSynthView()){
+		svout.open(fnamesv.c_str());
+		if(!svout){
+			opts::printLog("Error opening " + fnamesv + " for writing results! Exiting!\n");
+			throw MethodException("Error opening " + fnamesv + " for writing results! Exiting!\n");
+		}
+		svout.precision(4);
+    	svout << "SNP\tChromosome\tLocation";
+	}
+
 	if(options.doGroupFile()){
 		string gpfname = opts::_OUTPREFIX_ + "chisquare_groups" + options.getOut() + ".txt";
 		ofstream gpvals;
@@ -406,6 +421,13 @@ void ProcessCaConChisq::process(DataSet* ds){
 			opts::addHeader(gpfname, group + "_OR_Allele");
 			opts::addHeader(gpfname, group + "_L" + getString<double>(options.getCI() * 100));
 			opts::addHeader(gpfname, group + "_U" + getString<double>(options.getCI() * 100));
+
+			if(options.doOutputSynthView()){
+				svout << "\t" << group << ":ARM:pval" << "\t" << group << ":AL:pval" << "\t" << group << ":ALE:pval";
+			}
+		}
+		if(options.doOutputSynthView()){
+			svout << endl;
 		}
 		gpvals << endl;
 
@@ -414,6 +436,10 @@ void ProcessCaConChisq::process(DataSet* ds){
 //		int prev_chrom = -1;
 		for(int i = 0; i < (int)good_markers.size(); i++){//data_set->num_loci(); i++){
 			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+				if(options.doOutputSynthView()){
+					svout << good_markers[i]->getRSID() << "\t" << good_markers[i]->getChrom() << "\t" << good_markers[i]->getBPLOC();
+				}
+
 				gpvals << good_markers[i]->toString();//data_set->get_locus(i)->toString();
 				if(good_markers[i]->isMicroSat()){//data_set->get_locus(i)->isMicroSat()){
 					for(giter = groups.begin(); giter != groups.end(); giter++){
@@ -440,8 +466,15 @@ void ProcessCaConChisq::process(DataSet* ds){
 						<< good_markers[i]->getAllele1() << "\t"
 						<< chisq.getGroupConfIntervalLower(giter->first) << "\t"
 						<< chisq.getGroupConfIntervalUpper(giter->first);
+
+					if(options.doOutputSynthView()){
+						svout << "\t" << chisq.getGroupArmitagePval(giter->first) << "\t" << chisq.getGroupAllelicPval(giter->first) << "\t" << chisq.getGroupAllelicExactPval(giter->first);
+					}
 				}
 				gpvals << endl;
+				if(options.doOutputSynthView()){
+					svout << endl;
+				}
 			}
 
 		}
