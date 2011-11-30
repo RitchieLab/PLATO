@@ -27,7 +27,7 @@
 #include <General.h>
 #include <Helper.h>
 using namespace Methods;
-string ProcessHWEquilibrium::stepname = "hwe";
+string ProcessHWEquilibrium::stepname = "hw";
 
 /*
  * Function: PrintSummary

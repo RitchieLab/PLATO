@@ -17,6 +17,7 @@
 #include <fstream>
 #include <string>
 #include <list>
+#include <vector>
 #include <map>
 #include "sockets.h"
 #include "Step.h"
@@ -67,6 +68,11 @@
 #include "ProcessFst.h"
 #include "Finalize.h"
 #include "Process.h"
+
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/bind.hpp>
+
 //#include "Finalize.h"
 //#include "Setup.h"
 //#include "Options.h"
@@ -79,7 +85,7 @@
 using namespace Methods;
 
 typedef map<string,Step> STEPS;
-typedef list<Step> ORDER;
+typedef vector<Step> ORDER;
 
 int main(int, char**);
 static void Initialize();
@@ -98,6 +104,7 @@ void parseParameters();
 //void Tokenize(const string&, vector<string>&, const string&);
 //vector<string> ParseDelimitedLine(string);
 void print_help();
+void runStep(Step, DataSet*);
 //void fill_temp_marker_table(Connection*, Markers*, int);
 //void writeBit(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
 //void readBin(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);

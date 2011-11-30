@@ -2,14 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "cdflib.h"
+#include <boost/math/distributions/non_central_chi_squared.hpp>
+#include <boost/math/distributions/normal.hpp>
+#include <cdflib.h>
+using boost::math::normal;
+using boost::math::complement;
 //#include "helper.h"
 using namespace std;
+using namespace Methods;
 #define PI 3.141592653589793238462643
 
 float _subuprob(float);
@@ -53,12 +57,21 @@ exit(1);
 	int code = 1, status;
 //	float result = _subchisqrprob(atoi(deg.c_str()), atof(chi.c_str()));
 	//long double result = chiprobP(atof(chi.c_str()), atoi(deg.c_str()));
-	long double result = cdfchi(&code, &p, &q, &x, &df, &status, &bound);
+	cdfchi(&code, &p, &q, &x, &df, &status, &bound);
+	long double result = q;
+	long double cs = quantile(complement(boost::math::chi_squared(df), 0.05));
+	//long double boost_result = cdf(complement(boost::math::non_central_chi_squared(df, x), cs));
+	//long double boost_result = cdf(boost::math::non_central_chi_squared(df, x), cs);
+	//long double boost_result = cdf(boost::math::non_central_chi_squared(df, x), df);
+	long double boost_result = cdf(complement(boost::math::chi_squared(df), x));
+	//long double boost_result = cdf(complement(boost::math::chi_squared(df), 0.05), x);
+	
 	//ofstream out ("testout.out");
 	//out.precision(4);
 	stringstream s2;
 	s2 << result;
 	cout << "Result of " << deg << ", " << chi << "\t" << s2.str() << endl;
+	cout << "Boost of " << deg << ", " << chi << "\t" << boost_result << endl;
 	//out.close();
 }
 

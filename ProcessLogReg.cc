@@ -208,7 +208,8 @@ void ProcessLogReg::process(DataSet* ds){
 				double zz = Z*Z;
 				double pvalue, p, bound, df = 1;
 				int code = 1, status;
-				cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
+				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
+				pvalue = p_from_chi(zz, df);
 				lrout << "\t" << pvalue;
 				chis[m] = zz;
 				pvals[m] = pvalue;
@@ -234,7 +235,8 @@ void ProcessLogReg::process(DataSet* ds){
 				double zz = Z*Z;
 				double pvalue, p, bound, df = 1;
 				int code = 1, status;
-				cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
+				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
+				pvalue = p_from_chi(zz, df);
 				lrout << "\t" << pvalue;
 //				if(covs.size() == 0 && traits.size() == 0){
 //					lrout << "\t" << lr.getFullInteractionP();

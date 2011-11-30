@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <fstream>
 #include <bitset>
+#include <ctime>
 #include <Globals.h>
 #include <vector>
 #include <General.h>//"General.h"
@@ -122,7 +123,9 @@ enum cmdArgs{
 	a_covar_file,
 	a_trait_file,
 	a_map_includes_ref,
-	a_samplebprangefilter
+	a_samplebprangefilter,
+	a_threads,
+	a_numthreads
 
 };
 static map<string, StepValue> s_mapStepValues;
@@ -232,6 +235,8 @@ void Initialize(){
 	s_mapcmdArgs["-todigit"] = a_todigit;
 	s_mapcmdArgs["-map-includes-ref"] = a_map_includes_ref;
 	s_mapcmdArgs["-sample-bprange-filter"] = a_samplebprangefilter;
+	s_mapcmdArgs["-threads"] = a_threads;
+	s_mapcmdArgs["-numthreads"] = a_numthreads;
 }
 
 int
@@ -1059,6 +1064,30 @@ main (int argc, char* argv[])
 					opts::_BP_SPACE_ = atoi(arguments[++j].c_str());
 					break;
 				}
+				case a_threads:
+				{
+					opts::_THREADS_ = true;
+					break;
+				}
+				case a_numthreads:
+				{
+					if(j + 1 >= arguments.size()){
+						cerr << "-numthreads option requires specifying a value. (Ex: -numthreads 4).  Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() == 0){
+						cerr << "-numthreads option requires specifying a value. (Ex: -numthreads 4).  Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-'){
+						cerr << "-numthreads option missing value?  Halting." << endl;
+						exit(1);
+					}
+					opts::_THREADS_ = true;
+					opts::_NUMTHREADS_ = atoi(arguments[++j].c_str());
+					break;
+				}
 				case a_freq_file:
 				{
 					if(j + 1 >= arguments.size()){
@@ -1130,12 +1159,18 @@ main (int argc, char* argv[])
 		usage();
 		exit(1);
 	}
+	time_t curr = time(0);
+	string tdstamp = ctime(&curr);
+	opts::printLog("\nPlato started: " + tdstamp + "\n");
+
 		//Begin batch file steps and reading in data
 		startProcess(&proc_order, NULL, myrank, &cmd_filters);
 	}catch(MethodException ex){
-		cerr << ex.what() << endl;
-		exit(0);
-	}//catch(...){
+		opts::printLog(string(ex.what()) + "\n");
+	}
+	time_t curr = time(0);
+	string tdstamp = ctime(&curr);
+	opts::printLog("\nPlato finished: " + tdstamp + "\n");
 	//	cerr << "Unknown exception caught..." << endl;
 	//	exit(0);
 	//}
@@ -1693,33 +1728,41 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 	//set_me_up->summary();
 
 	//Start processing steps by slaves.  MASTER gathers all data from slaves and does summary work
-	for(o_iter = order->begin(); o_iter != order->end(); o_iter++){
-		Step current_step = (Step)(*o_iter);//(*steps)[(*o_iter)];
-		opts::printLog("Working on " + current_step.getName() + "\n");
-		//current_step.process(con, families, markers);
-		try{
-			StepOptions* step_options = current_step.getOptions();
+	//threading here?
 
-			if(step_options->doTransform()){
-				step_options->performTransforms(&data_set);
+		if(opts::_THREADS_){
+//			optimize(order);
+		}
+		int count = 0;
+	boost::thread *threads[opts::_NUMTHREADS_];
+	map<int, int> thread_step_map;
+	for(unsigned int o = 0; o < order->size(); o++){//o_iter = order->begin(); o_iter != order->end(); o_iter++){
+		Step current_step = order->at(o);//(Step)(*o_iter);//(*steps)[(*o_iter)];
+//		runStep(current_step, &data_set);
+
+		if(opts::_THREADS_){
+			thread_step_map[count] = o;
+			threads[count++] = new boost::thread(boost::bind(&runStep, current_step, &data_set));
+			if(count >= opts::_NUMTHREADS_){
+				for(int i = 0; i < count; i++){
+					threads[i]->join();
+//					finalizeStep(order->at(thread_step_map[i]));
+					delete(threads[i]);
+				}
+				count = 0;
+				thread_step_map.clear();
 			}
-			current_step.process(&data_set);
-			current_step.PrintSummary();
-			current_step.filter();
-			current_step.FilterSummary();
-			current_step.close();
-			if(step_options->doTransform()){
-				step_options->undoTransforms(&data_set);
-			}
-		}catch(MethodException ex){
-			opts::printLog(ex.what());
-			exit(0);
-		}catch(std::exception ex){
-			opts::printLog(ex.what());
-			exit(0);
-		}catch(...){
-			opts::printLog("Unknown exception caught!");
-			exit(0);
+		}
+		else{
+			runStep(current_step, &data_set);
+		}
+	}
+
+
+	for(int i = 0; i < count; i++){
+		if(opts::_THREADS_){
+			threads[i]->join();
+			delete(threads[i]);
 		}
 	}
 
@@ -1747,6 +1790,36 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 //	}
 
 	//cout << myrank << " leaving process function" << endl;
+}
+
+void runStep(Step current_step, DataSet* data_set){
+	opts::printLog("Working on " + current_step.getName() + "\n");
+	//current_step.process(con, families, markers);
+	try{
+		StepOptions* step_options = current_step.getOptions();
+
+		if(step_options->doTransform()){
+			step_options->performTransforms(data_set);
+		}
+		current_step.process(data_set);
+		current_step.PrintSummary();
+		current_step.filter();
+		current_step.FilterSummary();
+		current_step.close();
+		if(step_options->doTransform()){
+			step_options->undoTransforms(data_set);
+		}
+	}catch(MethodException ex){
+		opts::printLog(ex.what());
+		exit(0);
+	}catch(std::exception ex){
+		opts::printLog(ex.what());
+		exit(0);
+	}catch(...){
+		opts::printLog("Unknown exception caught!");
+		exit(0);
+	}
+
 }
 
 /*

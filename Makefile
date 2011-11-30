@@ -2,9 +2,9 @@
 # #
 PROGRAMS=methods plato
 METHODDIR=method_lib
-LIBDIR=-Llib #-L/opt/local/lib
-LIB=-lm -lR -lmethods -lintl#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) #-I/usr/local/include
+LIBDIR=-Llib -L/opt/local/lib
+LIB=-lm -lR -lmethods -lintl -lboost_thread-mt#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include#-I/usr/local/include
 SYS=MAC
 
 #
