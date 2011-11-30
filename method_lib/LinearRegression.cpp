@@ -678,12 +678,39 @@ void LinearRegression::calculate(vector<Marker*> model)
 	//COVARIATE ADDITIONS
 	if (data_set->num_covariates() > 0)
 	{
-		for (int i = 0; i < data_set->num_covariates(); i++)
+		vector<string> covsToUse = options.getCovars();
+
+		if(options.doCovars())
 		{
-			//cout << "Adding Covariate to Linear Regression: " << getString<int>(data_set->num_covariates()) << " \n";
-			addCovariate(i);
-			label.push_back(data_set->get_covariate_name(i));
+			if(options.doCovarsName())
+			{
+			//only add covariates if name matches
+				for(int i = 0; i < (int)covsToUse.size(); i++)
+				{
+					addCovariate(data_set->get_covariate_index(covsToUse.at(i)));
+					label.push_back(covsToUse.at(i));
+				}
+			}
+			else if(options.doCovarsNumber())
+			{
+				//only add covariates if number matches (column number)
+				for(int i = 0; i < (int)covsToUse.size(); i++)
+				{
+					addCovariate(atoi(covsToUse.at(i).c_str()));
+					label.push_back(data_set->get_covariate_name(atoi(covsToUse.at(i).c_str())));
+				}
+			}
 		}
+		else
+		{
+			for(int i=0; i<data_set->num_covariates(); i++)
+			{
+				//user did not specify which covariates to use, use all covariates found in covariate input file
+				addCovariate(i);
+				label.push_back(data_set->get_covariate_name(i));
+			}
+		}
+
 	}
 	if (options.getLinRInteraction() && !options.getLinRNoMainSnp())
 	{
@@ -694,24 +721,49 @@ void LinearRegression::calculate(vector<Marker*> model)
 		}
 
 		//covariates
-		for (int c = 0; c < data_set->num_covariates(); c++)
+		if(options.doCovars())
 		{
-			//cout << "Adding Interaction to Linear Regression" << "\n";
-			addInteraction(1, cindex);
-			label.push_back(mainEffect + "x" + data_set->get_covariate_name(c));
-			if (genotypic)
+			vector<string> covsToUse = options.getCovars();
+
+			for(int c = 0; c < (int)covsToUse.size(); c++)
 			{
-				//cout << "Adding genotypic Interaction to Linear Regression" << "\n";
-				addInteraction(2, cindex);
-				//				if(par::twoDFmodel_hethom){
-				//					label.push_back("HETx" + clistname[c]);
-				//				}
-				//				else{
-				label.push_back("DOMDEVx" + data_set->get_covariate_name(c));
-				//				}
+				if(options.doCovarsName())
+				{
+					addInteraction(1, cindex);
+					label.push_back(mainEffect + "x" + covsToUse.at(c));
+					if(genotypic)
+					{
+						addInteraction(2, cindex);
+						label.push_back("DOMDEVx" + covsToUse.at(c));
+					}
+				}
+				else if (options.doCovarsNumber())
+				{
+					addInteraction(1, cindex);
+					label.push_back(mainEffect + "x" + data_set->get_covariate_name(atoi(covsToUse.at(c).c_str())));
+					if(genotypic)
+					{
+						addInteraction(2, cindex);
+						label.push_back("DOMDEVx" + data_set->get_covariate_name(atoi(covsToUse.at(c).c_str())));
+					}
+				}
+				cindex++;
 			}
-			cindex++;
-		}//end for loop for adding interactions to linear model....
+		}
+		else
+		{ //user did not specify which covariates to use, so use all covariates contained in -covar-file
+			for (int c = 0; c < data_set->num_covariates(); c++)
+			{
+				addInteraction(1, cindex);
+				label.push_back(mainEffect + "x" + data_set->get_covariate_name(c));
+				if (genotypic)
+				{
+					addInteraction(2, cindex);
+					label.push_back("DOMDEVx" + data_set->get_covariate_name(c));
+				}
+				cindex++;
+			}//end for loop for adding interactions to linear model....
+		}
 	}
 	//END COVARIATE ADDITIONS
 
@@ -769,181 +821,209 @@ void LinearRegression::calculate(vector<Marker*> model)
 	testParameter = 3; // interaction
 }
 
-void LinearRegression::calculate(Marker* l) {
+void LinearRegression::calculate(Marker* l)
+{
 	reset();
-	Marker* mark = l;//data_set->get_locus(l);
+	Marker* mark = l;
 
 	bool X = false;
 	bool automaticSex = false;
-	bool variationInSex = data_set->num_males() > 0 && data_set->num_females()
-			> 0;
+	bool variationInSex = data_set->num_males() > 0 && data_set->num_females() > 0;
 
-	if (!options.getLinRNoMainSnp())//par::assoc_glm_without_main_smp)
+	if (!options.getLinRNoMainSnp())
 	{
-		if (options.get_xchr_model() == 0) {
-			//if(par::chr_sex[locus[l]->chr] || par::chr_haploid[locus[l]->chr])
-			//	continue;
+		if (options.get_xchr_model() == 0)
+		{
 			if (opts::_CHRX_ == mark->getChrom())
 				return;
 		} else {
-			if (mark->getChrom() == opts::_CHRX_) {
+			if (mark->getChrom() == opts::_CHRX_)
+			{
 				X = true;
-				//cout << "X is true for " << mark->toString() << endl;
 			}
 		}
 	}
 
 	this->setMissing();
 
-	if (options.getLinRModelType() == "DOMINANT") {
+	if (options.getLinRModelType() == "DOMINANT")
+	{
 		setDominant();
-	} else if (options.getLinRModelType() == "RECESSIVE") {
+	}
+	else if (options.getLinRModelType() == "RECESSIVE")
+	{
 		setRecessive();
 	}
-	//	else if(options.getLinRModelType() == "ADDITIVE"){
 
-	//	}
 
 	string mainEffect = "";
 	bool genotypic = false;
 
-	if (!options.getLinRNoMainSnp()) {//par::assoc_glm_without_main_snp){
-		//genotypic = par::chr_haploid[locus[l]->chr] ? false : par::twoDFmodel;
+	if (!options.getLinRNoMainSnp()) {
 
-		if (options.getLinRModelType() == "RECESSIVE") {
+		if (options.getLinRModelType() == "RECESSIVE")
+		{
 			mainEffect = "REC";
-		} else if (options.getLinRModelType() == "DOMINANT") {
+		}
+		else if (options.getLinRModelType() == "DOMINANT")
+		{
 			mainEffect = "DOM";
 		}
-		//else if(par::twoDFmodel_hethom){
-		//	mainEffect = "HOM";
-		//}
 		else {
 			mainEffect = "ADD";
 		}
 		addAdditiveSNP(l);
 		label.push_back(mainEffect);
 
-		if (genotypic) {
+		if (genotypic)
+		{
 			addDominanceSNP(l);
-
-			//			if(par::twoDFmodel_hethom)
-			//				label.push_back("HET");
-			//			else
-			//				label.push_back("DOMDEV");
 		}
 	}
 
-	//	if(par::chap_test){
-	//		for(int h=1; h < whap->current->group.size(); h++){
-	//			lm->addHaplotypeDosage(whap->current->group[h]);
-	//			lm->label.push_back("WHAP" + int2str(h+1));
-	//		}
-	//	}
-
-	//	if(par::proxy_glm){
-	//		set<int> t1 = haplo->makeSetFromMap(haplo->testSet);
-	//		ml->addHaplotypeDosage(t1);
-	//		lm->label.push_back("PROXY");
-	//
-	//	}
-
-	if (options.getLinRCondition()) {
-		//		if(par::chap_test){
-		//			for(int c = 0; c < conditioner.size(); c++){
-		//				if(whap->current->masked_conditioning_snps[c]){
-		//					lm->addAdditiveSNP(conditioner[c]);
-		//					lm->label.push_back(locus[conditioner[c]]->name);
-		//				}
-		//			}
-		//		}
-		//		else{
+	if (options.getLinRCondition())
+	{
 		vector<int> list = options.getLinRConditionList();
-		for (unsigned int i = 0; i < list.size(); i++) {
+		for (unsigned int i = 0; i < list.size(); i++)
+		{
 			addAdditiveSNP(list[i]);
 			label.push_back(data_set->get_locus(list[i])->getRSID());
 		}
-		//		}
 	}
 
-	//	if(X){
-	//		cout << "I HAVE AN X!!!" << endl;
-	//	}
-	//	if(!options.getAutoSexEffect()){
-	//		cout << "I DONT HAVE AUTO SEX EFFECT!!!" << endl;
-	//	}
-
-	if ((options.getSexEffect() || (X && !options.getAutoSexEffect()))
-			&& variationInSex) {
+	if ((options.getSexEffect() || (X && !options.getAutoSexEffect())) && variationInSex)
+	{
 		automaticSex = true;
 		addSexEffect();
-		//cout << "ADDING SEX EFFECT!!!!!\n";
-		//cout << mA << "\t" << mB << endl;
 		label.push_back("SEX");
 	}
-	if (data_set->num_covariates() > 0) {
-		for (int i = 0; i < data_set->num_covariates(); i++) {
-			addCovariate(i);
-			label.push_back(data_set->get_covariate_name(i));
+
+	if (data_set->num_covariates() > 0)
+	{
+		vector<string> covsToUse = options.getCovars();
+
+		if(options.doCovars())
+		{
+			if(options.doCovarsName())
+			{
+			//only add covariates if name matches
+				for(int i = 0; i < (int)covsToUse.size(); i++)
+				{
+					addCovariate(data_set->get_covariate_index(covsToUse.at(i)));
+					label.push_back(covsToUse.at(i));
+				}
+			}
+			else if(options.doCovarsNumber())
+			{
+				//only add covariates if number matches (column number)
+				for(int i = 0; i < (int)covsToUse.size(); i++)
+				{
+					addCovariate(atoi(covsToUse.at(i).c_str()));
+					label.push_back(data_set->get_covariate_name(atoi(covsToUse.at(i).c_str())));
+				}
+			}
 		}
+		else
+		{
+			for(int i=0; i<data_set->num_covariates(); i++)
+			{
+				//user did not specify which covariates to use, use all covariates found in covariate input file
+				addCovariate(i);
+				label.push_back(data_set->get_covariate_name(i));
+			}
+		}
+
 	}
 
 	//interactions
-	if (options.getLinRInteraction() && !options.getLinRNoMainSnp()) {
+	if (options.getLinRInteraction() && !options.getLinRNoMainSnp())
+	{
 		int cindex = 2;
-		if (genotypic) {
+		if (genotypic)
+		{
 			cindex = 3;
 		}
 		vector<int> list = options.getLinRConditionList();
-		for (int c = 0; c < (int) list.size(); c++) {
+		for (int c = 0; c < (int) list.size(); c++)
+		{
 			addInteraction(1, cindex);
 			label.push_back(mainEffect + "xCSNP" + getString<int> (c + 1));
 
-			if (genotypic) {
-				addInteraction(2, cindex);
-				//				if(par::twoDFmodel_hethom){
-				//					label.push_back("HETxCSNP"+getString<int>(c+1));
-				//				}
-				//				else{
+			if (genotypic)
+			{
 				label.push_back("DOMDEVxCSNP" + getString<int> (c + 1));
-				//				}
 			}
 			cindex++;
 		}
 
-		if (automaticSex) {
+		if (automaticSex)
+		{
 			addInteraction(1, cindex);
 			label.push_back(mainEffect + "xSEX");
-			if (genotypic) {
+			if (genotypic)
+			{
 				addInteraction(2, cindex);
-				//				if(par::twoDFmodel_hethom)
-				//					label.push_back("HETxSEX");
-				//				else
 				label.push_back("DOMDEVxSEX");
 			}
 			cindex++;
 		}
+
+
 		//covariates
-		for (int c = 0; c < data_set->num_covariates(); c++) {
-			addInteraction(1, cindex);
-			label.push_back(mainEffect + "x" + data_set->get_covariate_name(c));
-			if (genotypic) {
-				addInteraction(2, cindex);
-				//				if(par::twoDFmodel_hethom){
-				//					label.push_back("HETx" + clistname[c]);
-				//				}
-				//				else{
-				label.push_back("DOMDEVx" + data_set->get_covariate_name(c));
-				//				}
+		//Fixed 02-28-2011, allowed for the use of -covars-name, -covars-number for
+		//specifying which covariates to use...
+		if(options.doCovars())
+		{
+			vector<string> covsToUse = options.getCovars();
+
+			for(int c = 0; c < (int)covsToUse.size(); c++)
+			{
+				if(options.doCovarsName())
+				{
+					addInteraction(1, cindex);
+					label.push_back(mainEffect + "x" + covsToUse.at(c));
+					if(genotypic)
+					{
+						addInteraction(2, cindex);
+						label.push_back("DOMDEVx" + covsToUse.at(c));
+					}
+				}
+				else if (options.doCovarsNumber())
+				{
+					addInteraction(1, cindex);
+					label.push_back(mainEffect + "x" + data_set->get_covariate_name(atoi(covsToUse.at(c).c_str())));
+					if(genotypic)
+					{
+						addInteraction(2, cindex);
+						label.push_back("DOMDEVx" + data_set->get_covariate_name(atoi(covsToUse.at(c).c_str())));
+					}
+				}
+				cindex++;
 			}
-			cindex++;
 		}
-	}
+		else
+		{ //user did not specify which covariates to use, so use all covariates contained in -covar-file
+			for (int c = 0; c < data_set->num_covariates(); c++)
+			{
+				addInteraction(1, cindex);
+				label.push_back(mainEffect + "x" + data_set->get_covariate_name(c));
+				if (genotypic)
+				{
+					addInteraction(2, cindex);
+					label.push_back("DOMDEVx" + data_set->get_covariate_name(c));
+				}
+				cindex++;
+			}//end for loop for adding interactions to linear model....
+		}
+	}//end add interactions...
+
 	//fancy X chrom models
-	if (X && automaticSex && options.get_xchr_model() > 2) {
+	if (X && automaticSex && options.get_xchr_model() > 2)
+	{
 		//interaction between allelic term and sex
 		int sindex = 2;
-		if (genotypic) {
+		if (genotypic)
+		{
 			sindex++;
 		}
 		sindex += options.getLinRConditionList().size();
@@ -958,9 +1038,12 @@ void LinearRegression::calculate(Marker* l) {
 	fitLM();
 	validParameters();
 	vector<double> var;
-	if (all_valid) {
+	if (all_valid)
+	{
 		var = getVar();
-	} else {
+	}
+	else
+	{
 		var.clear();
 		var.resize(np, 0);
 	}
@@ -978,7 +1061,7 @@ void LinearRegression::calculate(Marker* l) {
 			se = sqrt(var[p]);
 			Z = coef[p] / se;
 			ZS.push_back(Z);
-			pvalue = Helpers::pT(Z, Y.size() - np);///pT(Z,Y.size()-np);
+			pvalue = Helpers::pT(Z, Y.size() - np);
 			pvalues.push_back(pvalue);
 		}
 	}
