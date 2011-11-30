@@ -236,7 +236,7 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 
 	for(int m = 0; m < gsize; m++){
 		Marker* mark = good_markers.at(m);
-		if(mark->isEnabled()){
+		if(mark->isEnabled() && !mark->isMicroSat()){
 
 			BIT << mark->getChrom() << "\t";
 			BIT << mark->getProbeID() << "\t"
@@ -256,6 +256,9 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 			}
 			BIT << endl;
 		}
+    else if(mark->isMicroSat()){
+      opts::printLog("ERROR: " + mark->getProbeID() + " excluded.  Binary format does not support Microsatellites");
+    }
 	}
 	BIT.clear();
 	BIT.close();

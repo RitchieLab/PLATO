@@ -4886,6 +4886,15 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 		//new 12-07-2010
 		//this closes out the new check for lgen input
         }//end if (!opts::_LGENFILE.length() > 0)
+	else{
+		// when using lgen file set all genotypes to missing before reading the lgen file
+		// the lgen file may not have an entry for every sample
+		for(int locnum=0; (int)locnum<samp->getAoneSize(); locnum++){        
+			samp->addAone(locnum, true);
+			samp->addAtwo(locnum, true);
+			samp->addAmissing(locnum, true);
+		}
+	}
 
         vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
 
