@@ -67,7 +67,8 @@ enum StepValue{
 					   e_cluster_missing,	//cluster-missing
 					   e_mars,				//mars
 					   e_filter_process,		//plato filter-process,
-					   e_fst				//fst
+					   e_fst,				//fst
+					   e_kinship			//kinship
 					 };
 enum cmdArgs{
 	a_h,
@@ -175,6 +176,7 @@ void Initialize(){
 	s_mapStepValues["cluster-missing"] = e_cluster_missing;
 	s_mapStepValues["filter-process"] = e_filter_process;
 	s_mapStepValues["fst"] = e_fst;
+	s_mapStepValues["kinship"] = e_kinship;
 
 	s_mapcmdArgs["-h"] = a_h;
 	s_mapcmdArgs["-S"] = a_S;
@@ -1971,6 +1973,23 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
+			case e_kinship:
+				newstep = new Step("Kinship", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessKinship();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
 			case e_fst:
 				newstep = new Step("FST", "", false);
 				if(tempproc != NULL){
@@ -2573,6 +2592,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessClusterMissing();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_kinship:
+				newstep = new Step("Kinship", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessKinship();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}

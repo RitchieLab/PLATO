@@ -38,7 +38,7 @@ ifeq ($(SYS),MAC)
   CC += -DMAC
 endif
 
-OBJECTS = ProcessFst.o ProcessEarth.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
+OBJECTS = ProcessKinship.o ProcessFst.o ProcessEarth.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
 		  ProcessMendelianErrors.o ProcessHWEquilibrium.o ProcessGenderCheck.o ProcessRunTDT.o ProcessGRROutput.o dcdflib.o ProcessPEDOutput.o \
 		  ProcessCaConChisq.o ipmpar.o ProcessSTRUCTOutput.o ProcessPHASEOutput.o ProcessEigenstratOutput.o \
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
@@ -69,6 +69,9 @@ wasp.o: wasp.cc wasp.h
 
 ProcessEarth.o: ProcessEarth.cc ProcessEarth.h
 	$(CC) ProcessEarth.cc -c $(CFLAGSCC) $(LIBDIR) 
+
+ProcessKinship.o: ProcessKinship.cc ProcessKinship.h
+	$(CC) ProcessKinship.cc -c $(CFLAGSCC) $(LIBDIR) 
 
 ProcessFst.o: ProcessFst.cc ProcessFst.h
 	$(CC) ProcessFst.cc -c $(CFLAGSCC) $(LIBDIR) 

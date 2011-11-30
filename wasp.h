@@ -21,6 +21,7 @@
 #include "sockets.h"
 #include "Step.h"
 #include "ExampleModule.h"
+#include "ProcessKinship.h"
 #include "ProcessEarth.h"
 #include "ProcessMendelianErrors.h"
 #include "ProcessMarkerGenoEff.h"
