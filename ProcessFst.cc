@@ -121,14 +121,14 @@ void ProcessFst::process(DataSet* ds) {
 	int prev_base = 0;
 	int prev_chrom = -1;
 
-		eout << "Chrom\trsID\tProbeID\tBPLOC\tFSTWC\n";
+		eout << "Chrom\trsID\tProbeID\tBPLOC\tFSTWC\tFSTRH\tFSTHM\n";
 
 		for (int m = 0; m < (int) ds->num_loci(); m++) {
 			Marker* mark = ds->get_locus(m);
 			if (mark->isEnabled() && isValidMarker(mark, &options, prev_base,
 					prev_chrom)) {
 				fst.calculate(m);
-				eout << mark->toString() << "\t" << fst.getFst()
+				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH() << "\t" << fst.getFstHM()
 						<< endl;
 
 			}
