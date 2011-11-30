@@ -25,6 +25,7 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessSTRUCTOutput : public Process{
@@ -34,7 +35,7 @@ class ProcessSTRUCTOutput : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+//		StepOptions options;
 //		Markers* markers;
 //		Families* families;
 		int threshold;

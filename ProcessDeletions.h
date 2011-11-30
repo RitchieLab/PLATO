@@ -23,6 +23,7 @@
 #include <Deletions.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessDeletions : public Process{
 	static string stepname;
@@ -32,7 +33,7 @@ class ProcessDeletions : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 
 //		Markers* markers;
 //		Families* families;

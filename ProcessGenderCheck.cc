@@ -24,7 +24,7 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 string ProcessGenderCheck::stepname = "gender-error";
 
 void ProcessGenderCheck::setThreshold(string thresh){
@@ -61,13 +61,13 @@ void ProcessGenderCheck::PrintSummary(){
 	opts::addHeader(fname1, "%HET_Males");
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && data_set->get_locus(i)->getChrom() == opts::_CHRX_ && !data_set->get_locus(i)->isFlagged()){
+		if(data_set->get_locus(i)->isEnabled() && (data_set->get_locus(i)->getChrom() == opts::_CHRX_ || options.doAll()) && !data_set->get_locus(i)->isFlagged()){
 
 			myoutput << data_set->get_locus(i)->toString() << "\t"
 				<< mtotal[i] << "\t"
 				<< merrors[i] << "\t";
 			if(mtotal[i] > 0){
-				myoutput << (((float)merrors[i]/(float)mtotal[i]) * 100.0f);
+				myoutput << (((float)merrors[i]/(float)mtotal[i]));// * 100.0f);
 			}
 			else{
 				myoutput << "0";
@@ -108,7 +108,7 @@ void ProcessGenderCheck::PrintSummary(){
         if(enzymes.size() > 1){
             sort(enzymes.begin(), enzymes.end());
         }
-        for(int i = 0; i < enzymes.size(); i++){
+        for(int i = 0; i < (int)enzymes.size(); i++){
 			hetout << "\tCount_Geno_total_" << enzymes[i] << "\tCount_Geno_HET_" << enzymes[i] << "\t%HET_" << enzymes[i];
         }
     }
@@ -145,18 +145,18 @@ void ProcessGenderCheck::PrintSummary(){
 				<< stotal[i] << "\t"
 				<< shets[i] << "\t";
 			if(stotal[i] > 0){
-				hetout << (((float)shets[i]/(float)stotal[i]) * 100.0f);
+				hetout << (((float)shets[i]/(float)stotal[i]));// * 100.0f);
 			}
 			else{
 				hetout << "0";
 			}
 
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
-				for(int e = 0; e < enzymes.size(); e++){
+				for(int e = 0; e < (int)enzymes.size(); e++){
 					hetout << "\t" << senzyme_tot[i][enzymes[e]]
 						<< "\t" << senzyme_hets[i][enzymes[e]];
 					if(senzyme_tot[i][enzymes[e]] > 0){
-						hetout << "\t" << ((1.0f - ((float)senzyme_hets[i][enzymes[e]]/(float)senzyme_tot[i][enzymes[e]])) * 100.0f);
+						hetout << "\t" << ((1.0f - ((float)senzyme_hets[i][enzymes[e]]/(float)senzyme_tot[i][enzymes[e]])));// * 100.0f);
 					}
 					else{
 						hetout << "\t" << "0";

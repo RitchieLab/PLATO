@@ -1,10 +1,10 @@
 # The list of executables we will compile.
 # #
-PROGRAMS=plato
-METHODDIR=../../development/libraries/method_lib
-LIBDIR=-L../../development/libraries/lib
-LIB=-lm -lmethods
-INCLUDEDIR=-I. -I$(METHODDIR)
+PROGRAMS=methods wasp
+METHODDIR=method_lib
+LIBDIR=-Llib #-L/opt/local/lib
+LIB=-lm -lR -lmethods -lintl#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) #-I/usr/local/include
 SYS=MAC
 
 #
@@ -21,7 +21,9 @@ SYS=MAC
 #   # Include the Oracle compiler settings.  Typically overkill, but
 # platform-independent.
 # #
-CC=g++ -O3 -g -D_FILE_OFFSET_BITS=64 $(INCLUDEDIR)
+OTHEROPTS=
+COMP=g++ #/opt/local/bin/g++-mp-4.4
+CC=$(COMP) -O3  -Wall -Wno-deprecated -g -D_FILE_OFFSET_BITS=64 $(INCLUDEDIR) $(OTHEROPTS)
 #CC=g++ -O3 -D_FILE_OFFSET_BITS=64 -mno-cygwin
 #CC=mpicxx -m64
 
@@ -36,12 +38,13 @@ ifeq ($(SYS),MAC)
   CC += -DMAC
 endif
 
-OBJECTS = Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
+OBJECTS = ProcessEarth.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
 		  ProcessMendelianErrors.o ProcessHWEquilibrium.o ProcessGenderCheck.o ProcessRunTDT.o ProcessGRROutput.o dcdflib.o ProcessPEDOutput.o \
-		  ProcessCaConChisq.o ipmpar.o ProcessSTRUCTOutput.o ProcessPHASEOutput.o \
+		  ProcessCaConChisq.o ipmpar.o ProcessSTRUCTOutput.o ProcessPHASEOutput.o ProcessEigenstratOutput.o \
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
-		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o
+		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o ProcessLinearReg.o ProcessIBS.o ProcessFilterProcess.o \
+		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o
 
 #
 # # Generic .cc -> .o production.
@@ -53,13 +56,19 @@ OBJECTS = Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o Proce
 all: $(PROGRAMS)
 
 clean:
-	rm *.o plato
+	rm *.o wasp; cd method_lib; make clean;
 
-plato:	$(OBJECTS)
-	$(CC) -o plato $(OBJECTS) $(LIB) $(SHARED_OCCILIBS) $(CFLAGSCC) $(LIBDIR)
+methods:
+	cd method_lib; make
+
+wasp:	$(OBJECTS)
+	$(CC) -o wasp $(OBJECTS) $(LIB) $(SHARED_OCCILIBS) $(CFLAGSCC) $(LIBDIR) 
 
 wasp.o: wasp.cc wasp.h
 	$(CC) wasp.cc -c $(CFLAGSCC) $(LIBDIR) 
+
+ProcessEarth.o: ProcessEarth.cc ProcessEarth.h
+	$(CC) ProcessEarth.cc -c $(CFLAGSCC) $(LIBDIR) 
 
 sockets.o: sockets.cpp sockets.h sisocks.h
 	$(CC) sockets.cpp -c $(CFLAGSCC) $(LIBDIR)
@@ -88,6 +97,9 @@ Chrom.o: Chrom.cc Chrom.h
 Percent.o: Percent.cc Percent.h
 	$(CC) Percent.cc -c $(CFLAGSCC) $(LIBDIR)
 
+ProcessFilterProcess.o: ProcessFilterProcess.cc ProcessFilterProcess.h
+	$(CC) ProcessFilterProcess.cc -c $(CFLAGSCC) $(LIBDIR)
+
 #Options.o: Options.cc Options.h
 #	$(CC) Options.cc -c $(CFLAGSCC) $(LIBDIR)
 
@@ -99,6 +111,15 @@ ProcessMarkerGenoEff.o: ProcessMarkerGenoEff.cc ProcessMarkerGenoEff.h
 
 ProcessAlleleFrequency.o: ProcessAlleleFrequency.cc ProcessAlleleFrequency.h
 	$(CC) ProcessAlleleFrequency.cc -c $(CFLAGSCC) $(LIBDIR)
+
+ProcessMDR.o: ProcessMDR.cc ProcessMDR.h
+	$(CC) ProcessMDR.cc -c $(CFLAGSCC) $(LIBDIR)
+
+ProcessMDRPDT.o: ProcessMDRPDT.cc ProcessMDRPDT.h
+	$(CC) ProcessMDRPDT.cc -c $(CFLAGSCC) $(LIBDIR)
+
+ProcessClusterMissing.o: ProcessClusterMissing.cc ProcessClusterMissing.h
+	$(CC) ProcessClusterMissing.cc -c $(CFLAGSCC) $(LIBDIR)
 
 ProcessSampleGenoEff.o: ProcessSampleGenoEff.cc ProcessSampleGenoEff.h
 	$(CC) ProcessSampleGenoEff.cc -c $(CFLAGSCC) $(LIBDIR)
@@ -122,10 +143,14 @@ PercentByFamily.o: PercentByFamily.cc PercentByFamily.h
 
 ProcessGRROutput.o: ProcessGRROutput.cc ProcessGRROutput.h
 	$(CC) ProcessGRROutput.cc -c $(CFLAGSCC) $(LIBDIR)
+ProcessIBS.o: ProcessIBS.cc ProcessIBS.h
+	$(CC) ProcessIBS.cc -c $(CFLAGSCC) $(LIBDIR)
 
 ProcessSTRUCTOutput.o: ProcessSTRUCTOutput.cc ProcessSTRUCTOutput.h
 	$(CC) ProcessSTRUCTOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 
+ProcessEigenstratOutput.o: ProcessEigenstratOutput.cc ProcessEigenstratOutput.h
+	$(CC) ProcessEigenstratOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessPEDOutput.o: ProcessPEDOutput.cc ProcessPEDOutput.h
 	$(CC) ProcessPEDOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessTPEDOutput.o: ProcessTPEDOutput.cc ProcessTPEDOutput.h
@@ -158,6 +183,8 @@ ProcessLD.o: ProcessLD.cc ProcessLD.h
 	$(CC) ProcessLD.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessLogReg.o: ProcessLogReg.cc ProcessLogReg.h
 	$(CC) ProcessLogReg.cc -c $(CFLAGSCC) $(LIBDIR)
+ProcessLinearReg.o: ProcessLinearReg.cc ProcessLinearReg.h
+	$(CC) ProcessLinearReg.cc -c $(CFLAGSCC) $(LIBDIR)
 Finalize.o: Finalize.cc Finalize.h
 	$(CC) Finalize.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessPowerMarkerOutput.o: ProcessPowerMarkerOutput.cc ProcessPowerMarkerOutput.h

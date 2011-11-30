@@ -38,7 +38,7 @@
 #include <Helper.h>
 
 using namespace std;
-
+using namespace Methods;
 string ProcessMendelianErrors::stepname = "mendelian-error";
 
 void ProcessMendelianErrors::setThreshold(string thresh){
@@ -128,7 +128,7 @@ void ProcessMendelianErrors::PrintSummary(){
         if(enzymes.size() > 1){
             sort(enzymes.begin(), enzymes.end());
         }
-        for(int i = 0; i < enzymes.size(); i++){
+        for(int i = 0; i < (int)enzymes.size(); i++){
             myoutputi << "\tME_count_" << enzymes[i];
 			myoutputf << "\tME_count_" << enzymes[i];
 			opts::addHeader(fname1, "ME_count_" + enzymes[i]);
@@ -165,7 +165,7 @@ void ProcessMendelianErrors::PrintSummary(){
 				<< data_set->get_pedigree(i)->getCenter() << "\t"
 				<< ferrors[i];
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
-				for(int e = 0; e < enzymes.size(); e++){
+				for(int e = 0; e < (int)enzymes.size(); e++){
 					myoutputf << "\t" << fenzyme[i][enzymes[e]];
 				}
 			}
@@ -197,7 +197,7 @@ void ProcessMendelianErrors::PrintSummary(){
 				<< data_set->get_sample(i)->getWell() << "\t"
 				<< serrors[i];
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
-				for(int e = 0; e < enzymes.size(); e++){
+				for(int e = 0; e < (int)enzymes.size(); e++){
 					myoutputi << "\t" << senzyme[i][enzymes[e]];
 				}
 			}
@@ -247,7 +247,7 @@ void ProcessMendelianErrors::zeroErrors(){
 	int esize = error_map.size();
 	for(int s = 0; s < esize; s++){
 		if(error_map[s].size() > 0){
-			for(int m = 0; m < error_map[s].size(); m++){
+			for(int m = 0; m < (int)error_map[s].size(); m++){
 				int aloc = error_map[s][m];
 				int mloc = data_set->get_locus(aloc)->getLoc();
 				data_set->get_sample(s)->addAone(mloc, true);

@@ -26,6 +26,7 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessQTDTOutput : public Process{
@@ -35,7 +36,7 @@ class ProcessQTDTOutput : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 //		Markers* markers;
 //		Families* families;
 		int threshold;

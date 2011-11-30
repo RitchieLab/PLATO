@@ -35,7 +35,7 @@
 #include <Helper.h>
 
 using namespace std;
-
+using namespace Methods;
 string ProcessDeletions::stepname="deletions";
 
 void ProcessDeletions::setThreshold(string thresh){

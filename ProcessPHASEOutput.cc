@@ -35,7 +35,7 @@
 #include "ProcessPHASEOutput.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 
 void ProcessPHASEOutput::FilterSummary(){
 }

@@ -25,6 +25,7 @@
 #include <cdflib.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessLogReg : public Process{
@@ -34,7 +35,7 @@ class ProcessLogReg : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;
@@ -93,6 +94,7 @@ class ProcessLogReg : public Process{
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
+		void doFilter(Methods::Marker*, double);
 		void setThreshold(string s){
 			options.setUp(s);
 			//	threshold = std::atof(s.c_str());

@@ -24,8 +24,9 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
-typedef vector<int> PERCENT;
+//ntypedef vector<int> PERCENT;
 
 class ProcessSampleGenoEff : public Process{
 	static string stepname;
@@ -35,11 +36,11 @@ class ProcessSampleGenoEff : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+	//	StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;
-		PERCENT per_cutoff;
+		//PERCENT per_cutoff;
 		int orig_num_markers;
 		int orig_num_families;
 		int orig_num_samples;
@@ -58,17 +59,17 @@ class ProcessSampleGenoEff : public Process{
 	public:
 		ProcessSampleGenoEff(){
 			data_set = NULL;
-			per_cutoff.push_back(100);
-			per_cutoff.push_back(95);
-			per_cutoff.push_back(90);
-			per_cutoff.push_back(85);
-			per_cutoff.push_back(80);
-			per_cutoff.push_back(75);
-			per_cutoff.push_back(70);
-			per_cutoff.push_back(65);
-			per_cutoff.push_back(60);
-			per_cutoff.push_back(55);
-			per_cutoff.push_back(50);
+			//per_cutoff.push_back(100);
+			//per_cutoff.push_back(95);
+			//per_cutoff.push_back(90);
+			//per_cutoff.push_back(85);
+			//per_cutoff.push_back(80);
+			//per_cutoff.push_back(75);
+			//per_cutoff.push_back(70);
+			//per_cutoff.push_back(65);
+			//per_cutoff.push_back(60);
+			//per_cutoff.push_back(55);
+			//per_cutoff.push_back(50);
 			families = NULL;
 			markers = NULL;
 			samples = NULL;
@@ -80,7 +81,7 @@ class ProcessSampleGenoEff : public Process{
 		};
 		ProcessSampleGenoEff(float thresh) : threshold(thresh){
 			data_set = NULL;
-			per_cutoff.push_back(100);
+			/*per_cutoff.push_back(100);
 			per_cutoff.push_back(95);
 			per_cutoff.push_back(90);
 			per_cutoff.push_back(85);
@@ -91,6 +92,7 @@ class ProcessSampleGenoEff : public Process{
 			per_cutoff.push_back(60);
 			per_cutoff.push_back(55);
 			per_cutoff.push_back(50);
+			*/
 			families = NULL;
 			markers = NULL;
 			samples = NULL;
@@ -112,7 +114,7 @@ class ProcessSampleGenoEff : public Process{
 			options.setUp(s);
 			//	threshold = std::atof(s.c_str());
 		};
-		PERCENT* getPerCutoff(){return &per_cutoff;};
+		//PERCENT* getPerCutoff(){return &per_cutoff;};
 		void process(DataSet*);
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};

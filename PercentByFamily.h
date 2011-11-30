@@ -23,8 +23,9 @@
 #include <MethodException.h>
 
 using namespace std;
+using namespace Methods;
 
-typedef vector<int> PERCENT;
+//typedef vector<int> PERCENT;
 
 class PercentByFamily : public Process{
 	static string stepname;
@@ -38,7 +39,7 @@ class PercentByFamily : public Process{
 		//Markers* markers;
 		//Families* families;
 		float threshold;
-		PERCENT per_cutoff;
+		//PERCENT per_cutoff;
 		int orig_num_markers;
 		int orig_num_families;
 		int orig_num_samples;
@@ -58,7 +59,7 @@ class PercentByFamily : public Process{
 
 	public:
 		PercentByFamily(){
-			per_cutoff.push_back(100);
+			/*per_cutoff.push_back(100);
 			per_cutoff.push_back(95);
 			per_cutoff.push_back(90);
 			per_cutoff.push_back(85);
@@ -69,6 +70,7 @@ class PercentByFamily : public Process{
 			per_cutoff.push_back(60);
 			per_cutoff.push_back(55);
 			per_cutoff.push_back(50);
+			*/
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -80,7 +82,7 @@ class PercentByFamily : public Process{
 			order = 0;
 		};
 		PercentByFamily(float thresh) : threshold(thresh){
-			per_cutoff.push_back(100);
+			/*per_cutoff.push_back(100);
 			per_cutoff.push_back(95);
 			per_cutoff.push_back(90);
 			per_cutoff.push_back(85);
@@ -91,6 +93,7 @@ class PercentByFamily : public Process{
 			per_cutoff.push_back(60);
 			per_cutoff.push_back(55);
 			per_cutoff.push_back(50);
+			*/
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -108,7 +111,7 @@ class PercentByFamily : public Process{
 		void filter();
 		void process(DataSet*);
 		void setThreshold(string s){threshold = std::atof(s.c_str());};
-		PERCENT* getPerCutoff(){return &per_cutoff;};
+		//PERCENT* getPerCutoff(){return &per_cutoff;};
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};

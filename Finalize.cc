@@ -38,19 +38,19 @@ void Finalize::finish(vector<Marker*>* markers, vector<Sample*>* samples, vector
 		exit(1);
 	}
 
-	for(int m = 0; m < markers->size(); m++){
+	for(int m = 0; m < (int)markers->size(); m++){
 		if((*markers)[m]->isEnabled()){
 			mout << (*markers)[m]->toString() << endl;
 		}
 	}
-	
-	for(int s = 0; s < samples->size(); s++){
+
+	for(int s = 0; s < (int)samples->size(); s++){
 		if((*samples)[s]->isEnabled()){
 			sout << (*samples)[s]->toString() << endl;
 		}
 	}
 
-	for(int f = 0; f < families->size(); f++){
+	for(int f = 0; f < (int)families->size(); f++){
 		if((*families)[f]->isEnabled()){
 			fout << (*families)[f]->toString() << endl;
 		}

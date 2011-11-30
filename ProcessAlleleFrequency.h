@@ -21,7 +21,7 @@
 #include <DataSet.h>
 #include <AlleleFrequency.h>
 using namespace std;
-
+using namespace Methods;
 class ProcessAlleleFrequency : public Process{
 	static string stepname;
 	private:
@@ -30,7 +30,7 @@ class ProcessAlleleFrequency : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 //		Markers* markers;
 //		Families* families;
 		float threshold;

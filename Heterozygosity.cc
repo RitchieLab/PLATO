@@ -102,7 +102,7 @@ void Heterozygosity::PrintSummary(){
 				<< mtotal[i] << "\t"
 				<< merrors[i] << "\t";
 			if(mtotal[i] > 0){
-				myoutput << (((float)merrors[i]/(float)mtotal[i]) * 100.0f);
+				myoutput << (((float)merrors[i]/(float)mtotal[i]));// * 100.0f);
 			}
 			else{
 				myoutput << "0";
@@ -182,7 +182,7 @@ void Heterozygosity::PrintSummary(){
 				<< stotal[i] << "\t"
 				<< shets[i] << "\t";
 			if(stotal[i] > 0){
-				hetout << (((float)shets[i]/(float)stotal[i]) * 100.0f);
+				hetout << (((float)shets[i]/(float)stotal[i]));// * 100.0f);
 			}
 			else{
 				hetout << "0";
@@ -193,7 +193,7 @@ void Heterozygosity::PrintSummary(){
 					hetout << "\t" << senzyme_tot[i][enzymes[e]]
 						<< "\t" << senzyme_hets[i][enzymes[e]];
 					if(senzyme_tot[i][enzymes[e]] > 0){
-						hetout << "\t" << ((1.0f - ((float)senzyme_hets[i][enzymes[e]]/(float)senzyme_tot[i][enzymes[e]])) * 100.0f);
+						hetout << "\t" << ((1.0f - ((float)senzyme_hets[i][enzymes[e]]/(float)senzyme_tot[i][enzymes[e]])));// * 100.0f);
 					}
 					else{
 						hetout << "\t" << "0";

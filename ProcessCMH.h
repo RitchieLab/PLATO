@@ -24,6 +24,7 @@
 #include <CMH.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessCMH : public Process{
@@ -33,7 +34,7 @@ class ProcessCMH : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;
@@ -92,6 +93,7 @@ class ProcessCMH : public Process{
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
+		void doFilter(Methods::Marker*, double);
 		void setThreshold(string s){
 			options.setUp(s);
 			//	threshold = std::atof(s.c_str());

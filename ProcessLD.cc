@@ -38,7 +38,7 @@
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
-
+using namespace Methods;
 
 void ProcessLD::FilterSummary(){
 
@@ -70,4 +70,6 @@ void ProcessLD::process(DataSet* ds){
 	ld.setOrder(this->order);
 	ld.setOverwrite(this->overwrite);
 	ld.calculate(data_set);
+
+	orig_num_markers = ld.getOrigNumMarkers();
 }

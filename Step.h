@@ -6,6 +6,7 @@
 #ifndef MAC
 #include <malloc.h>
 #endif
+#include <StepOptions.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
@@ -13,7 +14,7 @@
 //#include "MendelianErrors.h"
 #include "Process.h"
 using namespace std;
-
+using namespace Methods;
 class Step{
 	private:
 		string name;
@@ -57,6 +58,7 @@ class Step{
 		void FilterSummary(){myprocess->FilterSummary();};
 		void setRank(int r){myprocess->setRank(r);};
 		void close(){delete myprocess;};
+		StepOptions* getOptions(){return myprocess->getOptions();}
 		//void updateFamsMarks(Families* f, Markers* m){myprocess->updateFamsMarks(f, m);};
 };
 

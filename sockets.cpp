@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string> 
+#include <string>
 #include <unistd.h>
 
 #ifdef WIN
@@ -58,13 +58,13 @@
 using namespace std;
 
 
-#endif      // of SKIP 
+#endif      // of SKIP
 
 
-vector<string> socketConnection( 
-				 string ip_addr , 
-				 int port , 
-				 string message )  
+vector<string> socketConnection(
+				 string ip_addr ,
+				 int port ,
+				 string message )
 {
 
 
@@ -73,34 +73,34 @@ vector<string> socketConnection(
 #ifndef SKIP
 
   opts::printLog("Connecting to web... ");
-  
+
   vector<string> tokens(0);
 
 #ifdef WIN
   WORD wVersionRequested = MAKEWORD(1,1);    // Stuff for WSA functions
   WSADATA wsaData;                           // Stuff for WSA functions
 #endif
-  
+
   unsigned int         server_s;             // Server socket descriptor
   struct sockaddr_in   server_addr;          // Server Internet address
-  char                 out_buf[BUF_SIZE+1];  // Output buffer for GET request
-  char                 in_buf[BUF_SIZE+1];   // Input buffer for response
+////  char                 out_buf[BUF_SIZE+1];  // Output buffer for GET request
+////  char                 in_buf[BUF_SIZE+1];   // Input buffer for response
   unsigned int         retcode;              // Return code
-  unsigned int         i;                    // Loop counter
-  
+////  unsigned int         i;                    // Loop counter
+
 #ifdef WIN
   WSAStartup(wVersionRequested, &wsaData);
 #endif
 
   // Create a socket
   server_s = socket(AF_INET, SOCK_STREAM, 0);
-  
+
   // Fill-in the Web server socket's address information
   server_addr.sin_family = AF_INET;         // Address family to use
   server_addr.sin_port = htons(port);       // Port num to use
-  
+
   server_addr.sin_addr.s_addr = inet_addr(ip_addr.c_str()); // IP address to use
-  //server_addr.sin_addr = *((struct in_addr *)he->h_addr); 
+  //server_addr.sin_addr = *((struct in_addr *)he->h_addr);
 
   // Do a connect (connect() blocks)
   retcode = connect(server_s, (struct sockaddr *)&server_addr,
@@ -112,24 +112,24 @@ vector<string> socketConnection(
   }
 
   // Send a message to the server
-  
+
   message += '\0';
-  
+
   send(server_s, message.c_str(), message.length(), 0);
 
   // Receive from the Web server
-  
-  int echoStringLen = 100;
+
+////  int echoStringLen = 100;
   string all_string = "";
 
   char echoBuffer[BUF_SIZE + 1];    // Buffer for echo string + \0
 
   // Receive the same string back from the server
-  
-  while ( 1 ) 
+
+  while ( 1 )
     {
       int retcode = recv(server_s, echoBuffer, BUF_SIZE, 0);
-      
+
       // Give up if we encounter any problems
 
       if ( retcode < 0 )
@@ -137,9 +137,9 @@ vector<string> socketConnection(
 		opts::printLog("Problem reading from SNPServer\n");
 	  return tokens;
 	}
-      
-      echoBuffer[retcode] = '\0';        // Terminate the string!    
-      
+
+      echoBuffer[retcode] = '\0';        // Terminate the string!
+
       all_string += echoBuffer;
 
       // Is this the end of the input?
@@ -149,12 +149,12 @@ vector<string> socketConnection(
 
     }
 
-  string buf; 
-  stringstream ss(all_string); 
+  string buf;
+  stringstream ss(all_string);
   while (ss >> buf)
     tokens.push_back(buf);
   return tokens;
-    
+
   // Close all open sockets
 #ifdef WIN
   closesocket(server_s);
@@ -162,7 +162,7 @@ vector<string> socketConnection(
 #ifdef UNIX
   close(server_s);
 #endif
-  
+
 #ifdef WIN
   WSACleanup();
 #endif

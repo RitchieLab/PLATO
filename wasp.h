@@ -21,6 +21,7 @@
 #include "sockets.h"
 #include "Step.h"
 #include "ExampleModule.h"
+#include "ProcessEarth.h"
 #include "ProcessMendelianErrors.h"
 #include "ProcessMarkerGenoEff.h"
 #include "ProcessAlleleFrequency.h"
@@ -53,7 +54,14 @@
 #include "ProcessPDT2Output.h"
 #include "ProcessConcordance.h"
 #include "ProcessLogReg.h"
+#include "ProcessLinearReg.h"
+#include "ProcessEigenstratOutput.h"
+#include "ProcessIBS.h"
 #include "ProcessCMH.h"
+#include "ProcessMDR.h"
+#include "ProcessMDRPDT.h"
+#include "ProcessClusterMissing.h"
+#include "ProcessFilterProcess.h"
 #include "Finalize.h"
 #include "Process.h"
 //#include "Finalize.h"
@@ -65,6 +73,7 @@
 //string PASS = "";
 //string DBNAME = "";
 #define TOTAL_STEPS 15
+using namespace Methods;
 
 typedef map<string,Step> STEPS;
 typedef list<Step> ORDER;
@@ -78,8 +87,8 @@ void print_steps(STEPS);
 void startProcess(ORDER*, void *, int, InputFilter*);
 //ORDER parseInput(string, STEPS*);
 ORDER parseInput(string);
-vector<string> readMarkers(string);
-vector<string> readCenters(string);
+//vector<string> readMarkers(string);
+//vector<string> readCenters(string);
 void usage();
 void error_check();
 void parseParameters();
@@ -87,12 +96,12 @@ void parseParameters();
 //vector<string> ParseDelimitedLine(string);
 void print_help();
 //void fill_temp_marker_table(Connection*, Markers*, int);
-void writeBit(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
-void readBin(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
-void readPed(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
-void readMap(vector<Marker*>*, vector<int>*);
-void readTPed(vector<Marker*>*, vector<Sample*>*, vector<int>*);
-void readTFam(vector<Sample*>*, vector<Family*>*);
+//void writeBit(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
+//void readBin(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
+//void readPed(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
+//void readMap(vector<Marker*>*, vector<int>*);
+//void readTPed(vector<Marker*>*, vector<Sample*>*, vector<int>*);
+//void readTFam(vector<Sample*>*, vector<Family*>*);
 //bool readString(FILE*, string*);
 //void assignLinks(vector<Family*>*);
 //void reorderAlleles(vector<Sample*>*, vector<Marker*>*);

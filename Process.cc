@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "Process.h"
 using namespace std;
-
+using namespace Methods;
 Process::~Process(){}
 void Process::PrintSummary(){}
 void Process::filter(){};

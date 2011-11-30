@@ -34,6 +34,8 @@
 #include <General.h>
 #include <Helper.h>
 
+using namespace Methods;
+
 string ProcessAlleleFrequency::stepname = "allele-freq";
 
 /*
@@ -60,7 +62,10 @@ void ProcessAlleleFrequency::FilterSummary() {
  */
 void ProcessAlleleFrequency::PrintSummary() {
 	int msize = data_set->num_loci();
-
+	int ssize = data_set->num_inds();
+	for(int s = 0; s < ssize; s++){
+		data_set->get_sample(s)->setFlag(false);
+	}
 	for (int m = 0; m < msize; m++) {
 		data_set->get_locus(m)->setFlag(false);
 	}
@@ -108,6 +113,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 					orig_num_markers++;
 					inc = true;
 				}
+
 				if (af->getAonehomoP() == 0 && af->getAtwohomoP() == 0
 						&& options.doRmHetOnly()) {
 					mark->setEnabled(false);
@@ -154,6 +160,9 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 					mark->setEnabled(false);
 					orig_num_markers++;
 					inc = true;
+				}
+				else{
+					//cout << "Keeping " << mark->toString() << " " << minfreq << " " << majfreq << endl;
 				}
 				if (af->getAonehomo() == 0 && af->getAtwohomo() == 0
 						&& options.doRmHetOnly()) {
@@ -326,6 +335,10 @@ void ProcessAlleleFrequency::initializeCounts(int v) {
  *
  */
 void ProcessAlleleFrequency::processtest() {
+
+	map<string, double> group_avg;
+	int total_snps = 0;
+
 	string afname = opts::_OUTPREFIX_ + "allele_freq" + options.getOut()
 			+ ".txt";//+ getString<int>(order) + ".txt";
 	if (!overwrite) {
@@ -338,6 +351,7 @@ void ProcessAlleleFrequency::processtest() {
 	}
 	string gafname;
 	string ggfname;
+	string gafnameavg;
 	if (options.doGroupFile()) {
 		gafname = opts::_OUTPREFIX_ + "allele_freq_group" + options.getOut()
 				+ ".txt";//+ getString<int>(order) + ".txt";
@@ -348,6 +362,11 @@ void ProcessAlleleFrequency::processtest() {
 				+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
 		if (!overwrite) {
 			ggfname += "." + getString<int> (order);
+		}
+		gafnameavg = opts::_OUTPREFIX_ + "allele_freq_group_avg"
+				+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if (!overwrite) {
+			gafnameavg += "." + getString<int> (order);
 		}
 	}
 
@@ -403,6 +422,7 @@ void ProcessAlleleFrequency::processtest() {
 
 	ofstream gmyoutput; //group file output
 	ofstream gmygeno; //group file output
+	ofstream gmyoutputavg; //avg groups
 	if (options.doGroupFile()) {
 		gmyoutput.open(gafname.c_str());
 		gmygeno.open(ggfname.c_str());
@@ -418,6 +438,15 @@ void ProcessAlleleFrequency::processtest() {
 		}
 		gmyoutput.precision(4);
 		gmygeno.precision(4);
+
+		gmyoutputavg.open(gafnameavg.c_str());
+		opts::addFile("Batch", stepname, gafnameavg);
+		if(!gmyoutputavg){
+			throw MethodException("Error opening: " + gafnameavg + ".\n");
+		}
+		gmyoutputavg << "Batch\tMAF\tN\n";
+		opts::addHeader(gafnameavg, "MAF");
+		opts::addHeader(gafnameavg, "N");
 	}
 
 	int msize = data_set->num_loci();
@@ -802,11 +831,14 @@ void ProcessAlleleFrequency::processtest() {
 		if (data_set->get_locus(k)->isEnabled() && isValidMarker(data_set->get_locus(k),
 				&options, prev_base, prev_chrom)) {
 
+			total_snps++;
+
 			//perform calculations
 			af.calcOne(data_set->get_locus(k));
 			if (options.doGroupFile()) {
 				af.calcOneGroups(data_set->get_locus(k));
 			}
+			doFilter(data_set->get_locus(k), &af);
 
 			if (data_set->get_locus(k)->isMicroSat()) {
 				myoutput << data_set->get_locus(k)->toString();
@@ -1289,6 +1321,13 @@ void ProcessAlleleFrequency::processtest() {
 						for (int b = 2; b < maxalleles; b++) {
 							gmyoutput << "\tNA";
 						}
+
+						if(freq < freq2){
+							group_avg[mygroup] += freq;
+						}
+						else{
+							group_avg[mygroup] += freq2;
+						}
 					}
 					gmyoutput << endl;
 				}
@@ -1351,7 +1390,7 @@ void ProcessAlleleFrequency::processtest() {
 
 				//groups?
 				if (options.doGroupFile()) {
-					int gm_total = 0;
+////					int gm_total = 0;
 					map<string, vector<Sample*> > groups = options.getGroups();
 					map<string, vector<Sample*> >::iterator giter;
 					for (giter = groups.begin(); giter != groups.end(); giter++) {
@@ -1621,8 +1660,26 @@ void ProcessAlleleFrequency::processtest() {
 			}
 
 			//filter Markers
-			doFilter(data_set->get_locus(k), &af);
+			//doFilter(data_set->get_locus(k), &af);
 		}
+	}
+
+	if(options.doGroupFile()){
+		map<string, vector<Sample*> > groups = options.getGroups();
+		map<string, vector<Sample*> >::iterator giter;
+		for (giter = groups.begin(); giter != groups.end(); giter++) {
+			string mygroup = giter->first;
+			double val = group_avg[mygroup];
+			val = val / (double) total_snps;
+			int goodsamps = 0;
+			for(int gs = 0; gs < (int)groups[mygroup].size(); gs++){
+				if(groups[mygroup][gs]->isEnabled()){
+					goodsamps++;
+				}
+			}
+			gmyoutputavg << mygroup << "\t" << val << "\t" << goodsamps << endl;
+		}
+
 	}
 
 }

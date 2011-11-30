@@ -28,7 +28,7 @@
 #include <Helper.h>
 #include <MethodException.h>
 #include "ProcessCaConChisq.h"
-
+using namespace Methods;
 string ProcessCaConChisq::stepname = "chisquare";
 
 /*
@@ -50,6 +50,11 @@ void ProcessCaConChisq::PrintSummary(){
 	opts::addFile("Marker", stepname, pfname);
 	pvals.precision(4);
 
+	string mcomp = opts::_OUTPREFIX_ + "chisquare_comparisons" + options.getOut() + ".txt";
+	if(!overwrite){
+		mcomp += "." + getString<int>(order);
+	}
+	ofstream mult;
 
 
     pvals << "Chrom"
@@ -89,6 +94,40 @@ void ProcessCaConChisq::PrintSummary(){
 
 	int msize = data_set->num_loci();
 
+	if(options.doMultCompare()){
+		mult.open(mcomp.c_str());
+		if(!mult){
+			opts::printLog("Error opening " + mcomp + " for writing results! Exiting!\n");
+			throw MethodException("");
+		}
+		   mult << "Chrom"
+				  << "\trsID"
+				  << "\tProbeID"
+				  << "\tbploc";
+			if(data_set->get_locus(0)->getDetailHeaders().size() > 0){
+				mult << "\t" << data_set->get_locus(0)->getDetailHeaders();
+			}
+
+			mult  << "\tCALC"
+				  << "\tOriginal_Pval"
+				  << "\tGC"
+				  << "\tBONF"
+				  << "\tHOLM"
+				  << "\tSIDAK_SS"
+				  << "\tSIDAK_SD"
+				  << "\tFDR_BH"
+				  << "\tFDR_BY"
+				  << endl;
+			opts::addHeader(mcomp, "CALC");
+			opts::addHeader(mcomp, "Original_Pval");
+			opts::addHeader(mcomp, "GC");
+			opts::addHeader(mcomp, "BONF");
+			opts::addHeader(mcomp, "HOLM");
+			opts::addHeader(mcomp, "SIDAK_SS");
+			opts::addHeader(mcomp, "SIDAK_SD");
+			opts::addHeader(mcomp, "FDR_BH");
+			opts::addHeader(mcomp, "FDR_BY");
+	}
 
 	for(int i = 0; i < msize; i++){
 		if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
@@ -105,6 +144,19 @@ void ProcessCaConChisq::PrintSummary(){
 					<< "\tNA"
 					<< "\tNA"
 					<< "\tNA" << endl;
+				if(options.doMultCompare()){
+					mult << data_set->get_locus(i)->toString()
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< "\tNA"
+						<< endl;
+				}
 				continue;
 			}
 
@@ -123,6 +175,55 @@ void ProcessCaConChisq::PrintSummary(){
 				<< ci_l[i] << "\t"
 				<< ci_u[i]
 				<< endl;
+
+			if(options.doMultCompare()){
+				MultComparison mc(options);
+				vector<double> chivals;
+				vector<int> tcnt;
+//				chivals.push_back(chi_arm[i]);
+//				chivals.push_back(chi_allele[i]);
+//				chivals.push_back(chi_geno[i]);
+				//tcnt.push_back(arm_df[i]);
+				//tcnt.push_back(allele_df[i]);
+				//tcnt.push_back(geno_df[i]);
+				mc.calculate(chi_arm, tcnt);
+				mult << data_set->get_locus(i)->toString() << "\t"
+					<< "ARM\t"
+					<< pval_arm[i] << "\t"
+					<< mc.get_genomic_control(i) << "\t"
+					<< mc.get_bonferroni(i) << "\t"
+					<< mc.get_holm(i) << "\t"
+					<< mc.get_sidak_single_step(i) << "\t"
+					<< mc.get_sidak_step_down(i) << "\t"
+					<< mc.get_fdr_bh(i) << "\t"
+					<< mc.get_fdr_by(i)
+					<< endl;
+				mc.calculate(chi_allele, tcnt);
+				mult << data_set->get_locus(i)->toString() << "\t"
+					<< "ALLELIC\t"
+					<< pval_allele[i] << "\t"
+					<< mc.get_genomic_control(i) << "\t"
+					<< mc.get_bonferroni(i) << "\t"
+					<< mc.get_holm(i) << "\t"
+					<< mc.get_sidak_single_step(i) << "\t"
+					<< mc.get_sidak_step_down(i) << "\t"
+					<< mc.get_fdr_bh(i) << "\t"
+					<< mc.get_fdr_by(i)
+					<< endl;
+				mc.calculate(chi_geno, tcnt);
+				mult << data_set->get_locus(i)->toString() << "\t"
+					<< "GENO\t"
+					<< pval_geno[i] << "\t"
+					<< mc.get_genomic_control(i) << "\t"
+					<< mc.get_bonferroni(i) << "\t"
+					<< mc.get_holm(i) << "\t"
+					<< mc.get_sidak_single_step(i) << "\t"
+					<< mc.get_sidak_step_down(i) << "\t"
+					<< mc.get_fdr_bh(i) << "\t"
+					<< mc.get_fdr_by(i)
+					<< endl;
+
+			}
 
 			if(options.doGroupFile()){
 			}
@@ -187,6 +288,9 @@ void ProcessCaConChisq::resize(int i){
 	pval_allele_exact.resize(i);
 	pval_geno_exact.resize(i);
 	odds_ratio.resize(i);
+	geno_df.resize(i);
+	allele_df.resize(i);
+	arm_df.resize(i);
 }
 
 /*
@@ -284,7 +388,7 @@ void ProcessCaConChisq::process(DataSet* ds){
 
 		int prev_base = 0;
 		int prev_chrom = -1;
-		for(int i = 0; i < data_set->num_loci(); i++){
+		for(int i = 0; i < (int)data_set->num_loci(); i++){
 			if(data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				gpvals << data_set->get_locus(i)->toString();
 				if(data_set->get_locus(i)->isMicroSat()){
@@ -327,16 +431,19 @@ void ProcessCaConChisq::process(DataSet* ds){
 			}
 			chisq.calculate(i);
 			chi_geno[i] = chisq.getGenotypicChi();
+			geno_df[i] = chisq.getGenotypicDF();
 			pval_geno[i] = chisq.getGenotypicPval();
 			pval_geno_exact[i] = chisq.getGenotypicExactPval();
 			chi_allele[i] = chisq.getAllelicChi();
 			pval_allele[i] = chisq.getAllelicPval();
+			allele_df[i] = chisq.getAllelicDF();
 			pval_allele_exact[i] = chisq.getAllelicExactPval();
 			odds_ratio[i] = chisq.getOddsRatio();
 			ci_l[i] = chisq.getConfIntervalLower();
 			ci_u[i] = chisq.getConfIntervalUpper();
 			chi_arm[i] = chisq.getArmitageChi();
 			pval_arm[i] = chisq.getArmitagePval();
+			arm_df[i] = chisq.getArmitageDF();
 		}
 	}
 

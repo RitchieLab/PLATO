@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <fenv.h>
 #include <algorithm>
+#include <MultComparison.h>
 #include "ProcessRunTDT.h"
 #include "Chrom.h"
 #include <General.h>
@@ -22,7 +23,7 @@
 #include <cdflib.h>
 
 using namespace std;
-
+using namespace Methods;
 string ProcessRunTDT::stepname = "tdt";
 
 void ProcessRunTDT::PrintSummary(){
@@ -51,6 +52,41 @@ void ProcessRunTDT::PrintSummary(){
 	opts::addHeader(fname1, "OR");
 	opts::addHeader(fname1, "L" + getString<double>(options.getCI()*100));
 	opts::addHeader(fname1, "U" + getString<double>(options.getCI()*100));
+
+	ofstream compout;
+	if(options.doMultCompare()){
+		string fname2 = opts::_OUTPREFIX_ + "tdt_comparisons" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if(!overwrite){
+			fname2 += "." + getString<int>(order);
+		}
+		compout.open(fname2.c_str());
+		if(!compout){
+			opts::printLog("Error opening " + fname2 + ". Exiting!\n");
+			throw MethodException("");
+		}
+		compout.precision(4);
+		compout << "Chrom\trsID\tProbeID\tbploc";
+		compout  << "\tCALC"
+			  << "\tOriginal_Pval"
+			  << "\tGC"
+			  << "\tBONF"
+			  << "\tHOLM"
+			  << "\tSIDAK_SS"
+			  << "\tSIDAK_SD"
+			  << "\tFDR_BH"
+			  << "\tFDR_BY"
+			  << endl;
+		opts::addHeader(fname2, "CALC");
+		opts::addHeader(fname2, "Original_Pval");
+		opts::addHeader(fname2, "GC");
+		opts::addHeader(fname2, "BONF");
+		opts::addHeader(fname2, "HOLM");
+		opts::addHeader(fname2, "SIDAK_SS");
+		opts::addHeader(fname2, "SIDAK_SD");
+		opts::addHeader(fname2, "FDR_BH");
+		opts::addHeader(fname2, "FDR_BY");
+
+	}
 
 	int msize = data_set->num_loci();
 
@@ -81,13 +117,54 @@ void ProcessRunTDT::PrintSummary(){
 			output << "\t" << OR_lower << "\t" << OR_upper;
 
 				output << endl;
-			//output.precision(100);
+/*
+			if(options.doMultCompare()){
+				MultComparison mc(options);
+				vector<double> chivals;
+				chivals.push_back(chi[i]);
+				vector<int> tcnt;
+				mc.calculate(chivals, tcnt);
+				compout << data_set->get_locus(i)->toString() << "\t"
+					<< "TDT\t"
+					<< pval[i] << "\t"
+					<< mc.get_genomic_control(0) << "\t"
+					<< mc.get_bonferroni(0) << "\t"
+					<< mc.get_holm(0) << "\t"
+					<< mc.get_sidak_single_step(0) << "\t"
+					<< mc.get_sidak_step_down(0) << "\t"
+					<< mc.get_fdr_bh(0) << "\t"
+					<< mc.get_fdr_by(0)
+					<< endl;
+			}
+*/
+				//output.precision(100);
 		}
 		data_set->get_locus(i)->setFlag(false);
+	}
+	if(options.doMultCompare()){
+		MultComparison mc(options);
+		vector<int> tcnt;
+		mc.calculate(chi, tcnt);
+		for(int i = 0; i < (int)data_set->num_loci(); i++){
+		compout << data_set->get_locus(i)->toString() << "\t"
+			<< "TDT\t"
+			<< pval[i] << "\t"
+			<< mc.get_genomic_control(i) << "\t"
+			<< mc.get_bonferroni(i) << "\t"
+			<< mc.get_holm(i) << "\t"
+			<< mc.get_sidak_single_step(i) << "\t"
+			<< mc.get_sidak_step_down(i) << "\t"
+			<< mc.get_fdr_bh(i) << "\t"
+			<< mc.get_fdr_by(i)
+			<< endl;
+		}
 	}
 
 	if(output.is_open()){
 		output.close();
+	}
+	if(compout.is_open()){
+		compout.close();
 	}
 }
 
@@ -140,7 +217,7 @@ void ProcessRunTDT::process(DataSet* ds){
 	maf.resize(msize);
 	trans.resize(msize);
 	untrans.resize(msize);
-	int ssize = data_set->num_inds();
+////	int ssize = data_set->num_inds();
 
 	int prev_base = 0;
 	int prev_chrom = -1;

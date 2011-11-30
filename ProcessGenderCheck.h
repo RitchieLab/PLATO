@@ -24,6 +24,7 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessGenderCheck : public Process{
 	static string stepname;
@@ -33,7 +34,7 @@ class ProcessGenderCheck : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 //		Markers* markers;
 //		Families* families;
 		float ind_thresh;

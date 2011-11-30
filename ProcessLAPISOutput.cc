@@ -32,7 +32,7 @@
 #include "ProcessLAPISOutput.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 string ProcessLAPISOutput::stepname = "output-lapis";
 
 void ProcessLAPISOutput::FilterSummary(){

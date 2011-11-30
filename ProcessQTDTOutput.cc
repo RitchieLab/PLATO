@@ -30,7 +30,7 @@
 #include "ProcessQTDTOutput.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 
 void ProcessQTDTOutput::FilterSummary(){
 }

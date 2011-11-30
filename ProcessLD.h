@@ -24,6 +24,7 @@
 #include <LD.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessLD : public Process{
@@ -33,7 +34,7 @@ class ProcessLD : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;

@@ -23,7 +23,7 @@
 #include <DataSet.h>
 
 using namespace std;
-
+using namespace Methods;
 
 class ExampleModule : public Process{
 	private:

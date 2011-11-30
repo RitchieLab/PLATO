@@ -15,6 +15,7 @@
 #include "Marker.h"
 #include "General.h"
 
+using namespace Methods;
 typedef map<float,Percent, Percent::mysort> PERCOUNT;
 typedef map<int,Marker> MKR;
 typedef vector<Marker> BPMKR;

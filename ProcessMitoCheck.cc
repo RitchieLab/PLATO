@@ -30,7 +30,7 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 string ProcessMitoCheck::stepname = "mito-check";
 
 void ProcessMitoCheck::Tokenize(const string& str, vector<string>& tokens, const string& delimiter){
@@ -147,10 +147,10 @@ void ProcessMitoCheck::PrintSummary(){
 	}
 	errorout << "Chrom\trsID\tProbeID\tbploc\tFamID\tMom\tMom_Genotype\tChild\tChild_Genotype\n";
 
-	for(int i = 0; i < error_map.size(); i++){
+	for(int i = 0; i < (int)error_map.size(); i++){
 		Sample* child = data_set->get_sample(i);
 		Sample* mom = child->getMom();
-		for(int j = 0; j < error_map[i].size(); j++){
+		for(int j = 0; j < (int)error_map[i].size(); j++){
 			Marker* mark = data_set->get_locus(error_map[i][j]);
 			int loc = mark->getLoc();
 			string ma1;

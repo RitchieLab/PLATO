@@ -17,17 +17,19 @@
 #include <General.h>
 #include "Process.h"
 #include <CaConChisq.h>
+#include <MultComparison.h>
 #include <Options.h>
 #include <StepOptions.h>
 #include <MethodException.h>
 #include <DataSet.h>
 using namespace std;
+using namespace Methods;
 
 class ProcessCaConChisq : public Process{
 	static string stepname;
 	private:
 		DataSet* data_set;
-		StepOptions options;
+		//StepOptions options;
 
 //		Markers* markers;
 //		Families* families;
@@ -53,6 +55,9 @@ class ProcessCaConChisq : public Process{
 		vector<double> odds_ratio;
 		vector<double> ci_l;
 		vector<double> ci_u;
+		vector<int> geno_df;
+		vector<int> allele_df;
+		vector<int> arm_df;
 
 		//groups
 		double gchi_geno;

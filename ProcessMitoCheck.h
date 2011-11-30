@@ -24,6 +24,7 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessMitoCheck : public Process{
 	static string stepname;
@@ -33,7 +34,7 @@ class ProcessMitoCheck : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 		float ind_thresh;
 		float marker_thresh;
 		int orig_num_markers;

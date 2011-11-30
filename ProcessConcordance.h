@@ -25,6 +25,7 @@
 #include <Concordance.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessConcordance : public Process{
 	static string stepname;
@@ -34,7 +35,7 @@ class ProcessConcordance : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;

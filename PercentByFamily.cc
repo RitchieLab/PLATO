@@ -98,7 +98,7 @@ void PercentByFamily::PrintSummary(){
             }
 			float percent = 0.0f;
 			if(mtotal[i] > 0){
-				percent = (1.0f - ((float)mzeros[i]/(float)mtotal[i])) * 100.0f;
+				percent = (1.0f - ((float)mzeros[i]/(float)mtotal[i]));// * 100.0f;
 			}
 			bymarker << (*markers)[i]->getChrom() << "\t"
 					 << (*markers)[i]->getRSID() << "\t"
@@ -142,7 +142,7 @@ void PercentByFamily::PrintSummary(){
         if(enzymes.size() > 1){
             sort(enzymes.begin(), enzymes.end());
         }
-        for(int i = 0; i < enzymes.size(); i++){
+        for(int i = 0; i < (int)enzymes.size(); i++){
             byfamily << "\tGenoEff_" << enzymes[i];
 			opts::addHeader(fname1, enzymes[i]);
         }
@@ -153,7 +153,7 @@ void PercentByFamily::PrintSummary(){
 		if((*families)[i]->isEnabled()){
 			float percent = 0.0f;
 			if(ftotal[i] > 0){
-				percent = (1.0f - ((float)fzeros[i]/(float)ftotal[i])) * 100.0f;
+				percent = (1.0f - ((float)fzeros[i]/(float)ftotal[i]));// * 100.0f;
 			}
 
 			byfamily << (*families)[i]->getFamID() << "\t"
@@ -163,10 +163,10 @@ void PercentByFamily::PrintSummary(){
 					 //<< fzeros[i] << "\t"
 					 //<< ftotal[i];
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
-				for(int e = 0; e < enzymes.size(); e++){
+				for(int e = 0; e < (int)enzymes.size(); e++){
 					float eper = 0.0f;
 					if(enzyme_zeros[i][enzymes[e]] > 0){
-						eper = (1.0f - ((float)enzyme_zeros[i][enzymes[e]]/(float)enzyme_total[i][enzymes[e]])) * 100.0f;
+						eper = (1.0f - ((float)enzyme_zeros[i][enzymes[e]]/(float)enzyme_total[i][enzymes[e]]));// * 100.0f;
 					}
 					byfamily << "\t" << eper;
 				}
@@ -205,7 +205,7 @@ void PercentByFamily::filter(){
 				bool inc = false;
 				float percent = 0.0f;
 				if(mtotal[i] > 0){
-					percent = (1.0f - ((float)mzeros[i]/(float)mtotal[i])) * 100.0f;
+					percent = (1.0f - ((float)mzeros[i]/(float)mtotal[i]));// * 100.0f;
 				}
 				if(options.doThreshMarkersLow() && dLess(percent,options.getThreshMarkersLow())){
 					(*markers)[i]->setEnabled(false);
@@ -260,7 +260,7 @@ void PercentByFamily::process(DataSet* ds){
 	for(int i = 0; i < fsize; i++){
 		int fsamps = 0;
 		vector<Sample*>* samps = (*families)[i]->getSamples();
-		for(int f = 0; f < samps->size(); f++){
+		for(int f = 0; f < (int)samps->size(); f++){
 			Sample* samp = (*samps)[f];
 			if(samp->isEnabled()){
 				fsamps++;

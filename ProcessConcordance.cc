@@ -35,7 +35,7 @@
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
-
+using namespace Methods;
 string ProcessConcordance::stepname = "concordance";
 
 void ProcessConcordance::FilterSummary(){

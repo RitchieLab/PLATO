@@ -24,12 +24,13 @@
 #include <MarkerGenoEff.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessMarkerGenoEff : public Process{
 	static string stepname;
 	private:
 		DataSet* data_set;
-		StepOptions options;
+		//StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;

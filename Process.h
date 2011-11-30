@@ -12,10 +12,13 @@
 #include <Family.h>
 #include <Marker.h>
 #include <DataSet.h>
+#include <StepOptions.h>
 using namespace std;
+using namespace Methods;
 class Process{
 	public:
-		Process(){};
+		StepOptions options;
+		Process(){options.setCovarMissing(opts::_COVAR_MISSING_); options.setTraitMissing(opts::_TRAIT_MISSING_);};
 		virtual ~Process();
 		//virtual void process(Connection*, Families*, Markers*) = 0;
 		//virtual void process(Families*, Markers*) = 0;
@@ -32,6 +35,8 @@ class Process{
 		virtual void setOrder(int) = 0;
 		virtual void setOverwrite(bool) = 0;
 		virtual bool hasIncExc() = 0;
+		StepOptions* getOptions(){return &options;}
+
 };
 
 #endif

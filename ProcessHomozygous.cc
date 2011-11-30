@@ -37,7 +37,7 @@
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
-
+using namespace Methods;
 string ProcessHomozygous::stepname = "homozygous";
 
 void ProcessHomozygous::FilterSummary(){
@@ -75,7 +75,7 @@ void ProcessHomozygous::PrintSummary(){
 
 		for(int i = 0; i < msize; i++){
 			Marker* m = data_set->get_locus(i);
-			float per = (((float)homoallcount[i] / (float)opts::_SAMPLES_WORKING_) * 100.0f);
+			float per = (((float)homoallcount[i] / (float)opts::_SAMPLES_WORKING_));// * 100.0f);
 			homo.precision(4);
 			homo << m->getChrom() << "\t" << m->getRSID() << "\t" << m->getProbeID() << "\t"
 				<< m->getBPLOC() << "\t" << homounaffcount[i] << "\t" << homoaffcount[i] << "\t"

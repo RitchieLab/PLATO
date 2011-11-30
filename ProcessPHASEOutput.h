@@ -25,6 +25,7 @@
 #include <PHASEOutput.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessPHASEOutput : public Process{
@@ -34,7 +35,7 @@ class ProcessPHASEOutput : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 //		Markers* markers;
 //		Families* families;
 		int threshold;

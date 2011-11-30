@@ -23,6 +23,7 @@
 #include <PEDOutput.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessPEDOutput : public Process{
@@ -32,7 +33,7 @@ class ProcessPEDOutput : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 
 //		Markers* markers;
 //		Families* families;

@@ -17,7 +17,7 @@
 #include<vector>
 
 using namespace std;
-
+using namespace Methods;
 vector<string> socketConnection( 
 				 string ip_addr , 
 				 int port , 

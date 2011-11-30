@@ -19,7 +19,7 @@
 #include <Options.h>
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 string ProcessSampleGenoEff::stepname = "sample-geno-eff";
 
 void ProcessSampleGenoEff::process(DataSet* ds){
@@ -109,7 +109,7 @@ void ProcessSampleGenoEff::PrintSummary(){
 			float percent = 0.0f;
 
 			if(total[i] > 0){
-				percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
+				percent = (1.0f - ((float)zeros[i]/(float)total[i]));// * 100.0f;
 			}
 
 			indeff << data_set->get_sample(i)->getFamID() << "\t"
@@ -168,7 +168,7 @@ void ProcessSampleGenoEff::filter(){
 				float percent = 0.0f;
 				bool inc = false;
 				if(total[i] > 0){
-					percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
+					percent = (1.0f - ((float)zeros[i]/(float)total[i]));// * 100.0f;
 				}
 
 				if(options.doThreshSamplesLow() && dLess(percent, options.getThreshSamplesLow())){
@@ -188,7 +188,7 @@ void ProcessSampleGenoEff::filter(){
 }
 
 void ProcessSampleGenoEff::FilterSummary(){
-	int cutsamps = 0;
+////	int cutsamps = 0;
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
 	opts::printLog("Samples Passed:\t" + getString<int>(opts::_SAMPLES_WORKING_ - orig_num_samples) + " (" +

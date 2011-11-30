@@ -38,7 +38,7 @@
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
-
+using namespace Methods;
 string ProcessMarkerGenoEff::stepname = "marker-geno-eff";
 
 void ProcessMarkerGenoEff::FilterSummary(){
@@ -53,6 +53,7 @@ void ProcessMarkerGenoEff::FilterSummary(){
 void ProcessMarkerGenoEff::PrintSummary(){
 	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filenamegm = opts::_OUTPREFIX_ + "marker_geno_eff_groups_missing" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 		filenameg += "." + getString<int>(order);
@@ -65,6 +66,7 @@ void ProcessMarkerGenoEff::PrintSummary(){
 	}
 
 	ofstream bygroup;
+	ofstream bygroupmissing;
 	if(options.doGroupFile()){
 		bygroup.open(filenameg.c_str());
 		if(!bygroup.is_open()){
@@ -73,6 +75,14 @@ void ProcessMarkerGenoEff::PrintSummary(){
 		}
 		opts::addFile("Marker", stepname, filenameg);
 		bygroup.precision(4);
+
+		bygroupmissing.open(filenamegm.c_str());
+		if(!bygroupmissing.is_open()){
+			throw MethodException("Unable to open " + filenamegm + "\n");
+		}
+		opts::addFile("Batch", stepname, filenamegm);
+		bygroupmissing.precision(4);
+
 		if(data_set->get_locus(0)->getDetailHeaders().size() > 0){
 			bygroup << "Chrom\trsid\tProbeID\tbploc\t" << data_set->get_locus(0)->getDetailHeaders();
 		}
@@ -91,6 +101,12 @@ void ProcessMarkerGenoEff::PrintSummary(){
 			bygroup << "\t" << group << "_Total_Used";
 		}
 		bygroup << endl;
+
+		bygroupmissing << "Batch\tMiss_avg\tLog_miss\tNmiss" << endl;
+		opts::addHeader(filenamegm, "Miss_avg");
+		opts::addHeader(filenamegm, "Log_miss");
+		opts::addHeader(filenamegm, "Nmiss");
+
 	}
 
 	opts::addFile("Marker", stepname, filename);
@@ -116,6 +132,8 @@ void ProcessMarkerGenoEff::PrintSummary(){
 	int size = data_set->num_loci();
 	int prev_base = 0;
 	int prev_chrom = -1;
+	map<string, double> group_avgs;
+	int total_snps = 0;
 	for(int i = 0; i < size; i++){
 		if(isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom) && !data_set->get_locus(i)->isFlagged()){
 
@@ -125,15 +143,15 @@ void ProcessMarkerGenoEff::PrintSummary(){
 	//		int contzero = 0;
 	//		int conttot = 0;
 			if(total[i] > 0){
-				percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
+				percent = (1.0f - ((float)zeros[i]/(float)total[i]));// * 100.0f;
 			}
 			if(casetotal[i] > 0){
-				caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
+				caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i]));// * 100.0f;
 			}
 	//		contzero = zeros[i] - casezeros[i];
 	//		conttot = total[i] - casetotal[i];
 			if(controltotal[i] > 0){
-				contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
+				contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i]));// * 100.0f;
 			}
 
 			bymarker << data_set->get_locus(i)->toString() << "\t"
@@ -157,20 +175,52 @@ void ProcessMarkerGenoEff::PrintSummary(){
 					int gtotal = grouptotal[group][i];
 					float gper = 0.0f;
 					if(gtotal > 0){
-						gper = (float)(1.0f - ((float)gzero/(float)gtotal)) * 100.0f;
+						gper = (float)(1.0f - ((float)gzero/(float)gtotal));// * 100.0f;
 					}
 					bygroup << "\t" << gper;
 					bygroup << "\t" << gzero;
 					bygroup << "\t" << gtotal;
+
+					group_avgs[group] += ((double) gzero / (double) gtotal);
 				}
 				bygroup << endl;
 			}
+			total_snps++;
 		}
 		data_set->get_locus(i)->setFlag(false);
 	}
 
+	if(options.doGroupFile()){
+		map<string, vector<Sample*> > groups = options.getGroups();
+		map<string, vector<Sample*> >::iterator giter;
+		for(giter = groups.begin(); giter != groups.end(); giter++){
+			string group = giter->first;
+
+			int goodsamps = 0;
+			for(int gs = 0; gs < (int)groups[group].size(); gs++){
+				if(groups[group][gs]->isEnabled()){
+					goodsamps++;
+				}
+			}
+
+			double avg = group_avgs[group] / (double) total_snps;
+			double avg_log = log10(avg);
+			bygroupmissing << group << "\t";
+			bygroupmissing << (group_avgs[group] / (double) total_snps) << "\t";
+			bygroupmissing << avg_log << "\t";
+			bygroupmissing << goodsamps;
+			bygroupmissing << endl;
+		}
+ 	}
+
 	if(bymarker.is_open()){
 		bymarker.close();
+	}
+	if(bygroup.is_open()){
+		bygroup.close();
+	}
+	if(bygroupmissing.is_open()){
+		bygroupmissing.close();
 	}
 
 }
@@ -189,15 +239,15 @@ void ProcessMarkerGenoEff::filter(){
 //		int contzero = 0;
 //		int conttot = 0;
 				if(total[i] > 0){
-					percent = (double)((1.0f - ((double)zeros[i]/(double)total[i])) * 100.0f);
+					percent = (double)((1.0f - ((double)zeros[i]/(double)total[i])));// * 100.0f);
 				}
 				if(casetotal[i] > 0){
-					caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
+					caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i]));// * 100.0f;
 				}
 //		contzero = zeros[i] - casezeros[i];
 //			//		conttot = total[i] - casetotal[i];
 				if(controltotal[i] > 0){
-					contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
+					contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i]));// * 100.0f;
 				}
 
 				if(options.doThreshMarkersLow() && dLess(percent, options.getThreshMarkersLow())){
@@ -241,7 +291,7 @@ void ProcessMarkerGenoEff::process(DataSet* ds){
 //	mge.resetDataSet(data_set);
 	mge.set_parameters(&options);
 
-	for(int i = 0; i < data_set->num_loci(); i++){
+	for(int i = 0; i < (int)data_set->num_loci(); i++){
 		mge.calcOne(i);
 		zeros[i] = mge.getZeros();
 		total[i] = mge.getTotal();

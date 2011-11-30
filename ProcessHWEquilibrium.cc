@@ -26,7 +26,7 @@
 #include <cdflib.h>
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 string ProcessHWEquilibrium::stepname = "hwe";
 
 /*
@@ -35,7 +35,7 @@ string ProcessHWEquilibrium::stepname = "hwe";
  * Resets marker flags
  */
 void ProcessHWEquilibrium::PrintSummary(){
-	for(int i = 0; i < data_set->num_loci(); i++){
+	for(int i = 0; i < (int)data_set->num_loci(); i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
 	return;
@@ -54,7 +54,7 @@ void ProcessHWEquilibrium::FilterSummary(){
 	}
 
 
-	int msize = data_set->num_inds();
+////	int msize = data_set->num_inds();
 	opts::printLog("Options:\t" + options.toString() + "\n");
     opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
 	        getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +

@@ -32,7 +32,7 @@
 #include "ProcessSuperlinkOutput.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 string ProcessSuperlinkOutput::stepname = "output-superlink";
 
 void ProcessSuperlinkOutput::FilterSummary(){

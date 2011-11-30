@@ -24,6 +24,7 @@
 
 
 using namespace std;
+using namespace Methods;
 
 static string _WASPVER_ = "0.83";
 //enum for batch file step switch
@@ -54,10 +55,18 @@ enum StepValue{
 					   e_qtdt_output,	   //qtdt-output
 					   e_mdr_output, 	   //mdr-output
 					   e_pdt2_output,	   //output-pdt2
+					   e_eigenstrat_output, //output-eigenstrat
 					   e_concordance,	   //concordance
 					   e_logreg,			//logreg
+					   e_linreg,			//linear-reg
 					   e_mitocheck,         //mito-check
-					   e_cmh				//CMH
+					   e_ibs,				//IBS
+					   e_cmh,				//CMH
+					   e_mdr,				//MDR
+					   e_mdrpdt,			//MDRPDT
+					   e_cluster_missing,	//cluster-missing
+					   e_mars,				//mars
+					   e_filter_process		//plato filter-process
 					 };
 enum cmdArgs{
 	a_h,
@@ -86,6 +95,8 @@ enum cmdArgs{
 	a_mapdesc,
 	a_tfam,
 	a_tped,
+	a_mdrped,
+	a_mdrmap,
 	a_flip,
 	a_make_bin,
 	a_print_families,
@@ -106,7 +117,8 @@ enum cmdArgs{
 	a_exctraits_name,
 	a_inctraits_name,
 	a_covar_file,
-	a_trait_file
+	a_trait_file,
+	a_map_includes_ref
 
 };
 static map<string, StepValue> s_mapStepValues;
@@ -121,6 +133,8 @@ static map<string, cmdArgs> s_mapcmdArgs;
  *Initializes the batch file options enumeration.
  */
 void Initialize(){
+	srand((unsigned) time(0));
+
 	s_mapStepValues["examplemodule"] = e_examplemodule;
 	s_mapStepValues["marker-geno-eff"] = e_marker_geno_eff;
 	s_mapStepValues["sample-geno-eff"] = e_sample_geno_eff;
@@ -132,6 +146,8 @@ void Initialize(){
 	s_mapStepValues["tdt"] = e_tdt;
 	s_mapStepValues["output-grr"] = e_grr_output;
 	s_mapStepValues["output-ped"] = e_ped_output;
+	s_mapStepValues["output-eigenstrat"] = e_eigenstrat_output;
+	s_mapStepValues["ibs"] = e_ibs;
 	s_mapStepValues["output-tped"] = e_tped_output;
 	s_mapStepValues["chisquare"] = e_chisquare;
 	s_mapStepValues["output-structure"] = e_structure_output;
@@ -150,7 +166,13 @@ void Initialize(){
 	s_mapStepValues["output-qtdt"] = e_qtdt_output;
 	s_mapStepValues["output-pdt2"] = e_pdt2_output;
 	s_mapStepValues["logreg"] = e_logreg;
+	s_mapStepValues["linear-reg"] = e_linreg;
 	s_mapStepValues["cmh"] = e_cmh;
+	s_mapStepValues["mdr"] = e_mdr;
+	s_mapStepValues["mdrpdt"] = e_mdrpdt;
+	s_mapStepValues["mars"] = e_mars;
+	s_mapStepValues["cluster-missing"] = e_cluster_missing;
+	s_mapStepValues["filter-process"] = e_filter_process;
 
 	s_mapcmdArgs["-h"] = a_h;
 	s_mapcmdArgs["-S"] = a_S;
@@ -188,6 +210,8 @@ void Initialize(){
 	s_mapcmdArgs["-sampdesc"] = a_sampdesc;
 	s_mapcmdArgs["-tped"] = a_tped;
 	s_mapcmdArgs["-tfam"] = a_tfam;
+	s_mapcmdArgs["-mdrped"] = a_mdrped;
+	s_mapcmdArgs["-mdrmap"] = a_mdrmap;
 	s_mapcmdArgs["-print-families"] = a_print_families;
 	s_mapcmdArgs["-zero-geno-file"] = a_zero_geno_file;
 	s_mapcmdArgs["-remaining"] = a_remaining;
@@ -199,6 +223,7 @@ void Initialize(){
 	s_mapcmdArgs["-trait-file"] = a_trait_file;
 	s_mapcmdArgs["-bp-space"] = a_bp_space;
 	s_mapcmdArgs["-todigit"] = a_todigit;
+	s_mapcmdArgs["-map-includes-ref"] = a_map_includes_ref;
 }
 
 int
@@ -243,6 +268,11 @@ main (int argc, char* argv[])
 
 		for(unsigned int j = 0; j < arguments.size(); j++){
 			switch(s_mapcmdArgs[arguments[j]]){
+				case a_map_includes_ref:
+				{
+					opts::_MAP_INCLUDES_REF_ = true;
+					break;
+			    }
 				case a_ped:
 				{
 					if(j + 1 >= arguments.size()){
@@ -280,6 +310,7 @@ main (int argc, char* argv[])
 					//	exit(1);
 					//}
 					opts::_NOCALL_ = arguments[++j];
+					opts::_NOCALLMDR_ = opts::_NOCALL_;
 					break;
 				}
 				case a_covar_missing:
@@ -366,6 +397,44 @@ main (int argc, char* argv[])
 					}
 
 					opts::_FAMFILE_ = arguments[++j];
+					break;
+				}
+				case a_mdrped:
+				{
+					if(j + 1 >= arguments.size()){
+						cerr << "-mdrped option requires specifying a filename. (Ex: -mdrped pedinput.ped).  Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() == 0){
+						cerr << "-mdrped option requires specifying a filename. (Ex: -mdrped pedinput.ped).  Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-'){
+						cerr << "-mdrped option missing file name?  Halting." << endl;
+						exit(1);
+					}
+
+					opts::_MDRPEDFILE_ = arguments[++j];
+					break;
+				}
+				case a_mdrmap:
+				{
+					if(j + 1 >= arguments.size()){
+						cerr << "-mdrmap option requires specifying a filename. (Ex: -mdrmap mdrped.map).  Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() == 0){
+						cerr << "-mdrmap option requires specifying a filename. (Ex: -mdrmap mdrped.map).  Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-'){
+						cerr << "-mdrmap option missing file name?  Halting." << endl;
+						exit(1);
+					}
+
+					opts::_MDRMAPFILE_ = arguments[++j];
 					break;
 				}
 				case a_dog:
@@ -1017,7 +1086,8 @@ main (int argc, char* argv[])
 //		log << endl;
 //		log.close();
 
-		if(opts::_PEDFILE_.length() == 0 && opts::_BINPREFIX_.length() == 0 && opts::_TPEDFILE_.length() == 0){
+		if(opts::_PEDFILE_.length() == 0 && opts::_BINPREFIX_.length() == 0 && opts::_TPEDFILE_.length() == 0
+				&& opts::_MDRPEDFILE_.length() == 0){
 			opts::printLog("No pedfile specified and no binary input files specified.  Exiting!\n");
 			exit(0);
 		}
@@ -1058,46 +1128,6 @@ void error_check(){
 	}
 }
 
-/*depricated*/
-vector<string> readMarkers(string f){
-	ifstream input;
-	input.open(f.c_str(), ios::in);
-
-	if(!input){
-		cerr << "Error opening marker file: " << f << endl;
-		exit(1);
-	}
-
-	string rsid = "";
-	vector<string> mrks;
-	while(input >> rsid){
-		mrks.push_back(rsid);
-	}
-	input.close();
-
-	return mrks;
-}
-
-/*depricated*/
-vector<string> readCenters(string f){
-	ifstream input;
-	input.open(f.c_str(), ios::in);
-	if(!input){
-		cerr << "Error opening center file: " << f << endl;
-		exit(1);
-	}
-
-	string center = "";
-	vector<string> cntrs;
-	while(input >> center){
-		cntrs.push_back(center);
-	}
-
-	input.close();
-
-	return cntrs;
-}
-
 /*
  *Function: print_help
  *Return: void
@@ -1112,6 +1142,7 @@ void print_help(){
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
 	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/wasp !!!!" << endl << endl;
+/*
 	cout << "usage: wasp <batchfile> [<option1> <option2>...]" << endl << endl;
 	cout << "   Special options: " << endl;
 	cout << "     -h                 Prints this help" << endl;
@@ -1216,7 +1247,7 @@ void print_help(){
 	cout << "marker-geno-eff -thresh-markers-min 90" << endl;
 	cout << "allele-freq -thresh-markers-min 0.1" << endl;
 	cout << endl;
-
+*/
 }
 
 /*
@@ -1252,6 +1283,10 @@ void print_steps(STEPS s){
  */
 void usage(){
 	cout << "wasp - Whole-Genome Associstion Study Pipeline (Version: " << _WASPVER_ << ")" << endl << endl;
+	cout << "Center for Human Genetics Research" << endl;
+	cout << "Vanderbilt University Medical Center" << endl << endl;
+	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
+	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/wasp !!!!" << endl << endl;
 	cout << "usage: wasp <batchfile> [<option1> <option2>....]" << endl
 		 << endl;
 	cout << "For a list of valid steps to be inserted into the batch file:" << endl;
@@ -1368,16 +1403,24 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		//set options
 		StepOptions options;
 		options.setMapFile(opts::_MAPFILE_);
+		options.setMapContainsReferent(opts::_MAP_INCLUDES_REF_);
 		options.setPedFile(opts::_PEDFILE_);
 		options.setBinInput(opts::_BINPREFIX_);
 		options.setTFamFile(opts::_FAMFILE_);
 		options.setTPedFile(opts::_TPEDFILE_);
+		options.setMdrMapFile(opts::_MDRMAPFILE_);
+		options.setMdrPedFile(opts::_MDRPEDFILE_);
 		options.setCovarMissing(opts::_COVAR_MISSING_);
 		options.setTraitMissing(opts::_TRAIT_MISSING_);
 
+		if(opts::_FREQ_FILE_EXISTS_){
+			opts::printLog("Reading marker frequencies from: " + opts::_FREQ_FILE_ + "\n");
+			options.setFrequencies(readFreqFile(opts::_FREQ_FILE_));
+		}
+
 		//read zerogenofile
 		if(opts::_ZEROGENOFILE_.length() > 0){
-			readZeroGenoFile();
+			readZeroGenoFile(opts::_ZEROGENOFILE_);
 		}
 		//read Binary input
 		if(opts::_BINPREFIX_.length() > 0 && !opts::_MAKEBIN_){
@@ -1398,7 +1441,8 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			}
 		}
 		//read ped & map file
-		else if(opts::_PEDFILE_.length() > 0 && opts::_MAPFILE_.length() > 0 && opts::_TPEDFILE_.length() == 0){
+		else if(opts::_PEDFILE_.length() > 0 && opts::_MAPFILE_.length() > 0 && opts::_TPEDFILE_.length() == 0
+				&& opts::_MDRPEDFILE_.length() == 0){
 			if(opts::_MAPFILE_.length() > 0){
 				opts::printLog("Reading MAP file: " + opts::_MAPFILE_ + "\n");
 				//readMap(data_set.get_markers(), data_set.get_marker_map());
@@ -1419,7 +1463,8 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 				}
 			}
 		}
-		else if(opts::_PEDFILE_.length() == 0 && opts::_TPEDFILE_.length() > 0 && opts::_FAMFILE_.length() > 0){
+		else if(opts::_PEDFILE_.length() == 0 && opts::_MDRPEDFILE_.length() == 0 &&
+				opts::_TPEDFILE_.length() > 0 && opts::_FAMFILE_.length() > 0){
 			if(opts::_FAMFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
 					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
@@ -1436,6 +1481,29 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 				if(opts::_FLIPSTRAND_){
 					flipStrand(data_set.get_markers());
 				}
+			}
+		}
+		else if(opts::_MDRPEDFILE_.length() > 0 && opts::_MDRMAPFILE_.length() > 0){
+			if(opts::_MDRMAPFILE_.length() > 0){
+				opts::printLog("Reading MDRMAP file: " + opts::_MDRMAPFILE_ + "\n");
+				//readMap(data_set.get_markers(), data_set.get_marker_map());
+				readMapMdr(&data_set, options, filters);
+
+			}
+			if(opts::_MDRPEDFILE_.length() > 0){
+				if(opts::_PEDINFO_.length() > 0){
+					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
+					readPedInfo();
+				}
+				opts::printLog("Reading MDRPED file: " + opts::_MDRPEDFILE_ + "\n");
+				//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+				//assignLinks(data_set.get_families());
+				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
+				readMdr(&data_set, options, filters);
+				if(opts::_FLIPSTRAND_){
+					flipStrand(data_set.get_markers());
+				}
+
 			}
 		}
 		else if(!opts::_DBINPUT_){
@@ -1531,16 +1599,16 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		opts::printLog("Non-founders found: " + getString<int>(nonfounders) + "\n");
 
 		if(opts::zerogenoinfo.size() > 0){
+			opts::printLog("Zero-ing specified Sample/SNP pairs.\n");
 			zeroSingleGenos(data_set.get_markers(), data_set.get_samples());
 		}
 
 		if(opts::_MAKEBIN_){
 			writeBit(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
-			exit(1);
 		}
 		if(opts::_PRINTFAMS_){
+			opts::printLog("Printing family structure diagram.\n");
 			printFamilies(data_set.get_families());
-			exit(1);
 		}
 	//}
 	//set_me_up->summary();
@@ -1551,11 +1619,19 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		opts::printLog("Working on " + current_step.getName() + "\n");
 		//current_step.process(con, families, markers);
 		try{
+			StepOptions* step_options = current_step.getOptions();
+
+			if(step_options->doTransform()){
+				step_options->performTransforms(&data_set);
+			}
 			current_step.process(&data_set);
 			current_step.PrintSummary();
 			current_step.filter();
 			current_step.FilterSummary();
 			current_step.close();
+			if(step_options->doTransform()){
+				step_options->undoTransforms(&data_set);
+			}
 		}catch(MethodException ex){
 			opts::printLog(ex.what());
 			exit(0);
@@ -1739,6 +1815,40 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
+			case e_cluster_missing:
+				newstep = new Step("Cluster Missing", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessClusterMissing();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_mars:
+				newstep = new Step("Earth/MARs Calculation", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessEarth();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
 			case e_marker_geno_eff:
 				newstep = new Step("Marker Genotyping Efficiency", "", false);
 				if(tempproc != NULL){
@@ -1791,12 +1901,80 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
+			case e_filter_process:
+				newstep = new Step("Filter Process", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessFilterProcess();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_mdr:
+				newstep = new Step("MDR Process", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessMDR();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_mdrpdt:
+				newstep = new Step("MDRPDT Process", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessMDRPDT();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
 			case e_concordance:
 				newstep = new Step("Concordance Check", "", false);
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
 				tempproc = new ProcessConcordance();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_ibs:
+				newstep = new Step("IBS", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessIBS();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -1831,6 +2009,23 @@ Step initializeSteps(string i){
 					delete(tempproc);
 				}
 				tempproc = new ProcessLogReg();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_linreg:
+				newstep = new Step("Linear Regression", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessLinearReg();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -2029,6 +2224,23 @@ Step initializeSteps(string i){
 					delete(tempproc);
 				}
 				tempproc = new ProcessPEDOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_eigenstrat_output:
+				newstep = new Step("Eigenstrat file output", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessEigenstratOutput();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -2336,12 +2548,107 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				delete newstep;
 				break;
+			case e_cluster_missing:
+				newstep = new Step("Cluster Missing", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessClusterMissing();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_mars:
+				newstep = new Step("Earth/MARs Calculation", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessEarth();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
 			case e_marker_geno_eff:
 				newstep = new Step("Marker Genotyping Efficiency", "", false);
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
 				tempproc = new ProcessMarkerGenoEff();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_filter_process:
+				newstep = new Step("Filter Process", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessFilterProcess();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_mdr:
+				newstep = new Step("MDR Process", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessMDR();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_mdrpdt:
+				newstep = new Step("MDRPDT Process", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessMDRPDT();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -2413,6 +2720,25 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				delete newstep;
 				break;
+			case e_ibs:
+				newstep = new Step("IBS", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessIBS();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
 			case e_cmh:
 				newstep = new Step("Cochran-Mantel-Haenszel test", "", false);
 				if(tempproc != NULL){
@@ -2438,6 +2764,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessLogReg();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_linreg:
+				newstep = new Step("Linear Regression", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessLinearReg();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -2660,6 +3005,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessPEDOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_eigenstrat_output:
+				newstep = new Step("Create Eigenstrat file", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessEigenstratOutput();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -2954,1904 +3318,6 @@ STEPS initializeSteps(){
 	return steps;
 }
 
-
-/*
- *Function: reorderAlleles
- *Return: none
- *Parameters: vector of samples, vector of markers
- *Description:
- *Calculates the raw allele counts and remaps the sample bool vector 1 to be the
- *minor allele
- *
- */
-/*void reorderAlleles(vector<Sample*>* samples, vector<Marker*>* markers){
-	int msize = markers->size();
-	int ssize = samples->size();
-
-	for(int m = 0; m < msize; m++){
-		int mloc = (*markers)[m]->getLoc();
-		if((*markers)[m]->getNumAlleles() == 0){
-			(*markers)[m]->addAllele("0");
-			(*markers)[m]->addAllele("0");
-		}
-		if((*markers)[m]->getNumAlleles() == 1){
-			(*markers)[m]->addAllele("0");
-		}
-		if((*markers)[m]->getNumAlleles() <= 2){
-			int a1 = 0;
-			int a2 = 0;
-			for(int s = 0; s < ssize; s++){
-				if((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc)){
-					a2+=2;
-				}
-				else if(!(*samples)[s]->getAone(mloc) && !(*samples)[s]->getAtwo(mloc)){
-					a1+=2;
-				}
-				else if(!(*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc)){
-					a1++;
-					a2++;
-				}
-			}
-			if(a2 < a1 && (*markers)[m]->getAllele2() != "0"){
-				string temp = (*markers)[m]->getAllele1();
-				//(*markers)[m]->setAllele1((*markers)[m]->getAllele2());
-				//(*markers)[m]->setAllele2(temp);
-				(*markers)[m]->resetAllele1((*markers)[m]->getAllele2());
-				(*markers)[m]->resetAllele2(temp);
-				for(int s = 0; s < ssize; s++){
-					if((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc)){
-						(*samples)[s]->addAone(mloc, false);
-						(*samples)[s]->addAtwo(mloc, false);
-					}
-					else if(!(*samples)[s]->getAone(mloc) && !(*samples)[s]->getAtwo(mloc)){
-						(*samples)[s]->addAone(mloc, true);
-						(*samples)[s]->addAtwo(mloc, true);
-					}
-				}
-			}
-		}
-	}
-}*/
-
-/*
- *Function: assignLinks
- *Description:
- *Creates the family structure by assigning each sample their respective
- *parents, siblings and children
- *
- */
-/*void assignLinks(vector<Family*>* families){
-    vector<Family*>::iterator f_iter;
-
-	int fsize = families->size();
-
-	for(int f = 0; f < fsize; f++){
-		Family* fam = (*families)[f];
-		vector<Sample*>* samps = fam->getSamples();
-		bool good = false;
-		bool excluded = false;
-		int ssize = samps->size();
-
-		for(int s = 0; s < ssize; s++){
-			Sample* samp = (*samps)[s];
-			if(samp->isEnabled()){
-				good = true;
-			}
-			else if(samp->isExcluded()){
-				excluded = true;
-			}
-			if(samp->getDadID() == "0" && samp->getMomID() == "0"){
-				fam->addFounder(samp);
-				samp->setFounder(true);
-			}
-			else{
-				fam->addNonFounder(samp);
-				if(samp->getDadID() != "0"){
-                	vector<Sample*>::iterator temp_iter = find_if(samps->begin(), samps->end(), FindSampleByID(samp->getDadID()));
-                	if(temp_iter != samps->end()){
-						Sample* dad = (*temp_iter);
-	 					samp->setDad(dad);
-						Sample* last_child = dad->getLastChild();
-						if(last_child != NULL && last_child->getSib() == NULL){
-							last_child->setSib(samp);
-						}
-						dad->addChild(samp);
-                	}
-				}
-				if(samp->getMomID() != "0"){
-                	vector<Sample*>::iterator temp_iter = find_if(samps->begin(), samps->end(), FindSampleByID(samp->getMomID()));
-                	if(temp_iter != samps->end()){
-						Sample* mom = (*temp_iter);
-	 					samp->setMom(mom);
-						Sample* last_child = mom->getLastChild();
-						if(last_child != NULL && last_child->getSib() == NULL){
-							last_child->setSib(samp);
-						}
-						mom->addChild(samp);
-                	}
-				}
-			}
-		}
-		fam->setEnabled(good);
-		if(!good && excluded){
-			fam->setExcluded(excluded);
-		}
-	}
-}*/
-
-
-/*
- *Function: readMap
- *Description:
- *Reads the map file and performs the appropriate inclusion/exclusion of markers
- *
- */
-void readMap(vector<Marker*>* markers, vector<int>* marker_map){
-	map<string, vector<string> > descinfo;
-	vector<string> descheaders;
-	//vector<string> exclude;
-	//vector<string> include;
-	map<string,int> exclude;
-	map<string,int> include;
-	map<string,float> frequencies;
-
-	//read in frequency file
-	if(opts::_FREQ_FILE_EXISTS_){
-		opts::printLog("Marker Minor Allele Frequencies being read from: " + opts::_FREQ_FILE_ + "\n");
-		ifstream finput;
-		finput.open(opts::_FREQ_FILE_.c_str(), ios::in);
-		if(!finput){
-			opts::printLog("Error opening marker frequency file: " + opts::_FREQ_FILE_ + "\n");
-			exit(1);
-		}
-		string line = "";
-		int freqline = 1;
-		while(getline(finput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2){
-				opts::printLog("Marker frequency file column size != 2 on line: " + line + " Skipping line!!\n");
-				continue;
-			}
-			try{
-				float freq = -1.0f;
-				for(unsigned int c = 0; c < tokens[1].size(); c++){
-					if(!isdigit(tokens[1][c]) && tokens[1][c] != '.'){
-						throw "Number format exception";
-					}
-				}
-				freq = std::atof(tokens[1].c_str());
-				frequencies[tokens[0]] = freq;
-			}catch(...){
-				opts::printLog(tokens[1] + " is not a valid value for line: " + getString<int>(freqline) + "\n");
-				exit(1);
-			}
-			freqline++;
-		}
-	}
-	//read in map descriptive file
-	if(opts::_MAPDESC_.length() > 0){
-		opts::printLog("Marker description being used: " + opts::_MAPDESC_ + "\n");
-		ifstream dinput;
-		dinput.open(opts::_MAPDESC_.c_str(), ios::in);
-		if(!dinput){
-			opts::printLog("Error opening marker description file: " + opts::_MAPDESC_ + "\n");
-			exit(1);
-		}
-		string head = "";
-		getline(dinput, head, '\n');
-		descheaders = General::ParseDelimitedLine(head);
-		while(!dinput.eof()){
-			string id = "";
-			string line = "";
-			getline(dinput, line, '\n');
-			if(line == ""){
-				continue;
-			}
-			if(line[0] == '#'){
-				continue;
-			}
-
-			vector<string> tokens;
-			tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() < 2){
-				opts::printLog("Marker description column size is < 2: " + line + "\n");
-				exit(1);
-			}
-			if(tokens.size() != descheaders.size()){
-				opts::printLog("Line is not the same size as header line: " + line + "\n");
-				exit(1);
-			}
-
-			id = tokens[0];
-			descinfo[id] = tokens;
-		}
-		dinput.close();
-	}
-	//read in marker exclusion file
-	if(opts::_EXCMARKERS_.length() > 0){
-		opts::printLog("Excluding markers from file: " + opts::_EXCMARKERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCMARKERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker exclusion file: " + opts::_EXCMARKERS_ + "\n");
-			exit(1);
-		}
-		string probe = "";
-		string line = "";
-
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Excluding markers column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			exclude[tokens[0]] = 1;
-			//exclude.push_back(probe);
-		}
-		einput.close();
-	}
-	//read in marker inclusion file
-	if(opts::_INCMARKERS_.length() > 0){
-		opts::printLog("Including markers from file: " + opts::_INCMARKERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_INCMARKERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker inclusion file: " + opts::_INCMARKERS_ + "\n");
-			exit(1);
-		}
-		string probe = "";
-		string line = "";
-		while(getline(einput,line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Including markers column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			include[tokens[0]] = 1;
-			//include.push_back(probe);
-		}
-		einput.close();
-	}
-
-
-	ifstream input;
-    input.open(opts::_MAPFILE_.c_str(), ios::in);
-
-    if(!input){
-		opts::printLog("Error opening map file: " + opts::_MAPFILE_ + "\n");
-        exit(1);
-    }
-	int count = 0;
-	int prev_chrom = -1;
-	int prev_bploc = -1;
-    while(!input.eof()){
-        char buf[256];
-        input.getline(buf, 256, '\n');
-
-        string line = buf;
-
-        if(line == ""){
-            continue;
-        }
-
-        string temp;
-        stringstream s(line);
-        vector<string> elems;
-        while(s >> temp){
-            elems.push_back(temp);
-        }
-
-        if(elems.size() == 0){
-            continue;
-        }
-        else if(elems.size() > 3){
-			opts::printLog("Map file line has more than 3 elements: " + line + "\n");
-            exit(1);
-        }
-		else if(elems.size() < 3 && elems.size() > 0){
-			opts::printLog("Map file line has fewer than 3 elements: " + line + "\n");
-			exit(1);
-		}
-
-
-        string chr = elems[0];
-        string probe_id = elems[1];
-        int bploc = atoi(elems[2].c_str());
-
-		bool use = true;
-		opts::_MARKERS_FOUND_++;
-		if(exclude.size() > 0){
-			//vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe_id);
-			map<string, int>::iterator found = exclude.find(probe_id);
-			if(found != exclude.end()){
-				use = false;
-			}
-		}
-		if(include.size() > 0){
-			//vector<string>::iterator found = find(include.begin(), include.end(), probe_id);
-			map<string, int>::iterator found = include.find(probe_id);
-			if(found == include.end()){
-				use = false;
-			}
-		}
-
-        Marker* m = new Marker(chr, probe_id, bploc);
-		if(opts::_CHROM_LIMIT_){
-			if(m->getChrom() != opts::_CHROM_){
-				use = false;
-			}
-			else{
-				if(opts::_BP_LOW_LIMIT_){
-					if(bploc < opts::_BP_LOW_){
-						use = false;
-					}
-				}
-				if(opts::_BP_HIGH_LIMIT_){
-					if(bploc > opts::_BP_HIGH_){
-						use = false;
-					}
-				}
-			}
-		}
-		if(opts::_BP_SPACE_LIMIT_){
-			if(prev_bploc == -1){
-				prev_bploc = bploc;
-				prev_chrom = m->getChrom();
-			}
-			else{
-				if(m->getChrom() == prev_chrom && ((bploc - prev_bploc) < opts::_BP_SPACE_)){
-					use = false;
-				}
-				else{
-					prev_bploc = bploc;
-					prev_chrom = m->getChrom();
-				}
-			}
-		}
-		m->setEnabled(use);
-		m->setLoc(count);
-		m->setRSID(probe_id);
-
-
-		if(frequencies.size() > 0){
-			map<string,float>::iterator found = frequencies.find(probe_id);
-			if(found != frequencies.end()){
-				m->setMAF(frequencies[probe_id]);
-				m->setFreqFlag(true);
-			}
-		}
-		if(opts::_MAPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[probe_id];
-			for(unsigned int i = 1; i < descheaders.size(); i++){
-				if(tokens.size() == descheaders.size()){
-					m->assignDetail(descheaders[i], tokens[i]);
-				}
-				else{
-					m->assignDetail(descheaders[i], "NA");
-				}
-			}
-		}
-        markers->push_back(m);
-		count++;
-    }
-
-    input.clear();
-    input.close();
-
-	marker_map->resize(markers->size());
-
-	//put markers in chrom/bploc order
-	stable_sort(markers->begin(), markers->end(), less<Marker*>());
-
-	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;//(*markers)[i]->getLoc();
-	}
-
-}
-
-/*
- *Function: readString
- *Description:
- *Reads the next string from a file, space/tab delimited
- *
- *
- */
-/*bool readString(FILE* fp, string* s){
-    bool done = false;
-    *s="";
-    while (1)
-    {
-        char ch = fgetc(fp);
-        if ( ch==' ' || ch == '\t' )
-        {
-            if (done)
-                return true;
-        }
-        else if ( ch=='\n' || ch=='\r' || feof(fp) )
-            return false;
-        else
-        {
-            *s += ch;
-            done = true;
-        }
-    }
-}*/
-
-
-/*
- *Function: writeBit
- *Parameters: sample vector, family vector, marker vector, marker map vector
- *Description:
- *Writes genotype (bed) file as binary genotype file based on Plink output.
- *Family output file (fam) is first 6 columns of original ped file
- *Map file (bim) is extended map file including alleles.
- *
- *
- */
-void writeBit(vector<Sample*>* samples, vector<Family*>* families, vector<Marker*>* markers, vector<int>* marker_map){
-	opts::printLog("Writing family information to " + opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".fam\n");
-	ofstream BIT((opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".fam").c_str(), ios::out);
-	if(!BIT){
-		opts::printLog("Error opening " + opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".fam for family file creation.  Exiting!\n");
-		exit(1);
-	}
-
-	int ssize = samples->size();
-
-	for(int s = 0; s < ssize; s++){
-		Sample* samp = (*samples)[s];
-
-		BIT << samp->getFamID() << " "
-			<< samp->getInd() << " "
-			<< samp->getDadID() << " "
-			<< samp->getMomID() << " ";
-		if(samp->getSex()){
-			BIT << "1 ";
-		}
-		else{
-			BIT << "2 ";
-		}
-
-		BIT << samp->getPheno();
-		//if(samp->getAffected()){
-		//	BIT << "2";
-		//}
-		//else{
-		//	BIT << "0";
-		//}
-		BIT << endl;
-	}
-	BIT.clear();
-	BIT.close();
-
-
-	opts::printLog("Writing map information to " + opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".bim\n");
-	BIT.open((opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".bim").c_str(), ios::out);
-	if(!BIT){
-		opts::printLog("Error opening " + opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".bim for map file creation.  Exiting!\n");
-		exit(1);
-	}
-
-	int msize = markers->size();
-
-	for(int m = 0; m < msize; m++){
-		Marker* mark = (*markers)[m];
-
-		BIT << mark->getChrom() << "\t";
-		BIT << mark->getProbeID() << "\t"
-			<< "0\t" //centimorgan column
-			<< mark->getBPLOC() << "\t";
-		if(mark->getAllele1().length() == 0){
-			BIT << "0\t";
-		}
-		else{
-			BIT << mark->getAllele1() << "\t";
-		}
-		if(mark->getAllele2().length() == 0){
-			BIT << "0\t";
-		}
-		else{
-			BIT << mark->getAllele2() << "\t";
-		}
-//		if(mark->getRSID() == ""){
-//			BIT << ".\t";
-//		}
-//		else{
-//			BIT << mark->getRSID() << "\t";
-//		}
-//		if(mark->getEnzyme() == ""){
-//			BIT << ".";
-//		}
-//		else{
-//			BIT << mark->getEnzyme();
-//		}
-		BIT << endl;
-	}
-	BIT.clear();
-	BIT.close();
-
-	opts::printLog("Writing genotype bitfile to " + opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".bed\n");
-	BIT.open((opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".bed").c_str(), ios::out | ios::binary);
-	if(!BIT){
-		opts::printLog("Error opening " + opts::_OUTPREFIX_ + opts::_BINPREFIX_ + ".bed for genotype file creation.  Exiting!\n");
-		exit(1);
-	}
-
-	bitset<8> b;
-	char ch[1];
-
-  	b.reset();
-    b.set(2);  b.set(3);  b.set(5);  b.set(6);
-	ch[0] = (char)b.to_ulong();
-	BIT.write(ch,1);
-
-	b.reset();
-	b.set(0);  b.set(1);  b.set(3);  b.set(4);
-	ch[0] = (char)b.to_ulong();
-	BIT.write(ch,1);
-
-	b.reset();
-    ch[0] = (char)b.to_ulong();
-	BIT.write(ch,1);
-
-	for(int s = 0; s < ssize; s++){
-		Sample* samp = (*samples)[s];
-
-		for(int m = 0; m < msize;){
-			bitset<8> b;
-			b.reset();
-			int c = 0;
-			while(c < 8 && m < msize){
-				Marker* mark = (*markers)[m];
-				int loc = mark->getLoc();
-
-				if(samp->getAone(loc))
-					b.set(c);
-
-				c++;
-				if(samp->getAtwo(loc))
-					b.set(c);
-				c++;
-				m++;
-			}
-
-			char ch[1];
-			ch[0] = (char)b.to_ulong();
-			BIT.write(ch, 1);
-		}
-	}
-	BIT.close();
-}
-
-/*
- *Function: readBin
- *Paramters: sample vector, family vector, marker vector, marker_map vector
- *Description:
- *Reads set of binary input files (bim, bed, fam)
- *Based on Plink
- *
- */
-
-void readBin(vector<Sample*>* samples, vector<Family*>* families, vector<Marker*>* markers, vector<int>* marker_map){
-	//vector<string> exclude;
-	map<string, vector<string> > mdescinfo;
-	map<string,int> exclude;
-	map<string,int> include;
-	vector<string> mdescheaders;
-	//vector<string> include;
-	map<string,float> frequencies;
-	if(opts::_FREQ_FILE_EXISTS_){
-		opts::printLog("Marker Minor Allele Frequencies being read from: " + opts::_FREQ_FILE_ + "\n");
-		ifstream finput;
-		finput.open(opts::_FREQ_FILE_.c_str(), ios::in);
-		if(!finput){
-			opts::printLog("Error opening marker frequency file: " + opts::_FREQ_FILE_ + "\n");
-			exit(1);
-		}
-		string line = "";
-		int freqline = 1;
-		while(getline(finput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2){
-				opts::printLog("Marker frequency file column size != 2 on line: " + line + " Skipping line!!\n");
-				continue;
-			}
-			try{
-				float freq = -1.0f;
-				for(unsigned int c = 0; c < tokens[1].size(); c++){
-					if(!isdigit(tokens[1][c]) && tokens[1][c] != '.'){
-						throw "Number format exception";
-					}
-				}
-				freq = std::atof(tokens[1].c_str());
-				frequencies[tokens[0]] = freq;
-			}catch(...){
-				opts::printLog(tokens[1] + " is not a valid value for line: " + getString<int>(freqline) + "\n");
-				exit(1);
-			}
-			freqline++;
-		}
-	}
-	if(opts::_MAPDESC_.length() > 0){
-        opts::printLog("Marker description being used: " + opts::_MAPDESC_ + "\n");
-        ifstream dinput;
-        dinput.open(opts::_MAPDESC_.c_str(), ios::in);
-        if(!dinput){
-            opts::printLog("Error opening marker description file: " + opts::_MAPDESC_ + "\n");
-            exit(1);
-        }
-        string head = "";
-        getline(dinput, head, '\n');
-        mdescheaders = General::ParseDelimitedLine(head);
-        while(!dinput.eof()){
-            string id = "";
-            string line = "";
-            getline(dinput, line, '\n');
-            if(line == ""){
-                continue;
-            }
-            if(line[0] == '#'){
-                continue;
-            }
-            vector<string> tokens;
-            tokens = General::ParseDelimitedLine(line);
-            if(tokens.size() < 2){
-                opts::printLog("Marker description column size is < 2: " + line + "\n");
-                exit(1);
-            }
-            if(tokens.size() != mdescheaders.size()){
-                opts::printLog("Line is not the same size as header line: " + line + "\n");
-                exit(1);
-			}
-            id = tokens[0];
-	        mdescinfo[id] = tokens;
-	    }
-	    dinput.close();
-	}
-	if(opts::_EXCMARKERS_.length() > 0){
-		opts::printLog("Excluding markers from file: " + opts::_EXCMARKERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCMARKERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker exclusion file: " + opts::_EXCMARKERS_ + "\n");
-			exit(1);
-		}
-		string probe = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Marker exclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			exclude[tokens[0]] = 1;
-			//exclude.push_back(probe);
-		}
-		einput.close();
-	}
-	if(opts::_INCMARKERS_.length() > 0){
-		opts::printLog("Including markers from file: " + opts::_INCMARKERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_INCMARKERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker exclusion file: " + opts::_INCMARKERS_ + "\n");
-			exit(1);
-		}
-		string probe = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Marker inclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			include[tokens[0]] = 1;
-			//include.push_back(probe);
-		}
-		einput.close();
-	}
-
-	opts::printLog("Reading map from " + opts::_BINPREFIX_ + ".bim\n");
-
-	ifstream MAP((opts::_BINPREFIX_ + ".bim").c_str(), ios::in);
-	if(!MAP){
-		opts::printLog("Error opening map file: " + opts::_BINPREFIX_ + ".bim.  Exiting!\n");
-		exit(1);
-	}
-	//MAP.clear();
-
-	int count = 0;
-
-		string chrom = "";
-		string probe = "";
-		int bploc = 0;
-		string a1 = "";
-		string a2 = "";
-		string centi = "";
-		string rsid = "";
-		string enzyme = "";
-		string line = "";
-	int prev_bploc = -1;
-	int prev_chrom = -1;
-	while(getline(MAP, line)){
-			//>> chrom
-			//>> probe
-			//>> bploc
-			//>> a1
-			//>> a2
-			//>> rsid
-			//>> enzyme){
-		vector<string> tokens = General::ParseDelimitedLine(line);
-		if(tokens.size() != 6){
-			opts::printLog(".bim file column size != 6: " + line + " stopping!!\n");
-			exit(0);
-		}
-		chrom = tokens[0];
-		probe = tokens[1];
-		centi = tokens[2];
-		bploc = atoi(tokens[3].c_str());
-		a1 = tokens[4];
-		a2 = tokens[5];
-		//rsid = tokens[5];
-		//enzyme = tokens[6];
-		//opts::_ENZYMES_ = true;
-		if(rsid == "."){
-			rsid = "";
-		}
-		if(enzyme == "."){
-			enzyme = "";
-			opts::_ENZYMES_ = false;
-		}
-		bool use = true;
-		opts::_MARKERS_FOUND_++;
-
-        if(exclude.size() > 0){
-            //vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe);
-            map<string,int>::iterator found = exclude.find(probe);
-            if(found != exclude.end()){
-                use = false;
-            }
-			else{
-				found = exclude.find(rsid);
-				if(found != exclude.end()){
-					use = false;
-				}
-			}
-        }
-        if(include.size() > 0){
-            //vector<string>::iterator found = find(include.begin(), include.end(), probe);
-            map<string,int>::iterator found = include.find(probe);
-            if(found == include.end()){
-                use = false;
-				found = include.find(rsid);
-				if(found == include.end()){
-					use = false;
-				}
-				else{
-					use = true;
-				}
-            }
-        }
-
-		Marker* m = new Marker(chrom, probe, bploc);
-		if(opts::_CHROM_LIMIT_){
-			if(m->getChrom() != opts::_CHROM_){
-				use = false;
-			}
-			else{
-				if(opts::_BP_LOW_LIMIT_){
-					if(bploc < opts::_BP_LOW_){
-						use = false;
-					}
-				}
-				if(opts::_BP_HIGH_LIMIT_){
-					if(bploc > opts::_BP_HIGH_){
-						use = false;
-					}
-				}
-			}
-		}
-        if(opts::_BP_SPACE_LIMIT_){
-            if(prev_bploc == -1){
-                prev_bploc = bploc;
-                prev_chrom = m->getChrom();
-            }
-            else{
-                if(m->getChrom() == prev_chrom && ((bploc - prev_bploc) < opts::_BP_SPACE_)){
-                    use = false;
-                }
-                else{
-                    prev_bploc = bploc;
-                    prev_chrom = m->getChrom();
-                }
-            }
-        }
-
-		m->setEnabled(use);
-		m->setLoc(count);
-		m->setAllele1(a1);
-		m->setAllele2(a2);
-		m->setRSID(rsid);
-		if(rsid == "." || rsid == ""){
-			m->setRSID(probe);
-		}
-		m->setEnzyme(enzyme);
-		if(frequencies.size() > 0){
-			map<string,float>::iterator found = frequencies.find(probe);
-			if(found == frequencies.end()){
-				found = frequencies.find(m->getRSID());
-				if(found != frequencies.end()){
-					m->setMAF(frequencies[m->getRSID()]);
-					m->setFreqFlag(true);
-				}
-			}
-			else{
-				m->setMAF(frequencies[m->getRSID()]);
-				m->setFreqFlag(true);
-			}
-		}
-        if(opts::_MAPDESC_.length() > 0 && mdescinfo.size() > 0){
-			vector<string> tokens = mdescinfo[probe];
-            for(unsigned int i = 1; i < mdescheaders.size(); i++){
-	            if(tokens.size() == mdescheaders.size()){
-		            m->assignDetail(mdescheaders[i], tokens[i]);
-                }
-                else{
-	                m->assignDetail(mdescheaders[i], "NA");
-                }
-            }
-        }
-
-		markers->push_back(m);
-
-		count++;
-	}
-	MAP.close();
-
-	marker_map->resize(markers->size());
-	stable_sort(markers->begin(), markers->end(), less<Marker*>());
-
-	for(unsigned int i = 0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;
-	}
-
-
-	map<string, vector<string> > descinfo;
-	vector<string> sexclude;
-	vector<string> inccenters;
-	vector<string> sinclude;
-	vector<string> finclude;
-	vector<string> fexclude;
-	vector<string> descheaders;
-	if(opts::_SAMPDESC_.length() > 0){
-		opts::printLog("Sample description being used: " + opts::_SAMPDESC_ + "\n");
-		ifstream dinput;
-		dinput.open(opts::_SAMPDESC_.c_str(), ios::in);
-		if(!dinput){
-			opts::printLog("Error opening sample description file: " + opts::_SAMPDESC_ + "\n");
-			exit(1);
-		}
-        string head = "";
-        getline(dinput, head, '\n');
-        descheaders = General::ParseDelimitedLine(head);
-		while(!dinput.eof()){
-			string fam = "";
-			string id = "";
-			string center = "";
-			string plate = "";
-			string well = "";
-//old        	char buf[256];
-//old	        dinput.getline(buf, 256, '\n');
-            string line = "";
-			getline(dinput, line, '\n');
-
-    	    //old string line = buf;
-
-        	if(line == ""){
-            	continue;
-        	}
-			vector<string> tokens = General::ParseDelimitedLine(line);
-            if(tokens.size() < 2){
-				opts::printLog("Sample description column size is < 2: " + line + " Skipping line!!\n");
-	            continue;
-	        }
-	        if(tokens.size() != descheaders.size()){
-				opts::printLog("Line is not the same size as header line: " + line + " Skipping line!!\n");
-	            continue;
-	        }
-
-			fam = tokens[0];
-			id = tokens[1];
-			descinfo[fam + " " + id] = tokens;
-//			center = tokens[2];
-//			plate = tokens[3];
-//			well = tokens[4];
-//			descinfo[fam + " " + id] = center + " " + plate + " " + well;
-
-//			descinfo.push_back(line);
-		}
-		dinput.close();
-	}
-	if(opts::_EXCSAMPS_.length() > 0){
-		opts::printLog("Excluding samples from file: " + opts::_EXCSAMPS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCSAMPS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening sample exclusion file: " + opts::_EXCSAMPS_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string ind = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2 && line != ""){
-				opts::printLog("Sample exclusion column size != 2: " + line + " Skipping line!!\n");
-				continue;
-			}
-			sexclude.push_back(tokens[0] + " " + tokens[1]);
-		}
-		einput.close();
-	}
-	if(opts::_EXCFAMILIES_.length() > 0){
-		opts::printLog("Excluding families from file: " + opts::_EXCFAMILIES_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCFAMILIES_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening family exclusion file: " + opts::_EXCFAMILIES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-				opts::printLog("Family exclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			fexclude.push_back(tokens[0]);
-		}
-		einput.close();
-	}
-	if(opts::_INCCENTERS_.length() > 0){
-		opts::printLog("Including centers from file: " + opts::_INCCENTERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_INCCENTERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening center inclusion file: " + opts::_INCCENTERS_ + "\n");
-			exit(1);
-		}
-		string center = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-				opts::printLog("Center inclusion columns != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			inccenters.push_back(tokens[0]);
-		}
-		einput.close();
-	}
-	if(opts::_INCSAMPLES_.length() > 0){
-		opts::printLog("Including samples from file: " + opts::_INCSAMPLES_ + "\n");
-		ifstream iinput;
-		iinput.open(opts::_INCSAMPLES_.c_str(), ios::in);
-		if(!iinput){
-			opts::printLog("Error opening sample inclusion file: " + opts::_INCSAMPLES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string ind = "";
-		string line = "";
-		while(getline(iinput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2 && line != ""){
-				opts::printLog("Sample inclusion columns != 2: " + line + " Skipping line!!\n");
-				continue;
-			}
-			sinclude.push_back(tokens[0] + " " + tokens[1]);
-		}
-		iinput.close();
-	}
-	if(opts::_INCFAMILIES_.length() > 0){
-		opts::printLog("Including families from file: " + opts::_INCFAMILIES_ + "\n");
-		ifstream iinput;
-		iinput.open(opts::_INCFAMILIES_.c_str(), ios::in);
-		if(!iinput){
-			opts::printLog("Error opening family inclusion file: " + opts::_INCFAMILIES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string line = "";
-		while(getline(iinput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-				opts::printLog("Family inclusion columns != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			finclude.push_back(tokens[0]);
-		}
-		iinput.close();
-	}
-
-	opts::printLog("Reading family information from " + opts::_BINPREFIX_ + ".fam\n");
-
-	ifstream PED;
-	PED.open((opts::_BINPREFIX_ + ".fam").c_str());
-	if(!PED){
-		opts::printLog("Error opening family information file: " + opts::_BINPREFIX_ + ".fam.  Exiting!\n");
-		exit(1);
-	}
-	PED.clear();
-		string fam = "";
-		string ind = "";
-		string dad = "";
-		string mom = "";
-		string sex = "";
-		string aff = "";
-		line = "";
-	while(getline(PED, line)){
-	   	//	>> fam
-		//	>> ind
-		//	>> dad
-		//	>> mom
-		//	>> sex
-		//	>> aff){
-		vector<string> tokens = General::ParseDelimitedLine(line);
-		if(tokens.size() != 6){
-			opts::printLog("Family information file column size != 6: " + line + " Exitting!!\n");
-			exit(0);
-		}
-		fam = tokens[0];
-		ind = tokens[1];
-		dad = tokens[2];
-		mom = tokens[3];
-		sex = tokens[4];
-		aff = tokens[5];
-		Sample* samp = new Sample();
-		samp->setFamID(fam);
-		samp->setInd(ind);
-		samp->setEnabled(true);
-		opts::_SAMPLES_FOUND_++;
-		if(sexclude.size() > 0){
-			vector<string>::iterator found = find(sexclude.begin(), sexclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found != sexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				if(opts::_KEEP_EXC_SAMPLES_){
-					samp->setExcluded(true);
-				}
-			}
-		}
-		if(sinclude.size() > 0){
-			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found == sinclude.end()){
-				samp->setEnabled(false);
-				if(opts::_KEEP_EXC_SAMPLES_){
-					samp->setExcluded(true);
-				}
-			}
-		}
-
-		samp->setDadID(dad);
-		samp->setMomID(mom);
-		if(sex == "1"){
-			samp->setSex(true);
-		}
-		else if(sex == "2"){
-			samp->setSex(false);
-		}
-
-		if(aff == "2"){
-			samp->setAffected(true);
-		}
-		else{
-			samp->setAffected(false);
-		}
-		samp->setPheno(atoi(aff.c_str()));
-		if(opts::pedinfo.size() > 0){
-			map<string, Sample*>::iterator sfind = opts::pedinfo.find(samp->getFamID() + "#" + samp->getInd());
-			if(sfind != opts::pedinfo.end()){
-				Sample* sfound = sfind->second;
-				samp->setDadID(sfound->getDadID());
-				samp->setMomID(sfound->getMomID());
-				samp->setSex(sfound->getSex());
-				samp->setPheno(sfound->getPheno());
-			}
-		}
-
-		string center = "";
-		if(opts::_SAMPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
-			for(unsigned int i = 2; i < descheaders.size(); i++){
-				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
-				}
-				else{
-				    samp->assignDetail(descheaders[i], "NA");
-				}
-			}
-
-			//if(tokens.size() > 0){
-			//	center = tokens[0];
-			//}
-			//if(opts::_INCCENTERS_.length() > 0 && inccenters.size() > 0){
-			//	bool found = false;
-			//	for(int cent = 0; cent < inccenters.size(); cent++){
-			//		if(inccenters[cent] == center){
-			//			found = true;
-			//		}
-			//	}
-			//	if(!found){
-			//		samp->setEnabled(false);
-			//	}
-//
-			//}
-			//samp->getFamily()->setCenter(tokens[2]);
-			//if(tokens.size() > 0){
-			//	samp->setPlate(tokens[1]);
-			//	samp->setWell(tokens[2]);
-			//}
-		}
-        vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
-
-        if(f_iter != (*families).end()){
-            (*f_iter)->AddInd(samp);
-            samp->setFamily((*f_iter));
-        }
-        else{
-            Family* fam = new Family();
-/*          fam->Setcenter()*/
-            fam->setFamID(samp->getFamID());
-            fam->AddInd(samp);
-			fam->setCenter(center);
-			fam->setEnabled(true);
-            samp->setFamily(fam);
-            families->push_back(fam);
-			fam->setLoc((families->size() - 1));
-			opts::_FAMILIES_FOUND_++;
-        }
-		if(fexclude.size() > 0){
-			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-			if(found != fexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
-				}
-			}
-		}
-		if(finclude.size() > 0){
-			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-			if(found == finclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
-				}
-			}
-		}
-		samp->resizeAlleles(markers->size());
-        samples->push_back(samp);
-		samp->setLoc((samples->size() - 1));
-	}
-
-	PED.clear();
-	PED.close();
-
-	bool ind_major = false;
-	bool snp_major = false;
-	opts::printLog("Reading genotype bitfile from " + opts::_BINPREFIX_ + ".bed\n");
-
-	ifstream BIT;
-	BIT.open((opts::_BINPREFIX_+".bed").c_str(), ios::in | ios::binary);
-	if(!BIT){
-	opts::printLog("Error opening genotype bitfile: " + opts::_BINPREFIX_ + ".bed.  Exiting!\n");
-		exit(1);
-	}
-	char temp[1];
-	//header
-	BIT.read(temp, 1);
-	bitset<8> tb;
-	tb = temp[0];
-	if((tb[2] && tb[3] && tb[5] && tb[6]) && !(tb[0] || tb[1] || tb[4] || tb[7])){
-		BIT.read(temp, 1);
-		tb = temp[0];
-		if((tb[0] && tb[1] && tb[3] && tb[4]) && !(tb[2] || tb[5] || tb[6] || tb[7])){
-			BIT.read(temp, 1);
-			tb = temp[0];
-			if(!tb[0]){
-			opts::printLog("IND major mode\n");
-				ind_major = true;
-			}
-			else{
-			opts::printLog("SNP major mode\n");
-				snp_major = true;
-			}
-		}
-		else{
-			opts::printLog("Incorrect bit file version (2nd code)!\n");
-			exit(1);
-		}
-	}
-	else{
-	opts::printLog("Incorrect bit file version (1st code)!\n");
-		exit(1);
-	}
-
-	int ssize = samples->size();
-	int msize = markers->size();
-
-	if(ind_major){
-		for(int s = 0; s < ssize; s++){
-			Sample* samp = (*samples)[s];
-			for(int m = 0; m < msize;){
-				char ch[1];
-				//cout << samples->size() << "\t" << samp->getFamID() << "\t" << samp->getInd() << "\t" << s << "\t" << (*markers)[m]->getProbeID() << "\t" << m << endl;
-				BIT.read(ch, 1);
-				if(!BIT){
-				opts::printLog("Problem with the bed file.\n");
-					exit(1);
-				}
-				bitset<8> b;
-				b = ch[0];
-				int c = 0;
-				while(c < 7 && m < msize){
-					Marker* mark = (*markers)[m];
-					if(mark->isEnabled()){
-						int mloc = (*markers)[m]->getLoc();
-						samp->addAone(mloc, b[c++]);
-						samp->addAtwo(mloc, b[c++]);
-					}
-					else{
-//					samp->addAone(m, true);
-//					samp->addAtwo(m, false);
-						c+=2;
-					}
-					m++;
-				}
-			}
-		}
-	}
-	else{//SNP_MAJOR
-		for(int m = 0; m < msize; m++){
-			Marker* mark = (*markers)[m];
-			int mloc = mark->getLoc();
-			for(int s = 0; s < ssize;){
-				char ch[1];
-				//cout << samples->size() << "\t" << samp->getFamID() << "\t" << samp->getInd() << "\t" << s << "\t" << (*markers)[m]->getProbeID() << "\t" << m << endl;
-				BIT.read(ch, 1);
-				if(!BIT){
-					opts::printLog("Problem with the bed file.\n");
-					exit(1);
-				}
-				bitset<8> b;
-				b = ch[0];
-				int c = 0;
-				while(c < 7 && s < ssize){
-					Sample* samp = (*samples)[s];
-					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
-						samp->addAone(mloc, b[c++]);
-						samp->addAtwo(mloc, b[c++]);
-					}
-					else{
-//					samp->addAone(m, true);
-//					samp->addAtwo(m, false);
-						c+=2;
-					}
-					s++;
-				}
-			}
-		}
-	}
-	BIT.clear();
-	BIT.close();
-}
-
-/*
- *Function: readPed
- *Description:
- *Reads ped file and stores data into sample, family, and marker vectors
- *
- */
-void readPed(vector<Sample*>* samples, vector<Family*>* families, vector<Marker*>* markers, vector<int>* marker_map){
-	map<string, vector<string> > descinfo;
-	vector<string> exclude;
-	vector<string> inccenters;
-	vector<string> sinclude;
-	vector<string> fexclude;
-	vector<string> finclude;
-	vector<string> descheaders;
-	if(opts::_SAMPDESC_.length() > 0){
-		opts::printLog("Sample description being used: " + opts::_SAMPDESC_ + "\n");
-		ifstream dinput;
-		dinput.open(opts::_SAMPDESC_.c_str(), ios::in);
-		if(!dinput){
-		opts::printLog("Error opening sample description file: " + opts::_SAMPDESC_ + ".  Exiting!\n");
-			exit(1);
-		}
-		string head = "";
-		getline(dinput, head, '\n');
-		descheaders = General::ParseDelimitedLine(head);
-		while(!dinput.eof()){
-			string fam = "";
-			string id = "";
-			string center = "";
-			string plate = "";
-			string well = "";
-     //old   	char buf[256];
-	 //old       dinput.getline(buf, 256, '\n');
-	 		string line = "";
-			getline(dinput, line, '\n');
-
-//old    	    string line = buf;
-
-        	if(line == ""){
-            	continue;
-        	}
-//			vector<string> temp_tokens;
-//			Tokenize(line, temp_tokens, " ");
-			vector<string> tokens;
-			tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() < 2){
-				opts::printLog("Sample description column size is < 2: " + line + " Skipping line!!\n");
-				continue;
-			}
-			if(tokens.size() != descheaders.size()){
-			opts::printLog("Line is not the same size as header line: " + line + " Skipping line!!\n");
-				continue;
-			}
-
-			fam = tokens[0];
-			id = tokens[1];
-			descinfo[fam + " " + id] = tokens;
-//			for(int i = 0; i < temp_tokens.size(); i++){
-//				Tokenize(temp_tokens[i], tokens, "\t");
-//			}
-
-/*old			if(tokens.size() != 5){
-				cerr << "Sample description column size != 5: " << line << " Skipping line!!" << endl;
-				continue;
-			}
-			fam = tokens[0];
-			id = tokens[1];
-			center = tokens[2];
-			plate = tokens[3];
-			well = tokens[4];
-			descinfo[fam + " " + id] = center + " " + plate + " " + well;
-*/
-
-//			descinfo.push_back(line);
-		}
-		dinput.close();
-	}
-	if(opts::_EXCSAMPS_.length() > 0){
-		opts::printLog("Excluding samples from file: " + opts::_EXCSAMPS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCSAMPS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening sample exclusion file: " + opts::_EXCSAMPS_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string ind = "";
-		string line = "";
-		//while(einput >> fam >> ind){
-		while(getline(einput,line)){
-//			vector<string> temp_tokens;
-			vector<string> tokens;
-			tokens = General::ParseDelimitedLine(line);
-//			Tokenize(line, temp_tokens, " ");
-//			for(int i = 0; i < temp_tokens.size(); i++){
-//				Tokenize(temp_tokens[i], tokens, "\t");
-//			}
-			if(tokens.size() != 2 && line != ""){
-			opts::printLog("Sample Exclusion column size != 2: " + line + " Skipping line!!\n");
-				continue;
-			}
-			exclude.push_back(tokens[0] + " " + tokens[1]);
-		}
-		einput.close();
-	}
-	if(opts::_EXCFAMILIES_.length() > 0){
-	opts::printLog("Excluding families from file: " + opts::_EXCFAMILIES_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCFAMILIES_.c_str(), ios::in);
-		if(!einput){
-		opts::printLog("Error opening family exclusion file: " + opts::_EXCFAMILIES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string line = "";
-		while(getline(einput, line)){
-//			vector<string> temp_tokens;
-			vector<string> tokens;
-			tokens = General::ParseDelimitedLine(line);
-//			Tokenize(line, temp_tokens, " ");
-//			for(int i = 0; i < temp_tokens.size(); i++){
-//				Tokenize(temp_tokens[i], tokens, "\t");
-//			}
-			if(tokens.size() != 1 && line != ""){
-			opts::printLog("Family Exclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			fexclude.push_back(tokens[0]);
-		}
-		einput.close();
-	}
-	if(opts::_INCCENTERS_.length() > 0){
-	opts::printLog("Including centers from file: " + opts::_INCCENTERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_INCCENTERS_.c_str(), ios::in);
-		if(!einput){
-		opts::printLog("Error opening center inclusion file: " + opts::_INCCENTERS_ + "\n");
-			exit(1);
-		}
-		string center = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-			opts::printLog("Center Inclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			inccenters.push_back(tokens[0]);
-		}
-		einput.close();
-	}
-	if(opts::_INCSAMPLES_.length() > 0){
-	opts::printLog("Including samples from file: " + opts::_INCSAMPLES_ + "\n");
-		ifstream iinput;
-		iinput.open(opts::_INCSAMPLES_.c_str(), ios::in);
-		if(!iinput){
-		opts::printLog("Error opening sample inclusion file: " + opts::_INCSAMPLES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string ind = "";
-		string line = "";
-		while(getline(iinput,line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2 && line != ""){
-			opts::printLog("Sample inclusion column size != 2:" + line + " Skipping line!!\n");
-				continue;
-			}
-			sinclude.push_back(tokens[0] + " " + tokens[1]);
-		}
-		iinput.close();
-	}
-	if(opts::_INCFAMILIES_.length() > 0){
-	opts::printLog("Including families from file: " + opts::_INCFAMILIES_ + "\n");
-		ifstream iinput;
-		iinput.open(opts::_INCFAMILIES_.c_str(), ios::in);
-		if(!iinput){
-		opts::printLog("Error opening family inclusion file: " + opts::_INCFAMILIES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string line = "";
-		while(getline(iinput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-			opts::printLog("Family inclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			finclude.push_back(tokens[0]);
-		}
-		iinput.close();
-	}
-
-    FILE* input;
-    input = fopen(opts::_PEDFILE_.c_str(), "r");
-	if(!input){
-	opts::printLog("Error opening pedfile: " + opts::_PEDFILE_ + ".  Exiting!\n");
-		exit(1);
-	}
-	int onind = -1;
-    while(!feof(input)){
-		onind++;
-        Sample* samp = new Sample();
-        int f = 0;
-        string temp = "";
-        if(readString(input, &temp)){
-           samp->setFamID(temp);
-              f++;
-             temp = "";
-         }
-
-		string ftemp = samp->getFamID();
-		if(samp->getFamID() == ""){
-			delete(samp);
-			continue;
-		}
-        if(ftemp.at(0) == '#'){
-			delete(samp);
-			while(fgetc(input) != '\n' && !feof(input)){}
-            continue;
-        }
-		opts::_SAMPLES_FOUND_++;
-        /*check for comments?*/
-        string sex = "";
-        string pheno = "";
-        if(readString(input, &temp)){
-            samp->setInd(temp);
-            f++;
-            temp = "";
-        }
-		samp->setEnabled(true);
-
-		if(exclude.size() > 0){
-			vector<string>::iterator found = find(exclude.begin(), exclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found != exclude.end()){
-				if(!opts::_KEEP_EXC_SAMPLES_){
-					delete(samp);
-					while(fgetc(input) != '\n' && !feof(input)){}
-					continue;
-				}
-				else{
-					samp->setEnabled(false);
-					samp->setExcluded(true);
-				}
-			}
-		}
-		if(sinclude.size() > 0){
-			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found == sinclude.end()){
-				if(!opts::_KEEP_EXC_SAMPLES_){
-					delete(samp);
-					while(fgetc(input) != '\n' && !feof(input)){}
-					continue;
-				}
-				else{
-					samp->setEnabled(false);
-					samp->setExcluded(true);
-				}
-			}
-		}
-        if(readString(input, &temp)){
-            samp->setDadID(temp);
-            f++;
-            temp = "";
-        }
-        if(readString(input, &temp)){
-            samp->setMomID(temp);
-            f++;
-            temp = "";
-        }
-        if(readString(input, &sex)) f++;
-        if(readString(input, &pheno)) f++;
-
-        if(sex == "1"){
-            samp->setSex(true);
-        }
-        else if(sex == "2"){
-            samp->setSex(false);
-        }
-
-		if(pheno == "2"){
-			samp->setAffected(true);
-		}
-		else{
-			samp->setAffected(false);
-		}
-		samp->setPheno(atoi(pheno.c_str()));
-
-		if(opts::pedinfo.size() > 0){
-			map<string, Sample*>::iterator sfind = opts::pedinfo.find(samp->getFamID() + "#" + samp->getInd());
-			if(sfind != opts::pedinfo.end()){
-				Sample* sfound = sfind->second;
-				samp->setDadID(sfound->getDadID());
-				samp->setMomID(sfound->getMomID());
-				samp->setSex(sfound->getSex());
-				samp->setPheno(sfound->getPheno());
-			}
-		}
-
-		string center = "";
-		if(opts::_SAMPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
-			for(unsigned int i = 2; i < descheaders.size(); i++){
-				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
-				}
-				else{
-					samp->assignDetail(descheaders[i], "NA");
-				}
-			}
-			//if(tokens.size() > 0){
-			//	center = tokens[0];
-			//}
-			//if(opts::_INCCENTERS_.length() > 0 && inccenters.size() > 0){
-			//	bool found = false;
-			//	for(int cent = 0; cent < inccenters.size(); cent++){
-			//		if(inccenters[cent] == center){
-			//			found = true;
-			//		}
-			//	}
-			//	if(!found){
-			//		delete(samp);
-			//		while(fgetc(input) != '\n' && !feof(input)){}
-			//		continue;
-			//	}
-
-			//}
-			//samp->getFamily()->setCenter(tokens[2]);
-			//if(tokens.size() > 0){
-			//	samp->setPlate(tokens[1]);
-			//	samp->setWell(tokens[2]);
-			//}
-		}
-        samp->resizeAlleles(markers->size());
-
-        unsigned int gn = 0;
-        unsigned int i = 0;
-        bool linedone = false;
-        //bool fatal = false;
-
-        string fmsg;
-        while(!linedone){
-            string one = "";
-            string two = "";
-
-            while(1){
-                char ch = fgetc(input);
-
-                if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(input)){
-                    if(ch == '\n' || ch == '\r' || feof(input)){
-                        linedone = true;
-                    }
-
-                    if(one.length() > 0){
-                        gn++;
-                        break;
-                    }
-                    if(ch == '\n' || ch == '\r' || feof(input)){
-                        break;
-                    }
-                }
-                else{
-                    one += ch;
-                }
-            }
-            if(!linedone){
-                while(1){
-                    char ch = fgetc(input);
-                    if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(input)){
-                        if(ch == '\n' || ch == '\r' || feof(input)){
-                            linedone = true;
-                        }
-                        if(two.length() > 0){
-                            gn++;
-                            break;
-                        }
-                        if(ch == '\n' || ch == '\r' || feof(input)){
-                            break;
-                        }
-                    }
-                    else{
-                        two += ch;
-                    }
-                }
-                if(linedone && one.length() == 0 && two.length() == 0){
-                    break;
-                }
-
-				//Marker* m = (*markers)[i];
-				if(i > markers->size()){
-					string text = "Problem with line: ";
-					text += getString<int>(onind + 1);
-					text += " in file: " + opts::_PEDFILE_ + "\n";
-					text += "Expecting ";
-					text += getString<int>((2 * markers->size()) + 6);
-					text += " columns but found ";
-					text += getString<int>(f + gn);
-					text += "\n";
-					opts::printLog(text);
-					exit(0);
-				}
-				Marker* m = (*markers)[(*marker_map)[i]];
-				if(m->isEnabled()){
-					int oldallelecount = m->getNumAlleles();
-	                if(one != opts::_NOCALL_){
-						//new
-						if(m->getAlleleLoc(one) < 0){
-							m->addAllele(one);
-						}
-/*old
-    	                if(one != m->getAllele1() && one != m->getAllele2()){
-        	                if(m->getAllele1() == ""){
-            	                m->setAllele1(one);
-                	        }
-                    	    else if(m->getAllele2() == ""){
-                        	    m->setAllele2(one);
-	                        }
-    	                }
-old*/
-        	        }
-
-            	    if(two != one){
-                	    if(two != opts::_NOCALL_){
-							//new
-							if(m->getAlleleLoc(two) < 0){
-								m->addAllele(two);
-							}
-/*old                    	    if(two != m->getAllele1() && two != m->getAllele2()){
-                        	    if(m->getAllele1() == ""){
-                            	    m->setAllele1(two);
-	                            }
-    	                        else if(m->getAllele2() == ""){
-        	                        m->setAllele2(two);
-            	                }
-                	        }
-old*/
-                    	}
-	                }
-
-
-					if(m->getNumAlleles() <= 2){
-   		 	            if(one == m->getAllele1() && two == m->getAllele1()){
-   	    	     	        samp->addAone(i, false);
-   	     		            samp->addAtwo(i, false);
-   	     		            samp->addAmissing(i, false);
-		                }
-	    	            else if(one != opts::_NOCALL_ && two != opts::_NOCALL_ && one != two){
-	        	            samp->addAone(i, false);
- 		           	        samp->addAtwo(i, true);
- 		           	        samp->addAmissing(i, false);
-	                	}
-		                else if(one == m->getAllele2() && two == m->getAllele2()){
-	    	                samp->addAone(i, true);
-	        	            samp->addAtwo(i, true);
-	        	            samp->addAmissing(i, false);
-	            	    }
-	                	else if(one == opts::_NOCALL_ || two == opts::_NOCALL_){
-		                    samp->addAone(i, true);
-	    	                samp->addAtwo(i, true);
-	    	                samp->addAmissing(i, true);
-	                	}
-					}
-					else if(opts::_MICROSATS_){
-						samp->addMicroSat(i);
-						int loc1 = m->getAlleleLoc(one);
-						int loc2 = m->getAlleleLoc(two);
-						//samp->addAbone(loc1);
-						//samp->addAbtwo(loc2);
-						samp->addAbone(i, loc1);
-						samp->addAbtwo(i, loc2);
-						if(oldallelecount <= 2){
-							remapSamples(samples, markers, marker_map, i);
-						}
-					}
-					else if(m->getNumAlleles() > 2 && !opts::_MICROSATS_){
-						string alleles = "";
-						for(unsigned int aa = 0; aa < m->getAlleles().size(); aa++){
-							alleles += " " + m->getAllele(aa);
-						}
-						opts::printLog("More than 2 unique alleles found for SNP: " + m->getProbeID() + ", PED File line: " + getString<int>(onind + 1) + ".  Microsatellites not specified. (Offending alleles: " + alleles + "\n");
-						exit(1);
-					}
-				}
-				else{
-					samp->addAone(i,true);
-					samp->addAtwo(i, true);
-					samp->addAmissing(i, true);
-				}
-    	    	i++;
-				if(i > markers->size()){
-					string text = "Problem with line: ";
-					text += getString<int>(onind + 1);
-					text += " in file: " + opts::_PEDFILE_ + "\n";
-					text += "Expecting ";
-					text += getString<int>((2 * markers->size()) + 6);
-					text += " columns but found ";
-					text += getString<int>(f + gn);
-					text += "\n";
-					opts::printLog(text);
-
-					exit(0);
-				}
-            }/*end !linedone*/
-        }/*end while(1)*/
-		if(gn != (2* markers->size())){
-					string text = "Problem with line: ";
-					text += getString<int>(onind + 1);
-					text += " in file: " + opts::_PEDFILE_ + "\n";
-					text += "Expecting ";
-					text += getString<int>(((2 * markers->size()) + 6));
-					text += " columns but found ";
-					text += getString<int>((f + gn));
-					text += "\n";
-					opts::printLog(text);
-			exit(0);
-		}
-
-        vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
-
-        if(f_iter != (*families).end()){
-            (*f_iter)->AddInd(samp);
-            samp->setFamily((*f_iter));
-        }
-        else{
-            Family* fam = new Family();
-/*          fam->Setcenter()*/
-            fam->setFamID(samp->getFamID());
-            fam->AddInd(samp);
-			fam->setCenter(center);
-			fam->setEnabled(true);
-            samp->setFamily(fam);
-            families->push_back(fam);
-			fam->setLoc((families->size() - 1));
-			opts::_FAMILIES_FOUND_++;
-        }
-		if(fexclude.size() > 0){
-			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-			if(found != fexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
-				}
-			}
-		}
-		if(finclude.size() > 0){
-			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-			if(found == finclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
-				}
-			}
-		}
-        samples->push_back(samp);
-		samp->setLoc((samples->size() - 1));
-    }/*end while(eof)*/
-
-    fclose(input);
-}
-
-/*
- *Function: remapSamples
- *Description:
- *If -micro-sats is enabled, when a 3rd allele is found for a marker, this function
- *moves the Sample genotype storage for the specific marker from boolean storage to integer storage.
- *
- */
-/*void remapSamples(vector<Sample*>* samples, vector<Marker*>* markers, vector<int>* marker_map, int loc){
-
-	Marker* m = (*markers)[(*marker_map)[loc]];
-	for(int i = 0; i < samples->size(); i++){
-		Sample* samp = (*samples)[i];
-		if(!samp->haveMicroSat(loc)){
-			samp->addMicroSat(loc);
-			if(!samp->getAone(loc) && !samp->getAtwo(loc)){
-				samp->addAbone(loc, 0);
-				samp->addAbtwo(loc, 0);
-			}
-			else if(samp->getAone(loc) && samp->getAtwo(loc)){
-				samp->addAbone(loc, 1);
-				samp->addAbtwo(loc, 1);
-			}
-			else if(!samp->getAone(loc) && samp->getAtwo(loc)){
-				samp->addAbone(loc, 0);
-				samp->addAbtwo(loc, 1);
-			}
-			else{
-				cout << "Remapping sample: " << samp->toString() << "\t-1/-1\n";
-				samp->addAbone(loc, -1);
-				samp->addAbtwo(loc, -1);
-			}
-			samp->addAone(loc, true);
-			samp->addAtwo(loc, false);
-		}
-	}
-}*/
-
 /*
  *Function: flipStrand
  *Description:
@@ -5109,6 +3575,7 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 				while(getline(isstream, token, '\t')){
 					elems.push_back(token);
 				}
+
 				//General::Tokenize(line, elems, "\t");
 				if(elems.size() == 0){
 					continue;
@@ -5177,7 +3644,7 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 		out.close();
 	}
 	if(filenames["Family"].size() > 0){
-	map<Family*, vector<string> > family_output;
+		map<Family*, vector<string> > family_output;
 		vector<string> all_columns;
 		for(unsigned int i = 0; i < filenames["Family"].size(); i++){
 			string file = filenames["Family"][i];
@@ -5397,752 +3864,114 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 		}
 		out.close();
 	}
+	if(filenames["Batch"].size() > 0){
+		map<string, vector<string> > batch_output;
+		vector<string> all_columns;
+		for(unsigned int i = 0; i < filenames["Batch"].size(); i++){
+			string file = filenames["Batch"][i];
+			string step = opts::filesteps[file];
+
+			for(unsigned int j = 0; j < opts::fileheaders[file].size(); j++){
+				all_columns.push_back("(" + file + ")" + opts::fileheaders[file][j]);
+			}
+		}
+		string outfile = opts::_OUTPREFIX_ + "batch_summary.txt";
+		opts::printLog("Working on compiling Batch information...[" + outfile + "]\n");
+		for(unsigned int i = 0; i < filenames["Batch"].size(); i++){
+			string filename = filenames["Batch"][i];
+			string step = opts::filesteps[filename];
+			vector<string> filecols = opts::fileheaders[filename];
+
+			opts::printLog("\tParsing " + filename + "\n");
+
+
+			ifstream input;
+			input.open(filename.c_str(), ios::in);
+
+			if(!input){
+				cerr << "Error opening file: " << filename << endl;
+				exit(1);
+			}
+
+			string header = "";
+		   	getline(input, header);
+
+			vector<string> columns;
+			General::Tokenize(header, columns, "\t");
+			int famloc = -1;
+			for(unsigned int l = 0; l < columns.size(); l++){
+				if(columns[l] == "Batch"){
+					famloc = l;
+				}
+				if(famloc > -1){
+					break;
+				}
+			}
+			if(famloc < 0){
+				cout << "Batch column not found!\n";
+				exit(1);
+			}
+			string line;
+			int count = 1;
+			while(getline(input, line)){
+				count++;
+				vector<string> elems;
+				string token;
+				istringstream isstream (line);
+				while(getline(isstream, token, '\t')){
+					elems.push_back(token);
+				}
+				//General::Tokenize(line, elems, "\t");
+				if(elems.size() == 0){
+					continue;
+				}
+				string batchid = elems[famloc];
+//				vector<>::iterator iterfam = find_if(families->begin(), families->end(), FindFamily(famid));
+//				if(iterfam == families->end()){
+//					cout << "Cannot find family with famid = " << famid << endl;
+//					exit(1);
+//				}
+//				Family* fam = *iterfam;
+				map<string, vector<string> >::iterator data = batch_output.find(batchid);
+				if(data == batch_output.end()){
+					vector<string> mydata;
+					mydata.resize(all_columns.size(), "N/A");
+					batch_output[batchid] = mydata;
+				}
+				for(unsigned int j = 0; j < filecols.size(); j++){
+					vector<string>::iterator realcol = find(columns.begin(), columns.end(), filecols[j]);
+					vector<string>::iterator allloc = find(all_columns.begin(), all_columns.end(), "(" +filename+")"+filecols[j]);
+					if(realcol != columns.end()){
+						int myloc = realcol - columns.begin();
+						int myallloc = allloc - all_columns.begin();
+						batch_output[batchid][myallloc] = elems[myloc];
+					}
+				}
+			}
+			input.close();
+
+		}
+		ofstream out(outfile.c_str());
+		out << "Batch";
+		for(unsigned int i = 0; i < all_columns.size(); i++){
+			out << "\t" << all_columns[i];
+		}
+		out << "\n";
+		map<string, vector<string> >::iterator iter;
+		for(iter = batch_output.begin(); iter != batch_output.end(); iter++){
+			string batchid = iter->first;
+			vector<string> data = iter->second;
+			out << batchid;
+			for(unsigned int i = 0; i < data.size(); i++){
+				out << "\t" << data[i];
+			}
+			out << "\n";
+		}
+		out.close();
+	}
+
 }
 
-void readTPed(vector<Marker*>* markers, vector<Sample*>* samples, vector<int>* marker_map){
-	map<string, vector<string> > descinfo;
-	vector<string> descheaders;
-	//vector<string> exclude;
-	//vector<string> include;
-	map<string,int> exclude;
-	map<string,int> include;
-	map<string,float> frequencies;
-	vector<bool> includeme;
-
-	//read in frequency file
-	if(opts::_FREQ_FILE_EXISTS_){
-		opts::printLog("Marker Minor Allele Frequencies being read from: " + opts::_FREQ_FILE_ + "\n");
-		ifstream finput;
-		finput.open(opts::_FREQ_FILE_.c_str(), ios::in);
-		if(!finput){
-			opts::printLog("Error opening marker frequency file: " + opts::_FREQ_FILE_ + "\n");
-			exit(1);
-		}
-		string line = "";
-		int freqline = 1;
-		while(getline(finput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2){
-				opts::printLog("Marker frequency file column size != 2 on line: " + line + " Skipping line!!\n");
-				continue;
-			}
-			try{
-				float freq = -1.0f;
-				for(unsigned int c = 0; c < tokens[1].size(); c++){
-					if(!isdigit(tokens[1][c]) && tokens[1][c] != '.'){
-						throw "Number format exception";
-					}
-				}
-				freq = std::atof(tokens[1].c_str());
-				frequencies[tokens[0]] = freq;
-			}catch(...){
-				opts::printLog(tokens[1] + " is not a valid value for line: " + getString<int>(freqline) + "\n");
-				exit(1);
-			}
-			freqline++;
-		}
-	}
-	//read in map descriptive file
-	if(opts::_MAPDESC_.length() > 0){
-		opts::printLog("Marker description being used: " + opts::_MAPDESC_ + "\n");
-		ifstream dinput;
-		dinput.open(opts::_MAPDESC_.c_str(), ios::in);
-		if(!dinput){
-			opts::printLog("Error opening marker description file: " + opts::_MAPDESC_ + "\n");
-			exit(1);
-		}
-		string head = "";
-		getline(dinput, head, '\n');
-		descheaders = General::ParseDelimitedLine(head);
-		while(!dinput.eof()){
-			string id = "";
-			string line = "";
-			getline(dinput, line, '\n');
-			if(line == ""){
-				continue;
-			}
-			if(line[0] == '#'){
-				continue;
-			}
-
-			vector<string> tokens;
-			tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() < 2){
-				opts::printLog("Marker description column size is < 2: " + line + "\n");
-				exit(1);
-			}
-			if(tokens.size() != descheaders.size()){
-				opts::printLog("Line is not the same size as header line: " + line + "\n");
-				exit(1);
-			}
-
-			id = tokens[0];
-			descinfo[id] = tokens;
-		}
-		dinput.close();
-	}
-	//read in marker exclusion file
-	if(opts::_EXCMARKERS_.length() > 0){
-		opts::printLog("Excluding markers from file: " + opts::_EXCMARKERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCMARKERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker exclusion file: " + opts::_EXCMARKERS_ + "\n");
-			exit(1);
-		}
-		string probe = "";
-		string line = "";
-
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Excluding markers column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			exclude[tokens[0]] = 1;
-			//exclude.push_back(probe);
-		}
-		einput.close();
-	}
-	//read in marker inclusion file
-	if(opts::_INCMARKERS_.length() > 0){
-		opts::printLog("Including markers from file: " + opts::_INCMARKERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_INCMARKERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker inclusion file: " + opts::_INCMARKERS_ + "\n");
-			exit(1);
-		}
-		string probe = "";
-		string line = "";
-		while(getline(einput,line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Including markers column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			include[tokens[0]] = 1;
-			//include.push_back(probe);
-		}
-		einput.close();
-	}
-
-
-	FILE* input;
-    input = fopen(opts::_TPEDFILE_.c_str(), "r");
-
-    if(!input){
-		opts::printLog("Error opening ped file: " + opts::_TPEDFILE_ + "\n");
-        exit(1);
-    }
-	int count = 0;
-	int prev_chrom = -1;
-	int prev_bploc = -1;
-    while(!feof(input)){
-		int f = 0;
-		string chr;
-		string probe_id;
-		string cm;
-		string bp;
-		if(readString(input, &chr)) f++;
-
-		if(chr==""){
-			continue;
-		}
-
-		if(readString(input, &probe_id)) f++;
-		if(readString(input, &cm)) f++;
-		if(readString(input, &bp)) f++;
-
-		while(fgetc(input) != '\n' && !feof(input)){}
-
-		int bploc = atoi(bp.c_str());
-
-		bool use = true;
-		opts::_MARKERS_FOUND_++;
-		if(exclude.size() > 0){
-			//vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe_id);
-			map<string, int>::iterator found = exclude.find(probe_id);
-			if(found != exclude.end()){
-				use = false;
-			}
-		}
-		if(include.size() > 0){
-			//vector<string>::iterator found = find(include.begin(), include.end(), probe_id);
-			map<string, int>::iterator found = include.find(probe_id);
-			if(found == include.end()){
-				use = false;
-			}
-		}
-
-        Marker* m = new Marker(chr, probe_id, bploc);
-		if(opts::_CHROM_LIMIT_){
-			if(m->getChrom() != opts::_CHROM_){
-				use = false;
-			}
-			else{
-				if(opts::_BP_LOW_LIMIT_){
-					if(bploc < opts::_BP_LOW_){
-						use = false;
-					}
-				}
-				if(opts::_BP_HIGH_LIMIT_){
-					if(bploc > opts::_BP_HIGH_){
-						use = false;
-					}
-				}
-			}
-		}
-		if(opts::_BP_SPACE_LIMIT_){
-			if(prev_bploc == -1){
-				prev_bploc = bploc;
-				prev_chrom = m->getChrom();
-			}
-			else{
-				if(m->getChrom() == prev_chrom && ((bploc - prev_bploc) < opts::_BP_SPACE_)){
-					use = false;
-				}
-				else{
-					prev_bploc = bploc;
-					prev_chrom = m->getChrom();
-				}
-			}
-		}
-		includeme.push_back(use);
-		if(!use){
-	//		delete(m);
-	//		continue;
-		}
-		m->setEnabled(use);
-		m->setLoc(count);
-		m->setRSID(probe_id);
-
-
-		if(frequencies.size() > 0){
-			map<string,float>::iterator found = frequencies.find(probe_id);
-			if(found != frequencies.end()){
-				m->setMAF(frequencies[probe_id]);
-				m->setFreqFlag(true);
-			}
-		}
-		if(opts::_MAPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[probe_id];
-			for(unsigned int i = 1; i < descheaders.size(); i++){
-				if(tokens.size() == descheaders.size()){
-					m->assignDetail(descheaders[i], tokens[i]);
-				}
-				else{
-					m->assignDetail(descheaders[i], "NA");
-				}
-			}
-		}
-        markers->push_back(m);
-		count++;
-    }
-
-    //input.clear();
-    fclose(input);
-
-	marker_map->resize(markers->size());
-
-	//put markers in chrom/bploc order
-	stable_sort(markers->begin(), markers->end(), less<Marker*>());
-
-	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;//(*markers)[i]->getLoc();
-	}
-
-	count = 0;
-	for(unsigned int i = 0; i < samples->size(); i++){
-		(*samples)[i]->resizeAlleles(markers->size());
-	}
-
-	FILE* PED;
-	PED = fopen(opts::_TPEDFILE_.c_str(), "r");
-	int i =0;
-
-	while(!feof(PED)){
-		string dummy;
-		string tempdummy;
-		int f =0;
-		if(readString(PED, &dummy)) f++;
-
-		if(dummy==""){
-			continue;
-		}
-
-		if(dummy.substr(0,1) == "#"){
-			while(fgetc(PED) != '\n' && !feof(PED)){}
-			continue;
-		}
-
-		if(!includeme[i]){
-			while(fgetc(PED) != '\n' && !feof(PED)){}
-			i++;
-			continue;
-		}
-
-		if(readString(PED,&tempdummy)) f++; //probe
-		if(readString(PED,&dummy)) f++; //cm
-		if(readString(PED,&dummy)) f++; //bploc
-
-		unsigned int gn = 0;
-		unsigned int c=0; //ind count
-		bool linedone = false;
-		//bool fatal = false;
-		string fmsg;
-		while(!linedone){
-			Sample* samp = (*samples)[c];
-			string one = "";
-			string two = "";
-			while(1){
-				char ch = fgetc(PED);
-				if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(PED)){
-					if(ch == '\n' || ch == '\r' || feof(PED)){
-						linedone = true;
-					}
-					if(one.length() > 0){
-						gn++;
-						break;
-					}
-					if(ch == '\n' || ch == '\r' || feof(PED)){
-						break;
-					}
-				}
-				else{
-					one += ch;
-				}
-			}
-
-			if(!linedone){
-				while(1){
-					char ch = fgetc(PED);
-					if(ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(PED)){
-						if(ch == '\n' || ch == '\r' || feof(PED)){
-							linedone = true;
-						}
-						if(two.length() > 0){
-							gn++;
-							break;
-						}
-						if(ch == '\n' || ch == '\r' || feof(PED)){
-							break;
-						}
-					}
-					else{
-						two += ch;
-					}
-				}
-			}
-
-			if(linedone && one.length() == 0 && two.length() == 0){
-				break;
-			}
-
-			if(includeme[i]){
-				int k = (*marker_map)[i];
-				Marker* mark = (*markers)[k];
-
-				int oldallelecount = mark->getNumAlleles();
-                if(one != opts::_NOCALL_){
-					//new
-					if(mark->getAlleleLoc(one) < 0){
-						mark->addAllele(one);
-					}
-        	    }
-
-            	if(two != one){
-                    if(two != opts::_NOCALL_){
-						//new
-						if(mark->getAlleleLoc(two) < 0){
-							mark->addAllele(two);
-						}
-	                }
-				}
-//cout << mark->toString() << "\t" << mark->getAllele1() << mark->getAllele2() << "\t" << samp->toString() << "\t" << one << two;
-				if(mark->getNumAlleles() <= 2){
-   		            if(one == mark->getAllele1() && two == mark->getAllele1()){
-   	         	        samp->addAone(i, false);
-   	    	            samp->addAtwo(i, false);
-		            }
-	                else if(one != opts::_NOCALL_ && two != opts::_NOCALL_ && one != two){
-	       	            samp->addAone(i, false);
- 		      	        samp->addAtwo(i, true);
-	               	}
-		            else if(one == mark->getAllele2() && two == mark->getAllele2()){
-	                    samp->addAone(i, true);
-	       	            samp->addAtwo(i, true);
-	           	    }
-	               	else if(one == opts::_NOCALL_ || two == opts::_NOCALL_){
-		                samp->addAone(i, true);
-	                    samp->addAtwo(i, false);
-	       	        }
-//cout << "\t" << samp->getAone(i) << samp->getAtwo(i) << endl;
-				}
-				else if(opts::_MICROSATS_){
-					samp->addMicroSat(i);
-					int loc1 = mark->getAlleleLoc(one);
-					int loc2 = mark->getAlleleLoc(two);
-					//samp->addAbone(loc1);
-					//samp->addAbtwo(loc2);
-					samp->addAbone(i, loc1);
-					samp->addAbtwo(i, loc2);
-					if(oldallelecount <= 2){
-						remapSamples(samples, markers, marker_map, i);
-					}
-				}
-				else if(mark->getNumAlleles() > 2 && !opts::_MICROSATS_){
-					opts::printLog("More than 2 unique alleles found for map location: " + getString<int>(k) + ", line: " + getString<int>(c + 1) + " [" + samp->toString() + ":::" + mark->toString() + " " + one + "/" + two + ".  Microsatellites not specified.\n");
-					exit(1);
-				}
-			}
-			c++;
-			if(c > samples->size()){
-				opts::printLog("Problem with line " + getString<int>(i+1) + " in " + opts::_TPEDFILE_ + "\n");
-				opts::printLog("Expecting 4 + 2 * " + getString<int>(samples->size()) + " = " +
-						getString<int>(4+2*samples->size()) + " columns, but found more\n");
-				exit(1);
-			}
-		}//line done? next snp
-
-		if(gn != 2 * samples->size()){
-			opts::printLog("Problem with line " + getString<int>(i+1) + " in " + opts::_TPEDFILE_ + "\n");
-			opts::printLog("Expecting 4 + 2 * " + getString<int>(samples->size()) + " = " +
-					getString<int>(4+2*samples->size()) + " columns, but found more\n");
-			exit(1);
-		}
-		i++;
-	}
-	fclose(PED);
-}
-
-void readTFam(vector<Sample*>* samples, vector<Family*>* families){
-	map<string, vector<string> > descinfo;
-	vector<string> sexclude;
-	vector<string> inccenters;
-	vector<string> sinclude;
-	vector<string> finclude;
-	vector<string> fexclude;
-	vector<string> descheaders;
-	if(opts::_SAMPDESC_.length() > 0){
-		opts::printLog("Sample description being used: " + opts::_SAMPDESC_ + "\n");
-		ifstream dinput;
-		dinput.open(opts::_SAMPDESC_.c_str(), ios::in);
-		if(!dinput){
-			opts::printLog("Error opening sample description file: " + opts::_SAMPDESC_ + "\n");
-			exit(1);
-		}
-        string head = "";
-        getline(dinput, head, '\n');
-        descheaders = General::ParseDelimitedLine(head);
-		while(!dinput.eof()){
-			string fam = "";
-			string id = "";
-			string center = "";
-			string plate = "";
-			string well = "";
-//old        	char buf[256];
-//old	        dinput.getline(buf, 256, '\n');
-            string line = "";
-			getline(dinput, line, '\n');
-
-    	    //old string line = buf;
-
-        	if(line == ""){
-            	continue;
-        	}
-			vector<string> tokens = General::ParseDelimitedLine(line);
-            if(tokens.size() < 2){
-				opts::printLog("Sample description column size is < 2: " + line + " Skipping line!!\n");
-	            continue;
-	        }
-	        if(tokens.size() != descheaders.size()){
-				opts::printLog("Line is not the same size as header line: " + line + " Skipping line!!\n");
-	            continue;
-	        }
-
-			fam = tokens[0];
-			id = tokens[1];
-			descinfo[fam + " " + id] = tokens;
-//			center = tokens[2];
-//			plate = tokens[3];
-//			well = tokens[4];
-//			descinfo[fam + " " + id] = center + " " + plate + " " + well;
-
-//			descinfo.push_back(line);
-		}
-		dinput.close();
-	}
-	if(opts::_EXCSAMPS_.length() > 0){
-		opts::printLog("Excluding samples from file: " + opts::_EXCSAMPS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCSAMPS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening sample exclusion file: " + opts::_EXCSAMPS_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string ind = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2 && line != ""){
-				opts::printLog("Sample exclusion column size != 2: " + line + " Skipping line!!\n");
-				continue;
-			}
-			sexclude.push_back(tokens[0] + " " + tokens[1]);
-		}
-		einput.close();
-	}
-	if(opts::_EXCFAMILIES_.length() > 0){
-		opts::printLog("Excluding families from file: " + opts::_EXCFAMILIES_ + "\n");
-		ifstream einput;
-		einput.open(opts::_EXCFAMILIES_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening family exclusion file: " + opts::_EXCFAMILIES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-				opts::printLog("Family exclusion column size != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			fexclude.push_back(tokens[0]);
-		}
-		einput.close();
-	}
-	if(opts::_INCCENTERS_.length() > 0){
-		opts::printLog("Including centers from file: " + opts::_INCCENTERS_ + "\n");
-		ifstream einput;
-		einput.open(opts::_INCCENTERS_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening center inclusion file: " + opts::_INCCENTERS_ + "\n");
-			exit(1);
-		}
-		string center = "";
-		string line = "";
-		while(getline(einput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-				opts::printLog("Center inclusion columns != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			inccenters.push_back(tokens[0]);
-		}
-		einput.close();
-	}
-	if(opts::_INCSAMPLES_.length() > 0){
-		opts::printLog("Including samples from file: " + opts::_INCSAMPLES_ + "\n");
-		ifstream iinput;
-		iinput.open(opts::_INCSAMPLES_.c_str(), ios::in);
-		if(!iinput){
-			opts::printLog("Error opening sample inclusion file: " + opts::_INCSAMPLES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string ind = "";
-		string line = "";
-		while(getline(iinput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 2 && line != ""){
-				opts::printLog("Sample inclusion columns != 2: " + line + " Skipping line!!\n");
-				continue;
-			}
-			sinclude.push_back(tokens[0] + " " + tokens[1]);
-		}
-		iinput.close();
-	}
-	if(opts::_INCFAMILIES_.length() > 0){
-		opts::printLog("Including families from file: " + opts::_INCFAMILIES_ + "\n");
-		ifstream iinput;
-		iinput.open(opts::_INCFAMILIES_.c_str(), ios::in);
-		if(!iinput){
-			opts::printLog("Error opening family inclusion file: " + opts::_INCFAMILIES_ + "\n");
-			exit(1);
-		}
-		string fam = "";
-		string line = "";
-		while(getline(iinput, line)){
-			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1 && line != ""){
-				opts::printLog("Family inclusion columns != 1: " + line + " Skipping line!!\n");
-				continue;
-			}
-			finclude.push_back(tokens[0]);
-		}
-		iinput.close();
-	}
-
-	opts::printLog("Reading family information from " + opts::_FAMFILE_ + "\n");
-
-	ifstream PED;
-	PED.open((opts::_FAMFILE_).c_str());
-	if(!PED){
-		opts::printLog("Error opening family information file: " + opts::_FAMFILE_ + ".  Exiting!\n");
-		exit(1);
-	}
-	PED.clear();
-		string fam = "";
-		string ind = "";
-		string dad = "";
-		string mom = "";
-		string sex = "";
-		string aff = "";
-		string line = "";
-	while(getline(PED, line)){
-	   	//	>> fam
-		//	>> ind
-		//	>> dad
-		//	>> mom
-		//	>> sex
-		//	>> aff){
-		vector<string> tokens = General::ParseDelimitedLine(line);
-		if(tokens.size() != 6){
-			opts::printLog("Family information file column size != 6: " + line + " Exitting!!\n");
-			exit(0);
-		}
-		fam = tokens[0];
-		ind = tokens[1];
-		dad = tokens[2];
-		mom = tokens[3];
-		sex = tokens[4];
-		aff = tokens[5];
-		Sample* samp = new Sample();
-		samp->setFamID(fam);
-		samp->setInd(ind);
-		samp->setEnabled(true);
-		opts::_SAMPLES_FOUND_++;
-		if(sexclude.size() > 0){
-			vector<string>::iterator found = find(sexclude.begin(), sexclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found != sexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				if(opts::_KEEP_EXC_SAMPLES_){
-					samp->setExcluded(true);
-				}
-			}
-		}
-		if(sinclude.size() > 0){
-			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found == sinclude.end()){
-				samp->setEnabled(false);
-				if(opts::_KEEP_EXC_SAMPLES_){
-					samp->setExcluded(true);
-				}
-			}
-		}
-
-		samp->setDadID(dad);
-		samp->setMomID(mom);
-		if(sex == "1"){
-			samp->setSex(true);
-		}
-		else if(sex == "2"){
-			samp->setSex(false);
-		}
-
-		if(aff == "2"){
-			samp->setAffected(true);
-		}
-		else{
-			samp->setAffected(false);
-		}
-		samp->setPheno(atoi(aff.c_str()));
-		if(opts::pedinfo.size() > 0){
-			map<string, Sample*>::iterator sfind = opts::pedinfo.find(samp->getFamID() + "#" + samp->getInd());
-			if(sfind != opts::pedinfo.end()){
-				Sample* sfound = sfind->second;
-				samp->setDadID(sfound->getDadID());
-				samp->setMomID(sfound->getMomID());
-				samp->setSex(sfound->getSex());
-				samp->setPheno(sfound->getPheno());
-			}
-		}
-
-		string center = "";
-		if(opts::_SAMPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
-			for(unsigned int i = 2; i < descheaders.size(); i++){
-				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
-				}
-				else{
-				    samp->assignDetail(descheaders[i], "NA");
-				}
-			}
-
-			//if(tokens.size() > 0){
-			//	center = tokens[0];
-			//}
-			//if(opts::_INCCENTERS_.length() > 0 && inccenters.size() > 0){
-			//	bool found = false;
-			//	for(int cent = 0; cent < inccenters.size(); cent++){
-			//		if(inccenters[cent] == center){
-			//			found = true;
-			//		}
-			//	}
-			//	if(!found){
-			//		samp->setEnabled(false);
-			//	}
-//
-			//}
-			//samp->getFamily()->setCenter(tokens[2]);
-			//if(tokens.size() > 0){
-			//	samp->setPlate(tokens[1]);
-			//	samp->setWell(tokens[2]);
-			//}
-		}
-        vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
-
-        if(f_iter != (*families).end()){
-            (*f_iter)->AddInd(samp);
-            samp->setFamily((*f_iter));
-        }
-        else{
-            Family* fam = new Family();
-/*          fam->Setcenter()*/
-            fam->setFamID(samp->getFamID());
-            fam->AddInd(samp);
-			fam->setCenter(center);
-			fam->setEnabled(true);
-            samp->setFamily(fam);
-            families->push_back(fam);
-			fam->setLoc((families->size() - 1));
-			opts::_FAMILIES_FOUND_++;
-        }
-		if(fexclude.size() > 0){
-			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-			if(found != fexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
-				}
-			}
-		}
-		if(finclude.size() > 0){
-			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-			if(found == finclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-				samp->setEnabled(false);
-				vector<Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
-				}
-			}
-		}
-		//samp->resizeAlleles(markers->size());
-        samples->push_back(samp);
-		samp->setLoc((samples->size() - 1));
-	}
-
-	PED.clear();
-	PED.close();
-}
 
 
 
@@ -6304,7 +4133,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 	  print=true;
 	  if ( i < tokens.size() - 1)
 	    {
-	      if (tokens[i+1] == _WASPVER_)
+	      if (tokens[i+1] >= _WASPVER_)
 		opts::printLog(" OK, v"+_WASPVER_+" is current\n");
 	      else
 		{

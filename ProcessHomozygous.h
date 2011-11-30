@@ -25,6 +25,7 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessHomozygous : public Process{
@@ -35,7 +36,7 @@ class ProcessHomozygous : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 		//Markers* markers;
 		//Families* families;
 		float threshold;

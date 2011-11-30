@@ -34,7 +34,7 @@
 #include "ProcessMDROutput.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 
 void ProcessMDROutput::FilterSummary(){
 }

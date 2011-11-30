@@ -24,6 +24,7 @@
 #include <DataSet.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessMendelianErrors : public Process{
 	static string stepname;
@@ -33,7 +34,7 @@ class ProcessMendelianErrors : public Process{
 		vector<Marker*>* markers;
 		vector<Family*>* families;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 
 //		Markers* markers;
 //		Families* families;

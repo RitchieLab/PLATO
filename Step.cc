@@ -9,7 +9,7 @@
 #include <list>
 #include "Step.h"
 //#include "Process.h"
-
+using namespace Methods;
 string Step::getName(){
 	return name;
 }

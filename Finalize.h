@@ -22,7 +22,7 @@
 //#include "Helper.h"
 //using namespace oracle::occi;
 using namespace std;
-
+using namespace Methods;
 
 class Finalize{
 	private:

@@ -34,7 +34,7 @@
 #include "ProcessPDT2Output.h"
 #include <General.h>
 #include <Helper.h>
-
+using namespace Methods;
 
 void ProcessPDT2Output::FilterSummary(){
 }

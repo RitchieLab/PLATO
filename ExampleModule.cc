@@ -36,6 +36,8 @@
 //#include "Chrom.h"
 //#include "Families.h"
 
+using namespace Methods;
+
 //FilterSummary()
 //used to output the number of elements remaining after process
 void ExampleModule::FilterSummary(){

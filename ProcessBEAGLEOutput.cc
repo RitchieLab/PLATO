@@ -31,7 +31,7 @@
 #include <General.h>
 #include <Helper.h>
 
-
+using namespace Methods;
 /*
  *Function: FilterSummary
  *Description:

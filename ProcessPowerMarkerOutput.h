@@ -23,6 +23,7 @@
 #include <PowerMarkerOutput.h>
 
 using namespace std;
+using namespace Methods;
 
 
 class ProcessPowerMarkerOutput : public Process{
@@ -33,7 +34,7 @@ class ProcessPowerMarkerOutput : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+		//StepOptions options;
 
 //		Markers* markers;
 //		Families* families;

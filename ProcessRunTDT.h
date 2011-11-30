@@ -25,6 +25,7 @@
 #include <MethodException.h>
 
 using namespace std;
+using namespace Methods;
 
 class ProcessRunTDT : public Process{
 	static string stepname;
@@ -34,7 +35,7 @@ class ProcessRunTDT : public Process{
 		vector<Family*>* families;
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
-		StepOptions options;
+	//	StepOptions options;
 //		Markers* markers;
 //		Families* families;
 //		TDTProcess* TDT;
