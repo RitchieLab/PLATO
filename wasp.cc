@@ -1541,9 +1541,11 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			exit(1);
 		}
 		if(opts::_COVFILE_.length() > 0){
+			opts::printLog("Reading covariate file: " + opts::_COVFILE_ + "\n");
 			readCovariateFile(opts::_COVFILE_, &data_set, options, filters);
 		}
 		if(opts::_TRAITFILE_.length() > 0){
+			opts::printLog("Reading trait file: " + opts::_TRAITFILE_ + "\n");
 			readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
 		}
 
@@ -4384,7 +4386,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 		  fiter = find(a.begin(), a.end(), tokens[i]);
 	      if ( fiter != a.end()){
 		opts::printLog("A serious warning flag has been set for: "+tokens[i]+
-		    "\nWasp has been instructed to stop"+
+		    "\nPlato has been instructed to stop"+
  	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
 		  	exit(1);
 		  }
@@ -4398,7 +4400,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 			siter = b.find(tokens[i]);
 			if(siter != b.end()){
 		opts::printLog("A serious warning flag has been set for STEP: "+tokens[i]+
-		    "\nWasp has been instructed to stop"+
+		    "\nPlato has been instructed to stop"+
  	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
 		  	exit(1);
 			}
@@ -4414,7 +4416,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 				  fiter = find(second.begin(), second.end(), tokens[i]);
 				  if(fiter != second.end()){
 		opts::printLog("A serious warning flag has been set for STEP OPTION: "+tokens[i]+
-		    "\nWasp has been instructed to stop"+
+		    "\nPlato has been instructed to stop"+
  	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
 		  	exit(1);
 				  }

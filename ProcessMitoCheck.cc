@@ -244,7 +244,7 @@ void ProcessMitoCheck::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int msize = data_set->num_loci();
 		for(int m = 0; m < msize; m++){
-			if(data_set->get_locus(m)->isEnabled() && data_set->get_locus(m)->getChrom() == 25 && !data_set->get_locus(m)->isFlagged()){
+			if(data_set->get_locus(m)->isEnabled() && data_set->get_locus(m)->getChrom() == opts::_MITO_ && !data_set->get_locus(m)->isFlagged()){
 				if(options.doChrom()){
 					if(!options.checkChrom(data_set->get_locus(m)->getChrom())){
 					    continue;
