@@ -52,9 +52,6 @@ class Process{
             StepOptions* getOptions(){return &options;}
             StepOptions get_options(){return options;}
             void set_options(StepOptions* opts){options = *opts;}
-#ifdef PLATOLIB
-			void set_db(Database* pdb){db = pdb;}
-#endif
             bool has_results(){return hasresults;}
             vector<string> get_tablename(){return tablename;}
             map<string, vector<string> > get_headers(){return headers;}
