@@ -1394,6 +1394,7 @@ void usage(){
  */
 void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 	ORDER::iterator o_iter;
+	vector<ORDER> optimized = optimize(order);
 
 	DataSet data_set;
 		//set up filters
@@ -1756,7 +1757,6 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 	//threading here?
 
 //		if(opts::_THREADS_){
-		vector<ORDER> optimized = optimize(order);
 //		}
 		int count = 0;
 		vector<boost::thread*> threads_hash;
@@ -1883,6 +1883,10 @@ vector<ORDER> optimize(ORDER* order){
 	cout << "Threadable: \n";
 	for(int i = 0; i < yesthread.size(); i++){
 		cout << yesthread[i].getName() << "\n";
+	}
+	cout << "Un-Threadable: \n";
+	for(int i = 0; i < nothread.size(); i++){
+		cout << nothread[i].getName() << "\n";
 	}
 
 	return results;
