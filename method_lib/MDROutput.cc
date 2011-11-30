@@ -126,19 +126,39 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 	int cases = 0;
 	int controls = 0;
 	vector<bool> samp_flags(ssize, false);
+	
+  int phenoloc = -9;
+	if(options.getUsePheno()){
+		if(options.getPhenoName() == ""){
+			phenoloc = options.getPhenoLoc();
+		}
+		else{
+			phenoloc = data_set->get_trait_index(options.getPhenoName());
+		}
+	}
+	
 	if(!options.get_no_rules()){
 	for(int i = 0; i < ssize; i++){
 		Sample* samp = (*samples).at(i);
 		if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples())){
-			if(samp->getPheno() != 2 && samp->getPheno() != 1){
+		
+		  double pheno;
+		  if(options.getUsePheno()){
+    		pheno = samp->getPheno(phenoloc);
+  	  }
+  		else{
+  		  pheno = samp->getPheno();
+  		}
+		
+			if(pheno != 2 && pheno != 1){
 				mdr_log << samp->toString() << "\tNot affected or unaffected." << endl;
 				samp_flags.at(samp->getLoc()) = true;
 				continue;
 			}
-			else if(samp->getPheno() == 2){
+			else if(pheno == 2){
 				cases++;
 			}
-			else if(samp->getPheno() == 1){
+			else if(pheno == 1){
 				controls++;
 			}
 			for(int m = 0; m < msize; m++){
@@ -186,18 +206,19 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 		mdr << "\n";
 	}
 
-	int phenoloc = -9;
-	if(options.getUsePheno()){
-		if(options.getPhenoName() == ""){
-			phenoloc = options.getPhenoLoc();
-		}
-		else{
-			phenoloc = data_set->get_trait_index(options.getPhenoName());
-		}
-	}
+
 	for(int i = 0; i < ssize; i++){
 		Sample* samp = (*samples).at(i);
 		if((samp->isEnabled() ||(samp->isExcluded() && options.doIncExcludedSamples())) && !samp_flags.at(samp->getLoc())){
+		
+		  double pheno;
+	    if(options.getUsePheno()){
+    		pheno = (samp->getPheno(phenoloc) - 1);
+  	  }
+  		else{
+  		  pheno = (samp->getPheno() - 1);
+  		}
+		
 			if(options.getMDRPedigreeOutput()){
 				mdr << samp->getFamID() << "\t";
 				mdr << samp->getInd() << "\t";
@@ -209,23 +230,37 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 				else{
 					mdr << "2\t";
 				}
-				if(options.getUsePheno()){
-					mdr << samp->getPheno(phenoloc) << "\t";
-				}
-				else{
-					mdr << samp->getPheno() << "\t";
-				}
+				// add one because pedigree format uses 1 and 2 for affection status
+				mdr << pheno+1 << "\t";
+// 				if(options.getUsePheno()){
+// 					mdr << samp->getPheno(phenoloc) << "\t";
+// 				}
+// 				else{
+// 					mdr << samp->getPheno() << "\t";
+// 				}
 			}
 			if(!options.getMDRGuiOutput() && !options.get_no_rules() && !options.getMDRPedigreeOutput()){
-				mdr << (samp->getPheno() - 1) << "\t";
+			  mdr << pheno << "\t";
+// 			  if(options.getUsePheno()){
+//           if(samp->getPheno(phenoloc)==comissing){
+//             opts::printLog("ALERT Skipping individual with missing phenotype: " + samp->getFamIDOrig() + " " + samp->getIndOrig() +"\n");
+//             continue;
+//           }
+//           else
+//     				mdr << (samp->getPheno(phenoloc) - 1) << "\t";
+//   		  }
+//   		  else{
+//   		    mdr << (samp->getPheno() - 1) << "\t";
+//   		  }
 			}
 			else if(!options.getMDRGuiOutput() && options.get_no_rules() && !options.getMDRPedigreeOutput()){
-				if(options.getUsePheno()){
-					mdr << samp->getPheno(phenoloc) << "\t";
-				}
-				else{
-					mdr << (samp->getPheno()) << "\t";
-				}
+			  mdr << pheno << "\t";
+// 				if(options.getUsePheno()){
+// 					mdr << samp->getPheno(phenoloc) << "\t";
+// 				}
+// 				else{
+// 					mdr << (samp->getPheno()) << "\t";
+// 				}
 			}
 			bool first = true;
 			for(int m = 0; m < msize; m++){
