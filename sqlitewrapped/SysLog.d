@@ -1,0 +1,1 @@
+SysLog.o: SysLog.cpp
