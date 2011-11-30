@@ -71,7 +71,11 @@ void ProcessRunTDT::PrintSummary(){
 	opts::addHeader(fname1, "L" + getString<double>(options.getCI()*100));
 	opts::addHeader(fname1, "U" + getString<double>(options.getCI()*100));
 
+	ofstream svout;
 	ofstream groupout;
+	map<string, vector<Sample*> > groups = options.getGroups();
+	map<string, vector<Sample*> >::iterator group_iter;
+
 	if(options.doGroupFile()){
 		string fnameg = opts::_OUTPREFIX_ + "tdt_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 		if(!overwrite){
@@ -79,7 +83,7 @@ void ProcessRunTDT::PrintSummary(){
 		}
 		groupout.open(fnameg.c_str());
 		if(!groupout){
-			opts::printLog("Error opening " + fname1 + ". Exiting!\n");
+			opts::printLog("Error opening " + fnameg + ". Exiting!\n");
 			throw MethodException("");
 		}
 //		opts::addFile("Marker", stepname, fname1);
@@ -89,6 +93,25 @@ void ProcessRunTDT::PrintSummary(){
 			groupout << "\t" << data_set->get_locus(0)->getDetailHeaders();
 		}
 		groupout << "\tGRP\tChi_square\tTDT_pvalue\tTDT_neglog(pvalue)\tNum_Fams\tT:U\tA1:A2\tOR\tL" + getString<double>(options.getCI()*100) + "\t" + "U" + getString<double>(options.getCI()*100) << endl;
+
+		if(options.doOutputSynthView()){
+			string fnamesv = opts::_OUTPREFIX_ + "tdt_synthview" + options.getOut() + ".txt";
+			if(!overwrite){
+				fnamesv += "." + getString<int>(order);
+			}
+			svout.open(fnamesv.c_str());
+			if(!svout){
+				opts::printLog("Error opening " + fnamesv + ". Exiting!\n");
+				throw MethodException("");
+			}
+			svout.precision(4);
+	    	svout << "SNP\tChromosome\tLocation";
+
+	    	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
+	    		svout << "\t" << group_iter->first << ":pval";
+	    	}
+	    	svout << endl;
+		}
 	}
 	ofstream compout;
 	if(options.doMultCompare()){
@@ -154,10 +177,11 @@ void ProcessRunTDT::PrintSummary(){
 			output << "\t" << OR_lower << "\t" << OR_upper;
 
 				output << endl;
+				if(options.doOutputSynthView()){
+					svout << good_markers[i]->getRSID() << "\t" << good_markers[i]->getChrom() << "\t" << good_markers[i]->getBPLOC();
+				}
 				if(options.doGroupFile()){
 					int gcount = 0;
-					map<string, vector<Sample*> > groups = options.getGroups();
-					map<string, vector<Sample*> >::iterator group_iter;
 					for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 						groupout << good_markers[i]->toString() << "\t";
 						groupout << group_iter->first << "\t";
@@ -179,8 +203,14 @@ void ProcessRunTDT::PrintSummary(){
 						OR_upper = exp(log(OR) + zt * sqrt(1/gtrans[i][gcount] + 1/guntrans[i][gcount]));
 						groupout << "\t" << OR_lower << "\t" << OR_upper;
 						groupout << endl;
+						if(options.doOutputSynthView()){
+							svout << "\t" << gpval[i][gcount];
+						}
 						gcount++;
 					}
+				}
+				if(options.doOutputSynthView()){
+					svout << endl;
 				}
 /*
 			if(options.doMultCompare()){
@@ -233,6 +263,9 @@ void ProcessRunTDT::PrintSummary(){
 	}
 	if(groupout.is_open()){
 		groupout.close();
+	}
+	if(svout.is_open()){
+		svout.close();
 	}
 }
 
