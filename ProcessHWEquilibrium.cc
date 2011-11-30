@@ -197,7 +197,9 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 				sql += ")";
 				Controller::execute_sql(myQuery, sql);
 				#else
-				pvals << data_set->get_locus(i)->toString() << "\t" << hwe.getCasePvalHWEPT() << "\t"
+				pvals.precision(8);
+
+				pvals << fixed << data_set->get_locus(i)->toString() << "\t" << hwe.getCasePvalHWEPT() << "\t"
 					<< hwe.getControlPvalHWEPT() << "\t" << hwe.getGenotypicPval() << "\t"
 					<< hwe.getAllelicPval() << "\t" << hwe.getCaseGeneralHWEPT() << "\t"
 					<< hwe.getControlGeneralHWEPT() << endl;
