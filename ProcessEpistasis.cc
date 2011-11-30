@@ -61,6 +61,5 @@ void ProcessEpistasis::process(DataSet* ds){
 	epi.setOverwrite(this->overwrite);
 	epi.setOptions(options);
 	epi.calculate(data_set);
-
 }
 
