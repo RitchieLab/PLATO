@@ -1,11 +1,14 @@
 # The list of executables we will compile.
 # #
 PROGRAMS=methods plato
+LIBPLATODIR=lib/
+LIBPLATO=$(LIBPLATODIR)libplato.a
+PLATO_AS_LIB=methods $(LIBPLATO)
 METHODDIR=method_lib
-LIBDIR=-Llib -L/opt/local/lib
-LIB=-lm -lmethods -lboost_thread-mt#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include#-I/usr/local/include
-SYS=MAC
+LIBDIR=-Llib -L/opt/local/lib -L/home/gilesjt/boost/stage/lib
+LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/gilesjt/boost#-I/usr/local/include
+SYS=WIN
 #R=USE_R
 
 #
@@ -40,13 +43,25 @@ ifeq ($(SYS),MAC)
   CC += -DMAC
 endif
 
-OBJECTS = ProcessKinship.o ProcessFst.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
+OBJECTS = ProcessKinship.o ProcessFst.o Step.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
 		  ProcessMendelianErrors.o ProcessHWEquilibrium.o ProcessGenderCheck.o ProcessRunTDT.o ProcessGRROutput.o dcdflib.o ProcessPEDOutput.o ProcessBINOutput.o \
 		  ProcessCaConChisq.o ipmpar.o ProcessSTRUCTOutput.o ProcessPHASEOutput.o ProcessEigenstratOutput.o \
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
 		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o ProcessLinearReg.o ProcessIBS.o ProcessFilterProcess.o \
 		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o
+
+INTERFACES = ProcessKinship.h ProcessFst.h Step.h Process.h Percent.h Chrom.h ProcessMarkerGenoEff.h ProcessSampleGenoEff.h PercentByFamily.h ProcessAlleleFrequency.h \
+		  ProcessMendelianErrors.h ProcessHWEquilibrium.h ProcessGenderCheck.h ProcessRunTDT.h ProcessGRROutput.h dcdflib.h ProcessPEDOutput.h ProcessBINOutput.h \
+		  ProcessCaConChisq.h ipmpar.h ProcessSTRUCTOutput.h ProcessPHASEOutput.h ProcessEigenstratOutput.h \
+		  ProcessBEAGLEOutput.h ProcessLAPISOutput.h ProcessMDROutput.h ProcessHomozygous.h ProcessLD.h Finalize.h ProcessPowerMarkerOutput.h \
+		  ExampleModule.h ProcessDeletions.h ProcessMitoCheck.h ProcessFBATOutput.h ProcessQTDTOutput.h ProcessPDT2Output.h ProcessConcordance.h \
+		  sockets.h ProcessSuperlinkOutput.h ProcessTPEDOutput.h ProcessLogReg.h ProcessCMH.h ProcessLinearReg.h ProcessIBS.h ProcessFilterProcess.h \
+		  ProcessMDR.h ProcessClusterMissing.h ProcessMDRPDT.h ProcessEpistasis.h ProcessImputeOutput.h
+
+LIB_OBJECTS = $(OBJECTS)
+
+$(OBJECTS) += wasp.o
 
 ifeq ($(R),USE_R)
 	CC += -DUSE_R
@@ -61,16 +76,30 @@ endif
 #.cc.o:
 #	g++296 $(CFLAGSCC) -c $<
 
+PRELINK = 
+AR = ar rv
+
 all: $(PROGRAMS)
 
 clean:
 	rm *.o plato wasp; cd method_lib; make clean;
+
+clean_lib:
+	rm *.o plato 
 
 methods:
 	cd method_lib; make
 
 plato:	$(OBJECTS)
 	$(CC) -o plato $(OBJECTS) $(LIB) $(SHARED_OCCILIBS) $(CFLAGSCC) $(LIBDIR) 
+
+plato_lib: $(PLATO_AS_LIB)
+
+$(LIBPLATO): $(LIB_OBJECTS)
+	$(CC) $(LIB_OBJECTS) -c $(LIB) $(SHARED_OCCILIBS) $(CFLAGSCC) $(LIBDIR)
+	$(PRELINK)
+	$(AR) $(LIBPLATO) $?
+	@echo $(LIBPLATO) is now up-to-date
 
 wasp.o: wasp.cc wasp.h
 	$(CC) wasp.cc -c $(CFLAGSCC) $(LIBDIR) 
