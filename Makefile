@@ -10,7 +10,7 @@ LIB=-lm -lmethods -lboost_thread-mt#mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lre
 INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include #-I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
 SYS=MAC
 #DB=USE_DB
-COMPASLIB=PLATOLIB
+#COMPASLIB=PLATOLIB
 #R=USE_R
 
 #
@@ -74,7 +74,7 @@ ifeq ($(COMPASLIB), PLATOLIB)
 	CC += -DPLATOLIB
 	CC += -DUSE_DB
 	CC += -DNOSYS
-	LIB += -lsqlitewrapped
+	LIB += -lsqlitewrapped -lsqlite3
 	INCLUDEDIR := $(INCLUDEDIR) -I./sqlitewrapped
 endif
 
