@@ -199,17 +199,23 @@ void Fst::calcOne(int m){
 	map<string, float> group_freq = options.getGroupFreq();
 
 
-
+	if (groups.size() == samples->size())
+	{
+		opts::printLog("Total number of samples should be different from number of groups specified.\n");
+		throw MethodException("Total number of samples should be different from number of groups specified.\n");
+	}
 
 
 	//FSTWC
 	double nc = 0;
 	double den = 0;
 
-	for(giter = groups.begin(); giter != groups.end(); giter++){
+	for(giter = groups.begin(); giter != groups.end(); giter++)
+	{
 
 		nc = nc + (af.getGroupPop(giter->first));
 		den = den + af.getGroupPop(giter->first);
+
 //		cout << data_set->get_locus(m)->toString() << "\t" << af.getGroupAone_freq(giter->first) << endl;
 	}
 
@@ -225,14 +231,19 @@ void Fst::calcOne(int m){
 	double MSG = 0;
 	double pmed = 0;
 
-	for(giter = groups.begin(); giter != groups.end(); giter++){
-		if(!options.getDoGroupFreq()){
-		MSG = MSG + (af.getGroupPop(giter->first) * af.getGroupAone_freq(giter->first) * af.getGroupAtwo_freq(giter->first));
-		pmed = pmed + (af.getGroupPop(giter->first) * af.getGroupAone_freq(giter->first));
+	for(giter = groups.begin(); giter != groups.end(); giter++)
+	{
+		if(!options.getDoGroupFreq())
+		{
+			MSG = MSG + (af.getGroupPop(giter->first) * af.getGroupAone_freq(giter->first) * af.getGroupAtwo_freq(giter->first));
+			pmed = pmed + (af.getGroupPop(giter->first) * af.getGroupAone_freq(giter->first));
 		}
-		else{
+		else
+		{
 			MSG = MSG + (af.getGroupPop(giter->first) * group_freq[mark->getRSID() + " " + giter->first] * (1.0f - group_freq[mark->getRSID() + " " + giter->first]));
 			pmed = pmed + (af.getGroupPop(giter->first) * group_freq[mark->getRSID() + " " + giter->first]);
+
+
 		}
 	}
 
@@ -240,24 +251,32 @@ void Fst::calcOne(int m){
 	MSG = MSG / (den - groups.size());
 	pmed = pmed / den;
 
+
 	double MSP = 0;
 
-	for(giter = groups.begin(); giter != groups.end(); giter++){
-		if(!options.getDoGroupFreq()){
+	for(giter = groups.begin(); giter != groups.end(); giter++)
+	{
+		if(!options.getDoGroupFreq())
+		{
 			MSP = MSP + (af.getGroupPop(giter->first) * ((af.getGroupAone_freq(giter->first) - pmed)*(af.getGroupAone_freq(giter->first) - pmed)));
 		}
-		else{
+		else
+		{
 			MSP = MSP + (af.getGroupPop(giter->first) * ((group_freq[mark->getRSID() + " " + giter->first] - pmed) * (group_freq[mark->getRSID() + " " + giter->first] - pmed)));
+
 		}
 	}
 
 
 	MSP = MSP / (double)(groups.size() - 1);
 
+
 	double FstWC = 0;
 	FstWC= (MSP - MSG) / (MSP + ((nc - 1) * MSG));
 
-	if(FstWC < 0){
+
+	if(FstWC < 0)
+	{
 		FstWC = 0;
 	}
 
