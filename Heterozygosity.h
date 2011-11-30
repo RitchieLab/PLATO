@@ -26,8 +26,6 @@ class Heterozygosity : public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-//		Markers* markers;
-//		Families* families;
 		float ind_thresh;
 		float marker_thresh;
 		int orig_num_markers;
@@ -79,12 +77,9 @@ class Heterozygosity : public Process{
 			order =0;
 		};
 		~Heterozygosity(){};
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
-//		void perform_evaluation(Connection*, bool);
 		void perform_evaluation(bool);
 		void filter_markers();
 		void setThreshold(string s);
@@ -95,11 +90,6 @@ class Heterozygosity : public Process{
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
 		void setOrder(int o){order = o;};
-//        void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
-
         void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
