@@ -80,7 +80,6 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 	marker_map = mm;
 
    	int ssize = samples->size();
-//	int msize = markers->size();
 	int fsize = families->size();
 
 	vector<int> chrom_counts;
@@ -88,12 +87,10 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 	if(opts::_DOG_){
 		chrom_counts.resize(40, 0);
 	}
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	int gsize = good_markers.size();
 	for(int i = 0; i < gsize; i++){
-		Marker* mark = good_markers[i];//(*markers)[i];
+		Marker* mark = good_markers[i];
 		if(mark->isEnabled()){
 			chrom_counts[mark->getChrom() - 1]++;
 		}
@@ -114,10 +111,8 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 					(samp->getMom()->isEnabled() ||
 							(samp->getMom()->isExcluded() && options.doIncExcludedSamples()) ||
 							(!samp->getMom()->isEnabled() && options.doIncDisabledSamples())) &&
-					samp_flags[samp->getDad()->getLoc()] && !samp_flags[samp->getMom()->getLoc()] &&//!samp->getDad()->isFlagged() && !samp->getMom()->isFlagged() &&
+					samp_flags[samp->getDad()->getLoc()] && !samp_flags[samp->getMom()->getLoc()] &&
 					samp->getFamily()->getTotalInds() == 3){
-//				samp->getDad()->setFlag(true);
-//				samp->getMom()->setFlag(true);
 				samp_flags[samp->getDad()->getLoc()] = true;
 				samp_flags[samp->getMom()->getLoc()] = true;
 				parents += 2;
@@ -134,7 +129,7 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 	for(int c = 0; c < (int)chrom_counts.size(); c++){
 		if(chrom_counts[c] > 0){
 			if(options.getChrom() == -1 || (options.getChrom() == (c + 1))){
-				string fname1 = opts::_OUTPREFIX_ + "input_beagle_chr" + getString<int>(c + 1) + options.getOut() + ".txt";//"_" + getString<int>(order) + ".txt";
+				string fname1 = opts::_OUTPREFIX_ + "input_beagle_chr" + getString<int>(c + 1) + options.getOut() + ".txt";
 				if(options.getOverrideOut().size() > 0){
 					fname1 = options.getOverrideOut() + "_chr" + getString<int>(c + 1) + ".txt";
 				}
@@ -145,10 +140,9 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 				ofstream str (fname1.c_str());
 				if(!str.is_open()){
 					opts::printLog("Unable to open " + fname1 + " for output!\n");
-					//exit(1);
 					throw MethodException("Unable to open " + fname1 + " for output!\n");
 				}
-				string fname2 = opts::_OUTPREFIX_ + "input_beagle_chr" + getString<int>(c + 1) + "_trait" + options.getOut() + ".txt";//_" + getString<int>(order) + ".txt";
+				string fname2 = opts::_OUTPREFIX_ + "input_beagle_chr" + getString<int>(c + 1) + "_trait" + options.getOut() + ".txt";
 				if(options.getOverrideOut().size() > 0){
 					fname2 = options.getOverrideOut() + "_chr" + getString<int>(c + 1) + "_trait.txt";
 				}
@@ -159,7 +153,6 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 				ofstream trait (fname2.c_str());
 				if(!trait.is_open()){
 					opts::printLog("Unable to open " + fname2 + " for output!\n");
-					//exit(1);
 					throw MethodException("Unable to open " + fname2 + " for output!\n");
 				}
 
@@ -200,8 +193,8 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 				trait.close();
 
 				for(int m = 0; m < gsize; m++){
-					Marker* mark = good_markers[m];//(*markers)[m];
-					if(mark->getChrom() == (c + 1) && mark->isEnabled()){// && !mark->isFlagged()){
+					Marker* mark = good_markers[m];
+					if(mark->getChrom() == (c + 1) && mark->isEnabled()){
 						str << "M " << mark->getRSID();
 						int mloc = mark->getLoc();
 						for(int f = 0; f < fsize; f++){
