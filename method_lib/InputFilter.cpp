@@ -5,14 +5,16 @@ namespace Methods{
 /*
  * Function: ExcludeLocusFilter
  * Checks if Marker is in list provided.  If so, then return false meaning "don't use this marker".  If not found
- * then return true meaningn "use this marker"
+ * then return true meaning "use this marker"
  *
  * return: bool
  */
 void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* mlist){
-	stable_sort(mlist->begin(), mlist->end(), greater<Methods::Marker*>());
+	//stable_sort(mlist->begin(), mlist->end(), greater<Methods::Marker*>());
+	stable_sort(mlist->begin(), mlist->end(), Helpers::markerGreater);
 	vector<Marker*> temp = *marks;
-	stable_sort(temp.begin(), temp.end(), greater<Methods::Marker*>());
+	//stable_sort(temp.begin(), temp.end(), greater<Methods::Marker*>());
+	stable_sort(temp.begin(), temp.end(), Helpers::markerGreater);
 
 	unsigned int mi = 0;
 	for(unsigned int i = 0; i < temp.size(); i++){
@@ -20,7 +22,7 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 			break;
 		}
 		while(temp.at(i)->getRSID() > (*mlist).at(mi)->getRSID()){
-			mi++;
+			i++;
 			if(mi >= mlist->size()){
 				break;
 			}
@@ -30,6 +32,7 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 		}
 		if(temp.at(i)->getRSID() == (*mlist).at(mi)->getRSID()){
 			temp.at(i)->setEnabled(false);
+			mi++;
 		}
 	}
 }
