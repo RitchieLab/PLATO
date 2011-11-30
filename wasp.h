@@ -66,6 +66,7 @@
 #include "ProcessClusterMissing.h"
 #include "ProcessFilterProcess.h"
 #include "ProcessFst.h"
+#include "ProcessEpistasis.h"
 #include "Finalize.h"
 #include "Process.h"
 

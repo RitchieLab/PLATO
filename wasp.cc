@@ -70,7 +70,8 @@ enum StepValue{
 					   e_filter_process,		//plato filter-process,
 					   e_fst,				//fst
 					   e_kinship,			//kinship
-					   e_bin_output			//binary output
+					   e_bin_output,			//binary output
+					   e_epistasis			//epistasis
 					 };
 enum cmdArgs{
 	a_h,
@@ -183,6 +184,7 @@ void Initialize(){
 	s_mapStepValues["fst"] = e_fst;
 	s_mapStepValues["kinship"] = e_kinship;
 	s_mapStepValues["output-bin"] = e_bin_output;
+	s_mapStepValues["epistasis"] = e_epistasis;
 
 	s_mapcmdArgs["-h"] = a_h;
 	s_mapcmdArgs["-S"] = a_S;
@@ -1168,6 +1170,9 @@ main (int argc, char* argv[])
 	}catch(MethodException ex){
 		opts::printLog(string(ex.what()) + "\n");
 	}
+	catch(std::exception ex){
+		opts::printLog(string(ex.what()) + "\n");
+	}
 	time_t curr = time(0);
 	string tdstamp = ctime(&curr);
 	opts::printLog("\nPlato finished: " + tdstamp + "\n");
@@ -1724,6 +1729,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			opts::printLog("Printing family structure diagram.\n");
 			printFamilies(data_set.get_families());
 		}
+		data_set.create_marker_name_map();
 	//}
 	//set_me_up->summary();
 
@@ -2427,6 +2433,23 @@ Step initializeSteps(string i){
 					delete(tempproc);
 				}
 				tempproc = new ProcessBINOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_epistasis:
+				newstep = new Step("Epistasis", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessEpistasis();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -3265,6 +3288,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessBINOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_epistasis:
+				newstep = new Step("Epistasis", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessEpistasis();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
