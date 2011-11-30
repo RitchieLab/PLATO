@@ -267,6 +267,9 @@ static void readCovariateFile(string file, DataSet* ds, StepOptions options, Inp
 
 static void readTraitFile(string file, DataSet* ds, StepOptions options, InputFilter* filters);
 
+//Added 02-23-2011 to support -update-ids option
+static void readIDFile(string file, DataSet* ds);
+
 static void readCovariates(string file, vector<Methods::Sample*>* samples, vector<string>* covheaders);
 
 static bool readString(FILE* fp, string* s);

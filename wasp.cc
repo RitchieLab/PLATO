@@ -136,7 +136,8 @@ enum cmdArgs{
 	a_samplebprangefilter,
 	a_threads,
 	a_numthreads,
-	a_autoonly
+	a_autoonly,
+	a_update_ids
 
 };
 static map<string, StepValue> s_mapStepValues;
@@ -258,6 +259,8 @@ void Initialize(){
 	s_mapcmdArgs["-threads"] = a_threads;
 	s_mapcmdArgs["-numthreads"] = a_numthreads;
 	s_mapcmdArgs["-auto-only"] = a_autoonly;
+	//Added 02-23-2011 to support new feature -update-ids
+	s_mapcmdArgs["-update-ids"] = a_update_ids;
 }
 
 int
@@ -1205,6 +1208,29 @@ main (int argc, char* argv[])
 					opts::_FREQ_FILE_ = arguments[++j];
 					break;
 				}
+				//added 02-23-2011 to support new feature to update FamID and IndID based on file input
+				case a_update_ids:
+				{
+					if(j + 1 >= arguments.size())
+					{
+						cerr << "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() == 0)
+					{
+						cerr << "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-')
+					{
+						cerr << "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!" << endl;
+						exit(1);
+					}
+					opts::_ID_FILE_EXISTS_ = true;
+					opts::_ID_FILE_ = arguments[++j];
+					break;
+				}
 				case a_remaining:
 					opts::_OUTPUTREMAINS_ = true;
 					break;
@@ -1748,6 +1774,11 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		if(opts::_TRAITFILE_.length() > 0){
 			opts::printLog("Reading trait file: " + opts::_TRAITFILE_ + "\n");
 			Helpers::readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
+		}
+		if(opts::_ID_FILE_EXISTS_)
+		{
+			opts::printLog("Reading ID file: " + opts::_ID_FILE_ + "\n");
+			Helpers::readIDFile(opts::_ID_FILE_, &data_set);
 		}
 
 		if(opts::_SAMPLEBPRANGEFILTER_.length() > 0){

@@ -59,6 +59,8 @@ namespace Methods{
 		 bool opts::_AUTOONLY_ = false;
 		 //lgen option...
 		 bool opts::_COMPOUND_GENOTYPES_ = false;
+		 bool opts::_ID_FILE_EXISTS_ = false;
+		 string opts::_ID_FILE_ = "";
 
 		 string opts::_SAMPLEBPRANGEFILTER_ = "";
 		 string opts::_COVAR_MISSING_ = "-99999";

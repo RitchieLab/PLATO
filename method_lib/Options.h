@@ -81,6 +81,9 @@ class opts {
 		static bool _AUTOONLY_;
 		//lgen input option
 		static bool _COMPOUND_GENOTYPES_;
+		//-update-ids option
+		static bool _ID_FILE_EXISTS_;
+		static string _ID_FILE_;
 		static string _SAMPLEBPRANGEFILTER_;
 		static string _COVAR_MISSING_;
 		static string _TRAIT_MISSING_;

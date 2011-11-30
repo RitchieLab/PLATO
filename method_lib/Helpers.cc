@@ -871,6 +871,119 @@ void Helpers::readTraitFile(string file, DataSet* ds, StepOptions options, Input
 	in.close();
 }
 
+//Added 02-23-2011 to support new -update-ids function
+void Helpers::readIDFile(string file, DataSet* ds)
+{
+	map <string, string> sampleMap;
+	map<string, string>::iterator siter;
+
+	ifstream in(file.c_str(), ios::in);
+	if(!in)
+	{
+		opts::printLog("Error opening ID file: " + file + "\n");
+		throw MethodException("Error opening ID file: " + file + "\n");
+	}
+
+	//loop through the ID input file, building up a map of OldFamID#OldIndID->NewFamID#NewIndID
+	int count = 0;
+	while(!in.eof())
+	{
+		count++;
+		string line;
+		getline(in, line);
+		if(line == "")
+		{
+			continue;
+		}
+		if(line.at(0) == '#')
+		{
+			continue;
+		}
+
+		vector<string> elems;
+		stringstream ss(line);
+		string tok = "";
+		while(ss >> tok)
+		{
+			elems.push_back(tok);
+		}
+
+		if(elems.size() != 4)
+		{
+			in.close();
+			opts::printLog("ID file requires 4 elements (OldFamID OldIndID NewFamID NewIndID)\n");
+			throw MethodException("ID file requires 4 elements (OldFamID OldIndID NewFamID NewIndID)\n");
+		}
+		if(count == 1)
+		{
+			string firstToken = elems[0];
+			boost::to_lower(firstToken);
+			if(boost::contains(firstToken, "famid"))
+			{
+				//this is a header line, skip it during processing
+				continue;
+			}
+		}
+
+		//build up the strings to place in the map...
+		string oldIDString;
+		string newIDString;
+		oldIDString = elems[0] + " " + elems[1];
+		newIDString = elems[2] + " " + elems[3];
+		sampleMap[oldIDString] = newIDString;
+	}
+
+	//get pointer to samples vector from dataset
+	vector<Sample*>* samples = ds->get_samples();
+
+	//loop through samples vector, updating IDs as we go...
+	string currentFamID;
+	string currentIndID;
+	string searchTerm;
+	string newIDString;
+	string newFamID;
+	string newIndID;
+	string currToken;
+	for(unsigned int i = 0; i < samples->size(); i++)
+	{
+		Sample* currSample = samples->at(i);
+		currentFamID = currSample->getFamID();
+		currentIndID = currSample->getInd();
+
+		searchTerm = currentFamID + " " + currentIndID;
+		siter = sampleMap.find(searchTerm);
+		vector<string> ids;
+
+		string tok = "";
+		if(siter != sampleMap.end())
+		{
+			//this sample was in the ID list file, update the id's...
+			newIDString = sampleMap[searchTerm];
+			stringstream idStream(newIDString);
+			while (idStream >> tok)
+			{
+				ids.push_back(tok);
+			}
+			if(ids.size() < 2)
+			{
+				opts::printLog("Error processing ID file, Missing NewFamID or NewIndID\n");
+				throw MethodException("Error processing ID file, Missing NewFamID or NewIndID\n");
+			}
+			newFamID = ids.at(0);
+			newIndID = ids.at(1);
+
+			if(newFamID != "")
+			{
+				currSample->setInd(newIndID);
+			}
+			if(newIndID != "")
+			{
+				currSample->setFamID(newFamID);
+			}
+		}
+	}
+}
+
 string Helpers::stringToLowerCase(string in)
 {
 	string str = "";
@@ -3421,7 +3534,7 @@ void Helpers::readPedInfo(){
 
 
 
-/*
+ /*
  *Function: readPed
  *Description:
  *Reads ped file and stores data into sample, family, and marker vectors
