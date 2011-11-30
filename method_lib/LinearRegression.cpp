@@ -578,6 +578,7 @@ void LinearRegression::calculate(vector<Marker*> model)
 	if (data_set->num_covariates() > 0)
 	{
 		vector<string> covsToUse = options.getCovars();
+		opts::printLog(getString<int>(covsToUse.size()) + " Covariates being used in Linear Model.\n");
 
 		if(options.doCovars())
 		{
@@ -791,6 +792,8 @@ void LinearRegression::calculate(Marker* l)
 
 		if(options.doCovars())
 		{
+			opts::printLog("Number of covariates used in Linear Model: " + getString<int>(covsToUse.size()) + "\n");
+
 			if(options.doCovarsName())
 			{
 				//only add covariates if name matches
