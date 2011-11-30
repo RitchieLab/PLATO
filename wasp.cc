@@ -445,6 +445,7 @@ main (int argc, char* argv[])
 					opts::_DOG_ = true;
 					opts::_CHRX_ = 39;
 					opts::_CHRY_ = 40;
+					opts::_CHRXY_ = 41;
 					break;
 				case a_map:
 				{
@@ -1092,7 +1093,7 @@ main (int argc, char* argv[])
 
 		if(opts::_PEDFILE_.length() == 0 && opts::_BINPREFIX_.length() == 0 && opts::_TPEDFILE_.length() == 0
 				&& opts::_MDRPEDFILE_.length() == 0){
-			opts::printLog("No pedfile specified and no binary input files specified.  Exiting!\n");
+			opts::printLog("No pedfile, binary, transposed, or mdr-style input files specified.  Exiting!\n");
 			exit(0);
 		}
 		error_check();
@@ -1445,12 +1446,16 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			}
 		}
 		//read ped & map file
-		else if(opts::_PEDFILE_.length() > 0 && opts::_MAPFILE_.length() > 0 && opts::_TPEDFILE_.length() == 0
+		else if((opts::_PEDFILE_.length() > 0 || opts::_MAPFILE_.length() > 0) && opts::_TPEDFILE_.length() == 0
 				&& opts::_MDRPEDFILE_.length() == 0){
 			if(opts::_MAPFILE_.length() > 0){
 				opts::printLog("Reading MAP file: " + opts::_MAPFILE_ + "\n");
 				//readMap(data_set.get_markers(), data_set.get_marker_map());
 				readMapM(&data_set, options, filters);
+			}
+			else{
+				opts::printLog("You specified -ped.  A corresponding map file needs to be specified using -map. Exiting!\n");
+				exit(1);
 			}
 			if(opts::_PEDFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
@@ -1466,9 +1471,13 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 					flipStrand(data_set.get_markers());
 				}
 			}
+			else{
+				opts::printLog("You specified -map.  A corresponding PED file needs to be specified using -ped. Exiting!\n");
+				exit(1);
+			}
 		}
 		else if(opts::_PEDFILE_.length() == 0 && opts::_MDRPEDFILE_.length() == 0 &&
-				opts::_TPEDFILE_.length() > 0 && opts::_FAMFILE_.length() > 0){
+				(opts::_TPEDFILE_.length() > 0 || opts::_FAMFILE_.length() > 0)){
 			if(opts::_FAMFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
 					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
@@ -1478,6 +1487,10 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 				readTFamM(&data_set, options, filters);
 				//assignLinks(data_set.get_families());
 			}
+			else{
+				opts::printLog("You specified -tped.  A corresponding Pedigree Information file needs to be specified using -tfam. Exiting!\n");
+				exit(1);
+			}
 			if(opts::_TPEDFILE_.length() > 0){
 				opts::printLog("Reading TPED file: " + opts::_TPEDFILE_ + "\n");
 				readTPedM(&data_set, options, filters);//data_set.get_markers(), data_set.get_samples(), data_set.get_marker_map());
@@ -1486,14 +1499,23 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 					flipStrand(data_set.get_markers());
 				}
 			}
+			else{
+				opts::printLog("You specified -tfam.  A corresponding transposed PED file needs to be specified using -tped. Exiting!\n");
+				exit(1);
+			}
 		}
-		else if(opts::_MDRPEDFILE_.length() > 0 && opts::_MDRMAPFILE_.length() > 0){
+		else if(opts::_MDRPEDFILE_.length() > 0 || opts::_MDRMAPFILE_.length() > 0){
 			if(opts::_MDRMAPFILE_.length() > 0){
 				opts::printLog("Reading MDRMAP file: " + opts::_MDRMAPFILE_ + "\n");
 				//readMap(data_set.get_markers(), data_set.get_marker_map());
 				readMapMdr(&data_set, options, filters);
 
 			}
+			else{
+				opts::printLog("You specified -mdrped.  A corresponding MAP file needs to be specified using -mdrmap. Exiting!\n");
+				exit(1);
+			}
+
 			if(opts::_MDRPEDFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
 					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
@@ -1508,6 +1530,10 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 					flipStrand(data_set.get_markers());
 				}
 
+			}
+			else{
+				opts::printLog("You specified -mdrmap.  A corresponding MDR-PED file needs to be specified using -mdrped. Exiting!\n");
+				exit(1);
 			}
 		}
 		else if(!opts::_DBINPUT_){
@@ -1601,6 +1627,19 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		text += "\n";
 		opts::printLog(text);
 		opts::printLog("Non-founders found: " + getString<int>(nonfounders) + "\n");
+
+		if(opts::_MARKERS_WORKING_ == 0){
+			opts::printLog("No enabled markers are found.  Please check your input files and arguments.\n");
+			exit(1);
+		}
+		if(opts::_SAMPLES_WORKING_ == 0){
+			opts::printLog("No enabled samples are found.  Please check your input files and arguments.\n");
+			exit(1);
+		}
+		if(opts::_FAMILIES_WORKING_ == 0){
+			opts::printLog("No enabled families are found.  Please check your input files and arguments.\n");
+			exit(1);
+		}
 
 		if(opts::zerogenoinfo.size() > 0){
 			opts::printLog("Zero-ing specified Sample/SNP pairs.\n");
@@ -4209,7 +4248,9 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 	  print=true;
 	  if ( i < tokens.size() - 1)
 	    {
-	      if (tokens[i+1] >= _WASPVER_)
+		  float currver = atof(_WASPVER_.c_str());
+		  float webver = atof(tokens[i+1].c_str());
+	      if (currver >= webver)//tokens[i+1] >= _WASPVER_)
 		opts::printLog(" OK, v"+_WASPVER_+" is current\n");
 	      else
 		{
