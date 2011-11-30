@@ -39,7 +39,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessPDT2Output::ProcessPDT2Output(string bn, int pos, Database* pdb, string projPath)
 {
     name = "Output PDT2";
@@ -49,6 +49,7 @@ ProcessPDT2Output::ProcessPDT2Output(string bn, int pos, Database* pdb, string p
     db = pdb;
     projectPath = projPath;
 }
+#endif
 
 void ProcessPDT2Output::FilterSummary(){
 }

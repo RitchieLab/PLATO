@@ -39,7 +39,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessMDROutput::ProcessMDROutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output MDR";
@@ -49,6 +49,7 @@ ProcessMDROutput::ProcessMDROutput(string bn, int pos, Database* pdb, string pro
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessMDROutput::FilterSummary(){
 }

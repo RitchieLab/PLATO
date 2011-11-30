@@ -43,7 +43,7 @@ namespace PlatoLib
 #endif
 
 string ProcessDeletions::stepname="deletions";
-
+#ifdef PLATOLIB
 ProcessDeletions::ProcessDeletions(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Deletion";
@@ -53,6 +53,7 @@ ProcessDeletions::ProcessDeletions(string bn, int pos, Database* pdb, string pro
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessDeletions::setThreshold(string thresh){
 	options.setUp(thresh);

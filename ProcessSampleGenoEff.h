@@ -106,7 +106,9 @@ class ProcessSampleGenoEff : public Process{
 		 orig_num_families = 0;
 		 orig_num_samples = 0;
 		};
+#ifdef PLATOLIB
 		ProcessSampleGenoEff(string, int, Database*);
+#endif
 		~ProcessSampleGenoEff(){
 		zeros.resize(0);
 		total.resize(0);

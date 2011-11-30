@@ -104,7 +104,9 @@ class ProcessQTDTOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessQTDTOutput(string, int, Database*, string);
+#endif
 		~ProcessQTDTOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

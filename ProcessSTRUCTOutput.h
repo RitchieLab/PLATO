@@ -103,7 +103,9 @@ class ProcessSTRUCTOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessSTRUCTOutput(string, int, Database*, string);
+#endif
 		~ProcessSTRUCTOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

@@ -100,7 +100,9 @@ class ProcessIBS : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessIBS(string, int, Database*, string);
+#endif
 		~ProcessIBS(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

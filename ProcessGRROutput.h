@@ -104,7 +104,9 @@ class ProcessGRROutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessGRROutput(string, int, Database*, string);
+#endif
 		~ProcessGRROutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

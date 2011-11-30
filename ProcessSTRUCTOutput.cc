@@ -37,7 +37,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessSTRUCTOutput::ProcessSTRUCTOutput(string bn, int pos, Database* pdb, string projPath)
 {
     name = "Output Structure";
@@ -47,6 +47,7 @@ ProcessSTRUCTOutput::ProcessSTRUCTOutput(string bn, int pos, Database* pdb, stri
     db = pdb;
     projectPath = projPath;
 }
+#endif
 
 void ProcessSTRUCTOutput::FilterSummary(){}
 

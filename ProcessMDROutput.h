@@ -103,7 +103,9 @@ class ProcessMDROutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessMDROutput(string, int, Database*, string);
+#endif
 		~ProcessMDROutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

@@ -13,8 +13,10 @@
 #include <Marker.h>
 #include <DataSet.h>
 #include <StepOptions.h>
+#ifdef PLATOLIB
 #include <sqlite3.h>
 #include <libsqlitewrapped.h>
+#endif
 #include "DataSetObject.h"
 
 using namespace std;
@@ -48,7 +50,6 @@ class Process{
             StepOptions* getOptions(){return &options;}
             StepOptions get_options(){return options;}
             void set_options(StepOptions* opts){options = *opts;}
-            void set_db(Database* pdb){db = pdb;}
             bool has_results(){return hasresults;}
             vector<string> get_tablename(){return tablename;}
             map<string, vector<string> > get_headers(){return headers;}
@@ -59,12 +60,15 @@ class Process{
             int get_position(){return position;}
             vector<string> get_filenames(){return filenames;}
 			#ifdef PLATOLIB
+            void set_db(Database* pdb){db = pdb;}
 				virtual void run(DataSetObject*) = 0;
 				virtual void dump2db() = 0;
 			#endif
 
 	protected:
-            Database* db;
+#ifdef PLATOLIB
+			Database* db;
+#endif
             string name;
             string batchname;
             int position;

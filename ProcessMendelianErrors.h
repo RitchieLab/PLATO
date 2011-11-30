@@ -109,7 +109,9 @@ class ProcessMendelianErrors : public Process{
 			rank = 0;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessMendelianErrors(string, int, Database*, string);
+#endif
 		virtual ~ProcessMendelianErrors(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

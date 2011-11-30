@@ -37,13 +37,16 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 using namespace Methods;
 #ifdef PLATOLIB
 namespace PlatoLib
 {
 #endif
 
+#ifdef PLATOLIB
 ProcessLinearReg::ProcessLinearReg(string bn, int pos, Database* pdb)
 {
 	name = "Linear Regression";
@@ -52,6 +55,7 @@ ProcessLinearReg::ProcessLinearReg(string bn, int pos, Database* pdb)
 	hasresults = false;
 	db = pdb;
 }
+#endif
 
 void ProcessLinearReg::FilterSummary(){
 

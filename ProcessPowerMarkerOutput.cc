@@ -42,7 +42,7 @@ namespace PlatoLib
 #endif
 
 string ProcessPowerMarkerOutput::stepname = "output-powermarker";
-
+#ifdef PLATOLIB
 ProcessPowerMarkerOutput::ProcessPowerMarkerOutput(string bn, int pos, Database* pdb, string projPath)
 {
     name = "Output PowerMarker";
@@ -52,6 +52,7 @@ ProcessPowerMarkerOutput::ProcessPowerMarkerOutput(string bn, int pos, Database*
     db = pdb;
     projectPath = projPath;
 }
+#endif
 
 void ProcessPowerMarkerOutput::FilterSummary(){}
 

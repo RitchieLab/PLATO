@@ -95,7 +95,9 @@ class ProcessHomozygous : public Process{
 			_STRATIFY_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessHomozygous(string, int, Database*, string);
+#endif
 		~ProcessHomozygous(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();

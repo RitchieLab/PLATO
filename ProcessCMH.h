@@ -22,7 +22,9 @@
 #include <StepOptions.h>
 #include <DataSet.h>
 #include <CMH.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace std;
 using namespace Methods;
@@ -97,7 +99,9 @@ private:
 			run_end = -1;
 		};
 		~ProcessCMH(){};
+#ifdef PLATOLIB
 		ProcessCMH(string, int, Database*);
+#endif
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();

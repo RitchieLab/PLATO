@@ -94,7 +94,9 @@ class ProcessMitoCheck : public Process{
 			order =0;
 			overwrite = true;
 		};
+#ifdef PLATOLIB
 		ProcessMitoCheck(string, int, Database*, string);
+#endif
 		~ProcessMitoCheck(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

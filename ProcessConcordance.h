@@ -96,7 +96,9 @@ class ProcessConcordance : public Process{
 			check_markers.resize(0);
 			check_marker_map.clear();
 		};
+#ifdef PLATOLIB
 		ProcessConcordance(string, int, Database*, string);
+#endif
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();

@@ -35,7 +35,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessGRROutput::ProcessGRROutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output GRR";
@@ -45,6 +45,7 @@ ProcessGRROutput::ProcessGRROutput(string bn, int pos, Database* pdb, string pro
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessGRROutput::FilterSummary(){}
 

@@ -42,7 +42,7 @@ namespace PlatoLib
 {
 #endif
 string ProcessConcordance::stepname = "concordance";
-
+#ifdef PLATOLIB
 ProcessConcordance::ProcessConcordance(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Concordance";
@@ -52,6 +52,7 @@ ProcessConcordance::ProcessConcordance(string bn, int pos, Database* pdb, string
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessConcordance::FilterSummary(){
 	opts::printLog("Options:\t" + options.toString() + "\n");

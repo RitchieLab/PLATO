@@ -301,7 +301,7 @@ main (int argc, char* argv[])
 			webcheck(arguments, batchargs);
 		}
 
-		for(int j = 0; j < (int)arguments.size(); j++){
+		for(unsigned int j = 0; j < arguments.size(); j++){
 			switch(s_mapcmdArgs[arguments[j]]){
 				case a_map_includes_ref:
 				{

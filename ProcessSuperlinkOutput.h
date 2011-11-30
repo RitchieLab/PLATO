@@ -104,7 +104,9 @@ class ProcessSuperlinkOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessSuperlinkOutput(string, int, Database*, string);
+#endif
 		~ProcessSuperlinkOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

@@ -104,7 +104,9 @@ class ProcessBEAGLEOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessBEAGLEOutput(string, int, Database*, string);
+#endif
 		~ProcessBEAGLEOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

@@ -28,7 +28,9 @@
 #include <Helpers.h>
 #include <MethodException.h>
 #include "ProcessCaConChisq.h"
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 using namespace Methods;
 
 #ifdef PLATOLIB
@@ -37,7 +39,7 @@ namespace PlatoLib
 #endif
 
 string ProcessCaConChisq::stepname = "chisquare";
-
+#ifdef PLATOLIB
 ProcessCaConChisq::ProcessCaConChisq(string bn, int pos, Database* pdb)
 {
 	name = "Chisquare Tests";
@@ -46,6 +48,7 @@ ProcessCaConChisq::ProcessCaConChisq(string bn, int pos, Database* pdb)
 	hasresults = false;
 	db = pdb;
 }
+#endif
 
 ProcessCaConChisq::~ProcessCaConChisq(){};
 

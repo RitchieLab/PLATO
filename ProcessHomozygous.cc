@@ -32,7 +32,9 @@
 #include <General.h>
 #include <Helpers.h>
 #include <cdflib.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace Methods;
 
@@ -42,7 +44,7 @@ namespace PlatoLib
 #endif
 
 string ProcessHomozygous::stepname = "homozygous";
-
+#ifdef PLATOLIB
 ProcessHomozygous::ProcessHomozygous(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Homozygous";
@@ -52,6 +54,7 @@ ProcessHomozygous::ProcessHomozygous(string bn, int pos, Database* pdb, string p
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessHomozygous::FilterSummary(){
 

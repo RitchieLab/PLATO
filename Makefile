@@ -3,12 +3,12 @@
 PROGRAMS=methods plato
 LIBPLATODIR=lib/
 LIBPLATO=$(LIBPLATODIR)libplato.a
-PLATO_AS_LIB=methods $(LIBPLATO)
+PLATO_AS_LIB=sqllib methods $(LIBPLATO)
 METHODDIR=method_lib
-LIBDIR=-Llib -L/opt/local/lib -L/home/cozartc/boost/stage/lib -L/home/cozartc/sqlitewrapped/lib
-LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
-SYS=WIN
+LIBDIR=-Llib -L/opt/local/lib #-L/home/cozartc/boost/stage/lib -L/home/cozartc/sqlitewrapped/lib
+LIB=-lm -lmethods -lboost_thread-mt#mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include #-I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
+SYS=MAC
 #DB=USE_DB
 COMPASLIB=PLATOLIB
 #R=USE_R
@@ -51,7 +51,7 @@ OBJECTS = ProcessKinship.o ProcessFst.o Step.o Process.o Percent.o Chrom.o Proce
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
 		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o ProcessLinearReg.o ProcessIBS.o ProcessFilterProcess.o \
-		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o Controller.o Vars.o
+		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o
 
 INTERFACES = ProcessKinship.h ProcessFst.h Step.h Process.h Percent.h Chrom.h ProcessMarkerGenoEff.h ProcessSampleGenoEff.h PercentByFamily.h ProcessAlleleFrequency.h \
 		  ProcessMendelianErrors.h ProcessHWEquilibrium.h ProcessGenderCheck.h ProcessRunTDT.h ProcessGRROutput.h dcdflib.h ProcessPEDOutput.h ProcessBINOutput.h \
@@ -61,7 +61,7 @@ INTERFACES = ProcessKinship.h ProcessFst.h Step.h Process.h Percent.h Chrom.h Pr
 		  sockets.h ProcessSuperlinkOutput.h ProcessTPEDOutput.h ProcessLogReg.h ProcessCMH.h ProcessLinearReg.h ProcessIBS.h ProcessFilterProcess.h \
 		  ProcessMDR.h ProcessClusterMissing.h ProcessMDRPDT.h ProcessEpistasis.h ProcessImputeOutput.h Controller.h Vars.h
 
-LIB_OBJECTS := $(OBJECTS)
+LIB_OBJECTS := Controller.o Vars.o $(OBJECTS)
 
 OBJECTS += wasp.o
 
@@ -73,7 +73,9 @@ endif
 ifeq ($(COMPASLIB), PLATOLIB)
 	CC += -DPLATOLIB
 	CC += -DUSE_DB
+	CC += -DNOSYS
 	LIB += -lsqlitewrapped
+	INCLUDEDIR := $(INCLUDEDIR) -I./sqlitewrapped
 endif
 
 #
@@ -93,6 +95,9 @@ clean:
 
 clean_lib:
 	rm *.o plato 
+
+sqllib:
+	cd sqlitewrapped; make
 
 methods:
 	cd method_lib; make

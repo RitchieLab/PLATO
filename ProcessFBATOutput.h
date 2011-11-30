@@ -104,7 +104,9 @@ class ProcessFBATOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessFBATOutput(string, int, Database*, string);
+#endif
 		~ProcessFBATOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

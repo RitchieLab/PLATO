@@ -93,7 +93,9 @@ class ProcessCaConChisq : public Process{
 			orig_num_families = 0;
 			orig_num_samples = 0;
 		};
+#ifdef PLATOLIB
 		ProcessCaConChisq(string, int, Database*);
+#endif
 
 		~ProcessCaConChisq();
 

@@ -40,7 +40,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessPEDOutput::ProcessPEDOutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output PED";
@@ -50,6 +50,7 @@ ProcessPEDOutput::ProcessPEDOutput(string bn, int pos, Database* pdb, string pro
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessPEDOutput::FilterSummary(){}
 

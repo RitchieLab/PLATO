@@ -19,7 +19,9 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace Methods;
 #ifdef PLATOLIB
@@ -29,6 +31,7 @@ namespace PlatoLib
 
 string ProcessSampleGenoEff::stepname = "sample-geno-eff";
 
+#ifdef PLATOLIB
 ProcessSampleGenoEff::ProcessSampleGenoEff(string bn, int pos, Database* pdb)
 {
 	// TODO Auto-generated constructor stub
@@ -38,6 +41,7 @@ ProcessSampleGenoEff::ProcessSampleGenoEff(string bn, int pos, Database* pdb)
         hasresults = false;
         db = pdb;
 }
+#endif
 
 void ProcessSampleGenoEff::process(DataSet* ds){
 	data_set = ds;

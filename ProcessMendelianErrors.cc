@@ -36,7 +36,9 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace std;
 using namespace Methods;
@@ -46,7 +48,7 @@ namespace PlatoLib
 #endif
 
 string ProcessMendelianErrors::stepname = "mendelian-error";
-
+#ifdef PLATOLIB
 ProcessMendelianErrors::ProcessMendelianErrors(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Mendelian Errors";
@@ -56,6 +58,7 @@ ProcessMendelianErrors::ProcessMendelianErrors(string bn, int pos, Database* pdb
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessMendelianErrors::setThreshold(string thresh){
 	options.setUp(thresh);

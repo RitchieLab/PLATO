@@ -42,6 +42,7 @@ namespace PlatoLib
 #endif
 string ProcessIBS::stepname = "ibs";
 
+#ifdef PLATOLIB
 ProcessIBS::ProcessIBS(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "IBS";
@@ -51,6 +52,7 @@ ProcessIBS::ProcessIBS(string bn, int pos, Database* pdb, string projPath)
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessIBS::FilterSummary(){
 }

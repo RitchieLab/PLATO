@@ -21,7 +21,9 @@
 //#include "ChiSquare.h"
 #include <Helpers.h>
 #include <cdflib.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace std;
 using namespace Methods;
@@ -31,7 +33,7 @@ namespace PlatoLib
 #endif
 
 string ProcessRunTDT::stepname = "tdt";
-
+#ifdef PLATOLIB
 ProcessRunTDT::ProcessRunTDT(string bn, int pos, Database* pdb)
 {
     name = "TDT";
@@ -40,6 +42,7 @@ ProcessRunTDT::ProcessRunTDT(string bn, int pos, Database* pdb)
     hasresults = false;
     db = pdb;
 }
+#endif
 
 void ProcessRunTDT::PrintSummary(){
 	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";//getString<int>(order) + ".txt";

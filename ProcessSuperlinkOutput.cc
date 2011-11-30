@@ -40,6 +40,7 @@ namespace PlatoLib
 
 string ProcessSuperlinkOutput::stepname = "output-superlink";
 
+#ifdef PLATOLIB
 ProcessSuperlinkOutput::ProcessSuperlinkOutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output Superlink";
@@ -49,6 +50,7 @@ ProcessSuperlinkOutput::ProcessSuperlinkOutput(string bn, int pos, Database* pdb
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessSuperlinkOutput::FilterSummary(){}
 

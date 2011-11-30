@@ -83,7 +83,9 @@ class ProcessMarkerGenoEff : public Process{
 			_STRATIFY_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessMarkerGenoEff(string, int, Database*);
+#endif
 		~ProcessMarkerGenoEff(){
 		zeros.resize(0);
 		total.resize(0);

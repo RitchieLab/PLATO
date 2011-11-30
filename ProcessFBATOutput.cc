@@ -36,7 +36,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessFBATOutput::ProcessFBATOutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output FBAT";
@@ -46,6 +46,7 @@ ProcessFBATOutput::ProcessFBATOutput(string bn, int pos, Database* pdb, string p
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessFBATOutput::FilterSummary(){}
 

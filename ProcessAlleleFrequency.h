@@ -170,7 +170,7 @@ class ProcessAlleleFrequency : public Process{
 		 orig_num_families = 0;
 		 orig_num_individuals = 0;
 		};
-
+#ifdef PLATOLIB
 		ProcessAlleleFrequency(string bn, int pos, Database* pdb)
 		{
 			db = pdb;
@@ -181,6 +181,7 @@ class ProcessAlleleFrequency : public Process{
 			position = pos;
 
 		}
+#endif
 
 		~ProcessAlleleFrequency(){};
 //		void process(Connection *, Families*, Markers*);

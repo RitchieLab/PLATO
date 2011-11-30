@@ -97,7 +97,9 @@ private:
 			run_start = -1;
 			run_end = -1;
 		};
+#ifdef PLATOLIB
 		ProcessFst(string, int, Database*);
+#endif
 		~ProcessFst(){
 		};
 		//void process(Connection*, Families*, Markers*);

@@ -103,7 +103,9 @@ class ProcessLAPISOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessLAPISOutput(string, int, Database*, string);
+#endif
 		~ProcessLAPISOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

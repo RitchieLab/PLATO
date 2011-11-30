@@ -34,8 +34,10 @@
 #include <General.h>
 #include "Helpers.h"
 #include <sqlite3.h>
+#ifdef PLATOLIB
 #include <libsqlitewrapped.h>
 #include "Controller.h"
+#endif
 
 //TODO:  did not import the Vars.h or Vars.cpp, instead replaced
 //			Vars::LOCUS_TABLE with "LOCI" in 10 places

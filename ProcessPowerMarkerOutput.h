@@ -99,7 +99,9 @@ class ProcessPowerMarkerOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessPowerMarkerOutput(string, int, Database*, string);
+#endif
 		~ProcessPowerMarkerOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

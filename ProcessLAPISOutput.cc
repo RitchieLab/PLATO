@@ -39,7 +39,7 @@ namespace PlatoLib
 #endif
 
 string ProcessLAPISOutput::stepname = "output-lapis";
-
+#ifdef PLATOLIB
 ProcessLAPISOutput::ProcessLAPISOutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output Lapis";
@@ -49,6 +49,7 @@ ProcessLAPISOutput::ProcessLAPISOutput(string bn, int pos, Database* pdb, string
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessLAPISOutput::FilterSummary(){
 }

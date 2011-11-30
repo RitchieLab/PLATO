@@ -35,7 +35,9 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -48,6 +50,7 @@ namespace PlatoLib
 
 string ProcessFst::stepname = "fst";
 
+#ifdef PLATOLIB
 ProcessFst::ProcessFst(string bn, int pos, Database* pdb)
 {
         name = "Fst";
@@ -56,6 +59,7 @@ ProcessFst::ProcessFst(string bn, int pos, Database* pdb)
         hasresults = false;
         db = pdb;
 }
+#endif
 
 void ProcessFst::FilterSummary() {
 

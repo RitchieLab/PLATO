@@ -99,7 +99,9 @@ class ProcessBINOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessBINOutput(string, int, Database*, string);
+#endif
 		~ProcessBINOutput();
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

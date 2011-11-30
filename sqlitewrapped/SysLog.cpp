@@ -30,7 +30,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #ifndef WIN32
-
+#ifndef NOSYS
 #include <sqlite3.h>
 #include <syslog.h>
 
@@ -75,5 +75,5 @@ void SysLog::error(Database& db,Query& q,const std::string& str)
 #ifdef SQLITEW_NAMESPACE
 } // namespace SQLITEW_NAMESPACE {
 #endif
-
+#endif //NOSYS
 #endif // WIN32

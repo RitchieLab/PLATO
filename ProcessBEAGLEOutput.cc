@@ -38,7 +38,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 //Constructor to allow for use as Library with Plato-viewer
 ProcessBEAGLEOutput::ProcessBEAGLEOutput(string bn, int pos, Database* pdb, string projPath)
 {
@@ -49,6 +49,7 @@ ProcessBEAGLEOutput::ProcessBEAGLEOutput(string bn, int pos, Database* pdb, stri
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 /*
  *Function: FilterSummary

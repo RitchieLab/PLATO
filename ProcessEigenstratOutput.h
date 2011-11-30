@@ -100,7 +100,9 @@ class ProcessEigenstratOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessEigenstratOutput(string, int, Database*, string);
+#endif
 		~ProcessEigenstratOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

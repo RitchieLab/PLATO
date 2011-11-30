@@ -93,7 +93,9 @@ class ProcessKinship : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
+#ifdef PLATOLIB
 		ProcessKinship(string, int, Database*, string);
+#endif
 		~ProcessKinship(){
 		};
 		//void process(Connection*, Families*, Markers*);

@@ -30,7 +30,9 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace Methods;
 #ifdef PLATOLIB
@@ -39,7 +41,7 @@ namespace PlatoLib
 #endif
 
 string ProcessMitoCheck::stepname = "mito-check";
-
+#ifdef PLATOLIB
 ProcessMitoCheck::ProcessMitoCheck(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Mito";
@@ -49,6 +51,7 @@ ProcessMitoCheck::ProcessMitoCheck(string bn, int pos, Database* pdb, string pro
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessMitoCheck::Tokenize(const string& str, vector<string>& tokens, const string& delimiter){
     string::size_type lastPos = str.find_first_not_of(delimiter, 0);

@@ -96,7 +96,9 @@ class ProcessDeletions : public Process{
 			orig_num_families = 0;
 			orig_num_samples = 0;
 		};
+#ifdef PLATOLIB
 		ProcessDeletions(string, int, Database*, string);
+#endif
 		virtual ~ProcessDeletions(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);

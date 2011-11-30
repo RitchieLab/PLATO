@@ -92,7 +92,9 @@ class ProcessLinearReg : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
+#ifdef PLATOLIB
 		ProcessLinearReg(string, int, Database*);
+#endif
 		~ProcessLinearReg(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();

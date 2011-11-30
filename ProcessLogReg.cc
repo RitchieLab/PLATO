@@ -36,7 +36,9 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -45,7 +47,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessLogReg::ProcessLogReg(string bn, int pos, Database* pdb)
 {
 	name = "Logistic Regression";
@@ -54,6 +56,7 @@ ProcessLogReg::ProcessLogReg(string bn, int pos, Database* pdb)
 	hasresults = false;
 	db = pdb;
 }
+#endif
 
 void ProcessLogReg::FilterSummary(){
 

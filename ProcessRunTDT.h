@@ -76,7 +76,9 @@ class ProcessRunTDT : public Process{
 			orig_num_markers = 0;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessRunTDT(string, int, Database*);
+#endif
 		~ProcessRunTDT(){};
 		void PrintSummary();
 		void filter();

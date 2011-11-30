@@ -24,7 +24,9 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace Methods;
 
@@ -35,7 +37,7 @@ namespace PlatoLib
 
 
 string ProcessGenderCheck::stepname = "gender-error";
-
+#ifdef PLATOLIB
 ProcessGenderCheck::ProcessGenderCheck(string bn, int pos, Database* pdb)
 {
 	name = "Gender Check";
@@ -44,6 +46,7 @@ ProcessGenderCheck::ProcessGenderCheck(string bn, int pos, Database* pdb)
 	hasresults = false;
 	db = pdb;
 }
+#endif
 
 void ProcessGenderCheck::setThreshold(string thresh){
 	options.setUp(thresh);

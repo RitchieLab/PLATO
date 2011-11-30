@@ -41,7 +41,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessBINOutput::ProcessBINOutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output Bin";
@@ -51,6 +51,7 @@ ProcessBINOutput::ProcessBINOutput(string bn, int pos, Database* pdb, string pro
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 ProcessBINOutput::~ProcessBINOutput(){}
 void ProcessBINOutput::filter(){}

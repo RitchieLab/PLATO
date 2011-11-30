@@ -40,7 +40,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessPHASEOutput::ProcessPHASEOutput(string bn, int pos, Database* pdb, string projPath)
 {
     name = "Output Phase";
@@ -50,6 +50,7 @@ ProcessPHASEOutput::ProcessPHASEOutput(string bn, int pos, Database* pdb, string
     db = pdb;
     projectPath = projPath;
 }
+#endif
 
 void ProcessPHASEOutput::FilterSummary(){}
 

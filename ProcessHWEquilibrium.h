@@ -122,7 +122,9 @@ class ProcessHWEquilibrium : public Process{
 			order = 0;
 			orig_num_markers = 0;
 		};
+#ifdef PLATOLIB
 		ProcessHWEquilibrium(string, int, Database*);
+#endif
 		~ProcessHWEquilibrium(){
 			//if(af){
 			//delete(af);

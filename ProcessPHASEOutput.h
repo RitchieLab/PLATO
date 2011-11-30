@@ -103,7 +103,9 @@ class ProcessPHASEOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessPHASEOutput(string, int, Database*, string);
+#endif
 		~ProcessPHASEOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

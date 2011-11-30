@@ -1,135 +1,100 @@
-Database.o: Database.cpp \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/stdio.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/_mingw.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/stddef.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/stdarg.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/sys/types.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/string \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/c++config.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/os_defines.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/cpu_defines.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stringfwd.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/char_traits.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_algobase.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/cstddef \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/functexcept.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/exception_defines.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/cpp_type_traits.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/ext/type_traits.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/ext/numeric_traits.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_pair.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/move.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/concept_check.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_iterator_base_types.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_iterator_base_funcs.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_iterator.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/debug/debug.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/postypes.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/cwchar \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/wchar.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/wctype.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/stdint.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/allocator.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/c++allocator.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/ext/new_allocator.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/new \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/exception \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/localefwd.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/c++locale.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/clocale \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/locale.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/iosfwd \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/cctype \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/ctype.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/ostream_insert.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/cxxabi-forced.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_function.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/backward/binders.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/basic_string.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/ext/atomicity.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/gthr.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/gthr-default.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/errno.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/atomic_word.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/initializer_list \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/basic_string.tcc \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/map \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_tree.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_map.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_multimap.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/stdlib.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/string.h \
- sqlite3.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/iostream \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/ostream \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/ios \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/ios_base.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/locale_classes.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/locale_classes.tcc \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/streambuf \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/streambuf.tcc \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/basic_ios.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/locale_facets.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/cwctype \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/ctype_base.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/streambuf_iterator.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/mingw32/bits/ctype_inline.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/locale_facets.tcc \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/basic_ios.tcc \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/ostream.tcc \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/istream \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/istream.tcc \
- IError.h Database.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/windows.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/windef.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winnt.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winerror.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/basetsd.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/pshpack4.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/poppack.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/wincon.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winbase.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/wingdi.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winuser.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winnls.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winver.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winnetwk.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winreg.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winsvc.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/cderr.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/dde.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/ddeml.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/dlgs.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/imm.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/lzexpand.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/mmsystem.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/nb30.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpc.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpcdce.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/basetyps.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpcdcep.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpcnsi.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpcnterr.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/shellapi.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/pshpack2.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winperf.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/commdlg.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winspool.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/winsock2.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/ole2.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/objbase.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpcndr.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/rpcnsip.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/objfwd.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/wtypes.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/unknwn.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/objidl.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/cguid.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/olectlid.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/oleauto.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/oaidl.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/../../../../include/oleidl.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/list \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/stl_list.h \
- c:\qt\2010.04\mingw\bin\../lib/gcc/mingw32/4.4.0/include/c++/bits/list.tcc \
- Query.h
+Database.o: Database.cpp /usr/include/stdio.h /usr/include/_types.h \
+  /usr/include/sys/_types.h /usr/include/sys/cdefs.h \
+  /usr/include/machine/_types.h /usr/include/i386/_types.h \
+  /usr/include/c++/4.2.1/string \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/c++config.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/os_defines.h \
+  /usr/include/unistd.h /usr/include/sys/unistd.h \
+  /usr/include/sys/select.h /usr/include/sys/appleapiopts.h \
+  /usr/include/sys/_structs.h /usr/include/sys/_select.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/cpu_defines.h \
+  /usr/include/c++/4.2.1/bits/stringfwd.h \
+  /usr/include/c++/4.2.1/bits/char_traits.h \
+  /usr/include/c++/4.2.1/cstring /usr/include/c++/4.2.1/cstddef \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/stddef.h \
+  /usr/include/string.h /usr/include/c++/4.2.1/bits/stl_algobase.h \
+  /usr/include/c++/4.2.1/climits \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/limits.h \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/syslimits.h \
+  /usr/include/limits.h /usr/include/machine/limits.h \
+  /usr/include/i386/limits.h /usr/include/i386/_limits.h \
+  /usr/include/sys/syslimits.h /usr/include/c++/4.2.1/cstdlib \
+  /usr/include/stdlib.h /usr/include/Availability.h \
+  /usr/include/AvailabilityInternal.h /usr/include/sys/wait.h \
+  /usr/include/sys/signal.h /usr/include/machine/signal.h \
+  /usr/include/i386/signal.h /usr/include/i386/_structs.h \
+  /usr/include/machine/_structs.h /usr/include/mach/i386/_structs.h \
+  /usr/include/sys/resource.h /usr/include/machine/endian.h \
+  /usr/include/i386/endian.h /usr/include/sys/_endian.h \
+  /usr/include/libkern/_OSByteOrder.h \
+  /usr/include/libkern/i386/_OSByteOrder.h /usr/include/alloca.h \
+  /usr/include/machine/types.h /usr/include/i386/types.h \
+  /usr/include/i386/_types.h /usr/include/c++/4.2.1/iosfwd \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/c++locale.h \
+  /usr/include/c++/4.2.1/clocale /usr/include/locale.h \
+  /usr/include/_locale.h /usr/include/c++/4.2.1/cstdio \
+  /usr/include/c++/4.2.1/cstdarg \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/stdarg.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/c++io.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/gthr.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/gthr-default.h \
+  /usr/include/pthread.h /usr/include/pthread_impl.h /usr/include/sched.h \
+  /usr/include/time.h /usr/include/_structs.h \
+  /usr/include/c++/4.2.1/cctype /usr/include/ctype.h \
+  /usr/include/runetype.h /usr/include/c++/4.2.1/bits/postypes.h \
+  /usr/include/c++/4.2.1/cwchar /usr/include/c++/4.2.1/ctime \
+  /usr/include/wchar.h /usr/include/_wctype.h \
+  /usr/lib/gcc/i686-apple-darwin10/4.2.1/include/stdint.h \
+  /usr/include/c++/4.2.1/bits/functexcept.h \
+  /usr/include/c++/4.2.1/exception_defines.h \
+  /usr/include/c++/4.2.1/bits/stl_pair.h \
+  /usr/include/c++/4.2.1/bits/cpp_type_traits.h \
+  /usr/include/c++/4.2.1/ext/type_traits.h /usr/include/c++/4.2.1/utility \
+  /usr/include/c++/4.2.1/bits/stl_relops.h \
+  /usr/include/c++/4.2.1/bits/stl_iterator_base_types.h \
+  /usr/include/c++/4.2.1/bits/stl_iterator_base_funcs.h \
+  /usr/include/c++/4.2.1/bits/concept_check.h \
+  /usr/include/c++/4.2.1/bits/stl_iterator.h \
+  /usr/include/c++/4.2.1/debug/debug.h /usr/include/c++/4.2.1/memory \
+  /usr/include/c++/4.2.1/bits/allocator.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/c++allocator.h \
+  /usr/include/c++/4.2.1/ext/new_allocator.h /usr/include/c++/4.2.1/new \
+  /usr/include/c++/4.2.1/exception \
+  /usr/include/c++/4.2.1/bits/stl_construct.h \
+  /usr/include/c++/4.2.1/bits/stl_uninitialized.h \
+  /usr/include/c++/4.2.1/bits/stl_raw_storage_iter.h \
+  /usr/include/c++/4.2.1/limits \
+  /usr/include/c++/4.2.1/bits/ostream_insert.h \
+  /usr/include/c++/4.2.1/bits/stl_function.h \
+  /usr/include/c++/4.2.1/bits/basic_string.h \
+  /usr/include/c++/4.2.1/ext/atomicity.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/atomic_word.h \
+  /usr/include/c++/4.2.1/algorithm /usr/include/c++/4.2.1/bits/stl_algo.h \
+  /usr/include/c++/4.2.1/bits/stl_heap.h \
+  /usr/include/c++/4.2.1/bits/stl_tempbuf.h \
+  /usr/include/c++/4.2.1/bits/basic_string.tcc /usr/include/c++/4.2.1/map \
+  /usr/include/c++/4.2.1/bits/stl_tree.h \
+  /usr/include/c++/4.2.1/bits/stl_map.h \
+  /usr/include/c++/4.2.1/bits/stl_multimap.h sqlite3.h \
+  /usr/include/c++/4.2.1/iostream /usr/include/c++/4.2.1/ostream \
+  /usr/include/c++/4.2.1/ios /usr/include/c++/4.2.1/bits/localefwd.h \
+  /usr/include/c++/4.2.1/bits/ios_base.h \
+  /usr/include/c++/4.2.1/bits/locale_classes.h \
+  /usr/include/c++/4.2.1/streambuf \
+  /usr/include/c++/4.2.1/bits/streambuf.tcc \
+  /usr/include/c++/4.2.1/bits/basic_ios.h \
+  /usr/include/c++/4.2.1/bits/streambuf_iterator.h \
+  /usr/include/c++/4.2.1/bits/locale_facets.h \
+  /usr/include/c++/4.2.1/cwctype /usr/include/wctype.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/ctype_base.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/ctype_inline.h \
+  /usr/include/c++/4.2.1/bits/codecvt.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/time_members.h \
+  /usr/include/c++/4.2.1/i686-apple-darwin10/x86_64/bits/messages_members.h \
+  /usr/include/c++/4.2.1/bits/basic_ios.tcc \
+  /usr/include/c++/4.2.1/bits/ostream.tcc /usr/include/c++/4.2.1/locale \
+  /usr/include/c++/4.2.1/bits/locale_facets.tcc \
+  /usr/include/c++/4.2.1/typeinfo /usr/include/c++/4.2.1/istream \
+  /usr/include/c++/4.2.1/bits/istream.tcc IError.h Database.h \
+  /usr/include/c++/4.2.1/list /usr/include/c++/4.2.1/bits/stl_list.h \
+  /usr/include/c++/4.2.1/bits/list.tcc Query.h

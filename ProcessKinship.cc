@@ -43,7 +43,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessKinship::ProcessKinship(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Kinship";
@@ -53,6 +53,7 @@ ProcessKinship::ProcessKinship(string bn, int pos, Database* pdb, string projPat
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessKinship::FilterSummary() {
 

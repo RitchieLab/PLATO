@@ -35,7 +35,9 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
+#ifdef PLATOLIB
 #include "Controller.h"
+#endif
 
 using namespace Methods;
 #ifdef PLATOLIB
@@ -45,6 +47,7 @@ namespace PlatoLib
 
 string ProcessMarkerGenoEff::stepname = "marker-geno-eff";
 
+#ifdef PLATOLIB
 ProcessMarkerGenoEff::ProcessMarkerGenoEff(string bn, int pos, Database* pdb)
 {
 	name = "Marker Efficiency";
@@ -53,6 +56,7 @@ ProcessMarkerGenoEff::ProcessMarkerGenoEff(string bn, int pos, Database* pdb)
 	hasresults = false;
 	db = pdb;
 }
+#endif
 
 void ProcessMarkerGenoEff::FilterSummary(){
 	opts::printLog("Options:\t" + options.toString() + "\n");

@@ -43,7 +43,7 @@ namespace PlatoLib
 #endif
 
 string ProcessEigenstratOutput::stepname = "output-eigenstrat";
-
+#ifdef PLATOLIB
 ProcessEigenstratOutput::ProcessEigenstratOutput(string bn, int pos, Database* pdb, string projPath)
 {
 	name = "Output Eigenstrature";
@@ -53,6 +53,7 @@ ProcessEigenstratOutput::ProcessEigenstratOutput(string bn, int pos, Database* p
 	db = pdb;
 	projectPath = projPath;
 }
+#endif
 
 void ProcessEigenstratOutput::FilterSummary(){}
 

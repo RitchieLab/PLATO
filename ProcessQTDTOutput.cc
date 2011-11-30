@@ -35,7 +35,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-
+#ifdef PLATOLIB
 ProcessQTDTOutput::ProcessQTDTOutput(string bn, int pos, Database* pdb, string projPath)
 {
     name = "Output QTDT";
@@ -45,6 +45,7 @@ ProcessQTDTOutput::ProcessQTDTOutput(string bn, int pos, Database* pdb, string p
     db = pdb;
     projectPath = projPath;
 }
+#endif
 
 void ProcessQTDTOutput::FilterSummary(){}
 

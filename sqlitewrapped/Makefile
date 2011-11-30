@@ -1,13 +1,13 @@
 VERSION =	1.3.1
 DIFF_VERSION =	1.3
 
-INSTALL_PREFIX = /sqlitewrapped
-INSTALL_LIB =	$(INSTALL_PREFIX)/lib
+INSTALL_PREFIX = ./sqlitewrapped
+INSTALL_LIB =	../lib
 INSTALL_INCLUDE = $(INSTALL_PREFIX)/include
-INSTALL =	/sqlitewrapped/bin/install
+INSTALL =	./sqlitewrapped/bin/install
 
-INCLUDE =	-I/sqlitewrapped/bin -I.
-CFLAGS =	-Wall -g -O2 $(INCLUDE) -MD
+INCLUDE =	-I./sqlitewrapped/bin -I. -I/opt/local/include -I/usr/include
+CFLAGS =	-Wall -g -O2 $(INCLUDE) -MD -DNOSYS
 # namespace
 #CFLAGS +=	-DSQLITEW_NAMESPACE=sqlitew
 CPPFLAGS =	$(CFLAGS)

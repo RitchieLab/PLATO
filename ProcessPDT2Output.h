@@ -103,7 +103,9 @@ class ProcessPDT2Output : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessPDT2Output(string, int, Database*, string);
+#endif
 		~ProcessPDT2Output(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);

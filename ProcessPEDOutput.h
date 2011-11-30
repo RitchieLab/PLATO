@@ -98,7 +98,9 @@ class ProcessPEDOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+#ifdef PLATOLIB
 		ProcessPEDOutput(string, int, Database*, string);
+#endif
 		~ProcessPEDOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
