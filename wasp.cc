@@ -1869,6 +1869,48 @@ vector<ORDER> optimize(ORDER* order){
 				options->doZeroDisabled() ||
 				thresh
 		){
+			if(thresh){
+				cout << "thresh\n";
+			}
+			if(options->doTransform()){
+				cout << "do transform\n";
+			}
+			if(options->doThreshMarkersLow()){
+				cout << "do threshmarkerslow\n";
+			}
+			if(options->doThreshMarkersHigh()){
+				cout << "do threshmarkershigh\n";
+			}
+			if(options->doThreshSamplesLow()){
+				cout << "do ThreshSamplesLow\n";
+			}
+			if(options->doThreshSamplesHigh()){
+				cout << "do threshsampleshigh\n";
+			}
+			if(options->doThreshFamiliesHigh()){
+				cout << "do threshfamilieshigh\n";
+			}
+			if(options->doThreshFamiliesLow()){
+				cout << "do threshfamilieslow\n";
+			}
+			if(options->doBpSpace()){
+				cout << "do bpspace\n";
+			}
+			if(options->doLDChop()){
+				cout << "do ldchop\n";
+			}
+			if(options->doRmMono()){
+				cout << "do rmmono\n";
+			}
+			if(options->doRmHetOnly())){
+				cout << "do rmhetonly\n";
+			}
+			if(options->doIncDisabledSamples()){
+				cout << "do incdisabledsamples\n";
+			}
+			if(options->doZeroDisabled()){
+				cout << "do zerodisabled\n";
+			}
 			nothread.push_back(order->at(o));
 			thresh = true;
 		}
