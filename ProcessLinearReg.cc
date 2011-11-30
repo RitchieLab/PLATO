@@ -166,14 +166,14 @@ void ProcessLinearReg::process(DataSet* ds){
 	if(groups.size() == 0){
 		groups["GROUP_1"] = *(ds->get_samples());
 	}
-
+#ifndef PLATOLIB
 	if(options.doOutputSynthView()){
 		for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 			lrsvout << "\t" << group_iter->first << ":pval" << "\t" << group_iter->first << ":beta" << "\t" << group_iter->first << ":N";
 		}
 		lrsvout << endl;
 	}
-
+#endif
 	//lr.resetDataSet(ds);
 
 	vector<double> chis(ds->num_loci(), 0);
@@ -190,10 +190,11 @@ void ProcessLinearReg::process(DataSet* ds){
 	for(int i = 0; i < msize; i++){
 		Marker* mark = good_markers[i];//ds->get_locus(i);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+#ifndef PLATOLIB
 			if(options.doOutputSynthView()){
 				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
 			}
-
+#endif
 			for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 				DataSet* tempds = new DataSet();
 				tempds->set_markers(ds->get_markers());
@@ -214,6 +215,7 @@ void ProcessLinearReg::process(DataSet* ds){
 				vector<string>labels = lr.getLabels();
 				vector<double> vars = lr.getVar();
 				vector<double> zs = lr.getZs();
+
 
 				for(int l = 1; l < (int)labels.size(); l++)
 				{
@@ -245,7 +247,14 @@ void ProcessLinearReg::process(DataSet* ds){
 					lrout << labels[l] << "\t" << lr.getCalcMissing() << "\t" << coefs[l] << "\t" << exp(coefs[l]) << "\t" << se << "\t" << zs[l] << "\t" << pvals[l] << endl;
 
 					if(options.doOutputSynthView()){
-						lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();
+						//do not display this information if the current label belongs to a covariate...
+						//this is an inefficient way to do this, but quick to implement
+						vector<string>* covariatesList = ds->get_covariates();
+						std::vector<string>::iterator covIterator = std::find_if((*covariatesList).begin(), (*covariatesList).end(), FindString(labels[l]));
+						if(covIterator == (*covariatesList).end())
+						{
+							lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();
+						}
 					}
 					#endif
 				}//end loop through labels
@@ -254,9 +263,11 @@ void ProcessLinearReg::process(DataSet* ds){
 				main_pvals[i] = pvals[1];
 				#endif
 			}//end loop through Groups
+#ifndef PLATOLIB
 			if(options.doOutputSynthView()){
 				lrsvout << endl;
 			}
+#endif
 		}
 		#ifdef PLATOLIB
 				hasresults = true;
