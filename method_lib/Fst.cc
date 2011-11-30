@@ -354,10 +354,19 @@ void Fst::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, ve
 	controltotal.resize(markers->size());
 	vector<Sample*>::iterator s_iter;
 
-	if(options.doGroupFile()){
+	if(options.doGroupFile())
+	{
 		options.readGroups(samples);
 		map<string, vector<Sample*> >::iterator giter;
 		map<string, vector<Sample*> > groups = options.getGroups();
+
+		//check if the overall sample size is equal to the total number of groups.
+		//If so, throw an error and alert the user that the total number of samples should differ from the number of groups specified
+		if (groups.size() == samples->size())
+		{
+			opts::printLog("Total number of samples should be different from number of groups specified.\n");
+			throw MethodException("Total number of samples should be different from number of groups specified.\n");
+		}
 
 		for(giter = groups.begin(); giter != groups.end(); giter++){
 			string mygroup = giter->first;
