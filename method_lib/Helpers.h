@@ -201,6 +201,8 @@ static bool fGreaterOrEqual(float a, float b);
 
 static bool dGreaterOrEqual(double a, double b);
 
+static bool markerGreater(Methods::Marker* a, Methods::Marker* b);
+
 static bool fileExists(const string& fileName);
 
 static bool isAlphaNum( string s );

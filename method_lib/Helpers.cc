@@ -172,6 +172,12 @@ bool Helpers::fGreaterOrEqual(float a, float b){
 	}
 	return false;
 }
+//Compares two Marker objects by rsID
+bool Helpers::markerGreater(Methods::Marker* a, Methods::Marker* b)
+{
+	return (a->getRSID() > b->getRSID());
+}
+
 bool Helpers::dGreaterOrEqual(double a, double b){
 	if(double_comp(a, b)){
 		return true;
@@ -3048,6 +3054,7 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		samp->resizeAlleles(markers->size());
         samples->push_back(samp);
 		samp->setLoc((samples->size() - 1));
+
 	}
 
 	PED.clear();
@@ -4752,7 +4759,18 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 					text += "\n";
 					throw MethodException(text);
 				}
-				Methods::Marker* m = (*markers)[(*marker_map).at(i)];
+
+				Methods::Marker* m;
+				//03-21-2011  Added try/catch to the following line to prevent ungraceful death when ped files contain '/'
+				try
+				{
+					m = (*markers).at((*marker_map).at(i));
+				}
+				catch(std::out_of_range)
+				{
+					opts::printLog("Marker Indexing incorrect.  Does the ped file contain '/' characters?  They are treated as white space by plato.");
+					throw MethodException("Marker Indexing incorrect.  Does the ped file contain '/' characters?  They are treated as white space by plato.");
+				}
 				if(m->isEnabled()){
 					int oldallelecount = m->getNumAlleles();
 	                if(one != opts::_NOCALL_){
