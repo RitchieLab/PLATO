@@ -29,7 +29,7 @@
 #include <map>
 #include "ProcessBEAGLEOutput.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 
 using namespace Methods;
 /*
@@ -75,7 +75,7 @@ void ProcessBEAGLEOutput::process(DataSet* ds){
 	bo.setOrder(this->order);
 	bo.setOverwrite(this->overwrite);
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
-		vector<vector<Sample*> > sample_sets = generateSampleSets(data_set, &options);
+		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
 		for(int i = 0; i < sample_sets.size(); i++){
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;

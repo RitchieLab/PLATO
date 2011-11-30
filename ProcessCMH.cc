@@ -35,7 +35,7 @@
 #include "ProcessCMH.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -71,11 +71,11 @@ void ProcessCMH::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		if(mark->isEnabled()){// && !mark->isFlagged()){
 			bool inc = false;
-			if(options.doThreshMarkersLow() && dLess(value, options.getThreshMarkersLow())){
+			if(options.doThreshMarkersLow() && Helpers::dLess(value, options.getThreshMarkersLow())){
 				mark->setEnabled(false);
 				inc = true;
 			}
-			if(options.doThreshMarkersHigh() && dGreater(value, options.getThreshMarkersHigh())){
+			if(options.doThreshMarkersHigh() && Helpers::dGreater(value, options.getThreshMarkersHigh())){
 				mark->setEnabled(false);
 				inc = true;
 			}
@@ -135,7 +135,7 @@ void ProcessCMH::process(DataSet* ds){
 	int prev_chrom = -1;
 	vector<double> chis;
 	vector<double> pvals;
-	vector<Marker*> good_markers = findValidMarkers(ds->get_markers(), &options);
+	vector<Marker*> good_markers = Helpers::findValidMarkers(ds->get_markers(), &options);
 	int msize = good_markers.size();
 	chis.resize(msize, 0);
 	pvals.resize(msize, 0);
@@ -154,23 +154,23 @@ void ProcessCMH::process(DataSet* ds){
 				chis[m] = cmh.get_chisq();
 				pvals[m] = cmh.get_pval();
 
-				if (realnum(cmh.get_chisq()))
+				if (Helpers::realnum(cmh.get_chisq()))
 					MHOUT << cmh.get_chisq() << "\t" << cmh.get_pval()
 							<< "\t";
 				else
 					MHOUT << "NA" << "\t" << "NA" << "\t";
 
-				if (realnum(cmh.getOR()))
+				if (Helpers::realnum(cmh.getOR()))
 					MHOUT << cmh.getOR() << "\t";
 				else
 					MHOUT << "NA" << "\t";
 
-				if (realnum(cmh.getOR_lower()))
+				if (Helpers::realnum(cmh.getOR_lower()))
 					MHOUT << cmh.getOR_lower() << "\t";
 				else
 					MHOUT << "NA" << "\t ";
 
-				if (realnum(cmh.getOR_upper()))
+				if (Helpers::realnum(cmh.getOR_upper()))
 					MHOUT << cmh.getOR_upper();
 				else
 					MHOUT << "NA";

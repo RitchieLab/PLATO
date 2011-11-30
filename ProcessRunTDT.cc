@@ -19,7 +19,7 @@
 #include "Chrom.h"
 #include <General.h>
 //#include "ChiSquare.h"
-#include <Helper.h>
+#include <Helpers.h>
 #include <cdflib.h>
 
 using namespace std;
@@ -90,7 +90,7 @@ void ProcessRunTDT::PrintSummary(){
 
 	int msize = good_markers.size();//data_set->num_loci();
 
-	double zt = ltqnorm(1 - (1 - options.getCI()) / 2);
+	double zt = Helpers::ltqnorm(1 - (1 - options.getCI()) / 2);
 
 	int prev_base = 0;
 	int prev_chrom = -1;
@@ -176,11 +176,11 @@ void ProcessRunTDT::filter(){
 		for(int i = 0; i < size; i++){
 			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				bool inc = false;
-				if(options.doThreshMarkersHigh() && dGreater(pval[i], options.getThreshMarkersHigh())){
+				if(options.doThreshMarkersHigh() && Helpers::dGreater(pval[i], options.getThreshMarkersHigh())){
 					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersLow() && dLess(pval[i],options.getThreshMarkersLow())){
+				if(options.doThreshMarkersLow() && Helpers::dLess(pval[i],options.getThreshMarkersLow())){
 					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
@@ -207,7 +207,7 @@ void ProcessRunTDT::FilterSummary(){
 void ProcessRunTDT::process(DataSet* ds){
 	data_set = ds;
 
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	RunTDT tdt(data_set);
 	tdt.setOptions(options);

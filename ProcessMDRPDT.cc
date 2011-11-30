@@ -34,7 +34,7 @@
 #include "ProcessMDRPDT.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -65,11 +65,11 @@ void ProcessMDRPDT::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		if(mark->isEnabled() && !mark->isFlagged()){
 			bool inc = false;
-			if(options.doThreshMarkersLow() && dLess(value, options.getThreshMarkersLow())){
+			if(options.doThreshMarkersLow() && Helpers::dLess(value, options.getThreshMarkersLow())){
 				mark->setEnabled(false);
 				inc = true;
 			}
-			if(options.doThreshMarkersHigh() && dGreater(value, options.getThreshMarkersHigh())){
+			if(options.doThreshMarkersHigh() && Helpers::dGreater(value, options.getThreshMarkersHigh())){
 				mark->setEnabled(false);
 				inc = true;
 			}
@@ -84,7 +84,7 @@ void ProcessMDRPDT::doFilter(Methods::Marker* mark, double value){
 
 void ProcessMDRPDT::process(DataSet* ds){
 	data_set = ds;
-	vector<int> good_markers = findValidMarkersIndexes(data_set->get_markers(), &options);
+	vector<int> good_markers = Helpers::findValidMarkersIndexes(data_set->get_markers(), &options);
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.

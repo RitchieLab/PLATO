@@ -29,7 +29,7 @@
 #include "ProcessMitoCheck.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 using namespace Methods;
 string ProcessMitoCheck::stepname = "mito-check";
 
@@ -313,7 +313,7 @@ ofstream myoutput ("gender_errors_markers.txt", ios::out | ios::app);
 
 void ProcessMitoCheck::process(DataSet* ds){
 	data_set = ds;
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	MitoCheck mc(data_set);
 	mc.setOptions(options);

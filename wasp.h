@@ -3,7 +3,7 @@
 
 #include <DataSet.h>
 #include <Options.h>
-#include <Helper.h>
+#include <Helpers.h>
 #include <InputFilter.h>
 #include <StepOptions.h>
 #include <MethodException.h>

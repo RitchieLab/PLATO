@@ -34,7 +34,6 @@
 #include "ProcessClusterMissing.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
 using namespace Methods;
 
 void ProcessClusterMissing::FilterSummary(){

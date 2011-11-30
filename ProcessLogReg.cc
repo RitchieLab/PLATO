@@ -35,7 +35,7 @@
 #include "ProcessLogReg.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -66,11 +66,11 @@ void ProcessLogReg::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		if(mark->isEnabled() && !mark->isFlagged()){
 			bool inc = false;
-			if(options.doThreshMarkersLow() && dLess(value, options.getThreshMarkersLow())){
+			if(options.doThreshMarkersLow() && Helpers::dLess(value, options.getThreshMarkersLow())){
 				mark->setEnabled(false);
 				inc = true;
 			}
-			if(options.doThreshMarkersHigh() && dGreater(value, options.getThreshMarkersHigh())){
+			if(options.doThreshMarkersHigh() && Helpers::dGreater(value, options.getThreshMarkersHigh())){
 				mark->setEnabled(false);
 				inc = true;
 			}
@@ -84,7 +84,7 @@ void ProcessLogReg::doFilter(Methods::Marker* mark, double value){
 
 void ProcessLogReg::process(DataSet* ds){
 	data_set = ds;
-	vector<int> good_markers = findValidMarkersIndexes(data_set->get_markers(), &options);
+	vector<int> good_markers = Helpers::findValidMarkersIndexes(data_set->get_markers(), &options);
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -125,7 +125,7 @@ void ProcessLogReg::process(DataSet* ds){
 
 	lr.setModelType(options.getLRModelType());
 
-	double zt = ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
+	double zt = Helpers::ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
 	int prev_base = 0;
 	int prev_chrom = -1;
 	InputFilter ct_filter;
@@ -215,7 +215,7 @@ void ProcessLogReg::process(DataSet* ds){
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				//cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
 				if(se > 0){
-					pvalue = p_from_chi(zz, df);
+					pvalue = Helpers::p_from_chi(zz, df);
 					lrout << "\t" << pvalue;
 				}
 				else{
@@ -249,7 +249,7 @@ void ProcessLogReg::process(DataSet* ds){
 				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				if(se > 0){
-					pvalue = p_from_chi(zz, df);
+					pvalue = Helpers::p_from_chi(zz, df);
 					lrout << "\t" << pvalue;
 				}
 				else{

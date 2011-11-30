@@ -36,7 +36,7 @@
 #include "ProcessLinearReg.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -67,11 +67,11 @@ void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		if(mark->isEnabled() && !mark->isFlagged()){
 			bool inc = false;
-			if(options.doThreshMarkersLow() && dLess(value, options.getThreshMarkersLow())){
+			if(options.doThreshMarkersLow() && Helpers::dLess(value, options.getThreshMarkersLow())){
 				mark->setEnabled(false);
 				inc = true;
 			}
-			if(options.doThreshMarkersHigh() && dGreater(value, options.getThreshMarkersHigh())){
+			if(options.doThreshMarkersHigh() && Helpers::dGreater(value, options.getThreshMarkersHigh())){
 				mark->setEnabled(false);
 				inc = true;
 			}
@@ -86,7 +86,7 @@ void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
 void ProcessLinearReg::process(DataSet* ds){
 	data_set = ds;
 
-	vector<Marker*> good_markers = findValidMarkers(data_set->get_markers(), &options);
+	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -127,7 +127,7 @@ void ProcessLinearReg::process(DataSet* ds){
 			vector<double> zs = lr.getZs();
 
 			for(int l = 1; l < (int)labels.size(); l++){
-				bool okay = vars[l] < 1e-20 || !realnum(vars[l]) ? false : true;
+				bool okay = vars[l] < 1e-20 || !Helpers::realnum(vars[l]) ? false : true;
 				double se = 0;
 				if(okay){
 					se = sqrt(vars[l]);

@@ -32,7 +32,7 @@
 #include "ProcessAlleleFrequency.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 
 using namespace Methods;
 
@@ -107,7 +107,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 				}
 				bool inc = false;
 				//if(!double_comp(minfreq, options.getThreshMarkersLow()) && minfreq < (double)options.getThreshMarkersLow() && options.doThreshMarkersLow()){
-				if ((dEquals(minfreq, 0) || dEquals(majfreq, 1))
+				if ((Helpers::dEquals(minfreq, 0) || Helpers::dEquals(majfreq, 1))
 						&& options.doRmMono()) {
 					mark->setEnabled(false);
 					orig_num_markers++;
@@ -122,7 +122,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 						inc = true;
 					}
 				}
-				if (dLess(minfreq, options.getThreshMarkersLow())
+				if (Helpers::dLess(minfreq, options.getThreshMarkersLow())
 						&& options.doThreshMarkersLow()) {
 					mark->setEnabled(false);
 					if (inc == false) {
@@ -130,7 +130,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 						inc = true;
 					}
 				}
-				if (dGreater(minfreq, options.getThreshMarkersHigh())
+				if (Helpers::dGreater(minfreq, options.getThreshMarkersHigh())
 						&& options.doThreshMarkersHigh()) {
 					mark->setEnabled(false);
 					if (inc == false) {
@@ -155,7 +155,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 				bool inc = false;
 				//if(minfreq < (double)options.getThreshMarkersLow() && options.doThreshMarkersLow()){
 				//if(!double_comp(minfreq, options.getThreshMarkersLow()) && minfreq < options.getThreshMarkersLow() && options.doThreshMarkersLow()){
-				if ((dEquals(minfreq, 0) || dEquals(majfreq, 1))
+				if ((Helpers::dEquals(minfreq, 0) || Helpers::dEquals(majfreq, 1))
 						&& options.doRmMono()) {
 					mark->setEnabled(false);
 					orig_num_markers++;
@@ -172,7 +172,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 						inc = true;
 					}
 				}
-				if (dLess(minfreq, options.getThreshMarkersLow())
+				if (Helpers::dLess(minfreq, options.getThreshMarkersLow())
 						&& options.doThreshMarkersLow()) {
 					//cout << (*markers)[i]->getRSID() << "\t" << minfreq << endl;
 					mark->setEnabled(false);
@@ -181,7 +181,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 						inc = true;
 					}
 				}
-				if (dGreater(minfreq, options.getThreshMarkersHigh())
+				if (Helpers::dGreater(minfreq, options.getThreshMarkersHigh())
 						&& options.doThreshMarkersHigh()) {
 					mark->setEnabled(false);
 					if (inc == false) {
@@ -206,7 +206,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 				bool inc = false;
 
 				//if(!double_comp(minfreq, options.getThreshMarkersLow()) && minfreq < (double)options.getThreshMarkersLow() && options.doThreshMarkersLow()){
-				if ((dEquals(minfreq, 0) || dEquals(majfreq, 1))
+				if ((Helpers::dEquals(minfreq, 0) || Helpers::dEquals(majfreq, 1))
 						&& options.doRmMono()) {
 					mark->setEnabled(false);
 					orig_num_markers++;
@@ -220,7 +220,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 						inc = true;
 					}
 				}
-				if (fLess(mark->getMAF(), options.getThreshMarkersLow())
+				if (Helpers::fLess(mark->getMAF(), options.getThreshMarkersLow())
 						&& options.doThreshMarkersLow()) {
 					mark->setEnabled(false);
 					if (inc == false) {
@@ -228,7 +228,7 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 						inc = true;
 					}
 				}
-				if (fGreater(mark->getMAF(), options.getThreshMarkersHigh())
+				if (Helpers::fGreater(mark->getMAF(), options.getThreshMarkersHigh())
 						&& options.doThreshMarkersHigh()) {
 					mark->setEnabled(false);
 					if (inc == false) {
@@ -827,7 +827,7 @@ void ProcessAlleleFrequency::processtest() {
 
 	int prev_base = 0;
 	int prev_chrom = -1;
-	vector<Marker*> good_markers = findValidMarkers(data_set->get_markers(), &options);
+	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 	msize = good_markers.size();
 
 	for (int k = 0; k < msize; k++) {

@@ -25,7 +25,7 @@
 //#include "helper.h"
 #include <cdflib.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 using namespace Methods;
 string ProcessHWEquilibrium::stepname = "hw";
 
@@ -75,11 +75,11 @@ void ProcessHWEquilibrium::filter(){
 void ProcessHWEquilibrium::doFilter(Marker* mark, HWEquilibrium* hwe){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		bool inc = false;
-		if(options.doThreshMarkersLow() && ((dLess(hwe->getOverall(), options.getThreshMarkersLow()) && hwe->getOverall() != -1))){// || (dLess(hw_C,options.getThreshMarkersLow()) && hw_C != -1))){
+		if(options.doThreshMarkersLow() && ((Helpers::dLess(hwe->getOverall(), options.getThreshMarkersLow()) && hwe->getOverall() != -1))){// || (dLess(hw_C,options.getThreshMarkersLow()) && hw_C != -1))){
 			mark->setEnabled(false);
 			inc = true;
 		}
-		if(options.doThreshMarkersHigh() && ((dGreater(hwe->getOverall(), options.getThreshMarkersHigh()) && hwe->getOverall() != -1))){// || (dGreater(hw_C, options.getThreshMarkersHigh()) && hw_C != -1))){
+		if(options.doThreshMarkersHigh() && ((Helpers::dGreater(hwe->getOverall(), options.getThreshMarkersHigh()) && hwe->getOverall() != -1))){// || (dGreater(hw_C, options.getThreshMarkersHigh()) && hw_C != -1))){
 			mark->setEnabled(false);
 			inc = true;
 		}
@@ -105,7 +105,7 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 		useoverall = true;
 	}
 
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	HWEquilibrium hwe(data_set);
 	hwe.setOptions(options);

@@ -9,10 +9,10 @@
 #include <string.h>
 #include <string>
 #include <list>
-#include "Globals.h"
-#include "Options.h"
+#include <Globals.h>
+#include <Options.h>
 #include "Finalize.h"
-#include "Helper.h"
+#include <Helpers.h>
 
 using namespace std;
 

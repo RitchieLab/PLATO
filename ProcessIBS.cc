@@ -34,7 +34,7 @@
 #include "ProcessIBS.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 using namespace Methods;
 string ProcessIBS::stepname = "ibs";
 
@@ -56,7 +56,7 @@ void ProcessIBS::filter(){
 
 void ProcessIBS::process(DataSet* ds){
 	data_set = ds;
-	vector<Marker*> good_markers = findValidMarkers(data_set->get_markers(), &options);
+	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	IBS ibs;
 	ibs.resetDataSet(data_set);

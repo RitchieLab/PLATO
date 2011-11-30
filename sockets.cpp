@@ -14,7 +14,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "Helper.h"
 #include "Options.h"
 #include "sockets.h"
 

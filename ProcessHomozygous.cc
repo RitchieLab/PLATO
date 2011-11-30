@@ -30,7 +30,7 @@
 #include "ProcessHomozygous.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "AlleleFrequency.h"
 //#include <ChiSquareAllelic.h>
 #include <cdflib.h>
@@ -94,7 +94,7 @@ void ProcessHomozygous::filter(){
 
 void ProcessHomozygous::process(DataSet* ds){
 	data_set = ds;
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	Homozygous hom(data_set);
 	hom.setOptions(options);

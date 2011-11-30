@@ -1406,61 +1406,61 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 //		InputFilter filters;
 		if(opts::_EXCCOVS_.length() > 0){
 			vector<string>* list = new vector<string>;
-			readCovTraitFile(opts::_EXCCOVS_, list);
+			Helpers::readCovTraitFile(opts::_EXCCOVS_, list);
 			filters->add_covariate_list(list);
 			filters->add_covariate_filter(InputFilter::ExcludeCovariateFilter);
 		}
 		if(opts::_INCCOVS_.length() > 0){
 			vector<string>* list = new vector<string>;
-			readCovTraitFile(opts::_INCCOVS_, list);
+			Helpers::readCovTraitFile(opts::_INCCOVS_, list);
 			filters->add_covariate_list(list);
 			filters->add_covariate_filter(InputFilter::IncludeCovariateFilter);
 		}
 		if(opts::_EXCTRAITS_.length() > 0){
 			vector<string>* list = new vector<string>;
-			readCovTraitFile(opts::_EXCTRAITS_, list);
+			Helpers::readCovTraitFile(opts::_EXCTRAITS_, list);
 			filters->add_covariate_list(list);
 			filters->add_covariate_filter(InputFilter::ExcludeTraitFilter);
 		}
 		if(opts::_INCTRAITS_.length() > 0){
 			vector<string>* list = new vector<string>;
-			readCovTraitFile(opts::_INCTRAITS_, list);
+			Helpers::readCovTraitFile(opts::_INCTRAITS_, list);
 			filters->add_covariate_list(list);
 			filters->add_covariate_filter(InputFilter::IncludeTraitFilter);
 		}
 		if(opts::_EXCMARKERS_.length() > 0){
 			vector<Marker*>* list = new vector<Marker*>;
-			readLocusFile(opts::_EXCMARKERS_, list);
+			Helpers::readLocusFile(opts::_EXCMARKERS_, list);
 			filters->add_locus_list(list);
 			filters->add_locus_filter(InputFilter::ExcludeLocusFilter);
 		}
 		if(opts::_INCMARKERS_.length() > 0){
 			vector<Marker*>* list = new vector<Marker*>;
-			readLocusFile(opts::_INCMARKERS_, list);
+			Helpers::readLocusFile(opts::_INCMARKERS_, list);
 			filters->add_locus_list(list);
 			filters->add_locus_filter(InputFilter::IncludeLocusFilter);
 		}
 		if(opts::_EXCSAMPS_.length() > 0){
 			vector<Sample*>* list = new vector<Sample*>;
-			readSampleFile(opts::_EXCSAMPS_, list);
+			Helpers::readSampleFile(opts::_EXCSAMPS_, list);
 			filters->add_sample_list(list);
 			filters->add_sample_filter(InputFilter::ExcludeSampleFilter);
 		}
 		if(opts::_INCSAMPLES_.length() > 0){
 			vector<Sample*>* list = new vector<Sample*>;
-			readSampleFile(opts::_INCSAMPLES_, list);
+			Helpers::readSampleFile(opts::_INCSAMPLES_, list);
 			filters->add_sample_list(list);
 			filters->add_sample_filter(InputFilter::IncludeSampleFilter);
 		}
 		if(opts::_EXCFAMILIES_.length() > 0){
 			vector<Family*>* list = new vector<Family*>;
-			readFamilyFile(opts::_EXCFAMILIES_, list);
+			Helpers::readFamilyFile(opts::_EXCFAMILIES_, list);
 			filters->add_family_list(list);
 			filters->add_family_filter(InputFilter::ExcludeFamilyFilter);
 		}
 		if(opts::_INCFAMILIES_.length() > 0){
 			vector<Family*>* list = new vector<Family*>;
-			readFamilyFile(opts::_INCFAMILIES_, list);
+			Helpers::readFamilyFile(opts::_INCFAMILIES_, list);
 			filters->add_family_list(list);
 			filters->add_family_filter(InputFilter::IncludeFamilyFilter);
 		}
@@ -1514,25 +1514,25 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 
 		if(opts::_FREQ_FILE_EXISTS_){
 			opts::printLog("Reading marker frequencies from: " + opts::_FREQ_FILE_ + "\n");
-			options.setFrequencies(readFreqFile(opts::_FREQ_FILE_));
+			options.setFrequencies(Helpers::readFreqFile(opts::_FREQ_FILE_));
 		}
 
 		//read zerogenofile
 		if(opts::_ZEROGENOFILE_.length() > 0){
-			readZeroGenoFile(opts::_ZEROGENOFILE_);
+			Helpers::readZeroGenoFile(opts::_ZEROGENOFILE_);
 		}
 		//read Binary input
 		if(opts::_BINPREFIX_.length() > 0 && !opts::_MAKEBIN_){
 			if(opts::_PEDINFO_.length() > 0){
 				opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-				readPedInfo();
+				Helpers::readPedInfo();
 			}
 			opts::printLog("Reading data using Binary inputs: prefix: " + opts::_BINPREFIX_ + "\n");
 			if(opts::_MICROSATS_){
 				opts::printLog("You specified microsatellite markers exist.  This option is not compatible with binary input files.  Please use the standard PED file format for your input when using microsatellite markers.  Exiting...\n");
 				exit(1);
 			}
-			readBinM(&data_set, options, filters);//(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+			Helpers::readBinM(&data_set, options, filters);//(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
 			//assignLinks(data_set.get_families());
 			//reorderAlleles(data_set.get_samples(), data_set.get_markers());
 			if(opts::_FLIPSTRAND_){
@@ -1545,7 +1545,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			if(opts::_MAPFILE_.length() > 0){
 				opts::printLog("Reading MAP file: " + opts::_MAPFILE_ + "\n");
 				//readMap(data_set.get_markers(), data_set.get_marker_map());
-				readMapM(&data_set, options, filters);
+				Helpers::readMapM(&data_set, options, filters);
 			}
 			else{
 				opts::printLog("You specified -ped.  A corresponding map file needs to be specified using -map. Exiting!\n");
@@ -1554,13 +1554,13 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			if(opts::_PEDFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
 					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-					readPedInfo();
+					Helpers::readPedInfo();
 				}
 				opts::printLog("Reading PED file: " + opts::_PEDFILE_ + "\n");
 				//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
 				//assignLinks(data_set.get_families());
 				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
-				readPedM_3vec_set(&data_set, options, filters);
+				Helpers::readPedM_3vec_set(&data_set, options, filters);
 				if(opts::_FLIPSTRAND_){
 					flipStrand(data_set.get_markers());
 				}
@@ -1575,10 +1575,10 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			if(opts::_FAMFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
 					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-					readPedInfo();
+					Helpers::readPedInfo();
 				}
 				opts::printLog("Reading Pedigree file: " + opts::_FAMFILE_ + "\n");
-				readTFamM(&data_set, options, filters);
+				Helpers::readTFamM(&data_set, options, filters);
 				//assignLinks(data_set.get_families());
 			}
 			else{
@@ -1587,7 +1587,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			}
 			if(opts::_TPEDFILE_.length() > 0){
 				opts::printLog("Reading TPED file: " + opts::_TPEDFILE_ + "\n");
-				readTPedM(&data_set, options, filters);//data_set.get_markers(), data_set.get_samples(), data_set.get_marker_map());
+				Helpers::readTPedM(&data_set, options, filters);//data_set.get_markers(), data_set.get_samples(), data_set.get_marker_map());
 				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
 				if(opts::_FLIPSTRAND_){
 					flipStrand(data_set.get_markers());
@@ -1602,7 +1602,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			if(opts::_MDRMAPFILE_.length() > 0){
 				opts::printLog("Reading MDRMAP file: " + opts::_MDRMAPFILE_ + "\n");
 				//readMap(data_set.get_markers(), data_set.get_marker_map());
-				readMapMdr(&data_set, options, filters);
+				Helpers::readMapMdr(&data_set, options, filters);
 
 			}
 			else{
@@ -1613,13 +1613,13 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			if(opts::_MDRPEDFILE_.length() > 0){
 				if(opts::_PEDINFO_.length() > 0){
 					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-					readPedInfo();
+					Helpers::readPedInfo();
 				}
 				opts::printLog("Reading MDRPED file: " + opts::_MDRPEDFILE_ + "\n");
 				//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
 				//assignLinks(data_set.get_families());
 				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
-				readMdr(&data_set, options, filters);
+				Helpers::readMdr(&data_set, options, filters);
 				if(opts::_FLIPSTRAND_){
 					flipStrand(data_set.get_markers());
 				}
@@ -1636,11 +1636,11 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		}
 		if(opts::_COVFILE_.length() > 0){
 			opts::printLog("Reading covariate file: " + opts::_COVFILE_ + "\n");
-			readCovariateFile(opts::_COVFILE_, &data_set, options, filters);
+			Helpers::readCovariateFile(opts::_COVFILE_, &data_set, options, filters);
 		}
 		if(opts::_TRAITFILE_.length() > 0){
 			opts::printLog("Reading trait file: " + opts::_TRAITFILE_ + "\n");
-			readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
+			Helpers::readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
 		}
 
 		if(opts::_SAMPLEBPRANGEFILTER_.length() > 0){
@@ -1653,8 +1653,8 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		//int goodmarkers = 0;
 		if(opts::_TODIGIT_){
 			opts::printLog("Mapping Families/Samples to numeric format.");
-			remapFamsToDigit(data_set.get_families());
-			printFamsToDigit(data_set.get_families(), "global", options);
+			Helpers::remapFamsToDigit(data_set.get_families());
+			Helpers::printFamsToDigit(data_set.get_families(), "global", options);
 		}
 		for(unsigned int i = 0; i < data_set.get_samples()->size(); i++){
 			Sample* samp = data_set.get_sample(i);
@@ -1744,7 +1744,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 
 		if(opts::zerogenoinfo.size() > 0){
 			opts::printLog("Zero-ing specified Sample/SNP pairs.\n");
-			zeroSingleGenos(data_set.get_markers(), data_set.get_samples());
+			Helpers::zeroSingleGenos(data_set.get_markers(), data_set.get_samples());
 		}
 
 //		if(opts::_MAKEBIN_){

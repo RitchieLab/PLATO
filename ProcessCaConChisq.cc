@@ -25,7 +25,7 @@
 #include <cdflib.h>
 #include <General.h>
 #include <Options.h>
-#include <Helper.h>
+#include <Helpers.h>
 #include <MethodException.h>
 #include "ProcessCaConChisq.h"
 using namespace Methods;
@@ -306,11 +306,11 @@ void ProcessCaConChisq::filter(){
 		for(int i = 0; i < msize; i++){
 			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
 				bool inc = false;
-				if(options.doThreshMarkersLow() && dLess(pval_arm[i], options.getThreshMarkersLow())){
+				if(options.doThreshMarkersLow() && Helpers::dLess(pval_arm[i], options.getThreshMarkersLow())){
 					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersHigh() && dGreater(pval_arm[i], options.getThreshMarkersHigh())){
+				if(options.doThreshMarkersHigh() && Helpers::dGreater(pval_arm[i], options.getThreshMarkersHigh())){
 					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
@@ -330,7 +330,7 @@ void ProcessCaConChisq::filter(){
  */
 void ProcessCaConChisq::process(DataSet* ds){
 	data_set = ds;
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	resize(good_markers.size());//ds->num_loci());
 	CaConChisq chisq(data_set);

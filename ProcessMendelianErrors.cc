@@ -35,7 +35,7 @@
 #include "ProcessMendelianErrors.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 
 using namespace std;
 using namespace Methods;
@@ -227,7 +227,7 @@ void ProcessMendelianErrors::PrintSummary(){
 void ProcessMendelianErrors::process(DataSet* ds){
 	data_set = ds;
 
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	MendelianErrors me(data_set);
 	me.setOrder(this->order);

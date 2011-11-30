@@ -34,7 +34,7 @@
 #include "ProcessFilterProcess.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 using namespace Methods;
 
 void ProcessFilterProcess::FilterSummary(){

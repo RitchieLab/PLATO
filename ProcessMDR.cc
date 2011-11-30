@@ -34,7 +34,7 @@
 #include "ProcessMDR.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -169,7 +169,7 @@ void ProcessMDR::process(DataSet* ds){
     int msize = data_set->num_loci();
     for(int m = 0; m < msize; m++){
     	Marker* mark = data_set->get_locus(m);
-    	if(mark->isEnabled() && isValidMarker(mark, &options, prev_chrom, prev_base)){
+    	if(mark->isEnabled() && Helpers::isValidMarker(mark, &options, prev_chrom, prev_base)){
     		vector<unsigned int> loci;
     		loci.push_back((unsigned int)m);
     		if(covariates.size() == 0){
@@ -235,11 +235,11 @@ void ProcessMDR::process(DataSet* ds){
     	    	for(int g = 0; g < (int)conv.size(); g++){
     	    		rule += conv[g] + "  ";
     	    	}
-    	    	if(dGreater(affratio, unaffratio)){
+    	    	if(Helpers::dGreater(affratio, unaffratio)){
     	    		rule += "CASE";
     	    		mapping[conv] = 2;
     	    	}
-    	    	else if(dLess(affratio, unaffratio)){
+    	    	else if(Helpers::dLess(affratio, unaffratio)){
     	    		rule += "CONTROL";
     	    		mapping[conv] = 1;
     	    	}

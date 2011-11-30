@@ -18,7 +18,7 @@
 //#include "Chrom.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 using namespace Methods;
 string ProcessSampleGenoEff::stepname = "sample-geno-eff";
 
@@ -171,11 +171,11 @@ void ProcessSampleGenoEff::filter(){
 					percent = (1.0f - ((float)zeros[i]/(float)total[i]));// * 100.0f;
 				}
 
-				if(options.doThreshSamplesLow() && dLess(percent, options.getThreshSamplesLow())){
+				if(options.doThreshSamplesLow() && Helpers::dLess(percent, options.getThreshSamplesLow())){
 					data_set->get_sample(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshSamplesHigh() && dGreater(percent, options.getThreshSamplesHigh())){
+				if(options.doThreshSamplesHigh() && Helpers::dGreater(percent, options.getThreshSamplesHigh())){
 					data_set->get_sample(i)->setEnabled(false);
 					inc = true;
 				}

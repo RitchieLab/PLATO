@@ -32,7 +32,7 @@
 #include "ProcessDeletions.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 
 using namespace std;
 using namespace Methods;

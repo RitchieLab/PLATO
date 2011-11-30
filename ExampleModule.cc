@@ -30,7 +30,7 @@
 #include "ExampleModule.h" //////CHANGE TO REAL MODULE NAME
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 #include <cdflib.h>
 //#include "Markers.h"
 //#include "Chrom.h"

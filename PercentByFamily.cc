@@ -30,7 +30,7 @@
 #include "PercentByFamily.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 
 string PercentByFamily::stepname = "family-geno-eff";
 
@@ -207,11 +207,11 @@ void PercentByFamily::filter(){
 				if(mtotal[i] > 0){
 					percent = (1.0f - ((float)mzeros[i]/(float)mtotal[i]));// * 100.0f;
 				}
-				if(options.doThreshMarkersLow() && dLess(percent,options.getThreshMarkersLow())){
+				if(options.doThreshMarkersLow() && Helpers::dLess(percent,options.getThreshMarkersLow())){
 					(*markers)[i]->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersHigh() && dGreater(percent, options.getThreshMarkersHigh())){
+				if(options.doThreshMarkersHigh() && Helpers::dGreater(percent, options.getThreshMarkersHigh())){
 					(*markers)[i]->setEnabled(false);
 					inc = true;
 				}

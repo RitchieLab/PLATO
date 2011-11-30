@@ -23,7 +23,7 @@
 #include "ProcessGenderCheck.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 using namespace Methods;
 string ProcessGenderCheck::stepname = "gender-error";
 
@@ -261,7 +261,7 @@ void ProcessGenderCheck::filter_markers(){
 void ProcessGenderCheck::process(DataSet* ds){
 	data_set = ds;
 
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
 	GenderCheck gc(data_set);
 

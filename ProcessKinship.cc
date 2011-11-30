@@ -34,7 +34,7 @@
 #include "ProcessKinship.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -67,12 +67,12 @@ void ProcessKinship::doFilter(Methods::Marker* mark, double value) {
 	if (options.doThreshMarkersLow() || options.doThreshMarkersHigh()) {
 		if (mark->isEnabled() && !mark->isFlagged()) {
 			bool inc = false;
-			if (options.doThreshMarkersLow() && dLess(value,
+			if (options.doThreshMarkersLow() && Helpers::dLess(value,
 					options.getThreshMarkersLow())) {
 				mark->setEnabled(false);
 				inc = true;
 			}
-			if (options.doThreshMarkersHigh() && dGreater(value,
+			if (options.doThreshMarkersHigh() && Helpers::dGreater(value,
 					options.getThreshMarkersHigh())) {
 				mark->setEnabled(false);
 				inc = true;

@@ -34,7 +34,7 @@
 #include "ProcessMarkerGenoEff.h"
 #include <Options.h>
 #include <General.h>
-#include <Helper.h>
+#include <Helpers.h>
 //#include "Markers.h"
 //#include "Chrom.h"
 //#include "Families.h"
@@ -250,11 +250,11 @@ void ProcessMarkerGenoEff::filter(){
 					contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i]));// * 100.0f;
 				}
 
-				if(options.doThreshMarkersLow() && dLess(percent, options.getThreshMarkersLow())){
+				if(options.doThreshMarkersLow() && Helpers::dLess(percent, options.getThreshMarkersLow())){
 					good_markers[i]->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersHigh() && dGreater(percent, options.getThreshMarkersHigh())){
+				if(options.doThreshMarkersHigh() && Helpers::dGreater(percent, options.getThreshMarkersHigh())){
 					good_markers[i]->setEnabled(false);
 					inc = true;
 				}
@@ -268,7 +268,7 @@ void ProcessMarkerGenoEff::filter(){
 
 void ProcessMarkerGenoEff::process(DataSet* ds){
 	data_set = ds;
-	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 	int msize = good_markers.size();
 	zeros.resize(msize);
 	total.resize(msize);
