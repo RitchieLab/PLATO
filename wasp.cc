@@ -30,7 +30,7 @@ using namespace Methods;
 using namespace PlatoLib;
 #endif
 
-static string _WASPVER_ = "0.83";
+static string _WASPVER_ = "0.84";
 //enum for batch file step switch
 enum StepValue{
 					   e_examplemodule,    //examplemodule
@@ -82,6 +82,10 @@ enum cmdArgs{
 	a_S,
 	a_ped,
 	a_map,
+	//new 12-06-2010
+	a_lgen_file,
+	a_compound_genotypes,
+	a_reference,
 	a_bin_input,
 	a_incmarkers,
 	a_excmarkers,
@@ -219,6 +223,10 @@ void Initialize(){
 	s_mapcmdArgs["-incsamples"] = a_incsamples;
 	s_mapcmdArgs["-map"] = a_map;
 	s_mapcmdArgs["-ped"] = a_ped;
+	//new 12-06-2010
+	s_mapcmdArgs["-lgen-file"] = a_lgen_file;
+	s_mapcmdArgs["-compound-genotypes"] = a_compound_genotypes;
+	s_mapcmdArgs["-reference"] = a_reference;
 	s_mapcmdArgs["-pedinfo"] = a_pedinfo;
 	s_mapcmdArgs["-dog"] = a_dog;
 	s_mapcmdArgs["-flip"] = a_flip;
@@ -325,6 +333,56 @@ main (int argc, char* argv[])
 					}
 
 					opts::_PEDFILE_ = arguments[++j];
+					break;
+				}
+				//new 12-06-2010
+				case a_lgen_file:
+				{
+					if(j + 1 >= arguments.size())
+					{
+						cerr << "-lgen_file option requires specifying a filename. (Ex: -lgen-file lgeninput.lgen). Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() ==0)
+					{
+						cerr << "-lgen_file option requires specifying a filename. (Ex: -lgen-file lgeninput.lgen). Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-')
+					{
+						cerr << "-lgen option missing file name?  Halting." << endl;
+						exit(1);
+					}
+					opts::_LGENFILE_ = arguments[++j];
+					break;
+				}
+				//new 12-09-2010
+				case a_compound_genotypes:
+				{
+					opts::_COMPOUND_GENOTYPES_ = true;
+					break;
+				}
+				//new 12-10-2010
+				case a_reference:
+				{
+					if(j + 1 >= arguments.size())
+					{
+						cerr << "-reference option requires specifying a filename.  (Ex: -reference references.txt). Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j + 1];
+					if(test.length() == 0)
+					{
+						cerr << "-reference option requires specifying a filename.  (Ex: -reference references.txt).  Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-')
+					{
+						cerr << "-reference option missing file name?  Halting." << endl;
+						exit(1);
+					}
+					opts::_REFERENCE_FILE_ = arguments[++j];
 					break;
 				}
 				case a_noweb:
@@ -1550,6 +1608,16 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		if(opts::_ZEROGENOFILE_.length() > 0){
 			Helpers::readZeroGenoFile(opts::_ZEROGENOFILE_);
 		}
+		//new 12-06-2010
+		if(opts::_LGENFILE_.length() > 0)
+		{
+			if(opts::_PEDFILE_.length() ==0 || opts::_MAPFILE_.length() ==0)
+			{
+				opts::printLog("You specified -lgen-file.  Corresponding ped and map files must be specified using -ped and -map.  Exiting!\n");
+				exit(1);
+			}
+		}
+
 		//read Binary input
 		if(opts::_BINPREFIX_.length() > 0 && !opts::_MAKEBIN_){
 			if(opts::_PEDINFO_.length() > 0){
@@ -1592,6 +1660,16 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 				Helpers::readPedM_3vec_set(&data_set, options, filters);
 				if(opts::_FLIPSTRAND_){
 					flipStrand(data_set.get_markers());
+				}
+				//new 12-06-2010
+				if(opts::_LGENFILE_.length() > 0)
+				{
+					opts::printLog("Reading LGEN file: " + opts::_LGENFILE_ + "\n");
+					Helpers::readLgenFile(&data_set, options, filters);
+					if(opts::_FLIPSTRAND_)
+					{
+						flipStrand(data_set.get_markers());
+					}
 				}
 			}
 			else{
