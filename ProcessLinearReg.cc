@@ -122,6 +122,10 @@ void ProcessLinearReg::process(DataSet* ds){
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
+	if(options.doCovars())
+	{
+		opts::printLog("Number of covariates used in Linear Model: " + getString<int>(options.getCovars().size()) + "\n");
+	}
 
 #ifndef PLATOLIB
     string fname = opts::_OUTPREFIX_ + "linearreg" + options.getOut() + ".txt";
