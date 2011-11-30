@@ -28,7 +28,9 @@ using namespace Methods;
 
 
 class ProcessCMH : public Process{
-	private:
+	static string stepname;
+
+private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
 		vector<Marker*>* markers;

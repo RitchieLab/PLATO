@@ -40,6 +40,7 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
+string ProcessCMH::stepname = "cmh";
 
 void ProcessCMH::FilterSummary(){
 
@@ -220,6 +221,8 @@ void ProcessCMH::process(DataSet* ds){
 				  << "\tFDR_BH"
 				  << "\tFDR_BY"
 				  << endl;
+			opts::addFile("Marker", stepname, fcomp);
+
 			opts::addHeader(fcomp, "CALC");
 			opts::addHeader(fcomp, "Original_Pval");
 			opts::addHeader(fcomp, "GC");

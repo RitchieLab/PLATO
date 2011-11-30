@@ -1,0 +1,94 @@
+.main div{
+/*display:inline;*/
+
+}
+
+.menu_header{	/* Styling menu header */
+	/* Start layout CSS */
+	color:#FFF;
+	font-size:0.9em;
+	background-color:#317082;
+	width:175px;
+	margin-bottom:2px;
+	margin-top:2px;
+	padding-left:2px;
+/*	background-image:url('images/bg_answer.gif');*/
+	background-repeat:no-repeat;
+	background-position:top right;	
+	height:20px;
+											
+	/* End layout CSS */
+											
+	overflow:hidden;
+	cursor:pointer;
+}
+.menu{	/* Parent box of slide down content */
+	/* Start layout CSS */
+	border:1px solid #317082;
+	background-color:#E2EBED;
+	width:175px;
+									
+	/* End layout CSS */
+																
+	visibility:hidden;
+	height:0px;
+	overflow:hidden;
+	position:relative;
+
+}
+.menu_content{	/* Content that is slided down */
+	padding:1px;
+	font-size:0.9em;	
+	position:relative;
+}
+
+.side-menu {
+	background-color:#BEC0C2;
+	width:15%;
+}
+.code {
+}
+
+pre.code {
+	background-color:#DBDBDB;
+	padding-left:.75em;
+}
+.contents {
+	font:Arial, Helvetica, sans-serif;
+	font-size:16px;
+}
+
+
+table.datatable {
+/*width: 80%;*/
+border-top: 1px solid #ccc;
+border-left: 1px solid #ccc;
+border-bottom: 1px solid #ccc;
+color:#333;
+background-color: #fff;
+clear:both;
+padding: 0;
+margin: 0 0 2em 0;
+white-space: normal;
+}
+th.datatable {
+background-color: #e2e2e2;
+border-top: 1px solid #fff;
+border-left: 1px solid #fff;
+border-right: 1px solid #003d4c;
+border-bottom: 1px solid #003d4c;
+text-align: center;
+padding:1px 4px;
+}
+table.datatable tr td {
+border-right: 1px solid #ddd;
+padding:4px 4px;
+vertical-align:top;
+text-align: left;
+}
+table.datatable tr.altRow td {
+background: #f4f4f4;
+}
+table.datatable td.actions {
+	white-space: nowrap;
+}

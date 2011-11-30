@@ -40,6 +40,9 @@
 //#include "Families.h"
 using namespace Methods;
 
+string ProcessFst::stepname = "fst";
+
+
 void ProcessFst::FilterSummary() {
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
@@ -121,14 +124,20 @@ void ProcessFst::process(DataSet* ds) {
 	int prev_base = 0;
 	int prev_chrom = -1;
 
-		eout << "Chrom\trsID\tProbeID\tBPLOC\tFSTWC\tFSTRH\tFSTHM\n";
+		eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
+		opts::addFile("Marker", stepname, fname);
+
+		opts::addHeader(fname, "FSTWC");
+		opts::addHeader(fname, "FSTRH");
+//		opts::addHeader(fname, "FSTHM");
+
 
 		for (int m = 0; m < (int) ds->num_loci(); m++) {
 			Marker* mark = ds->get_locus(m);
 			if (mark->isEnabled() && isValidMarker(mark, &options, prev_base,
 					prev_chrom)) {
 				fst.calculate(m);
-				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH() << "\t" << fst.getFstHM()
+				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH()// << "\t" << fst.getFstHM()
 						<< endl;
 
 			}

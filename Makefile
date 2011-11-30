@@ -1,6 +1,6 @@
 # The list of executables we will compile.
 # #
-PROGRAMS=methods wasp
+PROGRAMS=methods plato
 METHODDIR=method_lib
 LIBDIR=-Llib #-L/opt/local/lib
 LIB=-lm -lR -lmethods -lintl#-lreadline -lintl -lglib-2.0
@@ -56,13 +56,13 @@ OBJECTS = ProcessKinship.o ProcessFst.o ProcessEarth.o Step.o wasp.o Process.o P
 all: $(PROGRAMS)
 
 clean:
-	rm *.o wasp; cd method_lib; make clean;
+	rm *.o plato wasp; cd method_lib; make clean;
 
 methods:
 	cd method_lib; make
 
-wasp:	$(OBJECTS)
-	$(CC) -o wasp $(OBJECTS) $(LIB) $(SHARED_OCCILIBS) $(CFLAGSCC) $(LIBDIR) 
+plato:	$(OBJECTS)
+	$(CC) -o plato $(OBJECTS) $(LIB) $(SHARED_OCCILIBS) $(CFLAGSCC) $(LIBDIR) 
 
 wasp.o: wasp.cc wasp.h
 	$(CC) wasp.cc -c $(CFLAGSCC) $(LIBDIR) 

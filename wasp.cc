@@ -1073,11 +1073,11 @@ main (int argc, char* argv[])
 					break;
 			}
 		}
-		string logoutput = opts::_OUTPREFIX_ + "wasp.log";
+		string logoutput = opts::_OUTPREFIX_ + "plato.log";
 //		ofstream log(logoutput.c_str());
 		opts::_LOG_.open(logoutput.c_str());
 		if(!opts::_LOG_){
-			cerr << "Error opening wasp.log.  Exiting!\n";
+			cerr << "Error opening plato.log.  Exiting!\n";
 			exit(1);
 		}
 		string args = "";
@@ -1142,13 +1142,13 @@ void error_check(){
  */
 void print_help(){
 	//int w = 5;
-	cout << "wasp - Whole-Genome Associstion Study Pipeline (Version: " << _WASPVER_ << ")" << endl << endl;
+	cout << "plato - PLatform for the Analysis, Translation, and Organization of large-scale data (Version: " << _WASPVER_ << ")" << endl << endl;
 	cout << "Center for Human Genetics Research" << endl;
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
-	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/wasp !!!!" << endl << endl;
+	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl << endl;
 /*
-	cout << "usage: wasp <batchfile> [<option1> <option2>...]" << endl << endl;
+	cout << "usage: plato <batchfile> [<option1> <option2>...]" << endl << endl;
 	cout << "   Special options: " << endl;
 	cout << "     -h                 Prints this help" << endl;
 	cout << "     -S                 Displays list of valid processing steps" << endl << endl;
@@ -1287,17 +1287,17 @@ void print_steps(STEPS s){
  *outputs general usage statement
  */
 void usage(){
-	cout << "wasp - Whole-Genome Associstion Study Pipeline (Version: " << _WASPVER_ << ")" << endl << endl;
+	cout << "plato - PLatform for the Analysis, Translation, and Organization of large-scale data (Version: " << _WASPVER_ << ")" << endl << endl;
 	cout << "Center for Human Genetics Research" << endl;
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
-	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/wasp !!!!" << endl << endl;
-	cout << "usage: wasp <batchfile> [<option1> <option2>....]" << endl
+	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl << endl;
+	cout << "usage: plato <batchfile> [<option1> <option2>....]" << endl
 		 << endl;
 	cout << "For a list of valid steps to be inserted into the batch file:" << endl;
-	cout << "\t\t> wasp -S" << endl << endl;
+	cout << "\t\t> plato -S" << endl << endl;
 	cout << "For help: " << endl;
-	cout << "\t\t> wasp -h" << endl << endl;
+	cout << "\t\t> plato -h" << endl << endl;
 }
 
 /*
@@ -2568,7 +2568,7 @@ Step initializeSteps(string i){
 				newstep->setProcess(tempproc);
 				break;
 			case e_mitocheck:
-				newstep = new Step("Mitochondrial Error Checking (Chrom 25)", "", false);
+				newstep = new Step("Mitochondrial Error Checking (Chrom 26)", "", false);
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
@@ -3408,7 +3408,7 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				break;
 			case e_mitocheck:
-				newstep = new Step("Mitochondrial Error Checking (Chrom 25)", "", false);
+				newstep = new Step("Mitochondrial Error Checking (Chrom 26)", "", false);
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
@@ -4099,7 +4099,7 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 
 #define  PORT_NUM                80
 #define  IP_ADDR    "160.129.37.40"
-#define  GET_STRING "GET /wasp/files/version.txt HTTP/1.1\nHost: chgr.mc.vanderbilt.edu\nConnection: close\n\n"
+#define  GET_STRING "GET /plato/files/version.txt HTTP/1.1\nHost: chgr.mc.vanderbilt.edu\nConnection: close\n\n"
 
 
 void webcheck(vector<string> a, map<string, vector<string> > b)
@@ -4143,7 +4143,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 	      if ( fiter != a.end())
 		{
 		  opts::printLog("\n*** ALERT ***\n*** A warning flag has been set for: "+tokens[i]+
-			   "\n*** See http://chgr.mc.vanderbilt.edu/wasp/\n");
+			   "\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
 		}
 	    }
 	  continue;
@@ -4155,7 +4155,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 			siter = b.find(tokens[i]);
 			if(siter != b.end()){
 				opts::printLog("\n*** ALERT ***\n*** A warning flag has been set for STEP: " + tokens[i] +
-						"\n*** See http://chgr.mc.vanderbilt.edu/wasp/\n");
+						"\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
 			}
 		}
 		continue;
@@ -4169,7 +4169,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 				  fiter = find(second.begin(), second.end(), tokens[i]);
 				  if(fiter != second.end()){
 						opts::printLog("\n*** ALERT ***\n*** A warning flag has been set for STEP OPTION: " + tokens[i] +
-							"\n*** See http://chgr.mc.vanderbilt.edu/wasp/\n");
+							"\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
 				  	break;
 				  }
 			  }
@@ -4186,7 +4186,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 	      if ( fiter != a.end()){
 		opts::printLog("A serious warning flag has been set for: "+tokens[i]+
 		    "\nWasp has been instructed to stop"+
- 	            "\nPlease see http://chgr.mc.vanderbilt.edu/wasp/\n");
+ 	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
 		  	exit(1);
 		  }
 	    }
@@ -4200,7 +4200,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 			if(siter != b.end()){
 		opts::printLog("A serious warning flag has been set for STEP: "+tokens[i]+
 		    "\nWasp has been instructed to stop"+
- 	            "\nPlease see http://chgr.mc.vanderbilt.edu/wasp/\n");
+ 	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
 		  	exit(1);
 			}
 		}
@@ -4216,7 +4216,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 				  if(fiter != second.end()){
 		opts::printLog("A serious warning flag has been set for STEP OPTION: "+tokens[i]+
 		    "\nWasp has been instructed to stop"+
- 	            "\nPlease see http://chgr.mc.vanderbilt.edu/wasp/\n");
+ 	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
 		  	exit(1);
 				  }
 			  }
@@ -4257,7 +4257,7 @@ void webcheck(vector<string> a, map<string, vector<string> > b)
 		  opts::printLog("\n\n          *** UPDATE REQUIRED ***\n\n");
 		  opts::printLog("\tThis version        : "+_WASPVER_+"\n");
 		  opts::printLog("\tMost recent version : "+tokens[i+1]+"\n\n");
-		  opts::printLog("Please upgrade your version of Wasp as soon as possible!\n");
+		  opts::printLog("Please upgrade your version of PLATO as soon as possible!\n");
 		  opts::printLog("  (visit the above website for free download)\n\n");
 		  version_okay=false;
 		}

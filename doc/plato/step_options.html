@@ -1,0 +1,4243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>PLATO: PLatform for the Analysis, Translation, and Organization of large-scale data</title>
+<link rel="icon" href="favicon.ico" type="image/icon" />
+<link rel="shortcut icon" href="favicon.ico" type="image/icon" />
+<link href="stylesheets/cake.generic.css%3F1248722767.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="stylesheets/wasp.css%3F1243441516.css" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<a name="top"></a>
+	<div id="container">
+		<div id="header">
+			<h1>
+<!--				<a href="/"><img alt="Wasp_icon32x32" src="/images/WASP_icon32x32.PNG?1243448767" /></a> -->
+				<a href="index.html">PLATO:</a> PLatform for the Analysis, Translation, and Organization of large-scale data
+			</h1>
+		</div>
+		<div id="main" class="main">
+			<?php //include("side-menu.php");?>
+			<table border=0 cellpadding=0>
+			<tr>
+						<td id="side-menu" class="side-menu">
+		       	<br/>
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="downloads.html">Download</a></li>
+					<li><a href="main/aboutus.html">About Us</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu">CHGR</a></li>
+				</ul>
+<br/>
+<!-- Google CSE Search Box Begins  -->
+<form method="GET" action="http://searchvu.vanderbilt.edu/search">
+    <input type="text" name="q" maxlength="256" value="" />
+    <input type="hidden" name="site" value="default_collection" />  
+    <input type="hidden" name="client" value="default_frontend" />
+    <input type="hidden" name="proxystylesheet" value="default_frontend" />
+    <input type="hidden" name="output" value="xml_no_dtd" />   
+    <input type="hidden" name="sitesearch" value="https://edam.mc.vanderbilt.edu/wasp" />
+    <input type="submit" name="btnG" value="Search" />
+</form>
+<!-- Google CSE Search Box Ends -->
+
+				<br/>
+				<hr/>
+				<br/>
+<!--				<?php include("side-menu.php");?>-->
+				
+					<ul>
+					
+					<li><a href="main/usage.html">Usage</a></li>
+					
+						<ul>
+							
+							<li><a href="commandlines.html">Commandline Arguments</a></li>
+							
+							<b>
+							<li><a href="step_options.html">Step Specific Arguments</a></li>
+							</b>
+						</ul>
+					</ul>
+						<br/>
+					<ul>
+						<li>Input Files</li>
+						<ul>
+							
+							<li><a href="inputfiles/batchfiles.html">Batch Files</a></li>
+							
+							
+							<li><a href="inputfiles/pedfile.html">PED File</a></li>
+							
+							
+							<li><a href="inputfiles/mapfile.html">MAP File</a></li>
+							
+							
+							<li><a href="inputfiles/tpedfile.html">TPED File</a></li>
+							
+							
+							<li><a href="inputfiles/tfamfile.html">TFAM File</a></li>
+							
+							
+							<li><a href="inputfiles/binary.html">Binary</a></li>
+							
+							
+							<li><a href="inputfiles/covtraitfile.html">Covariates/Traits</a></li>
+							
+
+							
+							<li><a href="inputfiles/freqfile.html">Frequency File</a></li>
+							
+							
+							<li><a href="inputfiles/strandfile.html">Strand File</a></li>
+							
+							
+							<li><a href="inputfiles/mapfileext.html">Extended Map File</a></li>
+							
+							
+							<li><a href="inputfiles/sampfileext.html">Extended Sample File</a></li>
+							
+							
+							<li><a href="inputfiles/incexclists.html">Include/Exclude Files</a></li>
+							
+							
+							<li><a href="inputfiles/stratfile.html">Stratification File</a></li>
+							
+							
+							<li><a href="inputfiles/filterprocesscfg.html">Filter Process Config.</a></li>
+							
+
+						</ul>
+					</ul>
+						<br/>
+
+					<ul>
+						<li>QC Steps</li>
+								<ul>
+									
+										<li>
+										<a href="steps/1.html">Marker Genotype Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="steps/2.html">Allele Frequency</a>
+										</li>
+									
+										<li>
+										<a href="steps/3.html">Concordance</a>
+										</li>
+									
+										<li>
+										<a href="steps/4.html">Gender Error</a>
+										</li>
+									
+										<li>
+										<a href="steps/5.html">Hardy-Weinberg</a>
+										</li>
+									
+										<li>
+										<a href="steps/6.html">Mendelian Errors</a>
+										</li>
+									
+										<li>
+										<a href="steps/7.html">Mitochondrial Error</a>
+										</li>
+									
+										<li>
+										<a href="steps/8.html">Sample Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="steps/33.html">Plato Filter Processing</a>
+										</li>
+									
+								</ul>
+						</ul>
+						<br/>
+
+						<ul>
+							<li>Analysis Steps</li>
+								<ul>
+									
+										<li>
+											<a href="steps/9.html">Chisquare</a>
+										</li>
+										
+										<li>
+											<a href="steps/10.html">Logistic Regression</a>
+										</li>
+										
+										<li>
+											<a href="steps/11.html">Linear Regression</a>
+										</li>
+										
+										<li>
+											<a href="steps/12.html">Deletion Detection</a>
+										</li>
+										
+										<li>
+											<a href="steps/13.html">Homozygous</a>
+										</li>
+										
+										<li>
+											<a href="steps/14.html">Linkage Disequilibrium</a>
+										</li>
+										
+										<li>
+											<a href="steps/15.html">TDT</a>
+										</li>
+										
+										<li>
+											<a href="steps/30.html">IBS</a>
+										</li>
+										
+										<li>
+											<a href="steps/31.html">CMH Analysis</a>
+										</li>
+										
+										<li>
+											<a href="steps/32.html">Data Transformations</a>
+										</li>
+										
+										<li>
+											<a href="steps/34.html">(EARTH) Multivariate adaptive regression splines</a>
+										</li>
+										
+										<li>
+											<a href="steps/35.html">Kinship</a>
+										</li>
+										
+								</ul>
+						</ul>
+						<br/>
+						<ul>
+							<li>Formatting Steps</li>
+								<ul>
+									
+										<li>
+											<a href="steps/16.html">Beagle</a>
+										</li>
+										
+										<li>
+											<a href="steps/17.html">FBAT</a>
+										</li>
+										
+										<li>
+											<a href="steps/18.html">GRR</a>
+										</li>
+										
+										<li>
+											<a href="steps/19.html">Lapis</a>
+										</li>
+										
+										<li>
+											<a href="steps/20.html">MDR</a>
+										</li>
+										
+										<li>
+											<a href="steps/21.html">PDT2</a>
+										</li>
+										
+										<li>
+											<a href="steps/22.html">PED File</a>
+										</li>
+										
+										<li>
+											<a href="steps/23.html">Phase</a>
+										</li>
+										
+										<li>
+											<a href="steps/24.html">PowerMarker</a>
+										</li>
+										
+										<li>
+											<a href="steps/25.html">QTDT</a>
+										</li>
+										
+										<li>
+											<a href="steps/26.html">Structure</a>
+										</li>
+										
+										<li>
+											<a href="steps/27.html">Superlink</a>
+										</li>
+										
+										<li>
+											<a href="steps/28.html">TPED</a>
+										</li>
+										
+										<li>
+											<a href="steps/29.html">Eigenstrat</a>
+										</li>
+										
+									
+								</ul>
+						</ul>
+				<br/>
+
+			</td>
+			<td id="content" class="contents">
+				
+				<p style="color: green"></p>
+
+				<h1>Listing Step Options</h1>
+
+
+<table class="datatable">
+    <thead>
+        <th>Option:</th>
+        <th>Description:</th>
+    </thead>
+    <tbody>
+    
+        <tr>
+            <td>
+            	-all
+				
+			</td>
+            <td>
+            	Override allele frequency overall calculation to use all samples. Cannot be used with -unaff-spouses-only, -unk-spouses, -random-child, or -all-children.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -all</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-all-children
+				
+			</td>
+            <td>
+            	Override allele frequency overall calculation to use all children. Cannot be used with -unaff-spouses-only, -unk-spouses, -random-child, or -all.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -all-children</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-allele-custom
+				
+			</td>
+            <td>
+            	Option for formatting steps to flip alleles based on custom mapping as specified in {filename}
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -allele-custom myallelemap.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-allele12
+				
+			</td>
+            <td>
+            	Converts genotype output to 1s and 2s.  1 refers to the minor allele, 2 refers to the major allele.  Possible genotype codings include: 1 1, 1 2, 2 2, and 0 0 (for missing).
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-ped -allele12</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-allele1234
+				
+			</td>
+            <td>
+            	Option for formatting steps to flip from ACGT to 1234 alleles
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -allele1234</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-alleleACGT
+				
+			</td>
+            <td>
+            	Option for formatting steps to flip from 1234 to ACGT
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -alleleACGT</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-bin-input
+				
+			</td>
+            <td>
+            	Specifies Binary fileset to use.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -bin-input myprefix</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-boxcox-transform
+				
+			</td>
+            <td>
+            	Performs the Box-Cox data transform.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							N/A,
+							
+						
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: tdt -boxcox-transform</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-bp-max
+				
+			</td>
+            <td>
+            	Specifies a maximum chromosome specific base-pair location to process. All markers with base-pairs greater than the number will be excluded for the specified step only. Can be used in conjunction with -bp-min and -bp-space. Note: -chrom is required.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							deletions,
+							
+						
+							gender-error,
+							
+						
+							hw,
+							
+						
+							homozygous,
+							
+						
+							ld,
+							
+						
+							marker-geno-eff,
+							
+						
+							sample-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							ibs,
+							
+						
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -chrom 3 -bp-max 15000000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-bp-min
+				
+			</td>
+            <td>
+            	Specifies a minimum chromosome specific base-pair location to process. All markers with base-pairs less than the number will be excluded for the specified step only. Can be used in conjunction with -bp-max and -bp-space. Note: -chrom is required.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							deletions,
+							
+						
+							gender-error,
+							
+						
+							hw,
+							
+						
+							homozygous,
+							
+						
+							ld,
+							
+						
+							marker-geno-eff,
+							
+						
+							sample-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							ibs,
+							
+						
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -chrom 3 -bp-min 5000000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-bp-space
+				
+			</td>
+            <td>
+            	Specifies to process only markers spaced by {number} base-pairs across all chromosomes. Can be used in conjunction with -bp-min and -bp-max. Note: -chrom is not required.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							deletions,
+							
+						
+							gender-error,
+							
+						
+							hw,
+							
+						
+							homozygous,
+							
+						
+							ld,
+							
+						
+							marker-geno-eff,
+							
+						
+							sample-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							ibs,
+							
+						
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -bp-space 1000000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-casecontrol
+				
+			</td>
+            <td>
+            	Provide output borken down by male/female Case/Control.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -casecontrol</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-center-file
+				
+			</td>
+            <td>
+            	Specify a center code map file.<br/>
+<br/>
+File columns:<br/>
+Family_ID<br/>
+Sample_ID<br/>
+Center_code
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-lapis,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -center-file mycenters.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-chrom
+				
+			</td>
+            <td>
+            	Specifies a specific chromosome to process. Only this one chromosome will be processed for the step specified. (Note: X = 23, Y = 24, Mitochondrial = 25, XY = 26)
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							deletions,
+							
+						
+							gender-error,
+							
+						
+							hw,
+							
+						
+							homozygous,
+							
+						
+							ld,
+							
+						
+							marker-geno-eff,
+							
+						
+							sample-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							ibs,
+							
+						
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mito-check,
+							
+						
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -chrom 3</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ci
+				
+			</td>
+            <td>
+            	Specify confidence interval (default is 0.95 if flag is not specified)
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ci 0.80</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cluster-file
+				
+			</td>
+            <td>
+            	Specifies a list of sample clusters to use.  The format for the file is (no headers needed):<br/><br/>
+FamID<br/>
+IndID<br/>
+ClusterID<br/><br/>
+where ClusterID is a numeric value.  For each sample in a cluster, the ClusterID will be the same.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							cmh,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: cmh -cluster-file myclusters.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cmh-22k
+				
+			</td>
+            <td>
+            	Specify to use the 2x2xk stratified tables for the CMH calculation.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							cmh,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: cmh -cmh-22k</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cmh-ijk
+				
+			</td>
+            <td>
+            	Specify to use the ixjxk stratified tables for the CMH calculation.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							cmh,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: cmh -cmh-ijk</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cmh-ordinal
+				
+			</td>
+            <td>
+            	Can be used if the phenotype is not binary.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							cmh,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: cmh -cmh-ordinal</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cond-lr-full-interact
+				
+			</td>
+            <td>
+            	Same as -lr-full-interact, but for conditional analysis.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -cond-lr-full-interact</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cond-lr-inc-interact
+				
+			</td>
+            <td>
+            	Same as -lr-inc-interact, but for conditional analysis
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -cond-lr-inc-interact</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cond-lr-max-iter
+				
+			</td>
+            <td>
+            	Same as -lr-max-iter, but for conditional analysis.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -cond-lr-max-iter 30</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-cond-lr-model-type
+				
+			</td>
+            <td>
+            	Same as -lr-model-type, but for conditional analysis.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -cond-lr-model-type DOMINANT</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-config
+				
+			</td>
+            <td>
+            	Specifies a Plato filter processing file to use.  Please refer to the filter processing configuration documentation.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							filter-process,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: filter-process -config myplatoconfig.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-covars-name
+				
+			</td>
+            <td>
+            	Specifies named columns to use in covariate file separated by commas.  Dashes are used to denote ranges of covariate columns.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-qtdt,
+							
+						
+							linear-reg,
+							
+						
+							logreg,
+							
+						
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -covars-name AGE-NUM_FOUND,GRE,FN</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-covars-number
+				
+			</td>
+            <td>
+            	Specifies column numbers in the covariate file to use separated by commas.  Dashes denote range of covariate columns.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-qtdt,
+							
+						
+							linear-reg,
+							
+						
+							logreg,
+							
+						
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -covars-number 1-3,5,7</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-deletion-span
+				
+			</td>
+            <td>
+            	Set the minimum number of markers required for a span to be valid.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							deletions,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -deletion-span 100</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-disease
+				
+			</td>
+            <td>
+            	Provides a name to the disease model in the Beagle input files. If this option is not used, the disease model name will default to 'model'.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -disease MYDISEASE</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-dummy-missing-parents
+				
+			</td>
+            <td>
+            	Inserts pedigree info and 0/0 genotypes for parents that are in the childs Dad/Mom column but don't exist in the pedfile.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-eigenstrat,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -dummy-missing-parents</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-filter-file
+				
+			</td>
+            <td>
+            	Filter markers by minor allele frequencies as found in a predefined frequency file using the -freq-file {filename} command line argument.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							allele-freq,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -filter-file</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-filter-overall
+				
+			</td>
+            <td>
+            	Filter markers by overall minor allele frequency.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-markers-min 0.1 -filter-overall</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-gender
+				
+			</td>
+            <td>
+            	Provide output borken down by overall male/female.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -gender</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-group-file
+				
+			</td>
+            <td>
+            	Specifies a sample grouping (stratification) file to use. 
+<br/>
+<br/>
+Columns:<br/>
+FamID<br/>
+IndID<br/>
+Group
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							marker-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -group-file mygroupfile.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-homozyg-min-samp
+				
+			</td>
+            <td>
+            	Specifies the minimum number of samples for a given span (using the -homozyg-wgha algorightm).
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -homozyg-wgha -homozyg-min-samp 50</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-homozyg-raw
+				
+			</td>
+            <td>
+            	Generates report for raw homozygous counts for all snps.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -homozyg-raw</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-homozyg-seq-prob
+				
+			</td>
+            <td>
+            	Specifies the probability of homozygosity threshold for a sequence.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -homozyg-seq-prob 0.05</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-homozyg-span
+				
+			</td>
+            <td>
+            	Specifies the minimum length of a homozygous span. Default is 50.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -homozyg-span 70</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-homozyg-wgha
+				
+			</td>
+            <td>
+            	Performs homozygous span check based on the <a href="http://www.pnas.org/cgi/doi/10.1073/pnas.0710021104">Lencz et al.</a> algorithm.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -homozyg-wgha</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-homozyg-zeros
+				
+			</td>
+            <td>
+            	Specifies the number of 0/0 genotypes allowed in a homozygous span (default is 0).
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -homozyg-zeros 7</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-hwept
+				
+			</td>
+            <td>
+            	For the HW step, use the HWE-PT calculation.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							homozygous,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -hwept -prevalence 0.25 -perms 1000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ibs-pairs
+				
+			</td>
+            <td>
+            	Specifies predefined pairs of samples that you want to compare.  File columns are:<br/><br/>
+FamID1<br/>
+IndID1<br/>
+FamID2<br/>
+IndID2<br/><br/>
+No header is required.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ibs,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: ibs -ibs-pairs pairsfile.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-inc-disabled-samples
+				
+			</td>
+            <td>
+            	Includes disabled samples in output of formatting steps to maintain pedigree information.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -inc-disabled-samples</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-inc-excluded-samples
+				
+			</td>
+            <td>
+            	Include in output excluded samples specified by the command line argument(s) -incsamples or -excsamples
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -inc-excluded-samples</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-inc-missing
+				
+			</td>
+            <td>
+            	Tells the concordance step to include missing genotypes in the calculations.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: concordance -ped myped.ped -map mymap.map -inc-missing</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lambda
+				
+			</td>
+            <td>
+            	When performing multiple comparisons, you can specify -lambda {number} to modify the Lambda value for the Box-Cox comparison.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: chisquare -mult-compare -lambda 2</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ld-calc-only
+				
+			</td>
+            <td>
+            	Perform LD r-square and d-prime calculation only (no pruning)
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ld,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ld-calc-only</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ld-chop
+				
+			</td>
+            <td>
+            	Tells the LD step to remove the markers in LD based on either the -ld-pairwise or -ld-vif values.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ld,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ld-pairwise 50 5 0.2 -ld-chop</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ld-pairwise
+				
+			</td>
+            <td>
+            	Specifies to use the pairwise LD calculation to remove markers. Argument 1: Window size; Argument 2: Window increment; Argument 3: Threshold
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ld,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ld-pairwise 50 5 0.2</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ld-vif
+				
+			</td>
+            <td>
+            	Specifies to use the variance inflation factor LD calculation to remove markers. Argument 1: Window size; Argument 2: Window increment; Argument 3: Threshold
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ld,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ld-vif 50 5 2</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ld-window
+				
+			</td>
+            <td>
+            	Specify number of snps to calculate at a time (default 50)
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ld,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ld-calc-only -ld-window 10</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ld-window-kb
+				
+			</td>
+            <td>
+            	Specify the basepair window span. Default is 1000kb
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							ld,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ld-calc-only -ld-window-kb 500</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-linr-condition
+				
+			</td>
+            <td>
+            	Conditional analysis on specified snp
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -linr-condition rs1234</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-linr-condition-file
+				
+			</td>
+            <td>
+            	Specify conditional file.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -linr-condition-file myconditions.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-linr-interaction
+				
+			</td>
+            <td>
+            	Enable interactions.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -linr-interaction</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-linr-model-type
+				
+			</td>
+            <td>
+            	Specify the model.  ADDITIVE, DOMINANT, RECESSIVE
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -linr-model-type</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-linr-no-main-snp
+				
+			</td>
+            <td>
+            	No main snp is specified.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -linr-no-main-snp</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-loci
+				
+			</td>
+            <td>
+            	Specify snps you would like to include in a model.  Snps should be separated by commas.  Currently useful for only the "mars" step.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -loci rs1234,rs3213,rs23421</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-log-transform
+				
+			</td>
+            <td>
+            	Performs logistic data transform.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							N/A,
+							
+						
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: tdt -log-transform</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lr-full-interact
+				
+			</td>
+            <td>
+            	Includes all interactions possible in the model passed to the method.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -lr-full-interact</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lr-inc-interact
+				
+			</td>
+            <td>
+            	Interactions are included in the model.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -lr-inc-interact</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lr-max-iter
+				
+			</td>
+            <td>
+            	Maximum number of iterations that algorithm will perform before
+stopping.  There are cases where the alogrithm doesn't converge on an
+answer and so this limits that problem.  Default is 20.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -lr-max-iter 50</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lr-model-type
+				
+			</td>
+            <td>
+            	Specifies model type.  Default is ADDITIVE.  This option takes an
+argument and needs to be DOMINANT, RECESSIVE or ADDITIVE
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -lr-model-type DOMINANT</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lr-no-interact
+				
+			</td>
+            <td>
+            	No interactions are included.  Only the main effects are evaluated
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -lr-no-interact</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-lr-reduced-interact
+				
+			</td>
+            <td>
+            	Include all interactions except for the highest order interaction.  This
+is a way to check the significance of the interaction as the user can
+run the full interaction and then the model without it.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -lr-reduced-interact</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-map
+				
+			</td>
+            <td>
+            	Specifies Map file to use.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ped myped.ped -map mymap.map</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mars-degree
+				
+			</td>
+            <td>
+            	Modifies the degree of interaction capable of being simulated in a MARS calculation.  Default is 1.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: mars -mars-degree 3</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mars-maxterms
+				
+			</td>
+            <td>
+            	Specifies the maximum number of terms allowed when performing the mars calculation.  Default is 21.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mars,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -mars-maxterms 10</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mdr-gui-output
+				
+			</td>
+            <td>
+            	Modifies the output-mdr results to be compatible with the GUI version of MDR.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-mdr,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-mdr -mdr-gui-output</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mdr-pedigree
+				
+			</td>
+            <td>
+            	Tells the output-mdr step to include pedigree information as the first 6 columns of the genotype file.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-mdr -mdr-pedigree</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mdrmap
+				
+			</td>
+            <td>
+            	Specifies the MAP file to go along with your -mdrped command.  MAP file can be 3, 4, 5 or 6 columns depending on your needs.  3 column format is: Chrom, RSID, BPLOC.  4 column format is: Chrom, RSID, BPLOC, Referent_Allele.  5 column format is: Chrom, RSID, BPLOC, Minor_Allele, Major_Allele.  6 column format is: Chrom, RSID, BPLOC, Referent_Allele, Minor_Allele, Major_Allele.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -mdrped mymdrpedfile.ped -mdrmap mymdrmapfile.map</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mdrped
+				
+			</td>
+            <td>
+            	Specify a MDR style ped file where the genotypes are encoded by a single variable 0, 1, 2, or -1 (for missing).  This type of input is a slight diversion from the standard MDR input in that the first 6 columns of a standard PED file must exist along with the genotype encodings.  No header line is required.  If one exists, results are undefined.  Requires a MAP file similar to the requirement for a standard PED file.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -mdrped mymdrformat.ped -mdrmap mymdrmap.map</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-mult-compare
+				
+			</td>
+            <td>
+            	Enables multiple comparison outputs to be generated during analysis.  The multiple comparisons that are performed include:<br/><br/>
+Genomic-control corrected p-values (GC)<br/>
+Bonferroni single-step adjusted p-values (BONF)<br/>
+Holm (1979) step-down adjusted p-values (HOLM)<br/>
+Sidak single-step adjusted p-values (SIDAK_SS)<br/>
+Sidak step-down adjusted p-values (SIDAK_SD)<br/>
+Benjamini & Hochberg (1995) step-up FDR control (FDR_BH)<br/>
+Benjamini & Yekutieli (2001) step-up FDR control (FDR_BY)
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: chisquare -mult-compare</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-no-rules
+				
+			</td>
+            <td>
+            	Disables any rules that the output-mdr step follows for deciding which samples and snps to place in the output file.  Using this flag will cause all enabled samples and snps to be used.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-mdr,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-mdr -no-rules</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-out
+				
+			</td>
+            <td>
+            	Overrides the suffix of the output files to be {name}
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							deletions,
+							
+						
+							gender-error,
+							
+						
+							homozygous,
+							
+						
+							marker-geno-eff,
+							
+						
+							sample-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							filter-process,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							ibs,
+							
+						
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mendelian-error,
+							
+						
+							concordance,
+							
+						
+							mars,
+							
+						
+							kinship,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -out test1</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-override-out
+				
+			</td>
+            <td>
+            	Overrides the default output filename(s) with whatever is specified in {name}.  Note: all filename extensions (.txt, .map, .ped, etc...) that Plato uses will be APPENDED to the name that is given.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-eigenstrat,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-pdt2,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-ped -override-out post_qc</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-parental
+				
+			</td>
+            <td>
+            	Provide output broken down by male/female parents.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -parental</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-parents-only
+				
+			</td>
+            <td>
+            	Tells the output-structure step to include parents (unrelateds) only in the output.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-structure,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -parents-only</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-ped
+				
+			</td>
+            <td>
+            	Specifies PED file to use.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -ped myped.ped -map mymap.map</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-penetrance-file
+				
+			</td>
+            <td>
+            	Specifies the file containing penetrance values
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-superlink,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -penetrance-file mypenfile.txt</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-perms
+				
+			</td>
+            <td>
+            	Specify the number of permutations to use in the -hwept calculation
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -hwept -prevalence 0.25 -perms 1000
+</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-pheno
+				
+			</td>
+            <td>
+            	Specify trait {name} to be used as the phenotype.  The phenotype selection is based on what is read in when the user has traits loaded in from the command line.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-mdr,
+							
+						
+							output-ped,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-ped -pheno age</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-pheno-index
+				
+			</td>
+            <td>
+            	Specify trait {index} to be used as the phenotype. The phenotype selection is based on what is read in when the user has traits loaded in from the command line.  The index is based on what column the trait was.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-mdr,
+							
+						
+							output-ped,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: output-ped -pheno-index 2</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-prevalence
+				
+			</td>
+            <td>
+            	Specify the prevalence value to use with -hwept.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -hwept -prevalence 0.25 -perms 1000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-random-child
+				
+			</td>
+            <td>
+            	Override allele frequency overall calculation to use one random child from each family. Cannot be used with -unaff-spouses-only, -unk-spouses, -all-children, or -all.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -random-child</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-random-markers
+				
+			</td>
+            <td>
+            	Choose random number of markers up to the number specified per set.  Markers are NOT allowed to repeat across sets.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-grr,
+							
+						
+							output-structure,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -random-markers 1000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-random-repeat
+				
+			</td>
+            <td>
+            	Choose random number of markers up to the number specified per set. Markers are allowed to repeat across sets.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-grr,
+							
+						
+							output-structure,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -random-repeat 1000</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-rem-missing-parents
+				
+			</td>
+            <td>
+            	Replaces IDs of parents missing from ped file in children with 0.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-ped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -rem-missing-parents</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-rm-het-only
+				
+			</td>
+            <td>
+            	Removes all snps that only have heterozygous calls
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							allele-freq,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -rm-het-only</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-rm-mono
+				
+			</td>
+            <td>
+            	Filters all monomorphic markers based on the genotype data.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							allele-freq,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -rm-mono</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-sets
+				
+			</td>
+            <td>
+            	Specify the number of random sets of markers you would like.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-grr,
+							
+						
+							output-structure,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -sets 5</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-sex-effect
+				
+			</td>
+            <td>
+            	Adds SEX as a covariate when performing linear regression.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: linear-reg -sex-effect</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-sqrt-transform
+				
+			</td>
+            <td>
+            	Performs the square-root data transform
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							N/A,
+							
+						
+							logreg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: tdt -sqrt-transform</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-strat-file
+				
+			</td>
+            <td>
+            	Specifies a stratification file to be used when creating a STRUCTURE input file.  The Structure documentation defines this field as the following: <i>An integer designating a user-deﬁned population from which the 
+individual was obtained (for instance these might designate the geographic sampling locations 
+of individuals). In the default models, this information is not used by the clustering algorithm, 
+but can be used to help organize the output.</i>  Basically this is just a grouping of the Samples that you have into predefined population groups.  If you are not sure how to define them, then just use a value of 1.<br/>
+<br/>
+Columns required in file:<br/>
+FamilyID<br/>
+SampleID<br/>
+Stratification value (usually numeric).
+<br/>
+<br/>
+<br/>
+Example:<br/>
+Fam123 100 1<br/>
+Fam123 101 1<br/>
+Fam124 100 1<br/>
+Fam124 101 1<br/>
+Fam223 100 2<br/>
+Fam223 101 2<br/>
+Fam862 1 3<br/>
+Fam456 1 3<br/>
+Fam231 1 3<br/>
+SMP123 1 4<br/>
+Fam324 1 4<br/>
+...
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-structure,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -strat-file stratificat</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-tfam
+				
+			</td>
+            <td>
+            	Specifies TFAM file to use.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -tped myped.tped -tfam myfam.tfam</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-thresh-families-max
+				
+			</td>
+            <td>
+            	Specifies an upper cutoff threshold for families. All families with values greater than the specified value will be removed from future steps.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-families-max 100</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-thresh-families-min
+				
+			</td>
+            <td>
+            	Specifies a lower cutoff threshold for families. All families with values less than the specified value will be removed from future steps.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-families-min 10</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-thresh-markers-max
+				
+			</td>
+            <td>
+            	Specifies an upper cutoff threshold for markers. All markers with values greater than the specified value will be removed from future steps.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							gender-error,
+							
+						
+							hw,
+							
+						
+							marker-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-markers-max 0.95</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-thresh-markers-min
+				
+			</td>
+            <td>
+            	Specifies a lower cutoff threshold for markers. All markers with values less than the specified value will be removed from future steps.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							gender-error,
+							
+						
+							hw,
+							
+						
+							marker-geno-eff,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+							tdt,
+							
+						
+							linear-reg,
+							
+						
+							cmh,
+							
+						
+							logreg,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-markers-min 0.95</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-thresh-samples-max
+				
+			</td>
+            <td>
+            	Specifies an upper cutoff threshold for samples. All samples with values greater than the specified value will be removed from future steps.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							gender-error,
+							
+						
+							sample-geno-eff,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-samples-max 0.95</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-thresh-samples-min
+				
+			</td>
+            <td>
+            	Specifies a lower cutoff threshold for samples. All samples with values less than the specified value will be removed from future steps.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							gender-error,
+							
+						
+							sample-geno-eff,
+							
+						
+							mito-check,
+							
+						
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -thresh-samples-min 0.95</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-tped
+				
+			</td>
+            <td>
+            	Specifies TPED file to use.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -tped myped.tped -tfam myfam.tfam</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-traits-name
+				
+			</td>
+            <td>
+            	Specifies named columns to use in trait file separated by commas.  Dashes denote range of trait columns.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-qtdt,
+							
+						
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -traits-name AGE-NUM_FOUND,GRE,FN</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-traits-number
+				
+			</td>
+            <td>
+            	Specifies column numbers in the trait file to use separated by commas.  Dashes denote range of trait columns to use.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-qtdt,
+							
+						
+							linear-reg,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -traits-number 1-3,5,7</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-trio
+				
+			</td>
+            <td>
+            	Tells the output-phase step to provide input files in trio format. See the PHASE documentation for more information on using trios in PHASE.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-phase,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -trio</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-unaff-spouses-only
+				
+			</td>
+            <td>
+            	Override allele frequency overall calculation to use unaffected spouses only. Cannot be used with -unk-spouses, -all-children, -random-child, or -all.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -unaff-spouses-only</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-unique-id
+				
+			</td>
+            <td>
+            	Tells the concordance step that you are using the Father ID field in a ped file as a unique identifier for samples.  Especially useful if there are multiple samples with the same Family ID and Ind IDs in a ped file.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							concordance,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: concordance -ped myped.ped -map mymap.map -unique-id</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-unk-spouses
+				
+			</td>
+            <td>
+            	Override allele frequency overall calculation to use unknown spouses only. Cannot be used with -unaff-spouses-only, -all-children, -random-child, or -all.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							hw,
+							
+						
+							allele-freq,
+							
+						
+							chisquare,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -unk-spouses</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-zero
+				
+			</td>
+            <td>
+            	Zeros out genotypes with mendelian errors.
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -zero</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-zero-disabled
+				
+			</td>
+            <td>
+            	Zero genotypes of disabled samples in formatting steps (-inc-disabled-samples required)
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -inc-disabled-samples -zero-disabled</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-zero-excluded
+				
+			</td>
+            <td>
+            	Zero genotypes of excluded samples specified by the command line argument(s) -incsamples or -excsamples (intended to be used with -inc-excluded-samples)
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-beagle,
+							
+						
+							output-fbat,
+							
+						
+							output-grr,
+							
+						
+							output-lapis,
+							
+						
+							output-mdr,
+							
+						
+							output-ped,
+							
+						
+							output-phase,
+							
+						
+							output-powermarker,
+							
+						
+							output-qtdt,
+							
+						
+							output-structure,
+							
+						
+							output-superlink,
+							
+						
+							output-tped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -inc-excluded-samples -zero-exclude</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-zero-incomplete-trio-ids
+				
+			</td>
+            <td>
+            	If both parents don't exist in a ped file for a child, if any parent does exist, that parents ID in the child row is set to 0 and the parent genotypes and pedigree information stays the same in the ped file.
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							output-ped,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: </b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-zero-l2
+				
+			</td>
+            <td>
+            	Zeros genotypes of all samples with level 2 genotype errors for the markers where the errors exist
+
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -zero-l2</b></td>
+        </tr>
+    
+        <tr>
+            <td>
+            	-zero-l2-fams
+				
+			</td>
+            <td>
+            	Zero genotypes of all samples in a family for level 2 mendelian errors
+                <br/>
+				<br/>
+				<b> 
+					Valid on:
+					
+							mendelian-error,
+							
+						
+				</b>
+				
+
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -zero-l2-fams</b></td>
+        </tr>
+    
+    </tbody>
+</table>
+
+			</td>
+			</tr>
+			</table>
+		</div>
+		<div id="footer">
+			&nbsp;
+			
+					<a href="admin/login.html">Login</a> 
+			
+			&nbsp;
+		</div>
+	</div>
+</body>
+</html>

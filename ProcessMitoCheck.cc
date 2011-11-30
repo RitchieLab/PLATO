@@ -71,7 +71,7 @@ void ProcessMitoCheck::PrintSummary(){
 	opts::addHeader(fname1, "Num_errors");
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && data_set->get_locus(i)->getChrom() == 25 && !data_set->get_locus(i)->isFlagged()){
+		if(data_set->get_locus(i)->isEnabled() && data_set->get_locus(i)->getChrom() == opts::_MITO_ && !data_set->get_locus(i)->isFlagged()){
 			if(options.doChrom()){
 				if(!options.checkChrom(data_set->get_locus(i)->getChrom())){
 					continue;

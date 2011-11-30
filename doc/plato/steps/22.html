@@ -1,0 +1,638 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>PLATO: PLatform for the Analysis, Translation, and Organization of large-scale data</title>
+<link rel="icon" href="http://localhost:3000/steps/favicon.ico" type="image/icon" />
+<link rel="shortcut icon" href="http://localhost:3000/steps/favicon.ico" type="image/icon" />
+<link href="../stylesheets/cake.generic.css%3F1248722767.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="../stylesheets/wasp.css%3F1243441516.css" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<a name="top"></a>
+	<div id="container">
+		<div id="header">
+			<h1>
+<!--				<a href="/"><img alt="Wasp_icon32x32" src="/images/WASP_icon32x32.PNG?1243448767" /></a> -->
+				<a href="../index.html">PLATO:</a> PLatform for the Analysis, Translation, and Organization of large-scale data
+			</h1>
+		</div>
+		<div id="main" class="main">
+			<?php //include("side-menu.php");?>
+			<table border=0 cellpadding=0>
+			<tr>
+						<td id="side-menu" class="side-menu">
+		       	<br/>
+				<ul>
+					<li><a href="../index.html">Home</a></li>
+					<li><a href="../downloads.html">Download</a></li>
+					<li><a href="../main/aboutus.html">About Us</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu">CHGR</a></li>
+				</ul>
+<br/>
+<!-- Google CSE Search Box Begins  -->
+<form method="GET" action="http://searchvu.vanderbilt.edu/search">
+    <input type="text" name="q" maxlength="256" value="" />
+    <input type="hidden" name="site" value="default_collection" />  
+    <input type="hidden" name="client" value="default_frontend" />
+    <input type="hidden" name="proxystylesheet" value="default_frontend" />
+    <input type="hidden" name="output" value="xml_no_dtd" />   
+    <input type="hidden" name="sitesearch" value="https://edam.mc.vanderbilt.edu/wasp" />
+    <input type="submit" name="btnG" value="Search" />
+</form>
+<!-- Google CSE Search Box Ends -->
+
+				<br/>
+				<hr/>
+				<br/>
+<!--				<?php include("side-menu.php");?>-->
+				
+					<ul>
+					
+					<li><a href="../main/usage.html">Usage</a></li>
+					
+						<ul>
+							
+							<li><a href="../commandlines.html">Commandline Arguments</a></li>
+							
+							
+							<li><a href="../step_options.html">Step Specific Arguments</a></li>
+							
+						</ul>
+					</ul>
+						<br/>
+					<ul>
+						<li>Input Files</li>
+						<ul>
+							
+							<li><a href="../inputfiles/batchfiles.html">Batch Files</a></li>
+							
+							
+							<li><a href="../inputfiles/pedfile.html">PED File</a></li>
+							
+							
+							<li><a href="../inputfiles/mapfile.html">MAP File</a></li>
+							
+							
+							<li><a href="../inputfiles/tpedfile.html">TPED File</a></li>
+							
+							
+							<li><a href="../inputfiles/tfamfile.html">TFAM File</a></li>
+							
+							
+							<li><a href="../inputfiles/binary.html">Binary</a></li>
+							
+							
+							<li><a href="../inputfiles/covtraitfile.html">Covariates/Traits</a></li>
+							
+
+							
+							<li><a href="../inputfiles/freqfile.html">Frequency File</a></li>
+							
+							
+							<li><a href="../inputfiles/strandfile.html">Strand File</a></li>
+							
+							
+							<li><a href="../inputfiles/mapfileext.html">Extended Map File</a></li>
+							
+							
+							<li><a href="../inputfiles/sampfileext.html">Extended Sample File</a></li>
+							
+							
+							<li><a href="../inputfiles/incexclists.html">Include/Exclude Files</a></li>
+							
+							
+							<li><a href="../inputfiles/stratfile.html">Stratification File</a></li>
+							
+							
+							<li><a href="../inputfiles/filterprocesscfg.html">Filter Process Config.</a></li>
+							
+
+						</ul>
+					</ul>
+						<br/>
+
+					<ul>
+						<li>QC Steps</li>
+								<ul>
+									
+										<li>
+										<a href="1.html">Marker Genotype Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="2.html">Allele Frequency</a>
+										</li>
+									
+										<li>
+										<a href="3.html">Concordance</a>
+										</li>
+									
+										<li>
+										<a href="4.html">Gender Error</a>
+										</li>
+									
+										<li>
+										<a href="5.html">Hardy-Weinberg</a>
+										</li>
+									
+										<li>
+										<a href="6.html">Mendelian Errors</a>
+										</li>
+									
+										<li>
+										<a href="7.html">Mitochondrial Error</a>
+										</li>
+									
+										<li>
+										<a href="8.html">Sample Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="33.html">Plato Filter Processing</a>
+										</li>
+									
+								</ul>
+						</ul>
+						<br/>
+
+						<ul>
+							<li>Analysis Steps</li>
+								<ul>
+									
+										<li>
+											<a href="9.html">Chisquare</a>
+										</li>
+										
+										<li>
+											<a href="10.html">Logistic Regression</a>
+										</li>
+										
+										<li>
+											<a href="11.html">Linear Regression</a>
+										</li>
+										
+										<li>
+											<a href="12.html">Deletion Detection</a>
+										</li>
+										
+										<li>
+											<a href="13.html">Homozygous</a>
+										</li>
+										
+										<li>
+											<a href="14.html">Linkage Disequilibrium</a>
+										</li>
+										
+										<li>
+											<a href="15.html">TDT</a>
+										</li>
+										
+										<li>
+											<a href="30.html">IBS</a>
+										</li>
+										
+										<li>
+											<a href="31.html">CMH Analysis</a>
+										</li>
+										
+										<li>
+											<a href="32.html">Data Transformations</a>
+										</li>
+										
+										<li>
+											<a href="34.html">(EARTH) Multivariate adaptive regression splines</a>
+										</li>
+										
+										<li>
+											<a href="35.html">Kinship</a>
+										</li>
+										
+								</ul>
+						</ul>
+						<br/>
+						<ul>
+							<li>Formatting Steps</li>
+								<ul>
+									
+										<li>
+											<a href="16.html">Beagle</a>
+										</li>
+										
+										<li>
+											<a href="17.html">FBAT</a>
+										</li>
+										
+										<li>
+											<a href="18.html">GRR</a>
+										</li>
+										
+										<li>
+											<a href="19.html">Lapis</a>
+										</li>
+										
+										<li>
+											<a href="20.html">MDR</a>
+										</li>
+										
+										<li>
+											<a href="21.html">PDT2</a>
+										</li>
+										
+										<li>
+											<a href="22.html">PED File</a>
+										</li>
+										
+										<li>
+											<a href="23.html">Phase</a>
+										</li>
+										
+										<li>
+											<a href="24.html">PowerMarker</a>
+										</li>
+										
+										<li>
+											<a href="25.html">QTDT</a>
+										</li>
+										
+										<li>
+											<a href="26.html">Structure</a>
+										</li>
+										
+										<li>
+											<a href="27.html">Superlink</a>
+										</li>
+										
+										<li>
+											<a href="28.html">TPED</a>
+										</li>
+										
+										<li>
+											<a href="29.html">Eigenstrat</a>
+										</li>
+										
+									
+								</ul>
+						</ul>
+				<br/>
+
+			</td>
+			<td id="content" class="contents">
+				
+				<p style="color: green"></p>
+
+				<h2>
+  PED File
+</h2>
+
+
+
+<p>
+	Creates a PED file.
+</p>
+
+<br/>
+
+<p>
+	<a href="../inputfiles/batchfiles.html">Batch file</a> command:<br/>
+	<pre class=code>
+output-ped
+	</pre>
+</p>
+
+<br/>
+
+Step specific options:
+<table class="datatable" style="background-color:#DBDBDB">
+
+	<tr>
+		<td>
+			
+				<b>
+				-allele-custom {filename}			
+				</b>
+		</td>
+		<td>
+				Option for formatting steps to flip alleles based on custom mapping as specified in {filename}
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-allele-custom myallelemap.txt
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-allele12 			
+				</b>
+		</td>
+		<td>
+				Converts genotype output to 1s and 2s.  1 refers to the minor allele, 2 refers to the major allele.  Possible genotype codings include: 1 1, 1 2, 2 2, and 0 0 (for missing).
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				output-ped -allele12
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-allele1234 			
+				</b>
+		</td>
+		<td>
+				Option for formatting steps to flip from ACGT to 1234 alleles
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-allele1234
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-alleleACGT 			
+				</b>
+		</td>
+		<td>
+				Option for formatting steps to flip from 1234 to ACGT
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-alleleACGT
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-bp-max {number}			
+				</b>
+		</td>
+		<td>
+				Specifies a maximum chromosome specific base-pair location to process. All markers with base-pairs greater than the number will be excluded for the specified step only. Can be used in conjunction with -bp-min and -bp-space. Note: -chrom is required.
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-chrom 3 -bp-max 15000000
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-bp-min {number}			
+				</b>
+		</td>
+		<td>
+				Specifies a minimum chromosome specific base-pair location to process. All markers with base-pairs less than the number will be excluded for the specified step only. Can be used in conjunction with -bp-max and -bp-space. Note: -chrom is required.
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-chrom 3 -bp-min 5000000
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-bp-space {number}			
+				</b>
+		</td>
+		<td>
+				Specifies to process only markers spaced by {number} base-pairs across all chromosomes. Can be used in conjunction with -bp-min and -bp-max. Note: -chrom is not required.
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-bp-space 1000000
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-chrom {number}			
+				</b>
+		</td>
+		<td>
+				Specifies a specific chromosome to process. Only this one chromosome will be processed for the step specified. (Note: X = 23, Y = 24, Mitochondrial = 25, XY = 26)
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-chrom 3
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-inc-disabled-samples 			
+				</b>
+		</td>
+		<td>
+				Includes disabled samples in output of formatting steps to maintain pedigree information.
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-inc-disabled-samples
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-inc-excluded-samples 			
+				</b>
+		</td>
+		<td>
+				Include in output excluded samples specified by the command line argument(s) -incsamples or -excsamples
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-inc-excluded-samples
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-out {name}			
+				</b>
+		</td>
+		<td>
+				Overrides the suffix of the output files to be {name}
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-out test1
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-override-out {name}			
+				</b>
+		</td>
+		<td>
+				Overrides the default output filename(s) with whatever is specified in {name}.  Note: all filename extensions (.txt, .map, .ped, etc...) that Plato uses will be APPENDED to the name that is given.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				output-ped -override-out post_qc
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-pheno {name}			
+				</b>
+		</td>
+		<td>
+				Specify trait {name} to be used as the phenotype.  The phenotype selection is based on what is read in when the user has traits loaded in from the command line.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				output-ped -pheno age
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-pheno-index {number}			
+				</b>
+		</td>
+		<td>
+				Specify trait {index} to be used as the phenotype. The phenotype selection is based on what is read in when the user has traits loaded in from the command line.  The index is based on what column the trait was.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				output-ped -pheno-index 2
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-rem-missing-parents 			
+				</b>
+		</td>
+		<td>
+				Replaces IDs of parents missing from ped file in children with 0.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-rem-missing-parents
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-zero-disabled 			
+				</b>
+		</td>
+		<td>
+				Zero genotypes of disabled samples in formatting steps (-inc-disabled-samples required)
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-inc-disabled-samples -zero-disabled
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-zero-excluded 			
+				</b>
+		</td>
+		<td>
+				Zero genotypes of excluded samples specified by the command line argument(s) -incsamples or -excsamples (intended to be used with -inc-excluded-samples)
+
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-inc-excluded-samples -zero-exclude
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-zero-incomplete-trio-ids 			
+				</b>
+		</td>
+		<td>
+				If both parents don't exist in a ped file for a child, if any parent does exist, that parents ID in the child row is set to 0 and the parent genotypes and pedigree information stays the same in the ped file.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				
+		</td>
+			
+	</tr>
+
+</table>
+	
+
+
+			</td>
+			</tr>
+			</table>
+		</div>
+		<div id="footer">
+			&nbsp;
+			
+					<a href="../admin/login.html">Login</a> 
+			
+			&nbsp;
+		</div>
+	</div>
+</body>
+</html>

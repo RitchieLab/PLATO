@@ -29,7 +29,9 @@ using namespace Methods;
 
 
 class ProcessFst : public Process{
-	private:
+	static string stepname;
+
+private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
 		vector<Marker*>* markers;

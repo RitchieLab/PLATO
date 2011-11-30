@@ -1,0 +1,853 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>PLATO: PLatform for the Analysis, Translation, and Organization of large-scale data</title>
+<link rel="icon" href="favicon.ico" type="image/icon" />
+<link rel="shortcut icon" href="favicon.ico" type="image/icon" />
+<link href="stylesheets/cake.generic.css%3F1248722767.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="stylesheets/wasp.css%3F1243441516.css" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<a name="top"></a>
+	<div id="container">
+		<div id="header">
+			<h1>
+<!--				<a href="/"><img alt="Wasp_icon32x32" src="/images/WASP_icon32x32.PNG?1243448767" /></a> -->
+				<a href="index.html">PLATO:</a> PLatform for the Analysis, Translation, and Organization of large-scale data
+			</h1>
+		</div>
+		<div id="main" class="main">
+			<?php //include("side-menu.php");?>
+			<table border=0 cellpadding=0>
+			<tr>
+						<td id="side-menu" class="side-menu">
+		       	<br/>
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="downloads.html">Download</a></li>
+					<li><a href="main/aboutus.html">About Us</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu">CHGR</a></li>
+				</ul>
+<br/>
+<!-- Google CSE Search Box Begins  -->
+<form method="GET" action="http://searchvu.vanderbilt.edu/search">
+    <input type="text" name="q" maxlength="256" value="" />
+    <input type="hidden" name="site" value="default_collection" />  
+    <input type="hidden" name="client" value="default_frontend" />
+    <input type="hidden" name="proxystylesheet" value="default_frontend" />
+    <input type="hidden" name="output" value="xml_no_dtd" />   
+    <input type="hidden" name="sitesearch" value="https://edam.mc.vanderbilt.edu/wasp" />
+    <input type="submit" name="btnG" value="Search" />
+</form>
+<!-- Google CSE Search Box Ends -->
+
+				<br/>
+				<hr/>
+				<br/>
+<!--				<?php include("side-menu.php");?>-->
+				
+					<ul>
+					
+					<li><a href="main/usage.html">Usage</a></li>
+					
+						<ul>
+							<b>
+							<li><a href="commandlines.html">Commandline Arguments</a></li>
+							</b>
+							
+							<li><a href="step_options.html">Step Specific Arguments</a></li>
+							
+						</ul>
+					</ul>
+						<br/>
+					<ul>
+						<li>Input Files</li>
+						<ul>
+							
+							<li><a href="inputfiles/batchfiles.html">Batch Files</a></li>
+							
+							
+							<li><a href="inputfiles/pedfile.html">PED File</a></li>
+							
+							
+							<li><a href="inputfiles/mapfile.html">MAP File</a></li>
+							
+							
+							<li><a href="inputfiles/tpedfile.html">TPED File</a></li>
+							
+							
+							<li><a href="inputfiles/tfamfile.html">TFAM File</a></li>
+							
+							
+							<li><a href="inputfiles/binary.html">Binary</a></li>
+							
+							
+							<li><a href="inputfiles/covtraitfile.html">Covariates/Traits</a></li>
+							
+
+							
+							<li><a href="inputfiles/freqfile.html">Frequency File</a></li>
+							
+							
+							<li><a href="inputfiles/strandfile.html">Strand File</a></li>
+							
+							
+							<li><a href="inputfiles/mapfileext.html">Extended Map File</a></li>
+							
+							
+							<li><a href="inputfiles/sampfileext.html">Extended Sample File</a></li>
+							
+							
+							<li><a href="inputfiles/incexclists.html">Include/Exclude Files</a></li>
+							
+							
+							<li><a href="inputfiles/stratfile.html">Stratification File</a></li>
+							
+							
+							<li><a href="inputfiles/filterprocesscfg.html">Filter Process Config.</a></li>
+							
+
+						</ul>
+					</ul>
+						<br/>
+
+					<ul>
+						<li>QC Steps</li>
+								<ul>
+									
+										<li>
+										<a href="steps/1.html">Marker Genotype Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="steps/2.html">Allele Frequency</a>
+										</li>
+									
+										<li>
+										<a href="steps/3.html">Concordance</a>
+										</li>
+									
+										<li>
+										<a href="steps/4.html">Gender Error</a>
+										</li>
+									
+										<li>
+										<a href="steps/5.html">Hardy-Weinberg</a>
+										</li>
+									
+										<li>
+										<a href="steps/6.html">Mendelian Errors</a>
+										</li>
+									
+										<li>
+										<a href="steps/7.html">Mitochondrial Error</a>
+										</li>
+									
+										<li>
+										<a href="steps/8.html">Sample Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="steps/33.html">Plato Filter Processing</a>
+										</li>
+									
+								</ul>
+						</ul>
+						<br/>
+
+						<ul>
+							<li>Analysis Steps</li>
+								<ul>
+									
+										<li>
+											<a href="steps/9.html">Chisquare</a>
+										</li>
+										
+										<li>
+											<a href="steps/10.html">Logistic Regression</a>
+										</li>
+										
+										<li>
+											<a href="steps/11.html">Linear Regression</a>
+										</li>
+										
+										<li>
+											<a href="steps/12.html">Deletion Detection</a>
+										</li>
+										
+										<li>
+											<a href="steps/13.html">Homozygous</a>
+										</li>
+										
+										<li>
+											<a href="steps/14.html">Linkage Disequilibrium</a>
+										</li>
+										
+										<li>
+											<a href="steps/15.html">TDT</a>
+										</li>
+										
+										<li>
+											<a href="steps/30.html">IBS</a>
+										</li>
+										
+										<li>
+											<a href="steps/31.html">CMH Analysis</a>
+										</li>
+										
+										<li>
+											<a href="steps/32.html">Data Transformations</a>
+										</li>
+										
+										<li>
+											<a href="steps/34.html">(EARTH) Multivariate adaptive regression splines</a>
+										</li>
+										
+										<li>
+											<a href="steps/35.html">Kinship</a>
+										</li>
+										
+								</ul>
+						</ul>
+						<br/>
+						<ul>
+							<li>Formatting Steps</li>
+								<ul>
+									
+										<li>
+											<a href="steps/16.html">Beagle</a>
+										</li>
+										
+										<li>
+											<a href="steps/17.html">FBAT</a>
+										</li>
+										
+										<li>
+											<a href="steps/18.html">GRR</a>
+										</li>
+										
+										<li>
+											<a href="steps/19.html">Lapis</a>
+										</li>
+										
+										<li>
+											<a href="steps/20.html">MDR</a>
+										</li>
+										
+										<li>
+											<a href="steps/21.html">PDT2</a>
+										</li>
+										
+										<li>
+											<a href="steps/22.html">PED File</a>
+										</li>
+										
+										<li>
+											<a href="steps/23.html">Phase</a>
+										</li>
+										
+										<li>
+											<a href="steps/24.html">PowerMarker</a>
+										</li>
+										
+										<li>
+											<a href="steps/25.html">QTDT</a>
+										</li>
+										
+										<li>
+											<a href="steps/26.html">Structure</a>
+										</li>
+										
+										<li>
+											<a href="steps/27.html">Superlink</a>
+										</li>
+										
+										<li>
+											<a href="steps/28.html">TPED</a>
+										</li>
+										
+										<li>
+											<a href="steps/29.html">Eigenstrat</a>
+										</li>
+										
+									
+								</ul>
+						</ul>
+				<br/>
+
+			</td>
+			<td id="content" class="contents">
+				
+				<p style="color: green"></p>
+
+				<h1>Listing commandlines</h1>
+<a href="admin/login.html">New commandline</a>
+<table class="datatable">
+    <thead>
+        <th>Option:</th>
+        <th>Description:</th>
+    </thead>
+    <tbody>
+
+
+  <tr>
+  	  <td>
+            	-S
+				
+			</td>
+            <td>
+            	Prints list of valid steps that can be placed in the batch file.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato -S</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-bin-input {filename_prefix}
+				
+			</td>
+            <td>
+            	Specifies Binary fileset to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -bin-input mybinaryfiles</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-bp-max {number}
+				
+			</td>
+            <td>
+            	Specifies a maximum chromosome specific base-pair location to load. All markers with base-pairs greater than the number will be removed. Can be used in conjunction with -bp-min and -bp-space. Note: -chrom is required.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -chrom 3 -bp-max 15000000</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-bp-min {number}
+				
+			</td>
+            <td>
+            	Specifies a minimum chromosome specific base-pair location to load. All markers with base-pairs less than the number will be removed. Can be used in conjunction with -bp-max and -bp-space. Note: -chrom is required.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -chrom 3 -bp-min 5000000</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-bp-space {number}
+				
+			</td>
+            <td>
+            	Specifies to load only markers spaced by {number} base-pairs across all chromosomes. Can be used in conjunction with -bp-min and -bp-max. Note: -chrom is not required.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -bp-space 1000000</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-chrom {number}
+				
+			</td>
+            <td>
+            	Specifies a specific chromosome to load. Only this one chromosome will be loaded and processed for all steps. (Note: X = 23, Y = 24)
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -chrom 3 -bp-min 5000000</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-dog
+				
+			</td>
+            <td>
+            	Specifies the map and ped file are to be associated with Dog chromosomes. Chrom X is mapped to 39, Chrom Y is mapped to 40.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -dog</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-excfamilies {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of families to exclude.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -excfamilies famexclusionlist.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-excmarkers {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of markers to exclude.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -excmarkers mrkexclusionlist.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-excsamples {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of samples to exclude.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -excsamples sampexclusionlist.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-flip {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of markers with strand information to flip to the opposite strand.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -flip newstrandinfo.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-freq-file {filename}
+				
+			</td>
+            <td>
+            	Specifies a file containing predefined minor allele frequencies.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -freq-file frequencies.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-h
+				
+			</td>
+            <td>
+            	Prints help. For most up to date help, please reference this website
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato -h</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-incfamilies {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of families to include.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -incfamilies faminclusionlist.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-incmarkers {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of markers to include.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -incmarkers mrkinclusionlist.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-incsamples {filename}
+				
+			</td>
+            <td>
+            	Specifies a list of samples to include.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -incsamples sampinclusionlist.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-make-bin
+				
+			</td>
+            <td>
+            	Converts specified PED and Map files into binary format. No steps in the batch file will be processed.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -make-bin</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-map {filename}
+				
+			</td>
+            <td>
+            	Specifies Map file to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped mypedfile.ped -map mymapfile.map</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-map-includes-ref
+				
+			</td>
+            <td>
+            	Tells Plato that the map file contains 4 columns.  The format is the same as the original map file, however a 4th column is added to specify which allele is the reference allele.  For the 4th column, please specify only 1 allele for each entry.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -map-includes-ref</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-mapdesc {filename}
+				
+			</td>
+            <td>
+            	Specifies an optional extended MAP file to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -mapdesc extramapinfo.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-mdrmap
+				
+			</td>
+            <td>
+            	Specifies the MAP file to go along with your -mdrped command. MAP file can be 3, 4, 5 or 6 columns depending on your needs. 3 column format is: Chrom, RSID, BPLOC. 4 column format is: Chrom, RSID, BPLOC, Referent_Allele. 5 column format is: Chrom, RSID, BPLOC, Minor_Allele, Major_Allele. 6 column format is: Chrom, RSID, BPLOC, Referent_Allele, Minor_Allele, Major_Allele.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -mdrped mymdrpedfile.ped -mdrmap mymdrmapfile.map</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-mdrped
+				
+			</td>
+            <td>
+            	Specify a MDR style ped file where the genotypes are encoded by a single variable 0, 1, 2, or -1 (for missing). This type of input is a slight diversion from the standard MDR input in that the first 6 columns of a standard PED file must exist along with the genotype encodings. No header line is required. If one exists, results are undefined. Requires a MAP file similar to the requirement for a standard PED file.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -mdrped mymdrpedfile.ped -mdrmap mymdrmapfile.map</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-micro-sats
+				
+			</td>
+            <td>
+            	Tells Plato to allow for markers with more than 2 alleles.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped mypedfile.ped -map mymapfile.map -micro-sats</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-missing-geno {single_allele_of_genotype}
+				
+			</td>
+            <td>
+            	Overrides the default missing genotype call (default is 0 0) with the user specified call.  Please note that the value that is specified here is just a single allele of the missing genotype call.  For example, if you want to specify the new missing call to be -9 -9, you would use the option like this: -missing-geno -9.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: -missing-geno -9</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-no-summary
+				
+			</td>
+            <td>
+            	Disables marker, sample, family summary file creation at end of processing
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped mypedfile.ped -map mymapfile.map -no-summary</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-noweb
+				
+			</td>
+            <td>
+            	Turns off automatic web based version/bug checking.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -dog</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-out {prefix}
+				
+			</td>
+            <td>
+            	Specifies a prefix to add to all output files.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -out test</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-ped {filename}
+				
+			</td>
+            <td>
+            	Specifies PED file to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped mypedfile.ped -map mymapfile.map -no-summary</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-pedinfo {filename}
+				
+			</td>
+            <td>
+            	Provide supplemental pedigree information that will override what was initially read in by Plato from the orignal input PED file.<br/><br/>File format is first 6 columns of the PED file.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedinput.ped -map pedmap.map -pedinfo pedigrees.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-print-families
+				
+			</td>
+            <td>
+            	Once the ped file has been loaded, Plato will print to a file how it sees the familial relationships as it was specified in the pedfile by drawing a rough (very rough) tree diagram.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -print-families</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-remaining
+				
+			</td>
+            <td>
+            	Outputs a summary of the totals of the snps, samples, and families that are remaining after all the processing is done.  Lists of items remaining are output to files prefixed with "Remaining".
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -remaining</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-sampdesc {filename}
+				
+			</td>
+            <td>
+            	Specifies an optional extended Sample file to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -sampdesc extrasampleinfo.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-tfam {filename}
+				
+			</td>
+            <td>
+            	Specifies TFAM file to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -tped mytpedfile.tped -tfam myfammap.tfam</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-todigit
+				
+			</td>
+            <td>
+            	Converts sample ids to numbers.  A mapping file from the original names to the new digits will be created.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -todigit</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-tped {filename}
+				
+			</td>
+            <td>
+            	Specifies TPED file to use.
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -tped mytpedfile.tped -tfam myfammap.tfam</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-zero-geno-file {filename}
+				
+			</td>
+            <td>
+            	All sample/snp pairs specified in the file will be turned into missing calls while the data is being processed.  Format of the file specified is 3 columns:<br/><br/>FamID<br/>IndID<br/>SNP
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -zero-geno-file pleasezerothese.txt</b></td>
+        </tr>
+
+
+</tbody>
+</table>
+
+<br />
+
+
+			</td>
+			</tr>
+			</table>
+		</div>
+		<div id="footer">
+			&nbsp;
+			
+					<a href="admin/login.html">Login</a> 
+			
+			&nbsp;
+		</div>
+	</div>
+</body>
+</html>
