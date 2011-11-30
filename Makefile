@@ -2,10 +2,10 @@
 # #
 PROGRAMS=methods plato
 METHODDIR=method_lib
-LIBDIR=-Llib -L/opt/local/lib
-LIB=-lm -lmethods -lintl -lboost_thread-mt#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include#-I/usr/local/include
-SYS=MAC
+LIBDIR=-Llib -L/opt/local/lib -L/home/cozartc/boost/stage/lib
+LIB=-lm -lmethods -lboost_thread-mgw34-mt-1_43#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) -I/home/cozartc/boost -I/opt/local/include#-I/usr/local/include
+SYS=WIN
 #R=USE_R
 
 #
