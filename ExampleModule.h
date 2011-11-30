@@ -13,8 +13,6 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Globals.h"
 #include "Process.h"
 #include <Options.h>
@@ -36,8 +34,6 @@ class ExampleModule : public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -85,12 +81,10 @@ class ExampleModule : public Process{
 		};
 		~ExampleModule(){
 		};
-		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
@@ -98,14 +92,9 @@ class ExampleModule : public Process{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		//void process(Families*, Markers*);
 		void process(DataSet*);
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};

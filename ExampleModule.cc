@@ -32,9 +32,6 @@
 #include <General.h>
 #include <Helpers.h>
 #include <cdflib.h>
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 
 using namespace Methods;
 #ifdef PLATOLIB
