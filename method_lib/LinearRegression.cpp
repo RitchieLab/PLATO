@@ -792,8 +792,6 @@ void LinearRegression::calculate(Marker* l)
 
 		if(options.doCovars())
 		{
-			opts::printLog("Number of covariates used in Linear Model: " + getString<int>(covsToUse.size()) + "\n");
-
 			if(options.doCovarsName())
 			{
 				//only add covariates if name matches
@@ -841,6 +839,7 @@ void LinearRegression::calculate(Marker* l)
 
 			if (genotypic)
 			{
+				addInteraction(2, cindex);
 				label.push_back("DOMDEVxCSNP" + getString<int> (c + 1));
 			}
 			cindex++;
