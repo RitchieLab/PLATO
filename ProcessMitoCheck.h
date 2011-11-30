@@ -51,7 +51,9 @@ class ProcessMitoCheck : public Process{
 
 		vector<int> merrors;
 		vector<int> serrors;
-		vector<vector<int> > error_map;
+		vector<vector<Marker*> > error_map;
+
+		vector<Marker*> good_markers;
 
 	public:
 		ProcessMitoCheck(){

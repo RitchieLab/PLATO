@@ -65,7 +65,7 @@ void ProcessHomozygous::PrintSummary(){
 		}
 		opts::addFile("Marker", stepname, filename);
 		homo << "Chrom\trsID\tProbeID\tbploc\tUnAff\tAff\tTotal_Maj\tTotal_Min\tTotal\tTotal%\n";
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 		opts::addHeader(filename, "UnAff");
 		opts::addHeader(filename, "Aff");
 		opts::addHeader(filename, "Total_Maj");
@@ -74,7 +74,7 @@ void ProcessHomozygous::PrintSummary(){
 		opts::addHeader(filename, "Total%");
 
 		for(int i = 0; i < msize; i++){
-			Marker* m = data_set->get_locus(i);
+			Marker* m = good_markers[i];//data_set->get_locus(i);
 			float per = (((float)homoallcount[i] / (float)opts::_SAMPLES_WORKING_));// * 100.0f);
 			homo.precision(4);
 			homo << m->getChrom() << "\t" << m->getRSID() << "\t" << m->getProbeID() << "\t"
@@ -94,6 +94,8 @@ void ProcessHomozygous::filter(){
 
 void ProcessHomozygous::process(DataSet* ds){
 	data_set = ds;
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+
 	Homozygous hom(data_set);
 	hom.setOptions(options);
 	hom.setOverwrite(this->overwrite);

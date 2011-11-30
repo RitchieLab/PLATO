@@ -102,15 +102,15 @@ void ProcessMendelianErrors::PrintSummary(){
 	myoutputm << "ME_count_All" << endl;
 	opts::addHeader(fname3, "ME_count_All");
 
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 	int fsize = data_set->num_pedigrees();
 	int ssize = data_set->num_inds();
 
 	vector<string> enzymes;
     if(opts::_ENZYMES_){
         for(int i = 0; i < msize; i++){
-            if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
-				if(options.doChrom()){
+            if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
+/*				if(options.doChrom()){
 					if(!options.checkChrom(data_set->get_locus(i)->getChrom())){
 					    continue;
 				    }
@@ -118,10 +118,10 @@ void ProcessMendelianErrors::PrintSummary(){
 					    continue;
 				    }
 				}
-
-                vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), data_set->get_locus(i)->getEnzyme());
+*/
+                vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), good_markers[i]->getEnzyme());//data_set->get_locus(i)->getEnzyme());
                 if(e_iter == enzymes.end()){
-                    enzymes.push_back(data_set->get_locus(i)->getEnzyme());
+                    enzymes.push_back(good_markers[i]->getEnzyme());//data_set->get_locus(i)->getEnzyme());
                 }
             }
         }
@@ -144,8 +144,8 @@ void ProcessMendelianErrors::PrintSummary(){
 	myoutputf << endl;
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
-			if(options.doChrom()){
+		if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
+/*			if(options.doChrom()){
 				if(!options.checkChrom(data_set->get_locus(i)->getChrom())){
 				    continue;
 			    }
@@ -153,7 +153,8 @@ void ProcessMendelianErrors::PrintSummary(){
 				    continue;
 			    }
 			}
-			myoutputm << data_set->get_locus(i)->toString() << "\t"
+*/
+			myoutputm << good_markers[i]->toString() << "\t"//data_set->get_locus(i)->toString() << "\t"
 					  << merrors[i] << endl;
 		}
 	}
@@ -226,6 +227,8 @@ void ProcessMendelianErrors::PrintSummary(){
 void ProcessMendelianErrors::process(DataSet* ds){
 	data_set = ds;
 
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+
 	MendelianErrors me(data_set);
 	me.setOrder(this->order);
 	me.setOverwrite(this->overwrite);
@@ -248,12 +251,12 @@ void ProcessMendelianErrors::zeroErrors(){
 	for(int s = 0; s < esize; s++){
 		if(error_map[s].size() > 0){
 			for(int m = 0; m < (int)error_map[s].size(); m++){
-				int aloc = error_map[s][m];
-				int mloc = data_set->get_locus(aloc)->getLoc();
+				Marker* aloc = error_map[s][m];
+				int mloc = aloc->getLoc();//data_set->get_locus(aloc)->getLoc();
 				data_set->get_sample(s)->addAone(mloc, true);
 				data_set->get_sample(s)->addAtwo(mloc, true);
 				data_set->get_sample(s)->addAmissing(mloc, true);
-				if(data_set->get_locus(aloc)->isMicroSat()){
+				if(aloc->isMicroSat()){//data_set->get_locus(aloc)->isMicroSat()){
 					data_set->get_sample(s)->addAbone(mloc, -1);
 					data_set->get_sample(s)->addAbtwo(mloc, -1);
 				}
@@ -265,11 +268,11 @@ void ProcessMendelianErrors::zeroErrors(){
 
 void ProcessMendelianErrors::filter_markers(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 
 		for(int i = 0; i < msize; i++){
-			if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
-				if(options.doChrom()){
+			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
+/*				if(options.doChrom()){
 					if(!options.checkChrom(data_set->get_locus(i)->getChrom())){
 				    	continue;
 			    	}
@@ -277,13 +280,14 @@ void ProcessMendelianErrors::filter_markers(){
 				    	continue;
 			    	}
 				}
+*/
 				bool inc = false;
 				if(options.doThreshMarkersHigh() && merrors[i] > options.getThreshMarkersHigh()){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);
 					inc = true;
 				}
 				if(options.doThreshMarkersLow() && merrors[i] < options.getThreshMarkersLow()){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);
 					inc = true;
 				}
 

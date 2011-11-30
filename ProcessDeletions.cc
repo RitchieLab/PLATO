@@ -67,6 +67,7 @@ void ProcessDeletions::FilterSummary(){
  * Resets marker flags
  */
 void ProcessDeletions::PrintSummary(){
+	cout << "In print summary\n";
 	int msize = data_set->num_loci();
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
@@ -82,11 +83,12 @@ void ProcessDeletions::process(DataSet* ds){
 	data_set = ds;
 
 	Deletions dels(data_set);
-	dels.setOptions(options);
+	dels.setOptions(&options);
 	dels.setOrder(this->order);
 	dels.setOverwrite(this->overwrite);
 
 	dels.calculate();
+	cout << "AFter calculate\n";
 
 }
 

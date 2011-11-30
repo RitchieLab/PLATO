@@ -105,6 +105,8 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 		useoverall = true;
 	}
 
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+
 	HWEquilibrium hwe(data_set);
 	hwe.setOptions(options);
 	AlleleFrequency af(data_set);
@@ -112,7 +114,7 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 
 	//	af->process_hw(samples, families, markers, marker_map);
 
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 
 	if(options.doHWEPT()){
 	    string fname = opts::_OUTPREFIX_ + "hw" + options.getOut() + ".txt";
@@ -142,9 +144,12 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 		int prev_base = 0;
 		int prev_chrom = -1;
 		for(int i = 0; i < msize; i++){
-			if(data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+			if(good_markers[i]->isEnabled()){// && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				hwe.calculateHWEPT(data_set->get_locus(i));
-				pvals << data_set->get_locus(i)->toString() << "\t" << hwe.getCasePvalHWEPT() << "\t" << hwe.getControlPvalHWEPT() << "\t" << hwe.getGenotypicPval() << "\t" << hwe.getAllelicPval() << "\t" << hwe.getCaseGeneralHWEPT() << "\t" << hwe.getControlGeneralHWEPT() << endl;
+				pvals << data_set->get_locus(i)->toString() << "\t" << hwe.getCasePvalHWEPT() << "\t"
+					<< hwe.getControlPvalHWEPT() << "\t" << hwe.getGenotypicPval() << "\t"
+					<< hwe.getAllelicPval() << "\t" << hwe.getCaseGeneralHWEPT() << "\t"
+					<< hwe.getControlGeneralHWEPT() << endl;
 			}
 		}
 		pvals.close();
@@ -439,21 +444,21 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	int prev_chrom = -1;
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
-			hwe.calculate(i);
-			af.calculate(i);
+		if(good_markers[i]->isEnabled()){// && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+			hwe.calculate(good_markers[i]);
+			af.calculate(good_markers[i]);
 
-			pvals << data_set->get_locus(i)->toString();
-			if(data_set->get_locus(i)->isMicroSat()){
+			pvals << good_markers[i]->toString();
+			if(good_markers[i]->isMicroSat()){
 				for(int l = 0; l < 27; l++){
 					pvals << "\tNA";
 				}
 			}
 			else{
 				//overall default = founders
-				pvals << "\t" << data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele1() << "\t"
-				<< data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
-				<< data_set->get_locus(i)->getAllele2() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
+				pvals << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
+				<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
+				<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t"
 				<< hwe.getOverall() << "\t";
 				if(useoverall){
 					pvals << af.getPop() << "\t"
@@ -494,16 +499,16 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 			}
 			pvals << endl;
 			if(options.doParental()){
-				paren << data_set->get_locus(i)->toString();
-				if(data_set->get_locus(i)->isMicroSat()){
+				paren << good_markers[i]->toString();
+				if(good_markers[i]->isMicroSat()){
 					for(int l = 0; l < 19; l++){
 						paren << "\tNA";
 					}
 				}
 				else{
-					paren << "\t" << data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele1() << "\t"
-					<< data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
-					<< data_set->get_locus(i)->getAllele2() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
+					paren << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
+					<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
+					<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t"
 					//parent male
 					<< hwe.getParentalMale() << "\t"
 					<< af.getPopPM() << "\t"
@@ -526,16 +531,16 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 				paren << endl;
 			}
 			if(options.doGender()){
-				gend << data_set->get_locus(i)->toString();
-				if(data_set->get_locus(i)->isMicroSat()){
+				gend << good_markers[i]->toString();
+				if(good_markers[i]->isMicroSat()){
 					for(int l = 0; l < 19; l++){
 						gend << "\tNA";
 					}
 				}
 				else{
-					gend << "\t" << data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele1() << "\t"
-					<< data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
-					<< data_set->get_locus(i)->getAllele2() << "_" << data_set->get_locus(i)->getAllele2() << "\t";
+					gend << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
+					<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
+					<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t";
 					if(useoverall){
 						//parent male
 						gend << hwe.getOverallMale() << "\t"
@@ -580,16 +585,16 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 				gend << endl;
 			}
 			if(options.doCaseControl()){
-				cc << data_set->get_locus(i)->toString();
-				if(data_set->get_locus(i)->isMicroSat()){
+				cc << good_markers[i]->toString();
+				if(good_markers[i]->isMicroSat()){
 					for(int l = 0; l < 35; l++){
 						cc << "\tNA";
 					}
 				}
 				else{
-					cc << "\t" << data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele1() << "\t"
-					<< data_set->get_locus(i)->getAllele1() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
-					<< data_set->get_locus(i)->getAllele2() << "_" << data_set->get_locus(i)->getAllele2() << "\t"
+					cc << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
+					<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
+					<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t"
 					<< hwe.getCaseMale() << "\t"
 					<< af.getPopCaM() << "\t"
 					<< af.getAonehomoCaM() << "\t"
@@ -629,7 +634,7 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 				cc << endl;
 			}
 
-			doFilter(data_set->get_locus(i), &hwe);
+			doFilter(good_markers[i], &hwe);
 		}
 	}
 

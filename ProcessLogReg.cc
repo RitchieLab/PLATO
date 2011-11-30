@@ -84,6 +84,7 @@ void ProcessLogReg::doFilter(Methods::Marker* mark, double value){
 
 void ProcessLogReg::process(DataSet* ds){
 	data_set = ds;
+	vector<int> good_markers = findValidMarkersIndexes(data_set->get_markers(), &options);
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -99,7 +100,7 @@ void ProcessLogReg::process(DataSet* ds){
     }
     lrout.precision(4);
 
-    lrout << "Chrom\trsID\tProbeID\tBPLOC\tReference_Allele\tTest\tNMISS\tOR\tSE\tL" << getString<double>(options.getCI()*100) << "\t" << "U" << getString<double>(options.getCI()*100) << "\tSTAT\tPvalue\n";
+    lrout << "Chrom\trsID\tProbeID\tBPLOC\tReference_Allele\tTest\tNMISS\tBETA\tOR\tSE\tL" << getString<double>(options.getCI()*100) << "\t" << "U" << getString<double>(options.getCI()*100) << "\tSTAT\tPvalue\n";
 
 //    DataSet* trimmed_data = new DataSet();
 //    trimmed_data->set_markers(ds->get_markers());
@@ -150,9 +151,9 @@ void ProcessLogReg::process(DataSet* ds){
 	vector<double> chis(ds->num_loci(), 0);
 	vector<double> pvals(ds->num_loci(), 0);
 
-	for(int m = 0; m < (int)ds->num_loci(); m++){
-		Marker* mark = ds->get_locus(m);
-		if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+	for(int m = 0; m < (int)good_markers.size(); m++){//(int)ds->num_loci(); m++){
+		Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
+		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 			int nmiss = 0;
 			for(int s = 0; s < ds->num_inds(); s++){
 				Sample* samp = ds->get_sample(s);
@@ -163,7 +164,7 @@ void ProcessLogReg::process(DataSet* ds){
 			vector<unsigned int> model;
 			vector<unsigned int> covs;
 			vector<unsigned int> traits;
-			model.push_back(m);
+			model.push_back(good_markers[m]);
 			if(cov_use){
 				for(int c = 0; c < ds->num_covariates(); c++){
 					bool use = true;
@@ -187,17 +188,20 @@ void ProcessLogReg::process(DataSet* ds){
 //				}
 //			}
 			if(covs.size() == 0){// && traits.size() == 0){
+				cout << "on " << m << endl;
 				lr.calculate(model);
 			}
 			else{
 				lr.calculate(model, covs, traits);
 			}
 			vector<double> coefs = lr.getCoefficients();
+			cout << "coefs\n";
 			vector<double> ses = lr.getCoeffStandardErr();
-
+			cout << "stderr\n";
 			for(unsigned int c = 0; c < model.size(); c++){
 				lrout << mark->toString() << "\t" << mark->getReferent() << "\t" << options.getLRModelType();
 				lrout << "\t" << nmiss;
+				lrout << "\t" << coefs[c];
 				lrout << "\t" << exp(coefs[c]);
 				double se = ses[c];
 				double Z = coefs[c] / se;
@@ -209,8 +213,14 @@ void ProcessLogReg::process(DataSet* ds){
 				double pvalue, p, bound, df = 1;
 				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
-				pvalue = p_from_chi(zz, df);
-				lrout << "\t" << pvalue;
+				cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
+				if(se > 0){
+					pvalue = p_from_chi(zz, df);
+					lrout << "\t" << pvalue;
+				}
+				else{
+					lrout << "\tnan";
+				}
 				chis[m] = zz;
 				pvals[m] = pvalue;
 //				if(covs.size() == 0 && traits.size() == 0){
@@ -221,10 +231,12 @@ void ProcessLogReg::process(DataSet* ds){
 //				}
 
 				lrout << endl;
+				cout << "calc done " << c << endl;
 			}
 			int buffer = model.size();
 			for(unsigned int c = 0; c < covs.size(); c++){
 				lrout << mark->toString() << "\t" << mark->getReferent() << "\t" << ds->get_covariate_name(covs[c]);
+				lrout << "\t" << coefs[buffer + c];
 				lrout << "\t" << exp(coefs[buffer + c]);
 				double se = ses[buffer + c];
 				double Z = coefs[buffer + c] / se;
@@ -236,8 +248,13 @@ void ProcessLogReg::process(DataSet* ds){
 				double pvalue, p, bound, df = 1;
 				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
-				pvalue = p_from_chi(zz, df);
-				lrout << "\t" << pvalue;
+				if(se > 0){
+					pvalue = p_from_chi(zz, df);
+					lrout << "\t" << pvalue;
+				}
+				else{
+					lrout << "\tnan";
+				}
 //				if(covs.size() == 0 && traits.size() == 0){
 //					lrout << "\t" << lr.getFullInteractionP();
 //				}
@@ -319,10 +336,10 @@ void ProcessLogReg::process(DataSet* ds){
 
 		prev_base = 0;
 		prev_chrom = -1;
-		for(unsigned int m = 0; m < ds->num_loci(); m++){
-			Marker* mark = ds->get_locus(m);
+		for(unsigned int m = 0; m < good_markers.size(); m++){//ds->num_loci(); m++){
+			Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 
-			if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+			if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 				COMP << mark->toString() << "\tLOGREG\t";
 				COMP << pvals[m] << "\t"
 				<< mc.get_genomic_control(m) << "\t"
@@ -345,10 +362,10 @@ void ProcessLogReg::process(DataSet* ds){
 
 	prev_base = 0;
 	prev_chrom = -1;
-	for(unsigned int m = 0; m < ds->num_loci(); m++){
-		Marker* mark = ds->get_locus(m);
+	for(unsigned int m = 0; m < good_markers.size(); m++){//ds->num_loci(); m++){
+		Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 
-		if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 			doFilter(mark, pvals[m]);
 		}
 	}

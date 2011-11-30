@@ -92,7 +92,7 @@ void ProcessCaConChisq::PrintSummary(){
 	opts::addHeader(pfname, "L" + getString<double>(options.getCI()*100));
 	opts::addHeader(pfname, "U" + getString<double>(options.getCI()*100));
 
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 
 	if(options.doMultCompare()){
 		mult.open(mcomp.c_str());
@@ -130,9 +130,9 @@ void ProcessCaConChisq::PrintSummary(){
 	}
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
-			if(data_set->get_locus(i)->isMicroSat()){
-				pvals << data_set->get_locus(i)->toString()
+		if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
+			if(good_markers[i]->isMicroSat()){//data_set->get_locus(i)->isMicroSat()){
+				pvals << good_markers[i]->toString()//data_set->get_locus(i)->toString()
 					<< "\tNA"
 					<< "\tNA"
 					<< "\tNA"
@@ -145,7 +145,7 @@ void ProcessCaConChisq::PrintSummary(){
 					<< "\tNA"
 					<< "\tNA" << endl;
 				if(options.doMultCompare()){
-					mult << data_set->get_locus(i)->toString()
+					mult << good_markers[i]->toString()//data_set->get_locus(i)->toString()
 						<< "\tNA"
 						<< "\tNA"
 						<< "\tNA"
@@ -160,7 +160,7 @@ void ProcessCaConChisq::PrintSummary(){
 				continue;
 			}
 
-			pvals << data_set->get_locus(i)->toString() << "\t"
+			pvals << good_markers[i]->toString() << "\t"//data_set->get_locus(i)->toString() << "\t"
 				<< chi_arm[i] << "\t"
 				<< pval_arm[i] << "\t"
 				<< chi_allele[i] << "\t"
@@ -169,9 +169,9 @@ void ProcessCaConChisq::PrintSummary(){
 				<< chi_geno[i] << "\t"
 				<< pval_geno[i] << "\t"
 				<< pval_geno_exact[i] << "\t"
-				<< data_set->get_locus(i)->getAllele1() << ":" << data_set->get_locus(i)->getAllele2() << "\t"
+				<< good_markers[i]->getAllele1() << ":" << good_markers[i]->getAllele2() << "\t"
 				<< odds_ratio[i] << "\t"
-				<< data_set->get_locus(i)->getAllele1() << "\t"
+				<< good_markers[i]->getAllele1() << "\t"
 				<< ci_l[i] << "\t"
 				<< ci_u[i]
 				<< endl;
@@ -187,7 +187,7 @@ void ProcessCaConChisq::PrintSummary(){
 				//tcnt.push_back(allele_df[i]);
 				//tcnt.push_back(geno_df[i]);
 				mc.calculate(chi_arm, tcnt);
-				mult << data_set->get_locus(i)->toString() << "\t"
+				mult << good_markers[i]->toString() << "\t"
 					<< "ARM\t"
 					<< pval_arm[i] << "\t"
 					<< mc.get_genomic_control(i) << "\t"
@@ -199,7 +199,7 @@ void ProcessCaConChisq::PrintSummary(){
 					<< mc.get_fdr_by(i)
 					<< endl;
 				mc.calculate(chi_allele, tcnt);
-				mult << data_set->get_locus(i)->toString() << "\t"
+				mult << good_markers[i]->toString() << "\t"
 					<< "ALLELIC\t"
 					<< pval_allele[i] << "\t"
 					<< mc.get_genomic_control(i) << "\t"
@@ -211,7 +211,7 @@ void ProcessCaConChisq::PrintSummary(){
 					<< mc.get_fdr_by(i)
 					<< endl;
 				mc.calculate(chi_geno, tcnt);
-				mult << data_set->get_locus(i)->toString() << "\t"
+				mult << good_markers[i]->toString() << "\t"
 					<< "GENO\t"
 					<< pval_geno[i] << "\t"
 					<< mc.get_genomic_control(i) << "\t"
@@ -227,7 +227,7 @@ void ProcessCaConChisq::PrintSummary(){
 
 			if(options.doGroupFile()){
 			}
-			data_set->get_locus(i)->setFlag(false);
+			good_markers[i]->setFlag(false);
 		}
 	}
 
@@ -302,16 +302,16 @@ void ProcessCaConChisq::filter(){
 
 	//false if out in P or C
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 		for(int i = 0; i < msize; i++){
-			if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
+			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
 				bool inc = false;
 				if(options.doThreshMarkersLow() && dLess(pval_arm[i], options.getThreshMarkersLow())){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
 				if(options.doThreshMarkersHigh() && dGreater(pval_arm[i], options.getThreshMarkersHigh())){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -330,7 +330,9 @@ void ProcessCaConChisq::filter(){
  */
 void ProcessCaConChisq::process(DataSet* ds){
 	data_set = ds;
-	resize(ds->num_loci());
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+
+	resize(good_markers.size());//ds->num_loci());
 	CaConChisq chisq(data_set);
 	chisq.setOptions(options);
 
@@ -388,17 +390,19 @@ void ProcessCaConChisq::process(DataSet* ds){
 
 		int prev_base = 0;
 		int prev_chrom = -1;
-		for(int i = 0; i < (int)data_set->num_loci(); i++){
-			if(data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
-				gpvals << data_set->get_locus(i)->toString();
-				if(data_set->get_locus(i)->isMicroSat()){
+		for(int i = 0; i < (int)good_markers.size(); i++){//data_set->num_loci(); i++){
+			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+				gpvals << good_markers[i]->toString();//data_set->get_locus(i)->toString();
+				if(good_markers[i]->isMicroSat()){//data_set->get_locus(i)->isMicroSat()){
 					for(giter = groups.begin(); giter != groups.end(); giter++){
 						gpvals << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA";
 					}
 					gpvals << endl;
 					continue;
 				}
-				chisq.calculate(i);
+
+
+				chisq.calculate(good_markers[i]);//i);
 				for(giter = groups.begin(); giter != groups.end(); giter++){
 
 					gpvals << "\t" << chisq.getGroupArmitageChi(giter->first) << "\t"
@@ -409,9 +413,9 @@ void ProcessCaConChisq::process(DataSet* ds){
 						<< chisq.getGroupGenotypicChi(giter->first) << "\t"
 						<< chisq.getGroupGenotypicPval(giter->first) << "\t"
 						<< chisq.getGroupGenotypicExactPval(giter->first) << "\t"
-						<< data_set->get_locus(i)->getAllele1() << ":" << data_set->get_locus(i)->getAllele2() << "\t"
+						<< good_markers[i]->getAllele1() << ":" << good_markers[i]->getAllele2() << "\t"
 						<< chisq.getGroupOddsRatio(giter->first) << "\t"
-						<< data_set->get_locus(i)->getAllele1() << "\t"
+						<< good_markers[i]->getAllele1() << "\t"
 						<< chisq.getGroupConfIntervalLower(giter->first) << "\t"
 						<< chisq.getGroupConfIntervalUpper(giter->first);
 				}
@@ -421,15 +425,15 @@ void ProcessCaConChisq::process(DataSet* ds){
 		}
 	}
 
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
-			if(data_set->get_locus(i)->isMicroSat()){
+		if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+			if(good_markers[i]->isMicroSat()){//data_set->get_locus(i)->isMicroSat()){
 				continue;
 			}
-			chisq.calculate(i);
+			chisq.calculate(good_markers[i]);//i);
 			chi_geno[i] = chisq.getGenotypicChi();
 			geno_df[i] = chisq.getGenotypicDF();
 			pval_geno[i] = chisq.getGenotypicPval();

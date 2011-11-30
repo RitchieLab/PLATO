@@ -57,6 +57,8 @@ class ProcessGenderCheck : public Process{
 		vector< map<string, int> > senzyme_hets;
 		vector< map<string, int> > senzyme_tot;
 
+		vector<Marker*> good_markers;
+
 	public:
 		ProcessGenderCheck(){
 			data_set = NULL;

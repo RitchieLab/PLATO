@@ -69,7 +69,7 @@ void ProcessCMH::filter(){
 
 void ProcessCMH::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		if(mark->isEnabled() && !mark->isFlagged()){
+		if(mark->isEnabled()){// && !mark->isFlagged()){
 			bool inc = false;
 			if(options.doThreshMarkersLow() && dLess(value, options.getThreshMarkersLow())){
 				mark->setEnabled(false);
@@ -135,13 +135,15 @@ void ProcessCMH::process(DataSet* ds){
 	int prev_chrom = -1;
 	vector<double> chis;
 	vector<double> pvals;
-	chis.resize(data_set->num_loci(), 0);
-	pvals.resize(data_set->num_loci(), 0);
+	vector<Marker*> good_markers = findValidMarkers(ds->get_markers(), &options);
+	int msize = good_markers.size();
+	chis.resize(msize, 0);
+	pvals.resize(msize, 0);
 
-	for(unsigned int m = 0; m < data_set->num_loci(); m++){
-		Marker* mark = data_set->get_locus(m);
+	for(unsigned int m = 0; m < msize; m++){
+		Marker* mark = good_markers[m];//data_set->get_locus(m);
 
-		if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 			cmh.calculate(mark);
 			MHOUT << mark->getChrom() << "\t" << mark->getRSID();
 			if(options.getCMH2x2xK()){
@@ -240,10 +242,10 @@ void ProcessCMH::process(DataSet* ds){
 
 		prev_base = 0;
 		prev_chrom = -1;
-		for(unsigned int m = 0; m < data_set->num_loci(); m++){
-			Marker* mark = data_set->get_locus(m);
+		for(unsigned int m = 0; m < msize; m++){//data_set->num_loci(); m++){
+			Marker* mark = good_markers[m];//data_set->get_locus(m);
 
-			if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+			if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 				COMP << mark->toString() << "\tCMH\t";
 				COMP << pvals[m] << "\t"
 				<< mc.get_genomic_control(m) << "\t"
@@ -265,10 +267,10 @@ void ProcessCMH::process(DataSet* ds){
 
 	prev_base = 0;
 	prev_chrom = -1;
-	for(unsigned int m = 0; m < data_set->num_loci(); m++){
-		Marker* mark = data_set->get_locus(m);
+	for(unsigned int m = 0; m < msize; m++){//data_set->num_loci(); m++){
+		Marker* mark = good_markers[m];//data_set->get_locus(m);
 
-		if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 			doFilter(mark, pvals[m]);
 		}
 	}

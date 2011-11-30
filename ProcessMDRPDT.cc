@@ -84,6 +84,7 @@ void ProcessMDRPDT::doFilter(Methods::Marker* mark, double value){
 
 void ProcessMDRPDT::process(DataSet* ds){
 	data_set = ds;
+	vector<int> good_markers = findValidMarkersIndexes(data_set->get_markers(), &options);
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -108,11 +109,11 @@ void ProcessMDRPDT::process(DataSet* ds){
 
     int prev_base = 0;
     int prev_chrom = -1;
-    int msize = data_set->num_loci();
+    int msize = good_markers.size();//data_set->num_loci();
     for(int m = 0; m < msize; m++){
-    	Marker* mark = data_set->get_locus(m);
-    	if(mark->isEnabled() && isValidMarker(mark, &options, prev_chrom, prev_base)){
-    		mdrpdt.calculate(m);
+    	Marker* mark = data_set->get_locus(good_markers[m]);
+    	if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_chrom, prev_base)){
+    		mdrpdt.calculate(good_markers[m]);
 
     		if(options.getMDRDPTNumCrossvals() != (int)mdrpdt.getMatchedOddsRatio().size()){
     			throw MethodException("Num crossvals != matched odds ratio size?");

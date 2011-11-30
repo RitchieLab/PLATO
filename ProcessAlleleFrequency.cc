@@ -827,37 +827,40 @@ void ProcessAlleleFrequency::processtest() {
 
 	int prev_base = 0;
 	int prev_chrom = -1;
+	vector<Marker*> good_markers = findValidMarkers(data_set->get_markers(), &options);
+	msize = good_markers.size();
+
 	for (int k = 0; k < msize; k++) {
-		if (data_set->get_locus(k)->isEnabled() && isValidMarker(data_set->get_locus(k),
-				&options, prev_base, prev_chrom)) {
+		Marker* mark = good_markers[k];
+		if (mark->isEnabled()){// && isValidMarker(data_set->get_locus(k),&options, prev_base, prev_chrom)) {
 
 			total_snps++;
 
 			//perform calculations
-			af.calcOne(data_set->get_locus(k));
+			af.calcOne(mark);//data_set->get_locus(k));
 			if (options.doGroupFile()) {
-				af.calcOneGroups(data_set->get_locus(k));
+				af.calcOneGroups(mark);//data_set->get_locus(k));
 			}
-			doFilter(data_set->get_locus(k), &af);
+			doFilter(mark, &af);//data_set->get_locus(k), &af);
 
-			if (data_set->get_locus(k)->isMicroSat()) {
-				myoutput << data_set->get_locus(k)->toString();
+			if (mark->isMicroSat()){//data_set->get_locus(k)->isMicroSat()) {
+				myoutput << mark->toString();//data_set->get_locus(k)->toString();
 				if (options.doGroupFile()) {
-					gmyoutput << data_set->get_locus(k)->toString();
+					gmyoutput << mark->toString();//data_set->get_locus(k)->toString();
 				}
 				if (options.doParental()) {
-					paren << data_set->get_locus(k)->toString();
+					paren << mark->toString();//data_set->get_locus(k)->toString();
 				}
 				if (options.doGender()) {
-					gend << data_set->get_locus(k)->toString();
+					gend << mark->toString();//data_set->get_locus(k)->toString();
 				}
 				if (options.doCaseControl()) {
-					cc << data_set->get_locus(k)->toString();
+					cc << mark->toString();//data_set->get_locus(k)->toString();
 				}
 				int total_o = 0;
 				int total_ca = 0;
 				int total_con = 0;
-				int numalleles = data_set->get_locus(k)->getNumAlleles();
+				int numalleles = mark->getNumAlleles();//data_set->get_locus(k)->getNumAlleles();
 				for (int a = 0; a < numalleles; a++) {
 					if (useoverall) {
 						total_o += af.getMicroCount(a);
@@ -868,18 +871,18 @@ void ProcessAlleleFrequency::processtest() {
 					total_con += af.getMicroCountCon(a);
 				}
 				for (int a = 0; a < numalleles; a++) {
-					myoutput << "\t" << data_set->get_locus(k)->getAllele(a);
+					myoutput << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
 					if (options.doGroupFile()) {
-						gmyoutput << "\t" << data_set->get_locus(k)->getAllele(a);
+						gmyoutput << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
 					}
 					if (options.doParental()) {
-						paren << "\t" << data_set->get_locus(k)->getAllele(a);
+						paren << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
 					}
 					if (options.doGender()) {
-						gend << "\t" << data_set->get_locus(k)->getAllele(a);
+						gend << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
 					}
 					if (options.doCaseControl()) {
-						cc << "\t" << data_set->get_locus(k)->getAllele(a);
+						cc << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
 					}
 				}
 				if (maxalleles > numalleles) {
@@ -965,9 +968,9 @@ void ProcessAlleleFrequency::processtest() {
 					}
 				}
 				//groups?
-				mygeno << data_set->get_locus(k)->toString();
+				mygeno << mark->toString();//data_set->get_locus(k)->toString();
 				if (options.doGroupFile()) {
-					gmygeno << data_set->get_locus(k)->toString();
+					gmygeno << mark->toString();//data_set->get_locus(k)->toString();
 					int gm_total = 0;
 					map<string, vector<Sample*> > groups = options.getGroups();
 					map<string, vector<Sample*> >::iterator giter;
@@ -1014,7 +1017,7 @@ void ProcessAlleleFrequency::processtest() {
 				}
 
 				if (options.doParental()) {
-					pareng << data_set->get_locus(k)->toString();
+					pareng << mark->toString();//data_set->get_locus(k)->toString();
 					int total_pm = 0;
 					int total_pf = 0;
 					for (int a = 0; a < numalleles; a++) {
@@ -1068,7 +1071,7 @@ void ProcessAlleleFrequency::processtest() {
 
 				}
 				if (options.doGender()) {
-					gendg << data_set->get_locus(k)->toString();
+					gendg << mark->toString();//data_set->get_locus(k)->toString();
 					int total_pm = 0;
 					int total_pf = 0;
 					for (int a = 0; a < numalleles; a++) {
@@ -1147,7 +1150,7 @@ void ProcessAlleleFrequency::processtest() {
 
 				}
 				if (options.doCaseControl()) {
-					ccg << data_set->get_locus(k)->toString();
+					ccg << mark->toString();//data_set->get_locus(k)->toString();
 					int total_cam = 0;
 					int total_caf = 0;
 					int total_conm = 0;
@@ -1243,13 +1246,13 @@ void ProcessAlleleFrequency::processtest() {
 
 				}
 			} else { //not microsats
-				myoutput << data_set->get_locus(k)->toString() << "\t"
-						<< data_set->get_locus(k)->getAllele1() << "\t"
-						<< data_set->get_locus(k)->getAllele2();
+				myoutput << mark->toString() << "\t"
+						<< mark->getAllele1() << "\t"
+						<< mark->getAllele2();
 				if (options.doGroupFile()) {
-					gmyoutput << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele2();
+					gmyoutput << mark->toString() << "\t"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele2();
 				}
 				for (int l = 2; l < maxalleles; l++) {
 					myoutput << "\tNA";
@@ -1334,21 +1337,21 @@ void ProcessAlleleFrequency::processtest() {
 
 				myoutput << endl;
 
-				mygeno << data_set->get_locus(k)->toString() << "\t"
-						<< data_set->get_locus(k)->getAllele1() << "_"
-						<< data_set->get_locus(k)->getAllele1() << "\t"
-						<< data_set->get_locus(k)->getAllele1() << "_"
-						<< data_set->get_locus(k)->getAllele2() << "\t"
-						<< data_set->get_locus(k)->getAllele2() << "_"
-						<< data_set->get_locus(k)->getAllele2();
+				mygeno << mark->toString() << "\t"
+						<< mark->getAllele1() << "_"
+						<< mark->getAllele1() << "\t"
+						<< mark->getAllele1() << "_"
+						<< mark->getAllele2() << "\t"
+						<< mark->getAllele2() << "_"
+						<< mark->getAllele2();
 				if (options.doGroupFile()) {
-					gmygeno << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele2() << "\t"
-							<< data_set->get_locus(k)->getAllele2() << "_"
-							<< data_set->get_locus(k)->getAllele2();
+					gmygeno << mark->toString() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele2() << "\t"
+							<< mark->getAllele2() << "_"
+							<< mark->getAllele2();
 				}
 				//overall
 				float freq1 = 0.0f;
@@ -1409,9 +1412,9 @@ void ProcessAlleleFrequency::processtest() {
 				mygeno << endl;
 
 				if (options.doParental()) {
-					paren << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele2();
+					paren << mark->toString() << "\t"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele2();
 					for (int l = 2; l < maxalleles; l++) {
 						paren << "\tNA";
 					}
@@ -1443,13 +1446,13 @@ void ProcessAlleleFrequency::processtest() {
 					}
 					paren << endl;
 
-					pareng << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele2() << "\t"
-							<< data_set->get_locus(k)->getAllele2() << "_"
-							<< data_set->get_locus(k)->getAllele2();
+					pareng << mark->toString() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele2() << "\t"
+							<< mark->getAllele2() << "_"
+							<< mark->getAllele2();
 					float freq1 = ((float) af.getAonehomoPM()) / (af.getPopPM());
 					float freq2 = ((float) af.getHetPM()) / (af.getPopPM());
 					float freq3 = ((float) af.getAtwohomoPM()) / (af.getPopPM());
@@ -1466,9 +1469,9 @@ void ProcessAlleleFrequency::processtest() {
 				}
 				if (options.doGender()) {
 					//overall male
-					gend << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele2();
+					gend << mark->toString() << "\t"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele2();
 					for (int l = 2; l < maxalleles; l++) {
 						gend << "\tNA";
 					}
@@ -1519,13 +1522,13 @@ void ProcessAlleleFrequency::processtest() {
 					}
 					gend << endl;
 
-					gendg << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele2() << "\t"
-							<< data_set->get_locus(k)->getAllele2() << "_"
-							<< data_set->get_locus(k)->getAllele2();
+					gendg << mark->toString() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele2() << "\t"
+							<< mark->getAllele2() << "_"
+							<< mark->getAllele2();
 					if (useoverall) {
 						float freq1 =
 								((float) af.getAonehomoM()) / (af.getPopM());
@@ -1562,9 +1565,9 @@ void ProcessAlleleFrequency::processtest() {
 				}
 				if (options.doCaseControl()) {
 					//case male
-					cc << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele2();
+					cc << mark->toString() << "\t"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele2();
 					for (int l = 2; l < maxalleles; l++) {
 						cc << "\tNA";
 					}
@@ -1621,13 +1624,13 @@ void ProcessAlleleFrequency::processtest() {
 					}
 					cc << endl;
 
-					ccg << data_set->get_locus(k)->toString() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele1() << "\t"
-							<< data_set->get_locus(k)->getAllele1() << "_"
-							<< data_set->get_locus(k)->getAllele2() << "\t"
-							<< data_set->get_locus(k)->getAllele2() << "_"
-							<< data_set->get_locus(k)->getAllele2();
+					ccg << mark->toString() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele1() << "\t"
+							<< mark->getAllele1() << "_"
+							<< mark->getAllele2() << "\t"
+							<< mark->getAllele2() << "_"
+							<< mark->getAllele2();
 					float freq1 = ((float) af.getAonehomoCaM())
 							/ (af.getPopCaM());
 					float freq2 = ((float) af.getHetCaM()) / (af.getPopCaM());
@@ -1660,7 +1663,7 @@ void ProcessAlleleFrequency::processtest() {
 			}
 
 			//filter Markers
-			//doFilter(data_set->get_locus(k), &af);
+			//doFilter(mark, &af);
 		}
 	}
 

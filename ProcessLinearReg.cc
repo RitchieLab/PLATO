@@ -86,6 +86,8 @@ void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
 void ProcessLinearReg::process(DataSet* ds){
 	data_set = ds;
 
+	vector<Marker*> good_markers = findValidMarkers(data_set->get_markers(), &options);
+
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
 
@@ -100,7 +102,7 @@ void ProcessLinearReg::process(DataSet* ds){
     }
     lrout.precision(4);
 
-    lrout << "Chrom\trsID\tProbeID\tBPLOC\tReference_Allele\tTest\tNMISS\tBeta\tSTAT\tPvalue\n";
+    lrout << "Chrom\trsID\tProbeID\tBPLOC\tReference_Allele\tTest\tNMISS\tBeta\tOR\tSE\tSTAT\tPvalue\n";
 
 	LinearRegression lr;
 	lr.setOptions(options);
@@ -112,18 +114,26 @@ void ProcessLinearReg::process(DataSet* ds){
 	int prev_base = 0;
 	int prev_chrom = -1;
 
-	for(int i = 0; i < (int)ds->num_loci(); i++){
-		Marker* mark = ds->get_locus(i);
-		if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
-			lr.calculate(i);
+	int msize = good_markers.size();
+
+	for(int i = 0; i < msize; i++){
+		Marker* mark = good_markers[i];//ds->get_locus(i);
+		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+			lr.calculate(mark);//i);
 			vector<double>pvals = lr.getPvalues();
 			vector<double>coefs = lr.getCoefs();
 			vector<string>labels = lr.getLabels();
+			vector<double> vars = lr.getVar();
 			vector<double> zs = lr.getZs();
 			for(int l = 1; l < (int)labels.size(); l++){
+				bool okay = vars[l] < 1e-20 || !realnum(vars[l]) ? false : true;
+				double se = 0;
+				if(okay){
+					se = sqrt(vars[l]);
+				}
 				lrout << mark->getChrom() << "\t" << mark->getRSID() << "\t" << mark->getProbeID() << "\t";
 				lrout << mark->getBPLOC() << "\t" << mark->getReferent() << "\t";
-				lrout << labels[l] << "\t" << lr.getCalcMissing() << "\t" << coefs[l] << "\t" << zs[l] << "\t" << pvals[l] << endl;
+				lrout << labels[l] << "\t" << lr.getCalcMissing() << "\t" << coefs[l] << "\t" << exp(coefs[l]) << "\t" << se << "\t" << zs[l] << "\t" << pvals[l] << endl;
 			}
 
 			chis[i] = lr.getStatistic();
@@ -180,10 +190,10 @@ void ProcessLinearReg::process(DataSet* ds){
 
 		prev_base = 0;
 		prev_chrom = -1;
-		for(unsigned int m = 0; m < data_set->num_loci(); m++){
-			Marker* mark = data_set->get_locus(m);
+		for(unsigned int m = 0; m < good_markers.size(); m++){//data_set->num_loci(); m++){
+			Marker* mark = good_markers[m];//data_set->get_locus(m);
 
-			if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+			if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 				COMP << mark->toString() << "\tLINREG\t";
 				COMP << main_pvals[m] << "\t"
 				<< mc.get_genomic_control(m) << "\t"
@@ -206,10 +216,10 @@ void ProcessLinearReg::process(DataSet* ds){
 
 	prev_base = 0;
 	prev_chrom = -1;
-	for(unsigned int m = 0; m < data_set->num_loci(); m++){
-		Marker* mark = data_set->get_locus(m);
+	for(unsigned int m = 0; m < good_markers.size(); m++){//data_set->num_loci(); m++){
+		Marker* mark = good_markers[m];//data_set->get_locus(m);
 
-		if(mark->isEnabled() && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 			doFilter(mark, main_pvals[m]);
 		}
 	}

@@ -49,7 +49,7 @@ void ProcessMitoCheck::setThreshold(string thresh){
 }
 
 void ProcessMitoCheck::PrintSummary(){
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 	int ssize = data_set->num_inds();
 
 	string fname1 = opts::_OUTPREFIX_ + "mito_check_marker" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
@@ -71,8 +71,8 @@ void ProcessMitoCheck::PrintSummary(){
 	opts::addHeader(fname1, "Num_errors");
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && data_set->get_locus(i)->getChrom() == opts::_MITO_ && !data_set->get_locus(i)->isFlagged()){
-			if(options.doChrom()){
+		if(good_markers[i]->isEnabled() && good_markers[i]->getChrom() == opts::_MITO_){//data_set->get_locus(i)->isEnabled() && data_set->get_locus(i)->getChrom() == opts::_MITO_ && !data_set->get_locus(i)->isFlagged()){
+/*			if(options.doChrom()){
 				if(!options.checkChrom(data_set->get_locus(i)->getChrom())){
 					continue;
 				}
@@ -80,7 +80,7 @@ void ProcessMitoCheck::PrintSummary(){
 					continue;
 				}
 			}
-
+*/
 			myoutput << data_set->get_locus(i)->toString() << "\t"
 				<< merrors[i] << endl;
 		}
@@ -151,7 +151,7 @@ void ProcessMitoCheck::PrintSummary(){
 		Sample* child = data_set->get_sample(i);
 		Sample* mom = child->getMom();
 		for(int j = 0; j < (int)error_map[i].size(); j++){
-			Marker* mark = data_set->get_locus(error_map[i][j]);
+			Marker* mark = error_map[i][j];//data_set->get_locus(error_map[i][j]);
 			int loc = mark->getLoc();
 			string ma1;
 			string ma2;
@@ -221,7 +221,7 @@ void ProcessMitoCheck::PrintSummary(){
 		errorout.close();
 	}
 	for(int i = 0; i < msize; i++){
-		data_set->get_locus(i)->setFlag(false);
+		good_markers[i]->setFlag(false);//data_set->get_locus(i)->setFlag(false);
 	}
 }
 
@@ -242,10 +242,10 @@ void ProcessMitoCheck::FilterSummary(){
 void ProcessMitoCheck::filter(){
 
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 		for(int m = 0; m < msize; m++){
-			if(data_set->get_locus(m)->isEnabled() && data_set->get_locus(m)->getChrom() == opts::_MITO_ && !data_set->get_locus(m)->isFlagged()){
-				if(options.doChrom()){
+			if(good_markers[m]->isEnabled() && good_markers[m]->getChrom() == opts::_MITO_){
+/*				if(options.doChrom()){
 					if(!options.checkChrom(data_set->get_locus(m)->getChrom())){
 					    continue;
 				    }
@@ -253,7 +253,7 @@ void ProcessMitoCheck::filter(){
 					    continue;
 				    }
 				}
-
+*/
 				bool inc = false;
 				if(options.doThreshMarkersLow() && merrors[m] < options.getThreshMarkersLow()){
 					data_set->get_locus(m)->setEnabled(false);
@@ -313,6 +313,8 @@ ofstream myoutput ("gender_errors_markers.txt", ios::out | ios::app);
 
 void ProcessMitoCheck::process(DataSet* ds){
 	data_set = ds;
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+
 	MitoCheck mc(data_set);
 	mc.setOptions(options);
 	mc.calculate();

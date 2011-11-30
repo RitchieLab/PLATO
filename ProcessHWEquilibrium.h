@@ -80,6 +80,8 @@ class ProcessHWEquilibrium : public Process{
 		vector<float> hwConF;
 		vector<float> hwConM;
 
+		vector<Marker*> good_markers;
+
 
 	public:
 		ProcessHWEquilibrium(){

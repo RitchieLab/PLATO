@@ -129,13 +129,13 @@ void ProcessMarkerGenoEff::PrintSummary(){
 	bymarker << endl;
 
 
-	int size = data_set->num_loci();
+	int size = good_markers.size();//data_set->num_loci();
 	int prev_base = 0;
 	int prev_chrom = -1;
 	map<string, double> group_avgs;
 	int total_snps = 0;
 	for(int i = 0; i < size; i++){
-		if(isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom) && !data_set->get_locus(i)->isFlagged()){
+		if(good_markers[i]->isEnabled()){//isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom) && !data_set->get_locus(i)->isFlagged()){
 
 			float percent = 0.0f;
 			float caseper = 0.0f;
@@ -154,7 +154,7 @@ void ProcessMarkerGenoEff::PrintSummary(){
 				contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i]));// * 100.0f;
 			}
 
-			bymarker << data_set->get_locus(i)->toString() << "\t"
+			bymarker << good_markers[i]->toString() << "\t"
 					 << percent << "\t"
 					 << zeros[i] << "\t"
 					 << total[i] << "\t"
@@ -166,7 +166,7 @@ void ProcessMarkerGenoEff::PrintSummary(){
 					 << controltotal[i];
 			bymarker << endl;
 			if(options.doGroupFile()){
-				bygroup << data_set->get_locus(i)->toString();
+				bygroup << good_markers[i]->toString();
 				map<string, vector<Sample*> > groups = options.getGroups();
 				map<string, vector<Sample*> >::iterator giter;
 				for(giter = groups.begin(); giter != groups.end(); giter++){
@@ -187,7 +187,7 @@ void ProcessMarkerGenoEff::PrintSummary(){
 			}
 			total_snps++;
 		}
-		data_set->get_locus(i)->setFlag(false);
+		good_markers[i]->setFlag(false);
 	}
 
 	if(options.doGroupFile()){
@@ -227,11 +227,11 @@ void ProcessMarkerGenoEff::PrintSummary(){
 
 void ProcessMarkerGenoEff::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int size = data_set->num_loci();
+		int size = good_markers.size();
 		int prev_base = 0;
 		int prev_chrom = -1;
 		for(int i = 0; i < size; i++){
-			if(isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom) && !data_set->get_locus(i)->isFlagged()){
+			if(good_markers[i]->isEnabled()){//isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom) && !data_set->get_locus(i)->isFlagged()){
 				double percent = 0.0f;
 				float caseper = 0.0f;
 				float contper = 0.0f;
@@ -251,11 +251,11 @@ void ProcessMarkerGenoEff::filter(){
 				}
 
 				if(options.doThreshMarkersLow() && dLess(percent, options.getThreshMarkersLow())){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);
 					inc = true;
 				}
 				if(options.doThreshMarkersHigh() && dGreater(percent, options.getThreshMarkersHigh())){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -268,12 +268,14 @@ void ProcessMarkerGenoEff::filter(){
 
 void ProcessMarkerGenoEff::process(DataSet* ds){
 	data_set = ds;
-	zeros.resize(data_set->num_loci());
-	total.resize(data_set->num_loci());
-	casezeros.resize(data_set->num_loci());
-	casetotal.resize(data_set->num_loci());
-	controlzeros.resize(data_set->num_loci());
-	controltotal.resize(data_set->num_loci());
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+	int msize = good_markers.size();
+	zeros.resize(msize);
+	total.resize(msize);
+	casezeros.resize(msize);
+	casetotal.resize(msize);
+	controlzeros.resize(msize);
+	controltotal.resize(msize);
 
 	if(options.doGroupFile()){
 		options.readGroups(data_set->get_samples());
@@ -282,8 +284,8 @@ void ProcessMarkerGenoEff::process(DataSet* ds){
 
 		for(giter = groups.begin(); giter != groups.end(); giter++){
 			string mygroup = giter->first;
-			groupzeros[mygroup].resize(data_set->num_loci());
-			grouptotal[mygroup].resize(data_set->num_loci());
+			groupzeros[mygroup].resize(msize);
+			grouptotal[mygroup].resize(msize);
 		}
 	}
 
@@ -291,8 +293,8 @@ void ProcessMarkerGenoEff::process(DataSet* ds){
 //	mge.resetDataSet(data_set);
 	mge.set_parameters(&options);
 
-	for(int i = 0; i < (int)data_set->num_loci(); i++){
-		mge.calcOne(i);
+	for(int i = 0; i < msize; i++){//(int)data_set->num_loci(); i++){
+		mge.calcOne(good_markers[i]);
 		zeros[i] = mge.getZeros();
 		total[i] = mge.getTotal();
 		casezeros[i] = mge.getCaseZeros();

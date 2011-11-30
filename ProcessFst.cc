@@ -68,7 +68,7 @@ void ProcessFst::filter() {
 
 void ProcessFst::doFilter(Methods::Marker* mark, double value) {
 	if (options.doThreshMarkersLow() || options.doThreshMarkersHigh()) {
-		if (mark->isEnabled() && !mark->isFlagged()) {
+		if (mark->isEnabled()){// && !mark->isFlagged()) {
 			bool inc = false;
 			if (options.doThreshMarkersLow() && dLess(value,
 					options.getThreshMarkersLow())) {
@@ -124,7 +124,10 @@ void ProcessFst::process(DataSet* ds) {
 	int prev_base = 0;
 	int prev_chrom = -1;
 
-		eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
+	vector<Marker*> good_markers = findValidMarkers(ds->get_markers(), &options);
+	int msize = good_markers.size();
+
+	eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
 		opts::addFile("Marker", stepname, fname);
 
 		opts::addHeader(fname, "FSTWC");
@@ -132,10 +135,9 @@ void ProcessFst::process(DataSet* ds) {
 //		opts::addHeader(fname, "FSTHM");
 
 
-		for (int m = 0; m < (int) ds->num_loci(); m++) {
-			Marker* mark = ds->get_locus(m);
-			if (mark->isEnabled() && isValidMarker(mark, &options, prev_base,
-					prev_chrom)) {
+		for (int m = 0; m < (int) msize; m++){//ds->num_loci(); m++) {
+			Marker* mark = good_markers[m];//ds->get_locus(m);
+			if (mark->isEnabled()){// && isValidMarker(mark, &options, prev_base,prev_chrom)) {
 				fst.calculate(m);
 				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH()// << "\t" << fst.getFstHM()
 						<< endl;

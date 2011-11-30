@@ -37,7 +37,7 @@ void ProcessGenderCheck::setThreshold(string thresh){
  * Outputs results of calculations
  */
 void ProcessGenderCheck::PrintSummary(){
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 	int ssize = data_set->num_inds();
 
 	string fname1 = opts::_OUTPREFIX_ + "gender_check_marker" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
@@ -61,9 +61,9 @@ void ProcessGenderCheck::PrintSummary(){
 	opts::addHeader(fname1, "%HET_Males");
 
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && (data_set->get_locus(i)->getChrom() == opts::_CHRX_ || options.doAll()) && !data_set->get_locus(i)->isFlagged()){
+		if(good_markers[i]->isEnabled() && (good_markers[i]->getChrom() == opts::_CHRX_ || options.doAll())){// && !data_set->get_locus(i)->isFlagged()){
 
-			myoutput << data_set->get_locus(i)->toString() << "\t"
+			myoutput << good_markers[i]->toString() << "\t"
 				<< mtotal[i] << "\t"
 				<< merrors[i] << "\t";
 			if(mtotal[i] > 0){
@@ -98,10 +98,10 @@ void ProcessGenderCheck::PrintSummary(){
     if(opts::_ENZYMES_){
         int msize = data_set->num_loci();
         for(int i = 0; i < msize; i++){
-            if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged()){
-				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), data_set->get_locus(i)->getEnzyme());
+            if(good_markers[i]->isEnabled()){// && !data_set->get_locus(i)->isFlagged()){
+				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), good_markers[i]->getEnzyme());
                 if(e_iter == enzymes.end()){
-                    enzymes.push_back(data_set->get_locus(i)->getEnzyme());
+                    enzymes.push_back(good_markers[i]->getEnzyme());
                 }
             }
         }
@@ -209,17 +209,17 @@ void ProcessGenderCheck::FilterSummary(){
 void ProcessGenderCheck::filter(){
 
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 		for(int m = 0; m < msize; m++){
-			if(data_set->get_locus(m)->isEnabled() && !data_set->get_locus(m)->isFlagged()){
+			if(good_markers[m]->isEnabled()){// && !data_set->get_locus(m)->isFlagged()){
 
 				bool inc = false;
 				if(options.doThreshMarkersLow() && merrors[m] < options.getThreshMarkersLow()){
-					data_set->get_locus(m)->setEnabled(false);
+					good_markers[m]->setEnabled(false);
 					inc = true;
 				}
 				if(options.doThreshMarkersHigh() && merrors[m] > options.getThreshMarkersHigh()){
-					data_set->get_locus(m)->setEnabled(false);
+					good_markers[m]->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -260,6 +260,8 @@ void ProcessGenderCheck::filter_markers(){
  */
 void ProcessGenderCheck::process(DataSet* ds){
 	data_set = ds;
+
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
 
 	GenderCheck gc(data_set);
 

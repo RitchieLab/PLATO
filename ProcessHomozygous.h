@@ -55,6 +55,8 @@ class ProcessHomozygous : public Process{
 		vector<int> homominallcount;
 		vector<int> homomajallcount;
 
+		vector<Marker*> good_markers;
+
 
 	public:
 		ProcessHomozygous(){

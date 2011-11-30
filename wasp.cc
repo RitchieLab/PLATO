@@ -1172,9 +1172,9 @@ main (int argc, char* argv[])
 	}catch(MethodException ex){
 		opts::printLog(string(ex.what()) + "\n");
 	}
-	catch(std::exception ex){
-		opts::printLog(string(ex.what()) + "\n");
-	}
+//	catch(std::exception ex){
+//		opts::printLog(string(ex.what()) + "\n");
+//	}
 	time_t curr = time(0);
 	string tdstamp = ctime(&curr);
 	opts::printLog("\nPlato finished: " + tdstamp + "\n");
@@ -1738,14 +1738,17 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 	//Start processing steps by slaves.  MASTER gathers all data from slaves and does summary work
 	//threading here?
 
-		if(opts::_THREADS_){
-//			optimize(order);
-		}
+//		if(opts::_THREADS_){
+		vector<ORDER> optimized = optimize(order);
+//		}
 		int count = 0;
 	boost::thread *threads[opts::_NUMTHREADS_];
 	map<int, int> thread_step_map;
-	for(unsigned int o = 0; o < order->size(); o++){//o_iter = order->begin(); o_iter != order->end(); o_iter++){
-		Step current_step = order->at(o);//(Step)(*o_iter);//(*steps)[(*o_iter)];
+	ORDER yesthread = optimized[0];
+	ORDER nothread = optimized[1];
+
+	for(unsigned int o = 0; o < yesthread.size(); o++){//o_iter = order->begin(); o_iter != order->end(); o_iter++){
+		Step current_step = yesthread.at(o);//(Step)(*o_iter);//(*steps)[(*o_iter)];
 //		runStep(current_step, &data_set);
 
 		if(opts::_THREADS_){
@@ -1766,13 +1769,19 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		}
 	}
 
-
 	for(int i = 0; i < count; i++){
 		if(opts::_THREADS_){
 			threads[i]->join();
 			delete(threads[i]);
 		}
 	}
+
+	for(unsigned int o = 0; o < nothread.size(); o++){
+		Step current_step = nothread.at(o);
+		runStep(current_step, &data_set);
+	}
+
+
 
 	if(myrank == 0){
 		if(opts::_OUTPUTREMAINS_){
@@ -1798,6 +1807,50 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 //	}
 
 	//cout << myrank << " leaving process function" << endl;
+}
+
+vector<ORDER> optimize(ORDER* order){
+	ORDER nothread;
+	ORDER yesthread;
+
+	vector<ORDER> results;
+
+	opts::printLog("Optimizing processing order, thresholding and batch file rules will be maintained...\n");
+	bool thresh = false;
+	for(unsigned int o = 0; o < order->size(); o++){
+		StepOptions* options = order->at(o).getOptions();
+		if(options->doTransform() ||
+				options->doThreshMarkersLow() ||
+				options->doThreshMarkersHigh() ||
+				options->doThreshSamplesLow() ||
+				options->doThreshSamplesHigh() ||
+				options->doThreshFamiliesHigh() ||
+				options->doThreshFamiliesLow() ||
+				options->doBpSpace() ||
+				options->doLDchop() ||
+				options->doRmMono() ||
+				options->doRmHetOnly() ||
+				options->doIncDisabledSamples() ||
+				options->doZeroDisabled() ||
+				thresh
+		){
+			nothread.push_back(order->at(o));
+			thresh = true;
+		}
+		else{
+			yesthread.push_back(order->at(o));
+		}
+	}
+
+	results.push_back(yesthread);
+	results.push_back(nothread);
+
+	cout << "Threadable: \n";
+	for(int i = 0; i < yesthread.size(); i++){
+		cout << yesthread[i].getName() << "\n";
+	}
+
+	return results;
 }
 
 void runStep(Step current_step, DataSet* data_set){
@@ -4061,11 +4114,14 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 			snpmap[chr + "#" + bp] = mark;
 		}
 
+		cout << "Markers initialized...\n";
+
 		for(unsigned int i = 0; i < filenames["Marker"].size(); i++){
 			string file = filenames["Marker"][i];
 			string step = opts::filesteps[file];
 
 			for(unsigned int j = 0; j < opts::fileheaders[file].size(); j++){
+				cout << "Pushing " << file << " : " << j << endl;
 				all_columns.push_back("(" + file + ")" + opts::fileheaders[file][j]);
 			}
 		}

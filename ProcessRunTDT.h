@@ -55,6 +55,8 @@ class ProcessRunTDT : public Process{
 		vector<double> trans;
 		vector<double> untrans;
 
+		vector<Marker*> good_markers;
+
 	public:
 		ProcessRunTDT(){
 			data_set = NULL;

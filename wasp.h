@@ -125,6 +125,7 @@ map<int, vector<Sample*> > descendTree3(Sample*, int);
 void compileOutputs(vector<Marker*>*, vector<Family*>*, vector<Sample*>*);
 void webcheck(vector<string>, map<string, vector<string> >);
 map<string, vector<string> > getBatchArgs(string);
+vector<ORDER> optimize(ORDER*);
 
 
 //typedef list<int> ORDER;

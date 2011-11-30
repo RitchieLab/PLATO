@@ -70,6 +70,8 @@ class ProcessCaConChisq : public Process{
 		double gpval_allele_exact;
 		double godds_ratio;
 
+		vector<Marker*> good_markers;
+
 	public:
 		ProcessCaConChisq(){
 			data_set = NULL;

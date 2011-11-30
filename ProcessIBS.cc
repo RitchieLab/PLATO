@@ -56,6 +56,7 @@ void ProcessIBS::filter(){
 
 void ProcessIBS::process(DataSet* ds){
 	data_set = ds;
+	vector<Marker*> good_markers = findValidMarkers(data_set->get_markers(), &options);
 
 	IBS ibs;
 	ibs.resetDataSet(data_set);
@@ -111,7 +112,7 @@ void ProcessIBS::process(DataSet* ds){
 		vector<Sample*>* samps = data_set->get_samples();
 		map<string, vector<string> > pairs = options.get_ibs_pairs();
 		map<string, vector<string> >::iterator iter;
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 		for(iter = pairs.begin(); iter != pairs.end(); iter++){
 			string s1 = (string)iter->first;
 			vector<string> tokens = General::ParseDelimitedLine(s1);
@@ -139,8 +140,8 @@ void ProcessIBS::process(DataSet* ds){
 					continue;
 				}
 				for(int m = 0; m < msize; m++){
-					int value = ibs.calcPairLocus(samp1loc, samp2loc, m);
-					rawout << data_set->get_locus(m)->getProbeID() << "\t" << s1 << "\t" << s2 << "\t" << value << endl;
+					int value = ibs.calcPairLocus(samp1loc, samp2loc, good_markers[m]);
+					rawout << good_markers[m]->getProbeID() << "\t" << s1 << "\t" << s2 << "\t" << value << endl;
 				}
 			}
 		}
@@ -182,7 +183,7 @@ void ProcessIBS::process(DataSet* ds){
 		map<string, vector<string> > pairs = options.get_ibs_trio_pairs();
 		map<string, vector<string> >::iterator iter;
 
-		int msize = data_set->num_loci();
+		int msize = good_markers.size();//data_set->num_loci();
 		if(pairs.size() > 0){
 			for(iter = pairs.begin(); iter != pairs.end(); iter++){
 				string s1 = (string)iter->first;
@@ -216,11 +217,11 @@ void ProcessIBS::process(DataSet* ds){
 					double maternal = 0;
 					int total_snps = 0;
 					for(int m = 0; m < msize; m++){
-						Marker* mark = data_set->get_locus(m);
+						Marker* mark = good_markers[m];//data_set->get_locus(m);
 						if(mark->isEnabled() && mark->getChrom() != opts::_CHRX_ &&
-								mark->getChrom() != opts::_CHRY_ && mark->getChrom() != opts::_CHRXY_ &&
-								isValidMarker(mark, &options, prev_bploc, prev_chrom)){
-							vector<double> value = ibs.calcTriosLocus(fam1loc, fam2loc, m);
+								mark->getChrom() != opts::_CHRY_ && mark->getChrom() != opts::_CHRXY_){// &&
+//								isValidMarker(mark, &options, prev_bploc, prev_chrom)){
+							vector<double> value = ibs.calcTriosLocus(fam1loc, fam2loc, mark);
 							paternal += value[0];
 							maternal += value[1];
 							total_snps++;
@@ -256,9 +257,9 @@ void ProcessIBS::process(DataSet* ds){
 					double maternal = 0;
 					int total_snps = 0;
 					for(int m = 0; m < msize; m++){
-						Marker* mark = data_set->get_locus(m);
-						if(mark->isEnabled() && isValidMarker(mark, &options, prev_bploc, prev_chrom)){
-							vector<double> value = ibs.calcTriosLocus(f1, f2, m);
+						Marker* mark = good_markers[m];//data_set->get_locus(m);
+						if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_bploc, prev_chrom)){
+							vector<double> value = ibs.calcTriosLocus(f1, f2, mark);
 							paternal += value[0];
 							maternal += value[1];
 							total_snps++;

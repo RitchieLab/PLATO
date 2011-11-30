@@ -88,15 +88,15 @@ void ProcessRunTDT::PrintSummary(){
 
 	}
 
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 
 	double zt = ltqnorm(1 - (1 - options.getCI()) / 2);
 
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
-		if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
-			output << data_set->get_locus(i)->toString() << "\t";
+		if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+			output << good_markers[i]->toString() << "\t";
 				//<< ((float)(*markers)[i]->getBPLOC()/1000000.0f) << "\t"
 			output << chi[i] << "\t"
 				<< pval[i] << "\t"
@@ -104,8 +104,8 @@ void ProcessRunTDT::PrintSummary(){
 			//output.precision(4);
 			output << fams_used[i] << "\t"
 				<< trans[i] << ":" << untrans[i] << "\t";
-			if(!data_set->get_locus(i)->isMicroSat()){
-				output << data_set->get_locus(i)->getAllele1() << ":" << data_set->get_locus(i)->getAllele2();
+			if(!good_markers[i]->isMicroSat()){
+				output << good_markers[i]->getAllele1() << ":" << good_markers[i]->getAllele2();
 			}
 			else{
 				output << "NA";
@@ -139,14 +139,14 @@ void ProcessRunTDT::PrintSummary(){
 */
 				//output.precision(100);
 		}
-		data_set->get_locus(i)->setFlag(false);
+		good_markers[i]->setFlag(false);
 	}
 	if(options.doMultCompare()){
 		MultComparison mc(options);
 		vector<int> tcnt;
 		mc.calculate(chi, tcnt);
-		for(int i = 0; i < (int)data_set->num_loci(); i++){
-		compout << data_set->get_locus(i)->toString() << "\t"
+		for(int i = 0; i < good_markers.size(); i++){
+		compout << good_markers[i]->toString() << "\t"
 			<< "TDT\t"
 			<< pval[i] << "\t"
 			<< mc.get_genomic_control(i) << "\t"
@@ -170,18 +170,18 @@ void ProcessRunTDT::PrintSummary(){
 
 void ProcessRunTDT::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int size = data_set->num_loci();
+		int size = good_markers.size();//data_set->num_loci();
 		int prev_base = 0;
 		int prev_chrom = -1;
 		for(int i = 0; i < size; i++){
-			if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				bool inc = false;
 				if(options.doThreshMarkersHigh() && dGreater(pval[i], options.getThreshMarkersHigh())){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
 				if(options.doThreshMarkersLow() && dLess(pval[i],options.getThreshMarkersLow())){
-					data_set->get_locus(i)->setEnabled(false);
+					good_markers[i]->setEnabled(false);//data_set->get_locus(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -207,10 +207,12 @@ void ProcessRunTDT::FilterSummary(){
 void ProcessRunTDT::process(DataSet* ds){
 	data_set = ds;
 
+	good_markers = findValidMarkers(data_set->get_markers(), &options);
+
 	RunTDT tdt(data_set);
 	tdt.setOptions(options);
 
-	int msize = data_set->num_loci();
+	int msize = good_markers.size();//data_set->num_loci();
 	chi.resize(msize);
 	pval.resize(msize);
 	fams_used.resize(msize);
@@ -222,8 +224,8 @@ void ProcessRunTDT::process(DataSet* ds){
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int m = 0; m < msize; m++){
-		if(data_set->get_locus(m)->isEnabled() && isValidMarker(data_set->get_locus(m), &options, prev_base, prev_chrom)){
-			tdt.calculate(m);
+		if(good_markers[m]->isEnabled()){//data_set->get_locus(m)->isEnabled() && isValidMarker(data_set->get_locus(m), &options, prev_base, prev_chrom)){
+			tdt.calculate(good_markers[m]);
 
 			pval[m] = tdt.getPval();
 			chi[m] = tdt.getChi();

@@ -53,6 +53,8 @@ class ProcessMarkerGenoEff : public Process{
 		map<string, vector<int> > groupzeros;
 		map<string, vector<int> > grouptotal;
 
+		vector<Marker*> good_markers;
+
 	public:
 		ProcessMarkerGenoEff(){
 			data_set = NULL;
