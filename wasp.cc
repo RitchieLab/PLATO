@@ -2114,6 +2114,7 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
+#ifdef USE_R
 			case e_mars:
 				newstep = new Step("Earth/MARs Calculation", "", false);
 				if(tempproc != NULL){
@@ -2131,6 +2132,7 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
+#endif
 			case e_marker_geno_eff:
 				newstep = new Step("Marker Genotyping Efficiency", "", false);
 				if(tempproc != NULL){
@@ -2972,6 +2974,7 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				delete newstep;
 				break;
+#ifdef USE_R
 			case e_mars:
 				newstep = new Step("Earth/MARs Calculation", "", false);
 				if(tempproc != NULL){
@@ -2991,6 +2994,7 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				delete newstep;
 				break;
+#endif
 			case e_marker_geno_eff:
 				newstep = new Step("Marker Genotyping Efficiency", "", false);
 				if(tempproc != NULL){

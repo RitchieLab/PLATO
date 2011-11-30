@@ -3,9 +3,10 @@
 PROGRAMS=methods plato
 METHODDIR=method_lib
 LIBDIR=-Llib -L/opt/local/lib
-LIB=-lm -lR -lmethods -lintl -lboost_thread-mt#-lreadline -lintl -lglib-2.0
+LIB=-lm -lmethods -lintl -lboost_thread-mt#-lreadline -lintl -lglib-2.0
 INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include#-I/usr/local/include
 SYS=MAC
+#R=USE_R
 
 #
 # # Default target builds all programs: (make)
@@ -39,13 +40,19 @@ ifeq ($(SYS),MAC)
   CC += -DMAC
 endif
 
-OBJECTS = ProcessKinship.o ProcessFst.o ProcessEarth.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
+OBJECTS = ProcessKinship.o ProcessFst.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
 		  ProcessMendelianErrors.o ProcessHWEquilibrium.o ProcessGenderCheck.o ProcessRunTDT.o ProcessGRROutput.o dcdflib.o ProcessPEDOutput.o ProcessBINOutput.o \
 		  ProcessCaConChisq.o ipmpar.o ProcessSTRUCTOutput.o ProcessPHASEOutput.o ProcessEigenstratOutput.o \
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
 		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o ProcessLinearReg.o ProcessIBS.o ProcessFilterProcess.o \
 		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o
+
+ifeq ($(R),USE_R)
+	CC += -DUSE_R
+	OBJECTS += ProcessEarth.o
+	LIB += -lR
+endif
 
 #
 # # Generic .cc -> .o production.
