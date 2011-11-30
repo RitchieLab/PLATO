@@ -73,7 +73,7 @@ void Kinship::create_generation(Family* fam){
     vector<Sample*>* samples = fam->getSamples();
 
     for(unsigned int i = 0; i < samples->size(); i++){
-    	Sample* samp = (*samples)[i];
+    	Sample* samp = (*samples).at(i);
     	Sample* dad = samp->getDad();
     	Sample* mom = samp->getMom();
 
@@ -118,9 +118,9 @@ void Kinship::calculate(Family* family){
 
 	vector<Sample*>* samples = family->getSamples();
 	for(unsigned int i = 0; i < samples->size(); i++){
-		coefficients[getString<int>(i) + " " + getString<int>(i)] = phi2((*samples)[i]->getDad(), (*samples)[i]->getMom(), family);
+		coefficients[getString<int>(i) + " " + getString<int>(i)] = phi2((*samples).at(i)->getDad(), (*samples).at(i)->getMom(), family);
 		for(unsigned int j = i + 1; j < samples->size(); j++){
-			coefficients[getString<int>(i) + " " + getString<int>(j)] = phi2((*samples)[i], (*samples)[j], family);
+			coefficients[getString<int>(i) + " " + getString<int>(j)] = phi2((*samples).at(i), (*samples).at(j), family);
 		}
 	}
 
@@ -145,31 +145,31 @@ void Kinship::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int m = 0; m < msize; m++){
-		if((*markers)[m]->isEnabled()){
+		if((*markers).at(m)->isEnabled()){
             if(options.doChrom()){
-                if(!options.checkChrom((*markers)[m]->getChrom())){
+                if(!options.checkChrom((*markers).at(m)->getChrom())){
                     continue;
                 }
-                if(!options.checkBp((*markers)[m]->getBPLOC())){
+                if(!options.checkBp((*markers).at(m)->getBPLOC())){
                     continue;
                 }
             }
             if(options.doBpSpace()){
 	            if(prev_base == 0){
-	                prev_base = (*markers)[m]->getBPLOC();
-                    prev_chrom = (*markers)[m]->getChrom();
+	                prev_base = (*markers).at(m)->getBPLOC();
+                    prev_chrom = (*markers).at(m)->getChrom();
                 }
                 else{
- 	               if((*markers)[m]->getChrom() == prev_chrom && (((*markers)[m]->getBPLOC() - prev_base) < options.getBpSpace())){
-	               	   (*markers)[m]->setFlag(true);
+ 	               if((*markers).at(m)->getChrom() == prev_chrom && (((*markers).at(m)->getBPLOC() - prev_base) < options.getBpSpace())){
+	               	   (*markers).at(m)->setFlag(true);
 				   	   continue;
                    }
-                   prev_base = (*markers)[m]->getBPLOC();
-                   prev_chrom = (*markers)[m]->getChrom();
+                   prev_base = (*markers).at(m)->getBPLOC();
+                   prev_chrom = (*markers).at(m)->getChrom();
                 }
             }
-			if(!(*markers)[m]->isMicroSat()){
-				int mloc = (*markers)[m]->getLoc();
+			if(!(*markers).at(m)->isMicroSat()){
+				int mloc = (*markers).at(m)->getLoc();
 
 
 				//start new
@@ -177,7 +177,7 @@ void Kinship::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m
 				double trans1 = 0;
 				double trans2 = 0;
 				for(int i = 0; i < ssize; i++){
-					Sample* samp = (*samples)[i];
+					Sample* samp = (*samples).at(i);
 					if(samp != NULL && samp->getDad() != NULL && samp->getMom() != NULL && samp->getDadID() != "0" && samp->getMomID() != "0" && samp->isEnabled() && samp->getDad()->isEnabled() && samp->getMom()->isEnabled()){
 						Sample* dad = samp->getDad();
 						Sample* mom = samp->getMom();
@@ -187,7 +187,7 @@ void Kinship::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m
 						int trB = 0; //transmitted allele from second het parent
 						int unB = 0; //untransmitted allele from second het parent
 
-						if(!(*markers)[m]->isMicroSat()){
+						if(!(*markers).at(m)->isMicroSat()){
 							bool pat1 = dad->getAone(mloc);
 							bool pat2 = dad->getAtwo(mloc);
 							bool mat1 = mom->getAone(mloc);
@@ -289,12 +289,12 @@ void Kinship::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m
 					pvalue = Helpers::p_from_chi(tdt_chisq, df);
 				}
 
-				pval[m] = pvalue;
-				chi[m] = tdt_chisq;
-				fams_used[m] = fams;
-				maf[m] = -1;
-				trans[m] = trans1;
-				untrans[m] = trans2;
+				pval.at(m) = pvalue;
+				chi.at(m) = tdt_chisq;
+				fams_used.at(m) = fams;
+				maf.at(m) = -1;
+				trans.at(m) = trans1;
+				untrans.at(m) = trans2;
 			}
 			else{
 				//calculate pval for micro satellites
@@ -311,7 +311,7 @@ void Kinship::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m
 				//-------------------
 				//
 				//Finds Allele/Other combination with lowest pvalue and chooses that one to output.
-				Marker* mark = (*markers)[m];
+				Marker* mark = (*markers).at(m);
 				int numalleles = mark->getNumAlleles();
 				vector<double> results;
 				results.resize(numalleles, 0);

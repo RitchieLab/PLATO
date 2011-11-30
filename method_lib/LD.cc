@@ -50,7 +50,7 @@ void LD::FilterSummary(){
 void LD::PrintSummary(){
 	int msize = markers->size();
 	for(int m = 0; m < msize; m++){
-		(*markers)[m]->setFlag(false);
+		(*markers).at(m)->setFlag(false);
 	}
 
 }
@@ -73,7 +73,7 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	variance.resize(nss);
 
 	for (int j=0; j<nss; j++)
-		variance[j].resize(nss,0);
+		variance.at(j).resize(nss,0);
 
 	////////////////////////////
 	//Iterate over SNPs in SET
@@ -81,15 +81,15 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	int msize = pSNP.size();
 	int fsize = families->size();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = pSNP[m];
+		Marker* mark = pSNP.at(m);
 		if(mark->isEnabled() && !mark->isFlagged()){
 			int mloc = mark->getLoc();
 			for(int f = 0; f < fsize; f++){
-				Family* fam = (*families)[f];
+				Family* fam = (*families).at(f);
 				if(fam->isEnabled()){
 					vector<Sample*>* founders = fam->getFounders();
 					for(int s = 0; s < (int)founders->size(); s++){
-						Sample* samp = (*founders)[s];
+						Sample* samp = (*founders).at(s);
 						if(samp->isEnabled()){
 							//increase general, flagged sample size (only count once)
 							if(m == 0){
@@ -98,24 +98,24 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 							if(!mark->isMicroSat()){
 								if(samp->getAone(mloc)){
 									if(samp->getAtwo(mloc) && !samp->getAmissing(mloc)){ //11 homozyg
-										mean[m]++;
-										cnt[m]++;
+										mean.at(m)++;
+										cnt.at(m)++;
 									}
 								}
 								else{
-									cnt[m]++;
+									cnt.at(m)++;
 									if(!samp->getAtwo(mloc)){ //00 homozyg
-										mean[m]--;
+										mean.at(m)--;
 									}
 								}
 							}
 							else{
 								if(samp->getAbone(mloc) == samp->getAbtwo(mloc) && samp->getAbone(mloc) != -1){
-									mean[m]++;
-									cnt[m]++;
+									mean.at(m)++;
+									cnt.at(m)++;
 								}
 								else{
-									cnt[m]++;
+									cnt.at(m)++;
 								}
 							}
 						}
@@ -131,7 +131,7 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	  //
 
 	for(int j = 0; j < nss; j++){
-		mean[j] /= (double)cnt[j];
+		mean.at(j) /= (double)cnt.at(j);
 	}
 
 
@@ -141,22 +141,22 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	  //    // First SNP
 	  //
 	for(int m1 = 0; m1 < (int)pSNP.size(); m1++){
-		Marker* mark1 = pSNP[m1];
+		Marker* mark1 = pSNP.at(m1);
 		if(mark1->isEnabled() && !mark1->isFlagged()){
 			int mloc1 = mark1->getLoc();
 			for(int m2 = m1; m2 < (int)pSNP.size(); m2++){
-				Marker* mark2 = pSNP[m2];
+				Marker* mark2 = pSNP.at(m2);
 				if(mark2->isEnabled() && !mark2->isFlagged()){
 					int mloc2 = mark2->getLoc();
 
 					for(int f = 0; f < fsize; f++){
-						Family* fam = (*families)[f];
+						Family* fam = (*families).at(f);
 						if(fam->isEnabled()){
 							vector<Sample*>* founders = fam->getFounders();
 							for(int s = 0; s < (int)founders->size(); s++){
-								Sample* samp = (*founders)[s];
+								Sample* samp = (*founders).at(s);
 								if(samp->isEnabled()){
-									double v1 = mean[m1], v2=mean[m2];
+									double v1 = mean.at(m1), v2=mean.at(m2);
 									//first snp
 									if(!mark1->isMicroSat()){
 										if(samp->getAone(mloc1)){
@@ -209,7 +209,7 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 									}
 									//contribution to covariance term
 									//mean substitution
-									variance[m1][m2] += (v1 - mean[m1]) * (v2 - mean[m2]);
+									variance.at(m1).at(m2) += (v1 - mean.at(m1)) * (v2 - mean.at(m2));
 								}
 							}
 						}
@@ -222,8 +222,8 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	//make symmetric covariance matrix
 	for(int i = 0; i < nss; i++){
 		for(int j = i; j < nss; j++){
-			variance[i][j] /= (double)(flagged_n);
-			variance[j][i] = variance[i][j];
+			variance.at(i).at(j) /= (double)(flagged_n);
+			variance.at(j).at(i) = variance.at(i).at(j);
 		}
 	}
 
@@ -246,16 +246,16 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 	// Make 'm' a correlation matrix
 	for (int i=0; i<p; i++)
 		for (int j=0; j<p; j++)
-	        r[i][j] = m[i][j] / sqrt(m[i][i] * m[j][j]);
+	        r.at(i).at(j) = m.at(i).at(j) / sqrt(m.at(i).at(i) * m.at(j).at(j));
 
 	// Number of excluded items
 	int it = 0;
 
 	// Any SNPs with zero variance should be automatically excluded
 	for (int i=0; i<p; i++)
-	    if ( r[i][i] == 0 || !Helpers::realnum(r[i][i]) )
+	    if ( r.at(i).at(i) == 0 || !Helpers::realnum(r.at(i).at(i)) )
 	    {
-	      cur[i] = false;
+	      cur.at(i) = false;
 	      it++;
 	    }
 
@@ -266,13 +266,13 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 		bool done = true;
 		for (int i=0; i<p-1; i++)
 		{
-			if (cur[i]){
+			if (cur.at(i)){
 			    for (int j=i+1;j<p; j++)
 		        {
-			        if (cur[j]) {
-				        if ( fabs(r[i][j]) > options.getLDPWthreshold() )
+			        if (cur.at(j)) {
+				        if ( fabs(r.at(i).at(j)) > options.getLDPWthreshold() )
 				        {
-					        cur[i] = false;
+					        cur.at(i) = false;
 				            it++;
 				            done = false;
 				            break;
@@ -299,12 +299,12 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 
 		for (int i=0;i<p;i++)
 		{
-			if ( cur[i] )
+			if ( cur.at(i) )
 			{
 				vector<double> mt;
 		        for (int j=0;j<p;j++)
-		 	       if ( cur[j] )
-				       mt.push_back(r[i][j]);
+		 	       if ( cur.at(j) )
+				       mt.push_back(r.at(i).at(j));
 				u.push_back(mt);
 			}
 		}
@@ -321,9 +321,9 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
         int maxI = 0;
         int cnt=0;
         for (int i=0;i<p;i++)
-		    if ( cur[i] )
+		    if ( cur.at(i) )
 		    {
-		        double vif = u[cnt][cnt];
+		        double vif = u.at(cnt).at(cnt);
 		        if ( Helpers::dLess(maxVIF, vif) )
                 {
 		            maxVIF = vif;
@@ -336,7 +336,7 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 		if ( Helpers::dGreater(maxVIF,threshold) )
 		{
 			// exclude this item
-			cur[maxI] = false;
+			cur.at(maxI) = false;
 		}
 		else{
 			break;
@@ -353,13 +353,13 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 
 vector<int> LD::getChromosomeMarkerRange(vector<Marker*>* marks, int chrom){
 	vector<int> m(2);
-	m[0] = -1;
-	m[1] = -1;
+	m.at(0) = -1;
+	m.at(1) = -1;
 	for(int i = 0; i < (int)marks->size(); i++){
-		Marker* mark = (*marks)[i];
+		Marker* mark = (*marks).at(i);
 		if(mark->isEnabled() && mark->getChrom() == chrom){
-			if(i <= m[0] || m[0] == -1) m[0] = i;
-			if(i >= m[1] || m[1] == -1) m[1] = i;
+			if(i <= m.at(0) || m.at(0) == -1) m.at(0) = i;
+			if(i >= m.at(1) || m.at(1) == -1) m.at(1) = i;
 		}
 	}
 	return m;
@@ -367,12 +367,12 @@ vector<int> LD::getChromosomeMarkerRange(vector<Marker*>* marks, int chrom){
 
 void LD::setMarkerRange(){
 		vector<int> m = getChromosomeMarkerRange(markers, run_chr);
-		if(m[0] == -1 || m[1] == -1){
+		if(m.at(0) == -1 || m.at(1) == -1){
 			cerr << "blah blah blha error getchrommarkrange\n";
 			throw MethodException("blah blah blha error getchrommarkrange\n");
 		}
-		run_start = m[0];
-		run_end = m[1];
+		run_start = m.at(0);
+		run_end = m.at(1);
 }
 
 void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vector<int>* mm){
@@ -390,9 +390,9 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int m = 0; m < (int)markers->size(); m++){
-		if((*markers)[m]->getChrom() < opts::_CHRX_ && Helpers::isValidMarker((*markers)[m], &options, prev_base, prev_chrom)){
-			if((*markers)[m]->isEnabled() && !(*markers)[m]->isFlagged()){
-				chroms[(*markers)[m]->getChrom()] = 1;
+		if((*markers).at(m)->getChrom() < opts::_CHRX_ && Helpers::isValidMarker((*markers).at(m), &options, prev_base, prev_chrom)){
+			if((*markers).at(m)->isEnabled() && !(*markers).at(m)->isFlagged()){
+				chroms[(*markers).at(m)->getChrom()] = 1;
 			}
 		}
 	}
@@ -430,8 +430,8 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 			while(s2 <= run_end){
 				vector<Marker*> pSNP(0);
 				for(int l = s1; l <= s2; l++){
-					if(include[l] && (*markers)[l]->isEnabled() && !(*markers)[l]->isFlagged()){
-						pSNP.push_back((*markers)[l]);
+					if(include.at(l) && (*markers).at(l)->isEnabled() && !(*markers).at(l)->isFlagged()){
+						pSNP.push_back((*markers).at(l));
 					}
 				}
 
@@ -466,8 +466,8 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 				int k=0;
 				for(int l=s1; l<=s2; l++){
 					//update main list bu do not get back already excluded snps
-					if(include[l] && !cur[k++]){
-						include[l] = false;
+					if(include.at(l) && !cur.at(k++)){
+						include.at(l) = false;
 					}
 				}
 
@@ -492,24 +492,24 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 			// record what is in, what is out
 			int cnt_in = 0, cnt_out = 0, cnt_dis = 0, cnt_din = 0, cnt_dout = 0;
 			for(int l =run_start; l<= run_end; l++){
-				if(!(*markers)[l]->isEnabled()){
+				if(!(*markers).at(l)->isEnabled()){
 					cnt_dis++;
 				}
 			}
 			for(int l = run_start; l<= run_end; l++){
-				if(include[l]){
+				if(include.at(l)){
 					//output to IN file
-					LDIN << (*markers)[l]->toString() << endl;
+					LDIN << (*markers).at(l)->toString() << endl;
 					cnt_in++;
-					if((*markers)[l]->isEnabled() && !(*markers)[l]->isFlagged()){
+					if((*markers).at(l)->isEnabled() && !(*markers).at(l)->isFlagged()){
 						cnt_din++;
 					}
 				}
 				else{
 					//output to OUT file
-					LDOUT << (*markers)[l]->toString() << endl;
+					LDOUT << (*markers).at(l)->toString() << endl;
 					cnt_out++;
-					if((*markers)[l]->isEnabled() && !(*markers)[l]->isFlagged()){
+					if((*markers).at(l)->isEnabled() && !(*markers).at(l)->isFlagged()){
 						cnt_dout++;
 					}
 				}
@@ -521,8 +521,8 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 
 		if(options.doLDchop()){
 			for(int i = 0; i < (int)include.size(); i++){
-				if(!include[i] && (*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
-					(*markers)[i]->setEnabled(false);
+				if(!include.at(i) && (*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
+					(*markers).at(i)->setEnabled(false);
 					orig_num_markers++;
 				}
 			}
@@ -556,7 +556,7 @@ vector<double> LD::correlation2SNP(Marker* pri, Marker* sec){
 	int sloc = sec->getLoc();
 
 	for(int i = 0; i < (int)samples->size(); i++){
-		Sample* samp = (*samples)[i];
+		Sample* samp = (*samples).at(i);
 		if(!samp->isFounder()){
 			continue;
 		}
@@ -642,17 +642,17 @@ vector<double> LD::correlation2SNP(Marker* pri, Marker* sec){
 	double var1 = X2 - X*X;
 	double var2 = Y2 - Y*Y;
 	double D = XY - X*Y;
-	results[0] = (D*D)/(var1*var2);
+	results.at(0) = (D*D)/(var1*var2);
 
 	double dmax1 = (1-X)*Y;
 	double dmax2 = (X)*(1-Y);
 
 	double dmax = dmax1 < dmax2 ? dmax1 : dmax2;
 	if(dmax == 0){
-		results[1] = -1;
+		results.at(1) = -1;
 	}
 	else{
-		results[1] = D/dmax;
+		results.at(1) = D/dmax;
 	}
 
 	return results;
@@ -663,9 +663,9 @@ void LD::calcLDStatistics(){
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int m = 0; m < (int)markers->size(); m++){
-		if((*markers)[m]->getChrom() <= opts::_CHRX_ && Helpers::isValidMarker((*markers)[m], &options, prev_base, prev_chrom)){
-			if((*markers)[m]->isEnabled() && !(*markers)[m]->isFlagged()){
-				chroms[(*markers)[m]->getChrom()].push_back(m);
+		if((*markers).at(m)->getChrom() <= opts::_CHRX_ && Helpers::isValidMarker((*markers).at(m), &options, prev_base, prev_chrom)){
+			if((*markers).at(m)->isEnabled() && !(*markers).at(m)->isFlagged()){
+				chroms[(*markers).at(m)->getChrom()].push_back(m);
 			}
 		}
 	}
@@ -683,7 +683,7 @@ void LD::calcLDStatistics(){
 	for(citer = chroms.begin(); citer != chroms.end(); citer++){
 		vector<int> snps = citer->second;
 		for(int m = 0; m < (int)snps.size(); m++){
-			Marker* primary = (*markers)[snps[m]];
+			Marker* primary = (*markers)[snps.at(m)];
 			int s1 = m + 1;
 			int s2 = m + options.getLDWin() - 1;
 			if(s2 >= (int)snps.size()){
@@ -691,12 +691,12 @@ void LD::calcLDStatistics(){
 			}
 
 			while(s1 <= s2){
-				Marker* secondary = (*markers)[snps[s1]];
+				Marker* secondary = (*markers).at(snps.at(s1));
 				if((secondary->getBPLOC() - primary->getBPLOC()) > (options.getLDWinKB() * 1000)){
 					break;
 				}
 				vector<double> results = correlation2SNP(primary, secondary);
-				LD << primary->getChrom() << "\t" << primary->getProbeID() << "\t" << secondary->getChrom() << "\t" << secondary->getProbeID() << "\t" << results[0] << "\t" << results[1] << endl;
+				LD << primary->getChrom() << "\t" << primary->getProbeID() << "\t" << secondary->getChrom() << "\t" << secondary->getProbeID() << "\t" << results.at(0) << "\t" << results.at(1) << endl;
 				s1++;
 			}
 		}

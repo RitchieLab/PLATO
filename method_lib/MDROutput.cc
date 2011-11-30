@@ -43,7 +43,7 @@ void MDROutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -107,7 +107,7 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 	msize = good_markers.size();
 	mdr_log << "Excluding the following variations:" << endl;
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			if(mark->isMicroSat()){
 				mdr_log << mark->toString() << "\tMore than 2 alleles." << endl;
@@ -128,11 +128,11 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 	vector<bool> samp_flags(ssize, false);
 	if(!options.get_no_rules()){
 	for(int i = 0; i < ssize; i++){
-		Sample* samp = (*samples)[i];
+		Sample* samp = (*samples).at(i);
 		if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples())){
 			if(samp->getPheno() != 2 && samp->getPheno() != 1){
 				mdr_log << samp->toString() << "\tNot affected or unaffected." << endl;
-				samp_flags[samp->getLoc()] = true;
+				samp_flags.at(samp->getLoc()) = true;
 				continue;
 			}
 			else if(samp->getPheno() == 2){
@@ -142,7 +142,7 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 				controls++;
 			}
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];
+				Marker* mark = good_markers.at(m);
 				if(mark->isEnabled()){
 					if(mark->isMicroSat()){
 						continue;
@@ -172,7 +172,7 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 			mdr << "FamID\tIndID\tFather\tMother\tGender\tAff\t";
 		}
 		for(int m = 0; m < msize; m++){
-			Marker* mark = good_markers[m];
+			Marker* mark = good_markers.at(m);
 			if(mark->isEnabled()){
 				if(mark->isMicroSat()){
 					continue;
@@ -196,8 +196,8 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 		}
 	}
 	for(int i = 0; i < ssize; i++){
-		Sample* samp = (*samples)[i];
-		if((samp->isEnabled() ||(samp->isExcluded() && options.doIncExcludedSamples())) && !samp_flags[samp->getLoc()]){
+		Sample* samp = (*samples).at(i);
+		if((samp->isEnabled() ||(samp->isExcluded() && options.doIncExcludedSamples())) && !samp_flags.at(samp->getLoc())){
 			if(options.getMDRPedigreeOutput()){
 				mdr << samp->getFamID() << "\t";
 				mdr << samp->getInd() << "\t";
@@ -229,7 +229,7 @@ void MDROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 			}
 			bool first = true;
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];
+				Marker* mark = good_markers.at(m);
 				if(mark->isEnabled()){
 					if(mark->isMicroSat()){
 						continue;

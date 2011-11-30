@@ -70,9 +70,9 @@ vector<int> IBS::calcTrioTransmission(int f1, Marker* m){
 	vector<int> count (2, -9);
 	vector<Sample*>* fsamps = fam->getSamples();
 	if(mark != NULL && fam != NULL && fsamps->size() == 3){
-		Sample* mom = (*fsamps)[0];
-		Sample* dad = (*fsamps)[1];
-		Sample* child = (*fsamps)[2];
+		Sample* mom = (*fsamps).at(0);
+		Sample* dad = (*fsamps).at(1);
+		Sample* child = (*fsamps).at(2);
 		if(child->getDad() == NULL || child->getMom() == NULL){
 			if(mom->getDad() != NULL && mom->getMom() != NULL && mom->getChildren()->size() == 0){
 				Sample* temp = mom;
@@ -108,42 +108,42 @@ vector<int> IBS::calcTrioTransmission(int f1, Marker* m){
 
 		if(f1pa1 != f1pa2){
 			if(f1kid1 != f1kid2 && f1ma1 && f1ma2){
-				count[1] = 1;
+				count.at(1) = 1;
 			}
 			else if(f1kid1 && f1kid2 && f1ma1 && f1ma2){
-				count[1] = -1;
+				count.at(1) = -1;
 			}
 			else if(f1kid1 && f1kid2 && f1ma1 != f1ma2){
-				count[1] = -1;
+				count.at(1) = -1;
 			}
 			else if(!f1kid1 && !f1kid2 && f1ma1 != f1ma2){
-				count[1] = 1;
+				count.at(1) = 1;
 			}
 			else if(f1kid1 != f1kid2 && !f1ma1 && !f1ma2){
-				count[1] = -1;
+				count.at(1) = -1;
 			}
 			else if(!f1kid1 && !f1kid2 && !f1ma1 && !f1ma2){
-				count[1] = 1;
+				count.at(1) = 1;
 			}
 		}
 		if(f1ma1 != f1ma2){
 			if(f1kid1 != f1kid2 && f1pa1 && f1pa2){
-				count[0] = 1;
+				count.at(0) = 1;
 			}
 			else if(f1kid1 && f1kid2 && f1pa1 && f1pa2){
-				count[0] = -1;
+				count.at(0) = -1;
 			}
 			else if(f1kid1 && f1kid2 && f1pa1 != f1pa2){
-				count[0] = -1;
+				count.at(0) = -1;
 			}
 			else if(!f1kid1 && !f1kid2 && f1pa1 != f1pa2){
-				count[0] = 1;
+				count.at(0) = 1;
 			}
 			else if(f1kid1 != f1kid2 && !f1pa1 && !f1pa2){
-				count[0] = -1;
+				count.at(0) = -1;
 			}
 			else if(!f1kid1 && !f1kid2 && !f1pa1 && !f1pa2){
-				count[0] = 1;
+				count.at(0) = 1;
 			}
 		}
 	}
@@ -217,8 +217,8 @@ vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
 
 					//zero geno for fam1?
 					if((f1pa1 && f1pa2 && f1pa3) || (f1ma1 && f1ma2 && f1ma3) || (f1kid1 && f1kid2 && f1kid3)){
-						counts[0] = -1;
-						counts[1] = -1;
+						counts.at(0) = -1;
+						counts.at(1) = -1;
 						return counts;
 					}
 
@@ -297,8 +297,8 @@ vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
 
 					//zero geno for fam2?
 					if((f2pa1 && f2pa2 && f2pa3) || (f2ma1 && f2ma2 && f2ma3) || (f2kid1 && f2kid2 && f2kid3)){
-						counts[0] = -1;
-						counts[1] = -1;
+						counts.at(0) = -1;
+						counts.at(1) = -1;
 						return counts;
 					}
 					if(!f2kid1 && !f2kid2){
@@ -360,35 +360,35 @@ vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
 
 					//compare pedigrees transmissions
 					if(f1_allhet && f2_allhet){
-						counts[0] += 0.25;
-						counts[1] += 0.25;
+						counts.at(0) += 0.25;
+						counts.at(1) += 0.25;
 					}
 					else if(f1_allhet){
 						if(f2ptr != f2mtr){
-							counts[0] += 0.5;
-							counts[1] += 0.5;
+							counts.at(0) += 0.5;
+							counts.at(1) += 0.5;
 						}
 						else{
-							counts[0] += 0.25;
-							counts[1] += 0.25;
+							counts.at(0) += 0.25;
+							counts.at(1) += 0.25;
 						}
 					}
 					else if(f2_allhet){
 						if(f1ptr != f2mtr){
-							counts[0] += 0.5;
-							counts[1] += 0.5;
+							counts.at(0) += 0.5;
+							counts.at(1) += 0.5;
 						}
 						else{
-							counts[0] += 0.25;
-							counts[1] += 0.25;
+							counts.at(0) += 0.25;
+							counts.at(1) += 0.25;
 						}
 					}
 					else{
 						if(f1ptr == f2ptr){
-							counts[0]++;
+							counts.at(0)++;
 						}
 						if(f1mtr == f2mtr){
-							counts[1]++;
+							counts.at(1)++;
 						}
 					}
 
@@ -414,7 +414,7 @@ double IBS::calcPairAverage(int s1, int s2){
 	msize = good_markers.size();
 
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			int mloc = mark->getLoc();
 			if((samp1->getAone(mloc) && samp1->getAtwo(mloc) && samp1->getAmissing(mloc))

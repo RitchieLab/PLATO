@@ -175,19 +175,19 @@ class Sample{
 		void setFamID(string f){famid = f;};
 
 		void assignDetail(string d, string v){
-			details[d] = v;
+			details.at(d) = v;
 		};
 		void addCovariate(double v){covs.push_back(v);};
 		void resizeCovariates(int c){covs.resize(c);};
-		void setCovariate(double v, int l){covs[l] = v;};
+		void setCovariate(double v, int l){covs.at(l) = v;};
 		void set_covariate_vector(vector<double> v){covs = v;};
-		double getCovariate(int i){return covs[i];};
+		double getCovariate(int i){return covs.at(i);};
 		vector<double> getCovariateVector(){return covs;}
 		void resizeTraits(int t){traits.resize(t);};
 		void addTrait(double v){traits.push_back(v);};
-		void setTrait(double v, int l){traits[l] = v;};
+		void setTrait(double v, int l){traits.at(l) = v;};
 		void set_trait_vector(vector<double> v){traits = v;};
-		double getTrait(int i){return traits[i];};
+		double getTrait(int i){return traits.at(i);};
 		vector<double> getTraitVector(){return traits;}
 
 		string getDetailHeaders(){
@@ -232,13 +232,13 @@ class Sample{
 			}
 		};
 		void resizeDeletionCat(int s, char c){deletion_cat.resize(s, c);};
-		char getDeletionCat(int s){return deletion_cat[s];};
-		void setDeletionCat(int s, char c){deletion_cat[s] = c;};
+		char getDeletionCat(int s){return deletion_cat.at(s);};
+		void setDeletionCat(int s, char c){deletion_cat.at(s) = c;};
 		void resizeRoh(int s){roh.resize(s, false);};
 		vector<bool> getRoh(){return roh;};
-		bool getRohVal(int l){return roh[l];};
+		bool getRohVal(int l){return roh.at(l);};
 		void clearRoh(){roh.clear();};
-		void setRoh(int l, bool v){roh[l] = v;};
+		void setRoh(int l, bool v){roh.at(l) = v;};
 		void setME2error(bool v){isMEerror = v;};
 		bool IsMEerror(){return isMEerror;};
 		void addMEsaved(int v){
@@ -250,37 +250,37 @@ class Sample{
 		vector<int> getMEsaved(){return mesaved;};
 		int getMEsavedCount(){return mesaved.size();};
 		void setMEsaved(vector<int> v){mesaved = v;};
-		int getMEsaved(int l){return mesaved[l];};
+		int getMEsaved(int l){return mesaved.at(l);};
 		void clearMEsaved(){mesaved.clear();};
 		string genoToString(bool ms, int loc, vector<string> alleles){
 			string val = "";
 			if(!ms){
-				bool a1 = aone[loc];
-				bool a2 = atwo[loc];
-				bool a3 = missing[loc];
+				bool a1 = aone.at(loc);
+				bool a2 = atwo.at(loc);
+				bool a3 = missing.at(loc);
 				if(a1 && a2 && a3){
 					return "0/0";
 				}
 				if(!a1){
-					val += alleles[0];
+					val += alleles.at(0);
 				}
 				else{
-					val += alleles[1];
+					val += alleles.at(1);
 				}
 				if(!a2){
-					val += "/" + alleles[0];
+					val += "/" + alleles.at(0);
 				}
 				else{
-					val += "/" + alleles[1];
+					val += "/" + alleles.at(1);
 				}
 			}
 			else{
-				int a1 = micro_sat_alleles[loc][0];
-				int a2 = micro_sat_alleles[loc][1];
+				int a1 = micro_sat_alleles.at(loc).at(0);
+				int a2 = micro_sat_alleles.at(loc).at(1);
 				if(a1 == -1 && a2 == -1){
 					return "0/0";
 				}
-				val += alleles[a1] + "/" + alleles[a2];
+				val += alleles.at(a1) + "/" + alleles.at(a2);
 			}
 			return val;
 
@@ -288,31 +288,31 @@ class Sample{
 		string possibleToString(vector<string> alleles){
 			string val = "";
 			for(unsigned int i = 0; i < aoneposs.size(); i++){
-				if(aoneposs[i] && atwoposs[i] && amissingposs[i]){
+				if(aoneposs.at(i) && atwoposs.at(i) && amissingposs.at(i)){
 					val += "0/0";
 				}
 				else{
-					if(aoneposs[i] && atwoposs[i]){
-						val += alleles[1] + "/" + alleles[1];
+					if(aoneposs.at(i) && atwoposs.at(i)){
+						val += alleles.at(1) + "/" + alleles.at(1);
 					}
-					else if(!aoneposs[i] && !atwoposs[i]){
-						val += alleles[0] + "/" + alleles[0];
+					else if(!aoneposs.at(i) && !atwoposs.at(i)){
+						val += alleles.at(0) + "/" + alleles.at(0);
 					}
-					else if(!aoneposs[i] && atwoposs[i]){
-						val += alleles[0] + "/" + alleles[1];
+					else if(!aoneposs.at(i) && atwoposs.at(i)){
+						val += alleles.at(0) + "/" + alleles.at(1);
 					}
-					else if(aoneposs[i] && !atwoposs[i]){
-						val += alleles[1] + "/" + alleles[0];
+					else if(aoneposs.at(i) && !atwoposs.at(i)){
+						val += alleles.at(1) + "/" + alleles.at(0);
 					}
 				}
 				val += " ";
 			}
 			for(unsigned int i = 0; i < aboneposs.size(); i++){
-				if(aboneposs[i] < (int)alleles.size() && abtwoposs[i] < (int)alleles.size()){
-					val += alleles[aboneposs[i]] + "/" + alleles[abtwoposs[i]] + " ";
+				if(aboneposs.at(i) < (int)alleles.size() && abtwoposs.at(i) < (int)alleles.size()){
+					val += alleles.at(aboneposs.at(i)) + "/" + alleles.at(abtwoposs.at(i)) + " ";
 				}
 				else{
-					val += "(bad)" + getString<int>(aboneposs[i]) + "/" + getString<int>(abtwoposs[i]) + " ";
+					val += "(bad)" + getString<int>(aboneposs.at(i)) + "/" + getString<int>(abtwoposs.at(i)) + " ";
 				}
 			}
 			return val;
@@ -333,9 +333,9 @@ class Sample{
 		void setZygotes(vector<vector<int> > v){zygotes = v;};
 		void addZygotes(vector<vector<int> > v){
 			for(unsigned int i = 0; i < v.size(); i++){
-				vector<vector<int> >::iterator found = find(zygotes.begin(), zygotes.end(), v[i]);
+				vector<vector<int> >::iterator found = find(zygotes.begin(), zygotes.end(), v.at(i));
 				if(found == zygotes.end()){
-					zygotes.push_back(v[i]);
+					zygotes.push_back(v.at(i));
 				}
 			}
 		};
@@ -384,11 +384,11 @@ class Sample{
 		vector<int> getAbtwoPossible(){
 			return abtwoposs;
 		};
-		bool getAonePossibleVal(int l){return aoneposs[l];};
-		bool getAtwoPossibleVal(int l){return atwoposs[l];};
-		bool getAmissingPossibleVal(int l){return amissingposs[l];};
-		int getAbonePossibleVal(int l){return aboneposs[l];};
-		int getAbtwoPossibleVal(int l){return abtwoposs[l];};
+		bool getAonePossibleVal(int l){return aoneposs.at(l);};
+		bool getAtwoPossibleVal(int l){return atwoposs.at(l);};
+		bool getAmissingPossibleVal(int l){return amissingposs.at(l);};
+		int getAbonePossibleVal(int l){return aboneposs.at(l);};
+		int getAbtwoPossibleVal(int l){return abtwoposs.at(l);};
 		void setAonePossible(vector<bool> v){aoneposs = v;};
 		void setAtwoPossible(vector<bool> v){atwoposs = v;};
 		void setAmissingPossible(vector<bool> v){amissingposs = v;};
@@ -397,7 +397,7 @@ class Sample{
 		int validMSPossible(){
 			int count = 0;
 			for(unsigned int i = 0; i < aboneposs.size(); i++){
-				if(aboneposs[i] != -1 && abtwoposs[i] != -1){
+				if(aboneposs.at(i) != -1 && abtwoposs.at(i) != -1){
 					count++;
 				}
 			}
@@ -406,7 +406,7 @@ class Sample{
 		int validPossible(){
 			int count = 0;
 			for(unsigned int i = 0; i < aoneposs.size(); i++){
-				if(!(aoneposs[i] && !atwoposs[i])){
+				if(!(aoneposs.at(i) && !atwoposs.at(i))){
 					count++;
 				}
 			}
@@ -426,7 +426,7 @@ class Sample{
 
 		bool haveMicroSat(int b){
 			for(unsigned int i = 0; i < micro_sat_list.size(); i++){
-				if(micro_sat_list[i] == b){
+				if(micro_sat_list.at(i) == b){
 					return true;
 				}
 			}
@@ -434,7 +434,7 @@ class Sample{
 		};
 		int getMicroSat(int b){
 			for(unsigned int i = 0; i < micro_sat_list.size(); i++){
-				if(micro_sat_list[i] == b){
+				if(micro_sat_list.at(i) == b){
 					return i;
 				}
 			}
@@ -443,13 +443,13 @@ class Sample{
 		void addMicroSat(int b){
 			vector<int> a;
 			a.resize(2);
-			micro_sat_alleles[b] = a;
+			micro_sat_alleles.at(b) = a;
 		};
 		void addAbone(int m, int b){
-			micro_sat_alleles[m][0] = b;
+			micro_sat_alleles.at(m).at(0) = b;
 		};
 		void addAbtwo(int m, int b){
-			micro_sat_alleles[m][1] = b;
+			micro_sat_alleles.at(m).at(1) = b;
 		};
 		void addAbone(int b){
 			abone.push_back(b);
@@ -465,10 +465,10 @@ class Sample{
 			atwo.push_back(b);
 		};
 		void addAone(int i, bool b){
-			aone[i] = b;
+			aone.at(i) = b;
 		};
 		void addAtwo(int i, bool b){
-			atwo[i] = b;
+			atwo.at(i) = b;
 		};
 
 		int getAoneSize(){
@@ -487,27 +487,27 @@ class Sample{
 		};
 
 		bool getAone(int i){
-			return aone[i];
+			return aone.at(i);
 		};
 		bool getAtwo(int i){
-			return atwo[i];
+			return atwo.at(i);
 		};
 
 		int getAbone(int i){
-			return micro_sat_alleles[i][0];
+			return micro_sat_alleles.at(i).at(0);
 		};
 		int getAbtwo(int i){
-			return micro_sat_alleles[i][1];
+			return micro_sat_alleles.at(i).at(1);
 		};
 
 		void initializeTempAlleles(int loc){
-			tempaone = aone[loc];
-			tempatwo = atwo[loc];
+			tempaone = aone.at(loc);
+			tempatwo = atwo.at(loc);
 		};
 
 		void initializeTempBAlleles(int loc){
-			tempabone = abone[loc];
-			tempabtwo = abtwo[loc];
+			tempabone = abone.at(loc);
+			tempabtwo = abtwo.at(loc);
 		};
 
 		bool getTempAllele1(){
@@ -587,15 +587,15 @@ class Sample{
 		void setUsePheno(int ploc){pheno_loc = ploc;}
 		double getPheno(){
 			if(pheno_loc >= 0 && (int)traits.size() > pheno_loc){
-				return traits[pheno_loc];
+				return traits.at(pheno_loc);
 			}
 			return phenotype;
 		};
 
-		//returns trait[i] in trait list unless i >= traits size, then return phenotype
+		//returns trait.at(i) in trait list unless i >= traits size, then return phenotype
 		double getPheno(int i){
 			if(i >= 0 && (int)traits.size() > i){
-				return traits[i];
+				return traits.at(i);
 			}
 			return phenotype;
 		}
@@ -610,12 +610,12 @@ template <class T>
   // smd additions
   vector<bool> missing;
 
-  unsigned int get_genotype(unsigned int marker_index){return aone[marker_index]+atwo[marker_index]+missing[marker_index];}
+  unsigned int get_genotype(unsigned int marker_index){return aone.at(marker_index)+atwo.at(marker_index)+missing.at(marker_index);}
   void addAmissing(bool amiss){missing.push_back(amiss);}
   void addAmissing(int i, bool b){
-    missing[i] = b;
+    missing.at(i) = b;
   }
-	bool getAmissing(int i){return missing[i];};
+	bool getAmissing(int i){return missing.at(i);};
 };
 };
 

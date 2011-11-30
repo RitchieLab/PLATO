@@ -135,7 +135,7 @@ class SampleGenoEff{
 		};
 		PERCENT* getPerCutoff(){return &per_cutoff;};
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
-		void calculate(int s){calculate((*samples)[s]);};
+		void calculate(int s){calculate((*samples).at(s));};
 		void calculate(Sample*);
 		int getZeros(){return zeros_one;};
 		int getTotal(){return total_one;};

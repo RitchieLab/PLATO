@@ -31,15 +31,15 @@ void StepOptions::setUp(string s){
 
 	if(tokens.size() > 0){
 		for(int i = 0; i < (int)tokens.size(); i++){
-			map<string, Argument>::iterator found = s_ArgVals.find(tokens[i]);
+			map<string, Argument>::iterator found = s_ArgVals.find(tokens.at(i));
 			if(found == s_ArgVals.end()){
-				opts::printLog("Argument: " + tokens[i] + " is an invalid argument in " + options + "\n");
-				throw MethodException("Argument: " + tokens[i] + " is an invalid argument in " + options + "\n");
+				opts::printLog("Argument: " + tokens.at(i) + " is an invalid argument in " + options + "\n");
+				throw MethodException("Argument: " + tokens.at(i) + " is an invalid argument in " + options + "\n");
 			}
-			switch(s_ArgVals[tokens[i]]){
+			switch(s_ArgVals[tokens.at(i)]){
 				case s_lambda:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						double v = 0.0;
 						istringstream test(val);
 						if(!(test >> v)){
@@ -49,13 +49,13 @@ void StepOptions::setUp(string s){
 						do_fixed_lambda = true;
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 
 				case s_thresh_markers_min:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -70,13 +70,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_thresh_markers_max:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -91,13 +91,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_thresh_samples_min:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -112,13 +112,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_thresh_samples_max:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -133,13 +133,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_thresh_families_min:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -154,13 +154,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_thresh_families_max:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -175,13 +175,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ci:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -195,8 +195,8 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				//output synthesis view
@@ -213,12 +213,12 @@ void StepOptions::setUp(string s){
 					//epistasis opts
 				case s_epi_sets:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						setEpiSetsFilename(val);
 						setDoEpiSets(true);
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_epi_set_by_set:
@@ -229,7 +229,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_epi_alpha1:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -246,13 +246,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_epi_alpha2:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -266,23 +266,23 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				//biofilter
 				case s_bio_comparison_file:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						if(val.size() == 0){
-							throw MethodException("File name required for: " + tokens[(i - 1)] + "\n");
+							throw MethodException("File name required for: " + tokens.at(i-1) + "\n");
 						}
 						bio_comparison_file = val;
 					}
 					break;
 				case s_bio_offset_begin:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c])){
@@ -297,12 +297,12 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_bio_offset_end:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c])){
@@ -317,7 +317,7 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_bio_file_binary:
@@ -329,7 +329,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_chrom:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							if(val == "X" || val == "x"){
 								chrom = opts::_CHRX_;
@@ -355,49 +355,49 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 
 				case s_group_freq:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						setGroupFreqFile(val);
 						setDoGroupFreq(true);
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_override_out:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						override_out = val;
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_out:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						out = "_" + val;
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_sampbprange_filter:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						sampbprange_file = val;
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
                 case s_rem_missing_parents:
@@ -450,13 +450,13 @@ void StepOptions::setUp(string s){
 					break;
 				case s_config:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						setFilterProcessConfig(val);
 						hasFilterProcessConfig(true);
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 
@@ -468,7 +468,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_prevalence:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -482,8 +482,8 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				//transforms
@@ -491,7 +491,7 @@ void StepOptions::setUp(string s){
 				{
 					sqrt_transform = true;
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						vector<string> elems;
 						General::Tokenize(val, to_transform, ",");
 					}
@@ -501,7 +501,7 @@ void StepOptions::setUp(string s){
 				{
 					boxcox_transform = true;
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						vector<string> elems;
 						General::Tokenize(val, to_transform, ",");
 					}
@@ -512,7 +512,7 @@ void StepOptions::setUp(string s){
 					log_transform = true;
 
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						vector<string> elems;
 						General::Tokenize(val, to_transform, ",");
 					}
@@ -520,7 +520,7 @@ void StepOptions::setUp(string s){
 				}
 				case s_perms:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -534,13 +534,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_allelecustom:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							allelecustom = true;
 							custom_alleles = Helpers::readCustomAlleles(val);
@@ -551,8 +551,8 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_me_zero_l2_fams:
@@ -563,7 +563,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_bp_min:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -578,13 +578,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_bp_max:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -599,13 +599,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_bp_space:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -620,13 +620,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_disease:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							disease = val;
 						}catch(...){
@@ -635,13 +635,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ped_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							ped_file = val;
 							do_pedfile = true;
@@ -651,8 +651,8 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_mdr_gui_output:
@@ -660,7 +660,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_mdr_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							mdr_file = val;
 							do_mdrfile = true;
@@ -670,13 +670,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_mdr_ped_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							mdr_ped_file = val;
 							do_mdrpedfile = true;
@@ -686,13 +686,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_mdr_map_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							mdr_map_file = val;
 							do_mdrmapfile = true;
@@ -702,13 +702,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_map_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							map_file = val;
 							do_mapfile = true;
@@ -718,13 +718,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_tped_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							tped_file = val;
 							do_tpedfile = true;
@@ -734,13 +734,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_tfam_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							tfam_file = val;
 							do_tfamfile = true;
@@ -750,13 +750,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_bin_prefix:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							bin_prefix = val;
 							do_binfile = true;
@@ -766,13 +766,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_struct_strat_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							struct_strat_file = val;
 							stratification = true;
@@ -782,13 +782,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_covar_missing:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							covar_missing = val;
 						}catch(...){
@@ -797,13 +797,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_trait_missing:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							trait_missing = val;
 						}catch(...){
@@ -812,13 +812,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_group_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							group_file = val;
 							do_group_file = true;
@@ -828,13 +828,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_cluster_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							cluster_file = val;
 							do_cluster_file = true;
@@ -844,13 +844,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_covar_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							cov_file = val;
 							do_covs_file = true;
@@ -860,13 +860,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_covars_number:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							General::Tokenize(val, cov_use, ",");
 							do_covs = true;
@@ -881,13 +881,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_covars_name:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							General::Tokenize(val, cov_use, ",");
 							do_covs = true;
@@ -902,13 +902,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_trait_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							trait_file = val;
 							do_traits_file = true;
@@ -918,13 +918,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_traits_number:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							General::Tokenize(val, trait_use, ",");
 							do_traits = true;
@@ -939,13 +939,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_traits_name:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							General::Tokenize(val, trait_use, ",");
 							do_traits = true;
@@ -960,13 +960,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_loci:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							General::Tokenize(val, loci_use, ",");
 							if(loci_use.size() == 0){
@@ -979,13 +979,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_pheno_missing:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(val[c] != '-'){
@@ -1005,7 +1005,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_pheno:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						setPhenoName(val);
 						setUsePheno(true);
 					}
@@ -1013,7 +1013,7 @@ void StepOptions::setUp(string s){
 
 				case s_pheno_index:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
                         try{
                         	for(int c = 0; c < (int)val.size(); c++){
                         		if(!isdigit(val[c])){
@@ -1038,7 +1038,7 @@ void StepOptions::setUp(string s){
                 case s_homozyg_permute:
                     homozyg_permute = true;
                     if(i + 1 < (int)tokens.size()){
-                        string val = tokens[++i];
+                        string val = tokens.at(++i);
                         try{
                             for(int c = 0; c < (int)val.size(); c++){
                                 if(!isdigit(val[c]) && val[c] != '.'){
@@ -1052,8 +1052,8 @@ void StepOptions::setUp(string s){
                         }
                     }
                     else{
-                        opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-                        throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+                        opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+                        throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
                     }
                     break;
 				case s_homozyg_raw:
@@ -1061,7 +1061,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_homozyg_zeros:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1075,13 +1075,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_homozyg_min_samp:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1095,13 +1095,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_homozyg_span:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1115,13 +1115,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_homozyg_seq:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1137,15 +1137,15 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ld_regular:
 					if(i + 3 < (int)tokens.size()){
-						string win = tokens[++i];
-						string step = tokens[++i];
-						string threshold = tokens[++i];
+						string win = tokens.at(++i);
+						string step = tokens.at(++i);
+						string threshold = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)win.size(); c++){
 								if(!isdigit(win[c]) && win[c] != '.'){
@@ -1173,8 +1173,8 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ld_calc_only:
@@ -1184,7 +1184,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_ld_window:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1199,13 +1199,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ld_window_kb:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1220,13 +1220,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ld_step:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1241,15 +1241,15 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ld_pairwise:
 					if(i + 3 < (int)tokens.size()){
-						string win = tokens[++i];
-						string step = tokens[++i];
-						string threshold = tokens[++i];
+						string win = tokens.at(++i);
+						string step = tokens.at(++i);
+						string threshold = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)win.size(); c++){
 								if(!isdigit(win[c]) && win[c] != '.'){
@@ -1278,8 +1278,8 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_ld_chop:
@@ -1288,8 +1288,8 @@ void StepOptions::setUp(string s){
 						if(myfound == tokens.end()){
 							myfound = find(tokens.begin(), tokens.end(), "-ld-vif");
 							if(myfound == tokens.end()){
-								opts::printLog(tokens[i] + " requires either -ld-pairwise or -ld-vif on line: " + options + "\n");
-								throw MethodException(tokens[i] + " requires either -ld-pairwise or -ld-vif on line: " + options + "\n");
+								opts::printLog(tokens.at(i) + " requires either -ld-pairwise or -ld-vif on line: " + options + "\n");
+								throw MethodException(tokens.at(i) + " requires either -ld-pairwise or -ld-vif on line: " + options + "\n");
 							}
 						}
 					}
@@ -1298,83 +1298,83 @@ void StepOptions::setUp(string s){
 					break;
 				case s_filter_overall:
 					if(filter_file){
-						opts::printLog(tokens[i] + " is not allowed when -filter-file is specified on line: " + options + "\n");
-						throw MethodException(tokens[i] + " is not allowed when -filter-file is specified on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " is not allowed when -filter-file is specified on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " is not allowed when -filter-file is specified on line: " + options + "\n");
 					}
 					filter_overall = true;
 					break;
 				case s_filter_file:
 					if(filter_overall){
-						opts::printLog(tokens[i] + " is not allowed when -filter-overall is specified on line: " + options + "\n");
-						throw MethodException(tokens[i] + " is not allowed when -filter-overall is specified on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " is not allowed when -filter-overall is specified on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " is not allowed when -filter-overall is specified on line: " + options + "\n");
 					}
 					if(!opts::_FREQ_FILE_EXISTS_){
-						opts::printLog(tokens[i] + " is not allowed when -freq-file is not specified on the command line on line: " + options + "\n");
-						throw MethodException(tokens[i] + " is not allowed when -freq-file is not specified on the command line on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " is not allowed when -freq-file is not specified on the command line on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " is not allowed when -freq-file is not specified on the command line on line: " + options + "\n");
 					}
 					filter_file = true;
 					break;
 				case s_penetrance_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						penetrance_file = val;
 						penetrance_codes = true;
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_center_file:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						center_file = val;
 						center_codes = true;
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_unk_spouses:
 					if(unaff_spouses_only || founders_only || all_children || all || random_child){
-						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unaff-spouses-only, or -random-child on line: " + options + "\n");
-						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unaff-spouses-only, or -random-child on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " cannot be used with -all, -all-children, -founders-only, -unaff-spouses-only, or -random-child on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " cannot be used with -all, -all-children, -founders-only, -unaff-spouses-only, or -random-child on line: " + options + "\n");
 					}
 					unk_spouses = true;
 					break;
 				case s_unaff_spouses_only:
 					if(unk_spouses || founders_only || all_children || all || random_child){
-						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, or -random-child on line: " + options + "\n");
-						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, or -random-child on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, or -random-child on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, or -random-child on line: " + options + "\n");
 					}
 					unaff_spouses_only = true;
 					break;
 				case s_founders_only:
 					if(unaff_spouses_only || unk_spouses || all_children || all || random_child){
-						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
-						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " cannot be used with -all, -all-children, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " cannot be used with -all, -all-children, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
 					}
 					founders_only = true;
 					break;
 				case s_random_child:
 					if(unk_spouses || unaff_spouses_only || founders_only || all_children || all){
-						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, -unaff-spouses-only on line: " + options + "\n");
-						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, -unaff-spouses-only on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, -unaff-spouses-only on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, -unaff-spouses-only on line: " + options + "\n");
 					}
 					random_child = true;
 					break;
 				case s_all_children:
 					if(unk_spouses || unaff_spouses_only || founders_only || all || random_child){
-						opts::printLog(tokens[i] + " cannot be used with -all, -founders-only, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
-						throw MethodException(tokens[i] + " cannot be used with -all, -founders-only, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " cannot be used with -all, -founders-only, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " cannot be used with -all, -founders-only, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
 					}
 					all_children = true;
 					break;
 				case s_all:
 					if(unk_spouses || unaff_spouses_only || founders_only || all_children || random_child){
-						opts::printLog(tokens[i] + " cannot be used with -all-children, -founders-only, unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
-						throw MethodException(tokens[i] + " cannot be used with -all-children, -founders-only, unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " cannot be used with -all-children, -founders-only, unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " cannot be used with -all-children, -founders-only, unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
 					}
 					all = true;
 					break;
@@ -1392,7 +1392,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_deletion_span:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1408,13 +1408,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_random_repeat:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1430,13 +1430,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_random_markers:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1452,13 +1452,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " is not a valid value for line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " is not a valid value for line: " + options + "\n");
 					}
 					break;
 				case s_sets:
 					if(i + 1 < (int)tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int)val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1474,15 +1474,15 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 
 					//random samples
 				case s_rand_samps:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int) val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1495,7 +1495,7 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_rand_samps_repeat:
@@ -1503,7 +1503,7 @@ void StepOptions::setUp(string s){
 					break;
 				case s_sets_samps:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int) val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1517,22 +1517,22 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_percent_samps:
 					if(i + 1 < (int) tokens.size()){
 						percent_samps.clear();
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						vector<string> valtoks = General::ParseDelimitedLine(val, ",");
 						for(int vt = 0; vt < (int)valtoks.size(); vt++){
 							try{
-								for(int c = 0; c < (int) valtoks[vt].size(); c++){
-									if(!isdigit(valtoks[vt][c])){
+								for(int c = 0; c < (int) valtoks.at(vt).size(); c++){
+									if(!isdigit(valtoks.at(vt)[c])){
 										throw "oops!";
 									}
 								}
-								float percent = std::atof(valtoks[vt].c_str());
+								float percent = std::atof(valtoks.at(vt).c_str());
 								if(percent > 100.0f || percent < 0.0f){
 									throw MethodException("-percent-samps expects a values between 0-100\n");
 								}
@@ -1540,18 +1540,18 @@ void StepOptions::setUp(string s){
 								percent_samps.push_back(percent);
 							}
 							catch(...){
-								throw MethodException(valtoks[vt] + " is not a valid value for line: " + options + "\n");
+								throw MethodException(valtoks.at(vt) + " is not a valid value for line: " + options + "\n");
 							}
 						}
 
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_percent_cases:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int) val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1568,13 +1568,13 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 
 					break;
 				case s_percent_controls:
 					if(i + 1 < (int) tokens.size()){
-						string val = tokens[++i];
+						string val = tokens.at(++i);
 						try{
 							for(int c = 0; c < (int) val.size(); c++){
 								if(!isdigit(val[c]) && val[c] != '.'){
@@ -1591,37 +1591,37 @@ void StepOptions::setUp(string s){
 						}
 					}
 					else{
-						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
     // Linear Regression options
       case s_linr_mod_type:
 		if(i + 1 < (int)tokens.size()){
-			setLRModelType(tokens[++i]);
+			setLRModelType(tokens.at(++i));
 		}
 		else{
-			opts::printLog(tokens[i] + " requires a parameter.\n");
-			throw MethodException(tokens[i] + " requires a parameter.\n");
+			opts::printLog(tokens.at(i) + " requires a parameter.\n");
+			throw MethodException(tokens.at(i) + " requires a parameter.\n");
 		}
         break;
       case s_linr_condition:
     	  if(i + 1 < (int)tokens.size()){
     		  setLinRCondition(true);
-    		  setLinRConditionString(tokens[++i]);
+    		  setLinRConditionString(tokens.at(++i));
     	  }
     	  else{
-    		  opts::printLog(tokens[i] + " requires a parameter.\n");
-    		  throw MethodException(tokens[i] + " requires a parameter.\n");
+    		  opts::printLog(tokens.at(i) + " requires a parameter.\n");
+    		  throw MethodException(tokens.at(i) + " requires a parameter.\n");
     	  }
     	  break;
       case s_linr_condition_file:
     	  if(i + 1 < (int)tokens.size()){
     		  setLinRCondition(true);
-    		  setLinRConditionFile(tokens[++i]);
+    		  setLinRConditionFile(tokens.at(++i));
     	  }
     	  else{
-    		  opts::printLog(tokens[i] + " requires a parameter.\n");
-    		  throw MethodException(tokens[i] + " requires a parameter.\n");
+    		  opts::printLog(tokens.at(i) + " requires a parameter.\n");
+    		  throw MethodException(tokens.at(i) + " requires a parameter.\n");
     	  }
 		  break;
       case s_linr_interaction:
@@ -1643,21 +1643,21 @@ void StepOptions::setUp(string s){
       case s_ibs_pairs:
     	  if(i + 1 < (int)tokens.size()){
     		  setDoIBSPairs(true);
-    		  setIBSPairsFile(tokens[++i]);
+    		  setIBSPairsFile(tokens.at(++i));
     	  }
     	  else{
-    		  opts::printLog(tokens[i] + " requires a parameter.\n");
-    		  throw MethodException(tokens[i] + " requires a parameter.\n");
+    		  opts::printLog(tokens.at(i) + " requires a parameter.\n");
+    		  throw MethodException(tokens.at(i) + " requires a parameter.\n");
     	  }
 		  break;
       case s_ibs_trio_pairs:
     	  if(i + 1 < (int)tokens.size()){
     		  setDoIBSTrioPairs(true);
-    		  setIBSTrioPairsFile(tokens[++i]);
+    		  setIBSTrioPairsFile(tokens.at(++i));
     	  }
     	  else{
-    		  opts::printLog(tokens[i] + " requires a parameter.\n");
-    		  throw MethodException(tokens[i] + " requires a parameter.\n");
+    		  opts::printLog(tokens.at(i) + " requires a parameter.\n");
+    		  throw MethodException(tokens.at(i) + " requires a parameter.\n");
     	  }
 		  break;
       case s_ibs_all_pairs:
@@ -1701,16 +1701,16 @@ void StepOptions::setUp(string s){
         break;
       case s_lr_mod_type:
 		if(i + 1 < (int)tokens.size()){
-			setLRModelType(tokens[++i]);
+			setLRModelType(tokens.at(++i));
 		}
 		else{
-			opts::printLog(tokens[i] + " requires a parameter.\n");
-			throw MethodException(tokens[i] + " requires a parameter.\n");
+			opts::printLog(tokens.at(i) + " requires a parameter.\n");
+			throw MethodException(tokens.at(i) + " requires a parameter.\n");
 		}
         break;
       case s_lr_max_iter:
 		    if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1727,7 +1727,7 @@ void StepOptions::setUp(string s){
         //MARS
       case s_mars_maxterms:
 		    if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1743,7 +1743,7 @@ void StepOptions::setUp(string s){
         break;
       case s_mars_degree:
     	  if(i + 1 < (int) tokens.size()){
-    		  string val = tokens[++i];
+    		  string val = tokens.at(++i);
     		  try{
     			  for(int c = 0; c < (int) val.size(); c++){
     				  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1759,7 +1759,7 @@ void StepOptions::setUp(string s){
     	  break;
       case s_mars_nprune:		//added 09-28-2010 mcc
 			if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1791,11 +1791,11 @@ void StepOptions::setUp(string s){
         setCondLRIncludeInteractions(false);
         break;
       case s_cond_lr_mod_type:
-        setCondLRModelType(tokens[++i]);
+        setCondLRModelType(tokens.at(++i));
         break;
       case s_cond_lr_max_iter:
 		    if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1814,16 +1814,16 @@ void StepOptions::setUp(string s){
         setOnlySetThreshold(true);
       break;
       case s_uncert_coeff_total:
-        setUncertaintyCoeffTotalType(tokens[++i]);
+        setUncertaintyCoeffTotalType(tokens.at(++i));
       break;
       case s_llr_total:
-        setLikelihoodRatioTotalType(tokens[++i]);
+        setLikelihoodRatioTotalType(tokens.at(++i));
       break;
       case s_or_total:
-        setOddsRatioTotalType(tokens[++i]);
+        setOddsRatioTotalType(tokens.at(++i));
       break;
       case s_nmi_total:
-        setNMITotalType(tokens[++i]);
+        setNMITotalType(tokens.at(++i));
       break;
       case s_nmi_transposed:
         setNMITransposed(true);
@@ -1846,7 +1846,7 @@ void StepOptions::setUp(string s){
     	// MDRPDT
     	case s_mdrpdt_ptests:
     	  if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1862,7 +1862,7 @@ void StepOptions::setUp(string s){
     	  break;
     	case s_mdrpdt_randseed:
     	  if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1878,7 +1878,7 @@ void StepOptions::setUp(string s){
     	  break;
     	case s_mdrpdt_xvcount:
     	  if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1894,7 +1894,7 @@ void StepOptions::setUp(string s){
       	break;
       case s_mdrpdt_mincombo:
     	  if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1910,7 +1910,7 @@ void StepOptions::setUp(string s){
         break;
       case s_mdrpdt_maxcombo:
     	  if(i + 1 < (int)tokens.size()){
-				  string val = tokens[++i];
+				  string val = tokens.at(++i);
 					try{
 					  for(int c = 0; c < (int)val.size(); c++){
 						  if(!isdigit(val[c]) && val[c] != '.'){
@@ -1991,9 +1991,9 @@ void StepOptions::readEpiSets(string f){
 		if(tokens.size() < 2){
 			throw MethodException("Epistasis sets file column size < 2 on line: " + getString<int>(count) + "\n");
 		}
-		string snp = tokens[0];
+		string snp = tokens.at(0);
 		for(int i = 1; i < (int)tokens.size(); i++){
-			epi_sets[tokens[i]].push_back(snp);
+			epi_sets[tokens.at(i)].push_back(snp);
 		}
 	}
 	if(input.is_open()){
@@ -2018,7 +2018,7 @@ void StepOptions::readStratificationFile(string f){
 			throw MethodException("Stratification file column size != 3 on line: " + line + " Exiting!\n");
 		}
         try{
-			strat_map[tokens[0] + " " + tokens[1]] = atoi(tokens[2].c_str());
+			strat_map[tokens.at(0) + " " + tokens.at(1)] = atoi(tokens.at(2).c_str());
         }catch(...){
            	opts::printLog("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
            	throw MethodException("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
@@ -2047,7 +2047,7 @@ void StepOptions::readPenetranceFile(string f){
 			throw MethodException("Penetrance file column size != 3 one line: " + line + " Exiting!\n");
 		}
         try{
-			penetrance_map[tokens[0] + " " + tokens[1]] = atof(tokens[2].c_str());
+			penetrance_map[tokens.at(0) + " " + tokens.at(1)] = atof(tokens.at(2).c_str());
         }catch(...){
            	opts::printLog("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
            	throw MethodException("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
@@ -2074,7 +2074,7 @@ void StepOptions::readCenterFile(string f){
 			opts::printLog("Center code file column size != 3 one line: " + line + " Exiting!\n");
 			throw MethodException("Center code file column size != 3 one line: " + line + " Exiting!\n");
 		}
-		center_map[tokens[0] + " " + tokens[1]] = tokens[2];
+		center_map[tokens.at(0) + " " + tokens.at(1)] = tokens.at(2);
     }
     if(input.is_open()){
         input.close();
@@ -2106,19 +2106,19 @@ string StepOptions::convertString(string o){
 	vector<string> tokens = General::ParseDelimitedLine(o);
 	string temp = "";
 	for(int i = 0; i < (int)tokens.size(); i++){
-		map<string, Argument>::iterator found = s_subsetVals.find(tokens[i]);
+		map<string, Argument>::iterator found = s_subsetVals.find(tokens.at(i));
 		if(found != s_subsetVals.end()){
 			continue;
 		}
-		for(int j = 0; j < (int)tokens[i].size();){
-			if(tokens[i][j] == '-' || tokens[i][j] == '/' || tokens[i][j] == '.' || tokens[i][j] == '~'){
-				tokens[i].erase(j,1);
+		for(int j = 0; j < (int)tokens.at(i).size();){
+			if(tokens.at(i).at(j) == '-' || tokens.at(i).at(j) == '/' || tokens.at(i).at(j) == '.' || tokens.at(i).at(j) == '~'){
+				tokens.at(i).erase(j,1);
 			}
 			else{
 				j++;
 			}
 		}
-		temp += "_" + tokens[i];
+		temp += "_" + tokens.at(i);
 	}
 	return temp;
 }
@@ -2154,9 +2154,9 @@ void StepOptions::readClusters(vector<Sample*>* samps){
 
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns, in file " + cluster_file + "\n");
         }
-		string fam = elems[0];
-		string ind = elems[1];
-		string cluster = elems[2];
+		string fam = elems.at(0);
+		string ind = elems.at(1);
+		string cluster = elems.at(2);
 
 		vector<Sample*>::iterator found = find_if(samps->begin(), samps->end(), FindSampleByFamAndID(fam, ind));
 		if(found != samps->end()){
@@ -2197,8 +2197,8 @@ void StepOptions::readClustersFromString(vector<Sample*>* samps){
 		vector<string> elems;
 		General::Tokenize(key, elems, "#");
 
-		string fam = elems[0];
-		string ind = elems[1];
+		string fam = elems.at(0);
+		string ind = elems.at(1);
 
 		vector<Sample*>::iterator found = find_if(samps->begin(), samps->end(), FindSampleByFamAndID(fam, ind));
 		if(found != samps->end()){
@@ -2257,9 +2257,9 @@ void StepOptions::readGroups(vector<Sample*>* samps){
 
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns, in file " + group_file + "\n");
         }
-		string fam = elems[0];
-		string ind = elems[1];
-		string group = elems[2];
+		string fam = elems.at(0);
+		string ind = elems.at(1);
+		string group = elems.at(2);
 		group = "GROUP_" + group;
 		vector<Sample*>::iterator found = find_if(samps->begin(), samps->end(), FindSampleByFamAndID(fam, ind));
 		if(found != samps->end()){
@@ -2316,11 +2316,11 @@ void StepOptions::readSampleBprangeFile(){
 			in.close();
 			throw MethodException("In file: " + sampbprange_file + " expecting 5 columns on line " + getString<int>(count) + "\n");
 		}
-		string fam = elems[0];
-		string ind = elems[1];
-		string chrom_str = elems[2];
-		string min_str = elems[3];
-		string max_str = elems[4];
+		string fam = elems.at(0);
+		string ind = elems.at(1);
+		string chrom_str = elems.at(2);
+		string min_str = elems.at(3);
+		string max_str = elems.at(4);
 
 		int min = atoi(min_str.c_str());
 		int max = atoi(max_str.c_str());
@@ -2375,8 +2375,8 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
             in.close();
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
-        string fam = elems[0];
-        string ind = elems[1];
+        string fam = elems.at(0);
+        string ind = elems.at(1);
 		bool haveheader = false;
 		if(fam == "FamID" && ind == "IndID"){
 			haveheader = true;
@@ -2400,7 +2400,7 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 									goodlocs.push_back(c+2);
 								}
 								else{
-									cov_map.push_back(elems[c+2]);
+									cov_map.push_back(elems.at(c+2));
 									goodlocs.push_back(c+2);
 								}
 								c++;
@@ -2410,17 +2410,17 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 								goodlocs.push_back(c+2);
 							}
 							else{
-								cov_map.push_back(elems[c+2]);
+								cov_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 							}
 						}
 						else if(do_covs_name){
-							while(end != elems[c+2]){
-								cov_map.push_back(elems[c+2]);
+							while(end != elems.at(c+2)){
+								cov_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 								c++;
 							}
-							cov_map.push_back(elems[c+2]);
+							cov_map.push_back(elems.at(c+2));
 							goodlocs.push_back(c+2);
 						}
 						dorange = false;
@@ -2431,15 +2431,15 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 					if(do_covs_number){
 						for(int v = 0; v < (int)cov_use.size(); v++){
 							string test = getString<int>(c+1);
-							if(test == cov_use[v]){
-								fnd = cov_use[v];
+							if(test == cov_use.at(v)){
+								fnd = cov_use.at(v);
 								break;
 							}
-							else if(cov_use[v].find('-') != string::npos){
+							else if(cov_use.at(v).find('-') != string::npos){
 								vector<string> range;
-								General::Tokenize(cov_use[v], range, "-");
-								if(test == range[0]){
-									fnd = cov_use[v];
+								General::Tokenize(cov_use.at(v), range, "-");
+								if(test == range.at(0)){
+									fnd = cov_use.at(v);
 									break;
 								}
 							}
@@ -2447,16 +2447,16 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 					}
 					else if(do_covs_name){
 						for(int v = 0; v < (int)cov_use.size(); v++){
-							string test = elems[c+2];
-							if(test == cov_use[v]){
-								fnd = cov_use[v];
+							string test = elems.at(c+2);
+							if(test == cov_use.at(v)){
+								fnd = cov_use.at(v);
 								break;
 							}
-							else if(cov_use[v].find('-') != string::npos){
+							else if(cov_use.at(v).find('-') != string::npos){
 								vector<string> range;
-								General::Tokenize(cov_use[v], range, "-");
-								if(test == range[0]){
-									fnd = cov_use[v];
+								General::Tokenize(cov_use.at(v), range, "-");
+								if(test == range.at(0)){
+									fnd = cov_use.at(v);
 									break;
 								}
 							}
@@ -2468,19 +2468,19 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 							dorange = true;
 							vector<string> range;
 							General::Tokenize(cov, range, "-");
-							end = range[1];
+							end = range.at(1);
 							if(do_covs_number){
 								if(!haveheader){
 									cov_map.push_back("COV"+getString<int>(c+1));
 									goodlocs.push_back(c+2);
 								}
 								else{
-									cov_map.push_back(elems[c+2]);
+									cov_map.push_back(elems.at(c+2));
 									goodlocs.push_back(c+2);
 								}
 							}
 							else if(do_covs_name){
-								cov_map.push_back(elems[c+2]);
+								cov_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 							}
 						}
@@ -2491,12 +2491,12 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 									goodlocs.push_back(c+2);
 								}
 								else{
-									cov_map.push_back(elems[c+2]);
+									cov_map.push_back(elems.at(c+2));
 									goodlocs.push_back(c+2);
 								}
 							}
 							else if(do_covs_name){
-								cov_map.push_back(elems[c+2]);
+								cov_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 							}
 						}
@@ -2508,7 +2508,7 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 						goodlocs.push_back(c+2);
 					}
 					else{
-						cov_map.push_back(elems[c+2]);
+						cov_map.push_back(elems.at(c+2));
 						goodlocs.push_back(c+2);
 					}
 				}
@@ -2522,11 +2522,11 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 		if(fam != "FamID" && ind != "IndID"){
             for(int c = 0; c < (int)goodlocs.size(); c++){
                 try{
-					if(elems[goodlocs[c]] == getCovarMissing()){
+					if(elems.at(goodlocs.at(c)) == getCovarMissing()){
 						covs[fam+"#"+ind].push_back(-999999);
 					}
 					else{
-                    	covs[fam+"#"+ind].push_back(atof(elems[goodlocs[c]].c_str()));
+                    	covs[fam+"#"+ind].push_back(atof(elems.at(goodlocs.at(c)).c_str()));
 					}
                 }catch(...){
                     opts::printLog("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
@@ -2545,12 +2545,12 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 	if(do_traits_name || do_traits_number){
 		if(do_traits_name){
 			for(int c = 0; c < (int)trait_use.size(); c++){
-				string trait = trait_use[c];
+				string trait = trait_use.at(c);
 				if(trait.find('-') != string::npos){
 					vector<string> range;
 					General::Tokenize(trait, range, "-");
-					good.push_back(range[0]);
-					good.push_back(range[1]);
+					good.push_back(range.at(0));
+					good.push_back(range.at(1));
 				}
 				else{
 					good.push_back(trait);
@@ -2559,13 +2559,13 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 		}
 		else if(do_traits_number){
 			for(int c = 0; c < (int)trait_use.size(); c++){
-				string trait = trait_use[c];
+				string trait = trait_use.at(c);
 				try{
 					if(trait.find('-') != string::npos){
 						vector<string> range;
 						General::Tokenize(trait, range, "-");
-						int loc1 = atoi(range[0].c_str());
-						int loc2 = atoi(range[1].c_str());
+						int loc1 = atoi(range.at(0).c_str());
+						int loc2 = atoi(range.at(1).c_str());
 						for(int l = loc1; l <= loc2; l++){
 							good.push_back(getString<int>(l));
 						}
@@ -2610,8 +2610,8 @@ void StepOptions::readTraits(vector<Sample*>* samps){
             in.close();
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
-        string fam = elems[0];
-        string ind = elems[1];
+        string fam = elems.at(0);
+        string ind = elems.at(1);
 		bool haveheader = false;
 		if(fam == "FamID" && ind == "IndID"){
 			haveheader = true;
@@ -2635,7 +2635,7 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 									goodlocs.push_back(c+2);
 								}
 								else{
-									trait_map.push_back(elems[c+2]);
+									trait_map.push_back(elems.at(c+2));
 									goodlocs.push_back(c+2);
 								}
 								c++;
@@ -2645,17 +2645,17 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 								goodlocs.push_back(c+2);
 							}
 							else{
-								trait_map.push_back(elems[c+2]);
+								trait_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 							}
 						}
 						else if(do_traits_name){
-							while(end != elems[c+2]){
-								trait_map.push_back(elems[c+2]);
+							while(end != elems.at(c+2)){
+								trait_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 								c++;
 							}
-							trait_map.push_back(elems[c+2]);
+							trait_map.push_back(elems.at(c+2));
 							goodlocs.push_back(c+2);
 						}
 						dorange = false;
@@ -2666,15 +2666,15 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 					if(do_traits_number){
 						for(int v = 0; v < (int)trait_use.size(); v++){
 							string test = getString<int>(c+1);
-							if(test == trait_use[v]){
-								fnd = trait_use[v];
+							if(test == trait_use.at(v)){
+								fnd = trait_use.at(v);
 								break;
 							}
-							else if(trait_use[v].find('-') != string::npos){
+							else if(trait_use.at(v).find('-') != string::npos){
 								vector<string> range;
-								General::Tokenize(trait_use[v], range, "-");
-								if(test == range[0]){
-									fnd = trait_use[v];
+								General::Tokenize(trait_use.at(v), range, "-");
+								if(test == range.at(0)){
+									fnd = trait_use.at(v);
 									break;
 								}
 							}
@@ -2682,16 +2682,16 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 					}
 					else if(do_traits_name){
 						for(int v = 0; v < (int)trait_use.size(); v++){
-							string test = elems[c+2];
-							if(test == trait_use[v]){
-								fnd = trait_use[v];
+							string test = elems.at(c+2);
+							if(test == trait_use.at(v)){
+								fnd = trait_use.at(v);
 								break;
 							}
-							else if(trait_use[v].find('-') != string::npos){
+							else if(trait_use.at(v).find('-') != string::npos){
 								vector<string> range;
-								General::Tokenize(trait_use[v], range, "-");
-								if(test == range[0]){
-									fnd = trait_use[v];
+								General::Tokenize(trait_use.at(v), range, "-");
+								if(test == range.at(0)){
+									fnd = trait_use.at(v);
 									break;
 								}
 							}
@@ -2703,19 +2703,19 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 							dorange = true;
 							vector<string> range;
 							General::Tokenize(trait, range, "-");
-							end = range[1];
+							end = range.at(1);
 							if(do_traits_number){
 								if(!haveheader){
 									trait_map.push_back("TRAIT"+getString<int>(c+1));
 									goodlocs.push_back(c+2);
 								}
 								else{
-									trait_map.push_back(elems[c+2]);
+									trait_map.push_back(elems.at(c+2));
 									goodlocs.push_back(c+2);
 								}
 							}
 							else if(do_traits_name){
-								trait_map.push_back(elems[c+2]);
+								trait_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 							}
 						}
@@ -2726,12 +2726,12 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 									goodlocs.push_back(c+2);
 								}
 								else{
-									trait_map.push_back(elems[c+2]);
+									trait_map.push_back(elems.at(c+2));
 									goodlocs.push_back(c+2);
 								}
 							}
 							else if(do_traits_name){
-								trait_map.push_back(elems[c+2]);
+								trait_map.push_back(elems.at(c+2));
 								goodlocs.push_back(c+2);
 							}
 						}
@@ -2743,7 +2743,7 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 						goodlocs.push_back(c+2);
 					}
 					else{
-						trait_map.push_back(elems[c+2]);
+						trait_map.push_back(elems.at(c+2));
 						goodlocs.push_back(c+2);
 					}
 				}
@@ -2757,11 +2757,11 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 		if(fam != "FamID" && ind != "IndID"){
             for(int c = 0; c < (int)goodlocs.size(); c++){
                 try{
-					if(elems[goodlocs[c]] == getTraitMissing()){
+					if(elems.at(goodlocs.at(c)) == getTraitMissing()){
 						traits[fam+"#"+ind].push_back(-999999);
 					}
 					else{
-                    	traits[fam+"#"+ind].push_back(atof(elems[goodlocs[c]].c_str()));
+                    	traits[fam+"#"+ind].push_back(atof(elems.at(goodlocs.at(c)).c_str()));
 					}
                 }catch(...){
                     opts::printLog("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
@@ -2779,7 +2779,7 @@ vector<Family*> StepOptions::generateFamilySet(vector<Sample*>* samps){
     vector<Family*>::iterator famiter;
 
     for(int i = 0; i < (int)samps->size(); i++){
-        Sample* samp = (*samps)[i];
+        Sample* samp = (*samps).at(i);
         famiter = find_if(fams.begin(), fams.end(), FindFamily(samp->getFamID()));
         if(famiter != fams.end()){
             (*famiter)->AddInd(samp);
@@ -2810,7 +2810,7 @@ void StepOptions::performTransforms(DataSet* ds){
 	vector<int> transform_index;
 	for(int i = 0; i < (int)to_transform.size(); i++){
 		if(ds->num_covariates() > 0){
-		int index = ds->get_covariate_index(to_transform[i]);
+		int index = ds->get_covariate_index(to_transform.at(i));
 		if(index > 0){
 			transform_index.push_back(index);
 		}
@@ -2824,7 +2824,7 @@ void StepOptions::performTransforms(DataSet* ds){
 		}
 		else{
 			for(int i = 0; i < (int)transform_index.size(); i++){
-				srt.TransformCovar(ds, transform_index[i]);
+				srt.TransformCovar(ds, transform_index.at(i));
 			}
 		}
 	}
@@ -2835,7 +2835,7 @@ void StepOptions::performTransforms(DataSet* ds){
 		}
 		else{
 			for(int i = 0; i < (int)transform_index.size(); i++){
-				bct.TransformCovar(ds, transform_index[i]);
+				bct.TransformCovar(ds, transform_index.at(i));
 			}
 		}
 		boxcox_covar_lambdas = bct.GetCovarLambda();
@@ -2848,7 +2848,7 @@ void StepOptions::performTransforms(DataSet* ds){
 		}
 		else{
 			for(int i = 0; i < (int)transform_index.size(); i++){
-				lt.TransformCovar(ds, transform_index[i]);
+				lt.TransformCovar(ds, transform_index.at(i));
 			}
 		}
 	}
@@ -2859,7 +2859,7 @@ void StepOptions::undoTransforms(DataSet* ds){
 	vector<int> transform_index;
 	for(int i = 0; i < (int)to_transform.size(); i++){
 		if(ds->num_covariates() > 0){
-		int index = ds->get_covariate_index(to_transform[i]);
+		int index = ds->get_covariate_index(to_transform.at(i));
 		if(index > 0){
 			transform_index.push_back(index);
 		}
@@ -2873,7 +2873,7 @@ void StepOptions::undoTransforms(DataSet* ds){
 		}
 		else{
 			for(int i = 0; i < (int)transform_index.size(); i++){
-				lt.UndoCovariate(ds, transform_index[i]);
+				lt.UndoCovariate(ds, transform_index.at(i));
 			}
 		}
 	}
@@ -2885,7 +2885,7 @@ void StepOptions::undoTransforms(DataSet* ds){
 		}
 		else{
 			for(int i = 0; i < (int)transform_index.size(); i++){
-				bct.UndoCovariate(ds, transform_index[i]);
+				bct.UndoCovariate(ds, transform_index.at(i));
 			}
 		}
 	}
@@ -2896,7 +2896,7 @@ void StepOptions::undoTransforms(DataSet* ds){
 		}
 		else{
 			for(int i = 0; i < (int)transform_index.size(); i++){
-				srt.UndoCovariate(ds, transform_index[i]);
+				srt.UndoCovariate(ds, transform_index.at(i));
 			}
 		}
 	}
@@ -2907,7 +2907,7 @@ void StepOptions::parseLinRConditionList(vector<Marker*>* loci){
 	vector<string> tokens;
 	General::Tokenize(getLinRConditionString(), tokens, ",");
 	for(int i = 0; i < (int)tokens.size(); i++){
-		vector<Marker*>::iterator iter = find_if(loci->begin(), loci->end(), FindMarker(tokens[i]));
+		vector<Marker*>::iterator iter = find_if(loci->begin(), loci->end(), FindMarker(tokens.at(i)));
 		if(iter != loci->end()){
 			linr_condition_list.push_back(iter - loci->begin());
 		}
@@ -2943,8 +2943,8 @@ void StepOptions::readIBSPairsFile(string file){
 			in.close();
 			throw MethodException("Line:: " + getString<int>(count) + " has incorrect number of columns.  Expecting 4!");
 		}
-		string samp1 = elems[0] + "\t" + elems[1];
-		string samp2 = elems[2] + "\t" + elems[3];
+		string samp1 = elems.at(0) + "\t" + elems.at(1);
+		string samp2 = elems.at(2) + "\t" + elems.at(3);
 		ibs_pairs[samp1].push_back(samp2);
 	}
 	if(in.is_open()){
@@ -2981,8 +2981,8 @@ void StepOptions::readIBSTrioPairsFile(string file){
 			in.close();
 			throw MethodException("Line:: " + getString<int>(count) + " has incorrect number of columns.  Expecting 2!");
 		}
-		string fam1 = elems[0];
-		string fam2 = elems[1];
+		string fam1 = elems.at(0);
+		string fam2 = elems.at(1);
 		ibs_trio_pairs[fam1].push_back(fam2);
 	}
 	if(in.is_open()){
@@ -3028,14 +3028,14 @@ void StepOptions::readBioTextFile(string file){
 			in.close();
 			throw MethodException("Line:: " + getString<int>(count) + " has incorrect number of columns.  Expecting at least 2!\n");
 		}
-		if(elems[0].find("rs", 0, 2) == string::npos){
-			elems[0] = "rs" + elems[0];
+		if(elems.at(0).find("rs", 0, 2) == string::npos){
+			elems.at(0) = "rs" + elems.at(0);
 		}
-		if(elems[1].find("rs", 0, 2) == string::npos){
-			elems[1] = "rs" + elems[1];
+		if(elems.at(1).find("rs", 0, 2) == string::npos){
+			elems.at(1) = "rs" + elems.at(1);
 		}
-		string snp1 = elems[0];
-		string snp2 = elems[1];
+		string snp1 = elems.at(0);
+		string snp2 = elems.at(1);
 
 		bio_pairs[snp1].push_back(snp2);
 
@@ -3083,7 +3083,7 @@ void StepOptions::readLinRConditionFile(vector<Marker*>* loci){
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
 
-        string rsid = elems[0];
+        string rsid = elems.at(0);
         vector<Marker*>::iterator iter = find_if(loci->begin(), loci->end(), FindMarker(rsid));
         if(iter != loci->end()){
         	linr_condition_list.push_back(iter - loci->begin());
@@ -3117,16 +3117,16 @@ void StepOptions::readGroupFrequencies(){
 		if(tokens.size() != 3){
 			throw MethodException("Marker frequency file column size != 3 on line: " + line + "\n");
 		}
-		if(tokens[0].at(0) == '#'){
+		if(tokens.at(0).at(0) == '#'){
 			continue;
 		}
 
 		float freq = -1.0f;
-		istringstream b(tokens[2]);
+		istringstream b(tokens.at(2));
 		if(!(b >> freq)){
-			throw MethodException(tokens[1] + " is not a valid number on line: " + getString<int>(freqline));
+			throw MethodException(tokens.at(1) + " is not a valid number on line: " + getString<int>(freqline));
 		}
-		group_frequencies[tokens[0] + " GROUP_" + tokens[1]] = freq;
+		group_frequencies[tokens.at(0) + " GROUP_" + tokens.at(1)] = freq;
 		freqline++;
 	}
 

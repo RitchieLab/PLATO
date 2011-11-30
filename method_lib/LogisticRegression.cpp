@@ -77,7 +77,7 @@ void LogisticRegression::initialize_interactions(){
     do{
       done = generator.GenerateCombinations();
       for(comboIndex=0; comboIndex < generator.ComboList.size(); comboIndex++){
-        interaction_lists[curr_num].push_back(generator.ComboList[comboIndex]);
+        interaction_lists.at(curr_num).push_back(generator.ComboList.at(comboIndex));
       }
     }while(!done);
 
@@ -98,7 +98,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci){
     initialize_interactions();
   }
 
-  vector<int> includedCells = includedIndexes[loci.size()];
+  vector<int> includedCells = includedIndexes.at(loci.size());
   vector<unsigned int> converted_loci = convert_loc_order(loci);
 
   summarize_data(loci);
@@ -151,7 +151,7 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
 
    unsigned int nRows = includedCells.size();
   // number of coefficients is equal to the main effects + the interactions
-  unsigned int nColumns = data[0].size()-2;
+  unsigned int nColumns = data.at(0).size()-2;
   if(!summary_data)
     nColumns++;
 
@@ -163,7 +163,7 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
   double x;
   double v, xij, s,q;
 
-  unsigned int unaffIndex = data[0].size()-2;
+  unsigned int unaffIndex = data.at(0).size()-2;
   unsigned int affIndex = unaffIndex+1;
 
   vector<double> X(nRows * ( nColumns + 1 ),0);
@@ -185,62 +185,62 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
   // This loop stores the original values in X and adds values into
   // xM and xSD for mean and standard deviation calculations
   for(i=0; i<nRows; i++){
-    X[ix(i,0,nColumns+1)] = 1;
+    X.at(ix(i,0,nColumns+1)) = 1;
     // store predictor values
     for(j=1; j<=nColumns; j++){
-      X[ix(i,j,nColumns+1)] = data[includedCells[i]][j-1];
+      X.at(ix(i,j,nColumns+1)) = data.at(includedCells.at(i)).at(j-1);
     }
 
     // status handled differently if data is summary
     if(summary_data)
     {
-      Y0[i] = (unsigned int)(data[includedCells[i]][unaffIndex]);
-      sY0 += Y0[i];
-      Y1[i] = (unsigned int)(data[includedCells[i]][affIndex]);
-      sY1 += Y1[i];
+      Y0.at(i) = (unsigned int)(data.at(includedCells.at(i)).at(unaffIndex));
+      sY0 += Y0.at(i);
+      Y1.at(i) = (unsigned int)(data.at(includedCells.at(i)).at(affIndex));
+      sY1 += Y1.at(i);
     }
     else
     { // not summary
-      if(data[includedCells[i]].back() == 0)
+      if(data.at(includedCells.at(i)).back() == 0)
       {
-        Y0[i] = 1; sY0++;
+        Y0.at(i) = 1; sY0++;
       }
       else
       {
-        Y1[i] = 1; sY1++;
+        Y1.at(i) = 1; sY1++;
       }
     }
 
-    sC += Y0[i] + Y1[i];
+    sC += Y0.at(i) + Y1.at(i);
 
     for(j=1; j<= nColumns; j++)
     {
-      x = X[ix(i,j,nColumns+1)];
-      xM[j] += (Y0[i] + Y1[i])*x;
-		  xSD[j] += (Y0[i] + Y1[i])*x*x;
+      x = X.at(ix(i,j,nColumns+1));
+      xM.at(j) += (Y0.at(i) + Y1.at(i))*x;
+		  xSD.at(j) += (Y0.at(i) + Y1.at(i))*x*x;
     }
   }
 
   // calculate mean and standard deviation
   for (j = 1; j<=nColumns; j++) {
-    xM[j]  = xM[j]  / sC;
-    xSD[j] = xSD[j] / sC;
-    xSD[j] = sqrt( fabs( xSD[j] - xM[j] * xM[j] ) );
+    xM.at(j)  = xM.at(j)  / sC;
+    xSD.at(j) = xSD.at(j) / sC;
+    xSD.at(j) = sqrt( fabs( xSD.at(j) - xM.at(j) * xM.at(j) ) );
   }
 
-  xM[0] = 0;
-  xSD[0] = 1;
+  xM.at(0) = 0;
+  xSD.at(0) = 1;
 
   // adjusts X values using the mean and standard deviation values
   for (i = 0; i<nRows; i++) {
     for (j = 1; j<=nColumns; j++) {
-      X[ix(i,j,nColumns+1)] = ( X[ix(i,j,nColumns+1)] - xM[j] ) / xSD[j];
+      X.at(ix(i,j,nColumns+1)) = ( X.at(ix(i,j,nColumns+1)) - xM.at(j) ) / xSD.at(j);
     }
   }
 
-  Par[0] = log( double(sY1) / sY0 ); // use natural log of the ratio
+  Par.at(0) = log( double(sY1) / sY0 ); // use natural log of the ratio
   for (j = 1; j<=nColumns; j++) { // zero out all the others
-    Par[j] = 0;
+    Par.at(j) = 0;
   }
 
   double LnV=0,Ln1mV=0, LLn=0;
@@ -259,15 +259,15 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
     // zero out Arr for this iteration
     for (j = 0; j<=nColumns; j++) {
       for (k = j; k<=nColumns+1; k++) {
-        Arr[ix(j,k,nColumns+2)] = 0;
+        Arr.at(ix(j,k,nColumns+2)) = 0;
       }
     }
 
 	  // add to LL for each row
     for (i = 0; i<nRows; i++) {
-      v = Par[0]; // for this ind start with Par[0] value
+      v = Par.at(0); // for this ind start with Par.at(0) value
       for (j = 1; j<=nColumns; j++) {
-        v = v + Par[j] * X[ix(i,j,nColumns+1)]; // add the value of Par for column and the value at that column
+        v = v + Par.at(j) * X.at(ix(i,j,nColumns+1)); // add the value of Par for column and the value at that column
       }
       if( v>15 ) { LnV = -exp(-v); Ln1mV = -v; q = exp(-v); v=exp(LnV); }
       else {
@@ -275,12 +275,12 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
         else { v = 1 / ( 1 + exp(-v) ); LnV = log(v); Ln1mV = log(1-v); q = v*(1-v); }
       }
       // calculate LL for this ind and add to running total
-      LL = LL - 2*Y1[i]*LnV - 2*Y0[i]*Ln1mV;
+      LL = LL - 2*Y1.at(i)*LnV - 2*Y0.at(i)*Ln1mV;
       for (j = 0; j<=nColumns; j++) {
-        xij = X[ix(i,j,nColumns+1)];
-        Arr[ix(j,nColumns+1,nColumns+2)] = Arr[ix(j,nColumns+1,nColumns+2)] + xij * ( Y1[i] * (1 - v) + Y0[i] * (-v) );
+        xij = X.at(ix(i,j,nColumns+1));
+        Arr.at(ix(j,nColumns+1,nColumns+2)) = Arr.at(ix(j,nColumns+1,nColumns+2)) + xij * ( Y1.at(i) * (1 - v) + Y0.at(i) * (-v) );
         for (k=j; k<=nColumns; k++) {
-          Arr[ix(j,k,nColumns+2)] = Arr[ix(j,k,nColumns+2)] + xij * X[ix(i,k,nColumns+1)] * q * (Y0[i] + Y1[i]);
+          Arr.at(ix(j,k,nColumns+2)) = Arr.at(ix(j,k,nColumns+2)) + xij * X.at(ix(i,k,nColumns+1)) * q * (Y0.at(i) + Y1.at(i));
         }
       }
     }
@@ -290,35 +290,35 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
 
     for (j = 1; j<=nColumns; j++) {
       for (k=0; k<j; k++) {
-        Arr[ix(j,k,nColumns+2)] = Arr[ix(k,j,nColumns+2)];
+        Arr.at(ix(j,k,nColumns+2)) = Arr.at(ix(k,j,nColumns+2));
       }
     }
 
     for (i=0; i<=nColumns; i++) {
-      s = Arr[ix(i,i,nColumns+2)];
-      Arr[ix(i,i,nColumns+2)] = 1;
+      s = Arr.at(ix(i,i,nColumns+2));
+      Arr.at(ix(i,i,nColumns+2)) = 1;
       for (k=0; k<=nColumns+1; k++) {
-        Arr[ix(i,k,nColumns+2)] = Arr[ix(i,k,nColumns+2)] / s;
+        Arr.at(ix(i,k,nColumns+2)) = Arr.at(ix(i,k,nColumns+2)) / s;
       }
       for (j=0; j<=nColumns; j++) {
         if (i!=j) {
-          s = Arr[ix(j,i,nColumns+2)]; Arr[ix(j,i,nColumns+2)] = 0;
+          s = Arr.at(ix(j,i,nColumns+2)); Arr.at(ix(j,i,nColumns+2)) = 0;
           for (k=0; k<=nColumns+1; k++) {
-            Arr[ix(j,k,nColumns+2)] = Arr[ix(j,k,nColumns+2)] - s * Arr[ix(i,k,nColumns+2)];
+            Arr.at(ix(j,k,nColumns+2)) = Arr.at(ix(j,k,nColumns+2)) - s * Arr.at(ix(i,k,nColumns+2));
           }
         }
       }
     }
     for( j=0; j<=nColumns; j++) {
-      Par[j] = Par[j] + Arr[ix(j,nColumns+1,nColumns+2)];
+      Par.at(j) = Par.at(j) + Arr.at(ix(j,nColumns+1,nColumns+2));
     }
   } // complete iteration
 
   // calculate p values for the coefficients
   // interaction coefficient for all loci is the last one
   for(j=1; j<=nColumns; j++) {
-    Par[j] = Par[j] / xSD[j];
-    Par[0] = Par[0] - Par[j] * xM[j];
+    Par.at(j) = Par.at(j) / xSD.at(j);
+    Par.at(0) = Par.at(0) - Par.at(j) * xM.at(j);
   }
 
   if(isnan(LL)){
@@ -328,18 +328,18 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
   else{
     // calculate coefficient p value
     for(j=1; j<=nColumns; j++){
-      SEP[j] = sqrt( Arr[ix(j,j,nP+1)] ) / xSD[j];
+      SEP.at(j) = sqrt( Arr.at(ix(j,j,nP+1)) ) / xSD.at(j);
     }
     j=nColumns;
-    coeffPvalue = norm(fabs(Par[j]/SEP[j]));
+    coeffPvalue = norm(fabs(Par.at(j)/SEP.at(j)));
     // calculate overall p value
     overallPvalue = ChiSq(fabs(LLn-LL), nColumns);
 
-    coeff_intercept = Par[0];
+    coeff_intercept = Par.at(0);
     // adjust coefficients so that the zero index is now first coefficient
     for(j=1; j<=nColumns; j++) {
-      coefficients[j-1] = Par[j];
-      standard_errors[j-1] = SEP[j];
+      coefficients.at(j-1) = Par.at(j);
+      standard_errors.at(j-1) = SEP.at(j);
     }
 
     // calculate
@@ -398,7 +398,7 @@ double LogisticRegression::ChiSq(double x, unsigned int n) {
 /// @return recoded value for the genotype
 ///
 int LogisticRegression::get_geno_conversion(int geno, int referent_allele){
-	return geno_convert[referent_allele][geno];
+	return geno_convert.at(referent_allele).at(geno);
 }
 
 
@@ -412,28 +412,28 @@ void LogisticRegression::set_model(){
 
   switch(modType){
     case Dominant:
-      geno_convert[0][0] = 1;
-      geno_convert[0][1] = 1;
-      geno_convert[0][3] = 2;
-      geno_convert[1][1] = 1;
-      geno_convert[1][2] = 1;
-      geno_convert[1][3] = 2;
+      geno_convert.at(0).at(0) = 1;
+      geno_convert.at(0).at(1) = 1;
+      geno_convert.at(0).at(3) = 2;
+      geno_convert.at(1).at(1) = 1;
+      geno_convert.at(1).at(2) = 1;
+      geno_convert.at(1).at(3) = 2;
       maxLocusValue = 1;
       break;
     case Recessive:
-      geno_convert[0][0] = 1;
-      geno_convert[0][3] = 2;
-      geno_convert[1][2] = 1;
-      geno_convert[1][3] = 2;
+      geno_convert.at(0).at(0) = 1;
+      geno_convert.at(0).at(3) = 2;
+      geno_convert.at(1).at(2) = 1;
+      geno_convert.at(1).at(3) = 2;
       maxLocusValue = 1;
       break;
     case Additive:
-      geno_convert[0][1] = 1;
-      geno_convert[0][0] = 2;
-      geno_convert[0][3] = 3;
-      geno_convert[1][1] = 1;
-      geno_convert[1][2] = 2;
-      geno_convert[1][3] = 3;
+      geno_convert.at(0).at(1) = 1;
+      geno_convert.at(0).at(0) = 2;
+      geno_convert.at(0).at(3) = 3;
+      geno_convert.at(1).at(1) = 1;
+      geno_convert.at(1).at(2) = 2;
+      geno_convert.at(1).at(3) = 3;
       maxLocusValue = 2;
       break;
   }
@@ -476,14 +476,14 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos)
   vector<int> genotype(combSize,0);
 
   // determine indexes for unaffected and affected totals
-  unsigned int unaffIndex = summary_data[0].size()-2;
+  unsigned int unaffIndex = summary_data.at(0).size()-2;
   unsigned int numInds = set->num_inds();
 
   vector<int> ref_alleles(genos.size(), 0);
   // determine which geno_conversion to use for each locus
   for(unsigned int curr_mark=0; curr_mark < genos.size(); curr_mark++)
   {
-    ref_alleles[curr_mark] = set->get_locus(genos[curr_mark])->getReferentIndex();
+    ref_alleles.at(curr_mark) = set->get_locus(genos.at(curr_mark))->getReferentIndex();
   }
 
   // add to summary totals for each genotype
@@ -494,11 +494,11 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos)
 		continue;
     for(currLoc=0; currLoc < combSize; currLoc++)
     {
-      genotype[currLoc] = geno_convert[ref_alleles[currLoc]][(*set)[currInd]->get_genotype(set->get_locus(genos[currLoc])->getLoc())];
+      genotype.at(currLoc) = geno_convert.at(ref_alleles.at(currLoc)).at((*set)[currInd]->get_genotype(set->get_locus(genos.at(currLoc))->getLoc()));
     }
 
     // increment count based on status of individual
-    summary_data[indexConverter.flatten_indexes(genotype)][unaffIndex+(*set)[currInd]->getAffected()]++;
+    summary_data.at(indexConverter.flatten_indexes(genotype)).at(unaffIndex+(*set)[currInd]->getAffected())++;
   }
 
 }
@@ -551,26 +551,26 @@ void LogisticRegression::zero_summary(unsigned int array_size, unsigned int mode
 
   double product=1;
   for(unsigned int sub_array_index=0; sub_array_index < array_size; sub_array_index++){
-    summary_data[sub_array_index] = indexConverter.decode_index_double(sub_array_index, model_size);
+    summary_data.at(sub_array_index) = indexConverter.decode_index_double(sub_array_index, model_size);
 
     // this version can handle any size model
-    if(summary_data[sub_array_index].size() > 1 && includeInteractions){
-      for(int i=int(interaction_lists[model_size].size())-1; i >= 0; i--){
+    if(summary_data.at(sub_array_index).size() > 1 && includeInteractions){
+      for(int i=int(interaction_lists.at(model_size).size())-1; i >= 0; i--){
         product=1;
-        for(int j=int(interaction_lists[model_size][i].size())-1; j >= 0; j--){
-          product*= summary_data[sub_array_index][interaction_lists[model_size][i][j]];
+        for(int j=int(interaction_lists.at(model_size).at(i).size())-1; j >= 0; j--){
+          product*= summary_data.at(sub_array_index).at(interaction_lists.at(model_size).at(i).at(j));
         }
-        summary_data[sub_array_index].push_back(product);
+        summary_data.at(sub_array_index).push_back(product);
       }
 
       // when not full interaction remove the full interaction term from the list
       if(!fullInteraction){
-        summary_data[sub_array_index].pop_back();
+        summary_data.at(sub_array_index).pop_back();
       }
 
     }
-    summary_data[sub_array_index].push_back(0);
-    summary_data[sub_array_index].push_back(0);
+    summary_data.at(sub_array_index).push_back(0);
+    summary_data.at(sub_array_index).push_back(0);
   }
 
 }
@@ -607,7 +607,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
   // determine which geno_conversion to use for each locus
   for(unsigned int curr_mark=0; curr_mark < converted_loci.size(); curr_mark++)
   {
-    ref_alleles[curr_mark] = set->get_locus(loci[curr_mark])->getReferentIndex();
+    ref_alleles.at(curr_mark) = set->get_locus(loci.at(curr_mark))->getReferentIndex();
   }
 
   unsigned int currInd, currValue, i;
@@ -619,9 +619,9 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     bool any_missing = false;
     for(i=0; i < numLoci; i++)
     {
-      if((*set)[currInd]->get_genotype(converted_loci[i]) != missingValue)
+      if((*set)[currInd]->get_genotype(converted_loci.at(i)) != missingValue)
       {
-        row[currValue++] = geno_convert[ref_alleles[i]][(*set)[currInd]->get_genotype(converted_loci[i])];
+        row.at(currValue++) = geno_convert.at(ref_alleles.at(i)).at((*set)[currInd]->get_genotype(converted_loci.at(i)));
       }
       else
       {
@@ -631,8 +631,8 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
     for(i=0; i < numCovars; i++)
     {
-      if((*set)[currInd]->getCovariate(covars[i]) != missingCoValue)
-        row[currValue++] = (*set)[currInd]->getCovariate(covars[i]);
+      if((*set)[currInd]->getCovariate(covars.at(i)) != missingCoValue)
+        row.at(currValue++) = (*set)[currInd]->getCovariate(covars.at(i));
       else
       {
         any_missing = true;
@@ -641,8 +641,8 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
     for(i=0; i < numTraits; i++)
     {
-      if((*set)[currInd]->getTrait(traits[i]) != missingCoValue)
-        row[currValue++] = (*set)[currInd]->getTrait(traits[i]);
+      if((*set)[currInd]->getTrait(traits.at(i)) != missingCoValue)
+        row.at(currValue++) = (*set)[currInd]->getTrait(traits.at(i));
       else
       {
         any_missing = true;
@@ -651,7 +651,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
     if(!any_missing)
     {
-      row[currValue] = ((*set)[currInd]->getAffected());
+      row.at(currValue) = ((*set)[currInd]->getAffected());
       summary_data.push_back(row);
       includedCells.push_back(summary_data.size()-1);
     }
@@ -683,7 +683,7 @@ vector<unsigned int> LogisticRegression::convert_loc_order(vector<unsigned int>&
 vector<unsigned int> LogisticRegression::convert_loc_order(vector<Marker*> loci){
 	vector<unsigned int> converted_indexes;
 	for(unsigned int i = 0; i < loci.size(); i++){
-		converted_indexes.push_back(loci[i]->getLoc());
+		converted_indexes.push_back(loci.at(i)->getLoc());
 	}
 	return converted_indexes;
 }

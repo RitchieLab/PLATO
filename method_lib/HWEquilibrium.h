@@ -171,7 +171,7 @@ class HWEquilibrium{
 		vector<double> hwePT(vector<bool>, Marker*);
 		void doFilterHWEPT(Marker*);
 
-		void calculate(int m){calculate((*markers)[m]);};
+		void calculate(int m){calculate((*markers).at(m));};
 		void calculate(Marker* m);
 		
 		float getOverall(){return hw_O;};

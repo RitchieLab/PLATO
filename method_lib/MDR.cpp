@@ -82,12 +82,12 @@ void MDR::calculate_set_threshold(){
   int numInds = dataset->num_inds();
 
   for(int currInd=0; currInd < numInds; currInd++)
-    statusTotals[dataset->get_sample(currInd)->getAffected()]++;
+    statusTotals.at(dataset->get_sample(currInd)->getAffected())++;
 
   set_threshold = 0.0;
 
-  if(statusTotals[0] > 0)
-    set_threshold = float(statusTotals[1])/statusTotals[0];
+  if(statusTotals.at(0) > 0)
+    set_threshold = float(statusTotals.at(1))/statusTotals.at(0);
 }
 
 
@@ -105,18 +105,18 @@ float MDR::calculate_model_threshold(vector<unsigned int> & lociComb){
   for(int currInd=0; currInd < numInds; currInd++){
     missingPresent = false;
     for(currLoc=0; currLoc < numLoci; currLoc++)
-      if(dataset->get_sample(currInd)->get_genotype(lociComb[currLoc])==missingValue){
+      if(dataset->get_sample(currInd)->get_genotype(lociComb.at(currLoc))==missingValue){
         missingPresent=true;
         break;
       }
 
     if(!missingPresent)
-      statusTotals[dataset->get_sample(currInd)->getAffected()]++;
+      statusTotals.at(dataset->get_sample(currInd)->getAffected())++;
   }
 
   float threshold=0;
-  if(statusTotals[0] > 0)
-    threshold = float(statusTotals[1])/statusTotals[0];
+  if(statusTotals.at(0) > 0)
+    threshold = float(statusTotals.at(1))/statusTotals.at(0);
 
   return threshold;
 }
@@ -144,32 +144,32 @@ float MDR::calculate_model_threshold(vector<unsigned int> loci,
   for(int currInd=0; currInd < numInds; currInd++){
     missingPresent = false;
     for(curr=0; curr < numLoci; curr++)
-      if(dataset->get_sample(currInd)->get_genotype(loci[curr])==missingValue){
+      if(dataset->get_sample(currInd)->get_genotype(loci.at(curr))==missingValue){
         missingPresent=true;
         break;
       }
 
     if(!missingPresent)
       for(curr=0; curr < numCovars; curr++)
-        if(dataset->get_sample(currInd)->getCovariate(covars[curr])== missingCoValue){
+        if(dataset->get_sample(currInd)->getCovariate(covars.at(curr))== missingCoValue){
           missingPresent = true;
           break;
         }
 
     if(!missingPresent)
       for(curr=0; curr < numTraits; curr++)
-        if(dataset->get_sample(currInd)->getTrait(traits[curr])==missingCoValue){
+        if(dataset->get_sample(currInd)->getTrait(traits.at(curr))==missingCoValue){
           missingPresent = true;
           break;
         }
 
     if(!missingPresent)
-      statusTotals[dataset->get_sample(currInd)->getAffected()]++;
+      statusTotals.at(dataset->get_sample(currInd)->getAffected())++;
   }
 
   float threshold=0;
-  if(statusTotals[0] > 0)
-    threshold = float(statusTotals[1])/statusTotals[0];
+  if(statusTotals.at(0) > 0)
+    threshold = float(statusTotals.at(1))/statusTotals.at(0);
 
   return threshold;
 
@@ -239,10 +239,10 @@ int MDR::set_converter_covars(vector<unsigned int> & covars,
 
   for(unsigned int i=0; i<covars.size(); i++){
     for(int j=0; j<num_inds; j++){
-      if((*dataset)[j]->getCovariate(covars[i]) > highest_value){
-        highest_value = int((*dataset)[j]->getCovariate(covars[i]));
+      if((*dataset)[j]->getCovariate(covars.at(i)) > highest_value){
+        highest_value = int((*dataset)[j]->getCovariate(covars.at(i)));
       }
-      if((*dataset)[j]->getCovariate(covars[i]) == missingCoValue){
+      if((*dataset)[j]->getCovariate(covars.at(i)) == missingCoValue){
         missing_present = true;
       }
     }
@@ -250,10 +250,10 @@ int MDR::set_converter_covars(vector<unsigned int> & covars,
 
   for(unsigned int i=0; i<traits.size(); i++){
     for(int j=0; j<num_inds; j++){
-      if((*dataset)[j]->getTrait(traits[i]) > highest_value){
-        highest_value = int((*dataset)[j]->getTrait(traits[i]));
+      if((*dataset)[j]->getTrait(traits.at(i)) > highest_value){
+        highest_value = int((*dataset)[j]->getTrait(traits.at(i)));
       }
-      if((*dataset)[j]->getTrait(traits[i]) == missingCoValue){
+      if((*dataset)[j]->getTrait(traits.at(i)) == missingCoValue){
         missing_present = true;
       }
     }
@@ -337,7 +337,7 @@ void MDR::runMDR(unsigned int model_size){
 ///
 void MDR::calculateStats(unsigned int combSize){
 
-  vector<int> & includedCells = includedIndexes[combSize];
+  vector<int> & includedCells = includedIndexes.at(combSize);
   unsigned int numCells = includedCells.size();
 
   float calculatedRisk;
@@ -349,10 +349,10 @@ void MDR::calculateStats(unsigned int combSize){
   mod.totaltiecells = 0;
   for(unsigned int currCell=0; currCell<numCells; currCell++){
     // check that unaffected total in cell is greater than zero
-    if(mod.unaffected[includedCells[currCell]]>0)
-      calculatedRisk = float(mod.affected[includedCells[currCell]])
-        /mod.unaffected[includedCells[currCell]];
-    else if(mod.affected[includedCells[currCell]] > 0)
+    if(mod.unaffected.at(includedCells.at(currCell))>0)
+      calculatedRisk = float(mod.affected.at(includedCells.at(currCell)))
+        /mod.unaffected.at(includedCells.at(currCell));
+    else if(mod.affected.at(includedCells.at(currCell)) > 0)
       calculatedRisk = mod.threshold + 1;
     else
       continue; //skip to next cell
@@ -369,16 +369,16 @@ void MDR::calculateStats(unsigned int combSize){
 
     switch(cellstatus){
       case 1:
-        mod.classhigh += mod.affected[includedCells[currCell]];
-        mod.misclasshigh += mod.unaffected[includedCells[currCell]];
+        mod.classhigh += mod.affected.at(includedCells.at(currCell));
+        mod.misclasshigh += mod.unaffected.at(includedCells.at(currCell));
         break;
       case 0:
-        mod.classlow += mod.unaffected[includedCells[currCell]];
-        mod.misclasslow += mod.affected[includedCells[currCell]];
+        mod.classlow += mod.unaffected.at(includedCells.at(currCell));
+        mod.misclasslow += mod.affected.at(includedCells.at(currCell));
         break;
       case -1:
-        mod.totaltiecells+= mod.affected[includedCells[currCell]]
-          + mod.unaffected[includedCells[currCell]];
+        mod.totaltiecells+= mod.affected.at(includedCells.at(currCell))
+          + mod.unaffected.at(includedCells.at(currCell));
       break;
     };
   }
@@ -414,34 +414,34 @@ void MDR::distributeInds(vector<unsigned int>& loci,
   for(unsigned currInd=0; currInd < numInds; currInd++){
     curr_score = 0;
     for(currVal=0; currVal < locSize; currVal++){
-      if((*dataset)[currInd]->get_genotype(loci[currVal]) == missingValue){
-        scores[curr_score++] = miss;
+      if((*dataset)[currInd]->get_genotype(loci.at(currVal)) == missingValue){
+        scores.at(curr_score++) = miss;
       }
       else
-        scores[curr_score++] = (*dataset)[currInd]->get_genotype(loci[currVal]);
+        scores.at(curr_score++) = (*dataset)[currInd]->get_genotype(loci.at(currVal));
     }
 
     for(currVal=0; currVal < coSize; currVal++){
-      if((*dataset)[currInd]->getCovariate(covars[currVal]) == missingCoValue){
-        scores[curr_score++] = miss;
+      if((*dataset)[currInd]->getCovariate(covars.at(currVal)) == missingCoValue){
+        scores.at(curr_score++) = miss;
       }
       else
-        scores[curr_score++] = int((*dataset)[currInd]->getCovariate(covars[currVal]));
+        scores.at(curr_score++) = int((*dataset)[currInd]->getCovariate(covars.at(currVal)));
     }
 
     for(currVal=0; currVal < traitSize; currVal++){
-      if((*dataset)[currInd]->getTrait(traits[currVal]) == missingCoValue){
-        scores[curr_score++] = miss;
+      if((*dataset)[currInd]->getTrait(traits.at(currVal)) == missingCoValue){
+        scores.at(curr_score++) = miss;
       }
       else
-        scores[curr_score++] = int((*dataset)[currInd]->getTrait(traits[currVal]));
+        scores.at(curr_score++) = int((*dataset)[currInd]->getTrait(traits.at(currVal)));
     }
 
     // deterimine index and add to appropriate status totals
     if(dataset->get_sample(currInd)->getAffected())
-      mod.affected[indexConverter.flatten_indexes(scores)]++;
+      mod.affected.at(indexConverter.flatten_indexes(scores))++;
     else
-      mod.unaffected[indexConverter.flatten_indexes(scores)]++;
+      mod.unaffected.at(indexConverter.flatten_indexes(scores))++;
 
   }
 
@@ -471,13 +471,13 @@ void MDR::distributeInds(vector<unsigned int>& lociComb){
     // create genotype vector
     for(currLoc=0; currLoc < combSize;
       currLoc++){
-      genotype[currLoc] = dataset->get_sample(currInd)->get_genotype(lociComb[currLoc]);
+      genotype.at(currLoc) = dataset->get_sample(currInd)->get_genotype(lociComb.at(currLoc));
     }
     // deterimine index and add to appropriate status totals
     if(dataset->get_sample(currInd)->getAffected())
-      mod.affected[indexConverter.flatten_indexes(genotype)]++;
+      mod.affected.at(indexConverter.flatten_indexes(genotype))++;
     else
-      mod.unaffected[indexConverter.flatten_indexes(genotype)]++;
+      mod.unaffected.at(indexConverter.flatten_indexes(genotype))++;
   }
 
 }

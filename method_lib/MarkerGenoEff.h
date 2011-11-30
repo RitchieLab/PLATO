@@ -159,10 +159,10 @@ class MarkerGenoEff{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void calcOne(int m){calcOne((*markers)[m]);};
+		void calcOne(int m){calcOne((*markers).at(m));};
 		void calcOne(Marker*);
 		void calculate(Marker* m){calcOne(m);};
-		void calculate(int m){calcOne((*markers)[m]);};
+		void calculate(int m){calcOne((*markers).at(m));};
 		int getZeros(){return zeros_one;};
 		int getTotal(){return total_one;};
 		double getPercent(){ return (double)((1 - ((double)zeros_one/(double)total_one))*100.0f);};

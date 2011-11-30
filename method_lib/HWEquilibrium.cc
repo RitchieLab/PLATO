@@ -37,7 +37,7 @@ string HWEquilibrium::stepname = "hwe";
  */
 void HWEquilibrium::PrintSummary(){
 	for(int i = 0; i < (int)markers->size(); i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 	return;
 }
@@ -50,8 +50,8 @@ void HWEquilibrium::PrintSummary(){
 void HWEquilibrium::FilterSummary(){
 	int fsize = families->size();
 	for(int i = 0; i < fsize; i++){
-		(*families)[i]->setFlagAFCM(false);
-		(*families)[i]->setFlagAFCF(false);
+		(*families).at(i)->setFlagAFCM(false);
+		(*families).at(i)->setFlagAFCF(false);
 	}
 
 
@@ -103,11 +103,11 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 	chis.push_back(vector<int>(0));
 	vector<bool> sample_status(samples->size(), false);
 	for(int i = 0; i < (int)samples->size(); i++){
-		if((*samples)[i]->getPheno() == 2){
-			sample_status[i] = true;
+		if((*samples).at(i)->getPheno() == 2){
+			sample_status.at(i) = true;
 		}
-		else if((*samples)[i]->getPheno() == 1){
-			sample_status[i] = false;
+		else if((*samples).at(i)->getPheno() == 1){
+			sample_status.at(i) = false;
 		}
 	}
 
@@ -123,10 +123,10 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 				}
 				geno_pval = pvalue;
 			}
-			chis[0].push_back(af->getAoneCa_count());
-			chis[0].push_back(af->getAtwoCa_count());
-			chis[1].push_back(af->getAoneCon_count());
-			chis[1].push_back(af->getAtwoCon_count());
+			chis.at(0).push_back(af->getAoneCa_count());
+			chis.at(0).push_back(af->getAtwoCa_count());
+			chis.at(1).push_back(af->getAoneCon_count());
+			chis.at(1).push_back(af->getAtwoCon_count());
 			allele_chi = chi.chisquare(chis);
 			allele_p = -1;
 			if(allele_chi > -1){
@@ -148,13 +148,13 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 				vector<bool> temp_status = sample_status;
 				random_shuffle(temp_status.begin(), temp_status.end());
 				vector<double> temp = hwePT(temp_status, mark);
-				if(temp[0] < results[0]){
+				if(temp.at(0) < results.at(0)){
 					ca_pt += 0;
 				}
 				else{
 					ca_pt += 1;
 				}
-				if(temp[1] < results[1]){
+				if(temp.at(1) < results.at(1)){
 					con_pt += 0;
 				}
 				else{
@@ -185,8 +185,8 @@ void HWEquilibrium::processHWEPT(){
 
 	opts::addFile("Marker", stepname, fname);
 	pvals << "Chrom\trsID\tProbeID\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		pvals << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		pvals << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	pvals << "\tPT_pval_case\tPT_pval_control\tP_pval_genotypic\tP_pval_allelic\tP_pval_case\tP_pval_control\n";
 	opts::addHeader(fname, "PT_pval_case");
@@ -207,16 +207,16 @@ void HWEquilibrium::processHWEPT(){
 	chis.push_back(vector<int>(0));
 	vector<bool> sample_status(samples->size(), false);
 	for(int i = 0; i < (int)samples->size(); i++){
-		if((*samples)[i]->getPheno() == 2){
-			sample_status[i] = true;
+		if((*samples).at(i)->getPheno() == 2){
+			sample_status.at(i) = true;
 		}
-		else if((*samples)[i]->getPheno() == 1){
-			sample_status[i] = false;
+		else if((*samples).at(i)->getPheno() == 1){
+			sample_status.at(i) = false;
 		}
 	}
 
 	for(int i = 0; i < msize; i++){
-		Marker* mark = (*markers)[i];
+		Marker* mark = (*markers).at(i);
 
 		if(mark->isEnabled() && Helpers::isValidMarker(mark, &options, prev_base, prev_chrom)){
 			af->calcOne(mark);
@@ -231,10 +231,10 @@ void HWEquilibrium::processHWEPT(){
 				}
 				geno_pval = pvalue;
 			}
-			chis[0].push_back(af->getAoneCa_count());
-			chis[0].push_back(af->getAtwoCa_count());
-			chis[1].push_back(af->getAoneCon_count());
-			chis[1].push_back(af->getAtwoCon_count());
+			chis.at(0).push_back(af->getAoneCa_count());
+			chis.at(0).push_back(af->getAtwoCa_count());
+			chis.at(1).push_back(af->getAoneCon_count());
+			chis.at(1).push_back(af->getAtwoCon_count());
 			double allele_chi = chi.chisquare(chis);
 			double allele_p = -1;
 			if(allele_chi > -1){
@@ -256,17 +256,17 @@ void HWEquilibrium::processHWEPT(){
 				vector<bool> temp_status = sample_status;
 				random_shuffle(temp_status.begin(), temp_status.end());
 				vector<double> temp = hwePT(temp_status, mark);
-				if(temp[0] < results[0]){
-					ca_pt += temp[0];
+				if(temp.at(0) < results.at(0)){
+					ca_pt += temp.at(0);
 				}
 				else{
-					ca_pt += results[0];
+					ca_pt += results.at(0);
 				}
-				if(temp[1] < results[1]){
-					con_pt += temp[1];
+				if(temp.at(1) < results.at(1)){
+					con_pt += temp.at(1);
 				}
 				else{
-					con_pt += results[1];
+					con_pt += results.at(1);
 				}
 			}
 
@@ -320,9 +320,9 @@ vector<double> HWEquilibrium::hwePT(vector<bool> sample_status, Marker* mark){
 
 	int mloc = mark->getLoc();
 	for(int i = 0; i < (int)samples->size(); i++){
-		Sample* samp = (*samples)[i];
+		Sample* samp = (*samples).at(i);
 		if(samp->isEnabled() && (samp->getPheno() == 2 || samp->getPheno() == 1)){
-			if(sample_status[i]){
+			if(sample_status.at(i)){
 				if(samp->getAone(mloc)){
 					if(samp->getAtwo(mloc) && !samp->getAmissing(mloc)){
 						ca2count+=2;
@@ -549,8 +549,8 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		  << "\trsID"
 		  << "\tProbeID"
 		  << "\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		pvals << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		pvals << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	pvals  << "\tGenotype11"
 		  << "\tGenotype12"
@@ -611,8 +611,8 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		  << "\trsID"
 		  << "\tProbeID"
 		  << "\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		paren << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		paren << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	paren  << "\tGenotype11"
 		  << "\tGenotype12"
@@ -657,8 +657,8 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		  << "\trsID"
 		  << "\tProbeID"
 		  << "\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		gend << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		gend << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	gend  << "\tGenotype11"
 		  << "\tGenotype12"
@@ -702,8 +702,8 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		  << "\trsID"
 		  << "\tProbeID"
 		  << "\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		cc << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		cc << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	cc << "\tGenotype11"
 		  << "\tGenotype12"
@@ -778,8 +778,8 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->isEnabled() && Helpers::isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
-			af->calcOne((*markers)[i]);
+		if((*markers).at(i)->isEnabled() && Helpers::isValidMarker((*markers).at(i), &options, prev_base, prev_chrom)){
+			af->calcOne((*markers).at(i));
 			if(useoverall){
 				hw_O = calcHW(af->getAone_freq(), af->getAtwo_freq(), af->getAonehomo(), af->getHet(), af->getAtwohomo(), af->getPop());
 				hw_OM = calcHW(af->getAoneM_freq(), af->getAtwoM_freq(), af->getAonehomoM(), af->getHetM(), af->getAtwohomoM(), af->getPopM());
@@ -803,17 +803,17 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 			hw_ConM = calcHW(af->getAoneConM_freq(), af->getAtwoConM_freq(), af->getAonehomoConM(), af->getHetConM(), af->getAtwohomoConM(), af->getPopConM());
 			hw_ConF = calcHW(af->getAoneConF_freq(), af->getAtwoConF_freq(), af->getAonehomoConF(), af->getHetConF(), af->getAtwohomoConF(), af->getPopConF());
 
-			pvals << (*markers)[i]->toString();
-			if((*markers)[i]->isMicroSat()){
+			pvals << (*markers).at(i)->toString();
+			if((*markers).at(i)->isMicroSat()){
 				for(int l = 0; l < 27; l++){
 					pvals << "\tNA";
 				}
 			}
 			else{
 				//overall default = founders
-				pvals << "\t" << (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele1() << "\t"
-				<< (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele2() << "\t"
-				<< (*markers)[i]->getAllele2() << "_" << (*markers)[i]->getAllele2() << "\t"
+				pvals << "\t" << (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele1() << "\t"
+				<< (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele2() << "\t"
+				<< (*markers).at(i)->getAllele2() << "_" << (*markers).at(i)->getAllele2() << "\t"
 				<< hw_O << "\t";
 				if(useoverall){
 					pvals << af->getPop() << "\t"
@@ -854,16 +854,16 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 			}
 			pvals << endl;
 			if(options.doParental()){
-				paren << (*markers)[i]->toString();
-				if((*markers)[i]->isMicroSat()){
+				paren << (*markers).at(i)->toString();
+				if((*markers).at(i)->isMicroSat()){
 					for(int l = 0; l < 19; l++){
 						paren << "\tNA";
 					}
 				}
 				else{
-					paren << "\t" << (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele1() << "\t"
-					<< (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele2() << "\t"
-					<< (*markers)[i]->getAllele2() << "_" << (*markers)[i]->getAllele2() << "\t"
+					paren << "\t" << (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele1() << "\t"
+					<< (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele2() << "\t"
+					<< (*markers).at(i)->getAllele2() << "_" << (*markers).at(i)->getAllele2() << "\t"
 					//parent male
 					<< hw_PM << "\t"
 					<< af->getPopPM() << "\t"
@@ -886,16 +886,16 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 				paren << endl;
 			}
 			if(options.doGender()){
-				gend << (*markers)[i]->toString();
-				if((*markers)[i]->isMicroSat()){
+				gend << (*markers).at(i)->toString();
+				if((*markers).at(i)->isMicroSat()){
 					for(int l = 0; l < 19; l++){
 						gend << "\tNA";
 					}
 				}
 				else{
-					gend << "\t" << (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele1() << "\t"
-					<< (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele2() << "\t"
-					<< (*markers)[i]->getAllele2() << "_" << (*markers)[i]->getAllele2() << "\t";
+					gend << "\t" << (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele1() << "\t"
+					<< (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele2() << "\t"
+					<< (*markers).at(i)->getAllele2() << "_" << (*markers).at(i)->getAllele2() << "\t";
 					if(useoverall){
 						//parent male
 						gend << hw_OM << "\t"
@@ -940,16 +940,16 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 				gend << endl;
 			}
 			if(options.doCaseControl()){
-				cc << (*markers)[i]->toString();
-				if((*markers)[i]->isMicroSat()){
+				cc << (*markers).at(i)->toString();
+				if((*markers).at(i)->isMicroSat()){
 					for(int l = 0; l < 35; l++){
 						cc << "\tNA";
 					}
 				}
 				else{
-					cc << "\t" << (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele1() << "\t"
-					<< (*markers)[i]->getAllele1() << "_" << (*markers)[i]->getAllele2() << "\t"
-					<< (*markers)[i]->getAllele2() << "_" << (*markers)[i]->getAllele2() << "\t"
+					cc << "\t" << (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele1() << "\t"
+					<< (*markers).at(i)->getAllele1() << "_" << (*markers).at(i)->getAllele2() << "\t"
+					<< (*markers).at(i)->getAllele2() << "_" << (*markers).at(i)->getAllele2() << "\t"
 					<< hw_CaM << "\t"
 					<< af->getPopCaM() << "\t"
 					<< af->getAonehomoCaM() << "\t"

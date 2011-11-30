@@ -157,7 +157,7 @@ class Marker{
 		int getAlleleLoc(string v){
 			int i = -1;
 			for(unsigned int j = 0; j < alleles.size(); j++){
-				if(alleles[j] == v){
+				if(alleles.at(j) == v){
 					i = j;
 					return i;
 				}
@@ -176,13 +176,13 @@ class Marker{
 			if(alleles.size() == 0) {
         return "";
 			}
-      return alleles[0];
+      return alleles.at(0);
 		};
 		string getAllele2() {
 			if(alleles.size() < 2){
         return "";
 			}
-      return alleles[1];
+      return alleles.at(1);
 		};
 
 		int getNumAlleles(){
@@ -195,13 +195,13 @@ class Marker{
 			if(l >= (int)alleles.size()){
 				cerr << l << " is > " << alleles.size() << endl;
 			}
-		return alleles[l];
+		return alleles.at(l);
 		};
 		void resetAllele1(string a1){
-			alleles[0] = a1;
+			alleles.at(0) = a1;
 		};
 		void resetAllele2(string a2){
-			alleles[1] = a2;
+			alleles.at(1) = a2;
 		};
 		bool hasMAF(){
 			return freqflag;
@@ -216,7 +216,7 @@ class Marker{
 			freqflag = v;
 		};
 		void assignDetail(string d, string v){
-			details[d] = v;
+			details.at(d) = v;
 		};
 		string getDetailHeaders(){
 			string value = "";

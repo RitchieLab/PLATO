@@ -42,7 +42,7 @@ void SuperlinkOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -65,7 +65,7 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 	int numfams = 0;
 	bool alldigit = true;
 	for(int f = 0; f < fsize; f++){
-		Family* fam = (*families)[f];
+		Family* fam = (*families).at(f);
 		if(Helpers::isAlphaNum(fam->getFamID())){
 			alldigit = false;
 		}
@@ -75,7 +75,7 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 		vector<Sample*>* fsamps = fam->getSamples();
 		int fssize = fsamps->size();
 		for(int s = 0; s < fssize; s++){
-			Sample* samp = (*fsamps)[s];
+			Sample* samp = (*fsamps).at(s);
 			if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 				numfams++;
 				break;
@@ -134,7 +134,7 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 		af->setOptions(options);
 		af->flagSamples();
 		for(int m = 0; m < msize; m++){
-			Marker* mark = good_markers[m];
+			Marker* mark = good_markers.at(m);
 			if(mark->isEnabled()){
 				locus << "3 " << mark->getNumAlleles() << " #" << mark->getProbeID() << "#" << endl;
 				af->calcOne(mark);
@@ -160,7 +160,7 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 		//loop through all markers (snps), and print out frequency associated with each...
 		for(int m = 0; m < msize; m++)
 		{
-			Marker* mark = good_markers[m];
+			Marker* mark = good_markers.at(m);
 			if(mark->isEnabled())
 			{
 				//this is a valid marker, needs printing...
@@ -172,7 +172,7 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 
 	for(int f = 0; f < fsize; f++)
 	{
-		Family* fam = (*families)[f];
+		Family* fam = (*families).at(f);
 		if(fam->isEnabled() || (fam->isExcluded() && options.doIncExcludedSamples()) || (!fam->isEnabled() && options.doIncDisabledSamples()))
 		{
 			vector<Sample*>* fSamples = fam->getSamples();
@@ -185,7 +185,7 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 			//need to instantiate the samplesUsed map to all false...
 			for(int i = 0; i < fssize; i++)
 			{
-				samplesUsed[(*fSamples)[i]->getInd_digit()] = false;
+				samplesUsed[(*fSamples).at(i)->getInd_digit()] = false;
 			}
 			//find the TRUE founders so that we know that we are starting at the top of the pedigree
 			vector<Sample*> trueFounders = FindTrueFounders(fSamples);
@@ -196,10 +196,10 @@ void SuperlinkOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 			//now check to be sure that all samples have been used
 			for(int s = 0; s < fssize; s++)
 			{
-				Sample* samp = (*fSamples)[s];
+				Sample* samp = (*fSamples).at(s);
 				if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples()))
 				{
-					if (!samplesUsed[samp->getInd_digit()])
+					if (!samplesUsed.at(samp->getInd_digit()))
 					{
 						//this sample not used yet, print to PED file...
 						PrintPedigreeInfo(samp, &ped);
@@ -220,8 +220,8 @@ void SuperlinkOutput::PrintGenerationsToPed(vector<Sample*> samps, ofstream* ped
 		for(unsigned int i = 0; i < samps.size(); i++)
 		{
 			//print the information for the current True Founder
-			PrintPedigreeInfo((samps)[i], ped);
-			samplesUsed[samps[i]->getInd_digit()] = true;
+			PrintPedigreeInfo((samps).at(i), ped);
+			samplesUsed.at(samps.at(i)->getInd_digit()) = true;
 			//mark the current sample as used
 		}
 			PrintGenerationsToPed(FindNextGeneration(samps), ped);
@@ -241,16 +241,16 @@ vector<Sample*> SuperlinkOutput::FindNextGeneration(vector<Sample*> samps)
 
 	for(int i = 0; i < ssize; i++)
 	{
-		vector<Sample*>* currChildren = (samps)[i]->getChildren();
+		vector<Sample*>* currChildren = (samps).at(i)->getChildren();
 		//add all children to the children vector...
 
 		for(unsigned int j = 0; j < (*currChildren).size(); j++)
 		{
-			Sample* currChild = (*currChildren)[j];
-			if(!samplesUsed[currChild->getInd_digit()])
+			Sample* currChild = (*currChildren).at(j);
+			if(!samplesUsed.at(currChild->getInd_digit()))
 			{
 				children.push_back(currChild);
-				(samplesUsed)[currChild->getInd_digit()] = true;
+				(samplesUsed).at(currChild->getInd_digit()) = true;
 				childrenIDs.push_back(currChild->getInd_digit());
 			}
 			vector<Sample*>* currGrandchildren = currChild->getChildren();
@@ -258,21 +258,21 @@ vector<Sample*> SuperlinkOutput::FindNextGeneration(vector<Sample*> samps)
 
 			for(unsigned int g = 0; g < currGrandchildren->size(); g++)
 			{
-				grandchildren.push_back((*currGrandchildren)[g]);
-				currGrandchild = (*currGrandchildren)[g];
-				if ((!samplesUsed[currGrandchild->getMom()->getInd_digit()]) && currGrandchild->getMom() != NULL)
+				grandchildren.push_back((*currGrandchildren).at(g));
+				currGrandchild = (*currGrandchildren).at(g);
+				if ((!samplesUsed.at(currGrandchild->getMom()->getInd_digit())) && currGrandchild->getMom() != NULL)
 				{
 					//mom needs to be added to the children vector...
 					childrenIDs.push_back(currGrandchild->getMom()->getInd_digit());
 					children.push_back(currGrandchild->getMom());
-					(samplesUsed)[currGrandchild->getMom()->getInd_digit()] = true;
+					(samplesUsed).at(currGrandchild->getMom()->getInd_digit()) = true;
 				}
-				if ((!samplesUsed[currGrandchild->getDad()->getInd_digit()]) && currGrandchild->getDad() != NULL)
+				if ((!samplesUsed.at(currGrandchild->getDad()->getInd_digit())) && currGrandchild->getDad() != NULL)
 				{
 					//mom needs to be added to the children vector...
 					childrenIDs.push_back(currGrandchild->getDad()->getInd_digit());
 					children.push_back(currGrandchild->getDad());
-					(samplesUsed)[currGrandchild->getDad()->getInd_digit()] = true;
+					(samplesUsed).at(currGrandchild->getDad()->getInd_digit()) = true;
 				}
 			}//end loop through grandchildren
 		}//end loop through children
@@ -289,15 +289,15 @@ vector<Sample*> SuperlinkOutput::FindTrueFounders(vector<Sample*>* samps)
 
 	for(int s = 0; s < ssize; s++)
 	{
-		Sample* samp = (*samps)[s];
+		Sample* samp = (*samps).at(s);
 		if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())) && samp->isFounder())
 		{
 			vector<Sample*>* children = samp->getChildren();
 			bool isTrueFounder = true;
 			for(unsigned int c = 0; c < children->size(); c++)
 			{
-				Sample* dad = (*children)[c]->getDad();
-				Sample* mom = (*children)[c]->getMom();
+				Sample* dad = (*children).at(c)->getDad();
+				Sample* mom = (*children).at(c)->getMom();
 
 				if ( (dad != NULL && !dad->isFounder()) || (mom != NULL && !mom->isFounder()))
 				{
@@ -331,7 +331,7 @@ void SuperlinkOutput::PrintPedigreeInfo(Sample* samp, ofstream* ped)
 		}
 		else
 		{
-			(*ped) << (*children)[0]->getInd_digit() << " ";
+			(*ped) << (*children).at(0)->getInd_digit() << " ";
 		}
 		//paternal sib
 		Sample* sib = samp->getPatSib();
@@ -383,7 +383,7 @@ void SuperlinkOutput::PrintPedigreeInfo(Sample* samp, ofstream* ped)
 		(*ped) << " " << options.findPenetranceCode(samp->getFamID() + " " + samp->getInd());
 		for(int m = 0; m < msize; m++)
 		{
-			Marker* mark = good_markers[m];
+			Marker* mark = good_markers.at(m);
 			if(mark->isEnabled())
 			{
 				int mloc = mark->getLoc();

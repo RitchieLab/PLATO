@@ -29,32 +29,32 @@ void SampleGenoEff::calculate(Sample* samp){
 			int prev_base = 0;
 			int prev_chrom = -1;
 			for(int k = 0; k < msize; k++){
-				if((*markers)[k]->isEnabled()){
+				if((*markers).at(k)->isEnabled()){
 		            if(options.doChrom()){
-        		        if(!options.checkChrom((*markers)[k]->getChrom())){
+        		        if(!options.checkChrom((*markers).at(k)->getChrom())){
 	            	        continue;
 		            	}
-                		if(!options.checkBp((*markers)[k]->getBPLOC())){
+                		if(!options.checkBp((*markers).at(k)->getBPLOC())){
 	                    	continue;
 		                }
             		}
                     if(options.doBpSpace()){
 	                    if(prev_base == 0){
-	                        prev_base = (*markers)[k]->getBPLOC();
-	                        prev_chrom = (*markers)[k]->getChrom();
+	                        prev_base = (*markers).at(k)->getBPLOC();
+	                        prev_chrom = (*markers).at(k)->getChrom();
                         }
                         else{
-	                        if((*markers)[k]->getChrom() == prev_chrom && (((*markers)[k]->getBPLOC() - prev_base) < options.getBpSpace())){
-								(*markers)[k]->setFlag(true);
+	                        if((*markers).at(k)->getChrom() == prev_chrom && (((*markers).at(k)->getBPLOC() - prev_base) < options.getBpSpace())){
+								(*markers).at(k)->setFlag(true);
 	                            continue;
                             }
-                            prev_base = (*markers)[k]->getBPLOC();
-                            prev_chrom = (*markers)[k]->getChrom();
+                            prev_base = (*markers).at(k)->getBPLOC();
+                            prev_chrom = (*markers).at(k)->getChrom();
                         }
                     }
 
-					int loc = (*markers)[k]->getLoc();
-					if(!(*markers)[k]->isMicroSat()){
+					int loc = (*markers).at(k)->getLoc();
+					if(!(*markers).at(k)->isMicroSat()){
 						if(samp->getAone(loc) && samp->getAtwo(loc) && samp->getAmissing(loc)){
 							zeros_one++;
 						}
@@ -88,54 +88,54 @@ void SampleGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 	orig_num_samples = 0;
 
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
+		if((*samples).at(i)->isEnabled()){
 			int prev_base = 0;
 			int prev_chrom = -1;
 			for(int k = 0; k < msize; k++){
-				if((*markers)[k]->isEnabled()){
+				if((*markers).at(k)->isEnabled()){
 		            if(options.doChrom()){
-        		        if(!options.checkChrom((*markers)[k]->getChrom())){
+        		        if(!options.checkChrom((*markers).at(k)->getChrom())){
 	            	        continue;
 		            	}
-                		if(!options.checkBp((*markers)[k]->getBPLOC())){
+                		if(!options.checkBp((*markers).at(k)->getBPLOC())){
 	                    	continue;
 		                }
             		}
                     if(options.doBpSpace()){
 	                    if(prev_base == 0){
-	                        prev_base = (*markers)[k]->getBPLOC();
-	                        prev_chrom = (*markers)[k]->getChrom();
+	                        prev_base = (*markers).at(k)->getBPLOC();
+	                        prev_chrom = (*markers).at(k)->getChrom();
                         }
                         else{
-	                        if((*markers)[k]->getChrom() == prev_chrom && (((*markers)[k]->getBPLOC() - prev_base) < options.getBpSpace())){
-								(*markers)[k]->setFlag(true);
+	                        if((*markers).at(k)->getChrom() == prev_chrom && (((*markers).at(k)->getBPLOC() - prev_base) < options.getBpSpace())){
+								(*markers).at(k)->setFlag(true);
 	                            continue;
                             }
-                            prev_base = (*markers)[k]->getBPLOC();
-                            prev_chrom = (*markers)[k]->getChrom();
+                            prev_base = (*markers).at(k)->getBPLOC();
+                            prev_chrom = (*markers).at(k)->getChrom();
                         }
                     }
 
-					int loc = (*markers)[k]->getLoc();
-					if(!(*markers)[k]->isMicroSat()){
-						if((*samples)[i]->getAone(loc) && !(*samples)[i]->getAtwo(loc)){
-							zeros[i]++;
+					int loc = (*markers).at(k)->getLoc();
+					if(!(*markers).at(k)->isMicroSat()){
+						if((*samples).at(i)->getAone(loc) && !(*samples).at(i)->getAtwo(loc)){
+							zeros.at(i)++;
 							if(opts::_ENZYMES_){
-								enzyme_zeros[i][(*markers)[k]->getEnzyme()]++;
+								enzyme_zeros.at(i)[(*markers).at(k)->getEnzyme()]++;
 							}
 						}
 					}
 					else{
-						if((*samples)[i]->getAbone(loc) == -1){
-							zeros[i]++;
+						if((*samples).at(i)->getAbone(loc) == -1){
+							zeros.at(i)++;
 							if(opts::_ENZYMES_){
-								enzyme_zeros[i][(*markers)[k]->getEnzyme()]++;
+								enzyme_zeros.at(i)[(*markers).at(k)->getEnzyme()]++;
 							}
 						}
 					}
-					total[i]++;
+					total.at(i)++;
 					if(opts::_ENZYMES_){
-						enzyme_total[i][(*markers)[k]->getEnzyme()]++;
+						enzyme_total.at(i)[(*markers).at(k)->getEnzyme()]++;
 					}
 				}
 			}
@@ -158,7 +158,7 @@ void SampleGenoEff::PrintSummary(){
 	opts::addFile("Sample",stepname, fname1);
 	string sdetails = "";
 	if(opts::_SAMPDESC_.length() > 0){
-		sdetails = (*samples)[0]->getDetailHeaders();
+		sdetails = (*samples).at(0)->getDetailHeaders();
 	}
 	opts::addHeader(fname1, "%GenoEff_All");
 	indeff << "FamID\t"
@@ -169,19 +169,19 @@ void SampleGenoEff::PrintSummary(){
 	if(opts::_ENZYMES_){
 		int msize = markers->size();
 		for(int i = 0; i < msize; i++){
-			if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+			if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
 	            if(options.doChrom()){
-  		            if(!options.checkChrom((*markers)[i]->getChrom())){
+  		            if(!options.checkChrom((*markers).at(i)->getChrom())){
 			            continue;
 		            }
-		            if(!options.checkBp((*markers)[i]->getBPLOC())){
+		            if(!options.checkBp((*markers).at(i)->getBPLOC())){
 			            continue;
 		            }
 		        }
 
-				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), (*markers)[i]->getEnzyme());
+				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), (*markers).at(i)->getEnzyme());
 				if(e_iter == enzymes.end()){
-					enzymes.push_back((*markers)[i]->getEnzyme());
+					enzymes.push_back((*markers).at(i)->getEnzyme());
 				}
 			}
 		}
@@ -189,8 +189,8 @@ void SampleGenoEff::PrintSummary(){
 			sort(enzymes.begin(), enzymes.end());
 		}
 		for(int i = 0; i < (int)enzymes.size(); i++){
-			indeff << "\tGenoEff_" << enzymes[i];
-			opts::addHeader(fname1, "GenoEff_" + enzymes[i]);
+			indeff << "\tGenoEff_" << enzymes.at(i);
+			opts::addHeader(fname1, "GenoEff_" + enzymes.at(i));
 		}
 	}
 	if(opts::_SAMPDESC_.length() > 0){
@@ -203,37 +203,37 @@ void SampleGenoEff::PrintSummary(){
 	int ssize = samples->size();
 
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
+		if((*samples).at(i)->isEnabled()){
 			float percent = 0.0f;
 
-			if(total[i] > 0){
-				percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
+			if(total.at(i) > 0){
+				percent = (1.0f - ((float)zeros.at(i)/(float)total.at(i))) * 100.0f;
 			}
 
-			indeff << (*samples)[i]->getFamID() << "\t"
-				   << (*samples)[i]->getInd() << "\t"
-				   << (*samples)[i]->getFamily()->getCenter() << "\t";
-			if((*samples)[i]->getSex()){
+			indeff << (*samples).at(i)->getFamID() << "\t"
+				   << (*samples).at(i)->getInd() << "\t"
+				   << (*samples).at(i)->getFamily()->getCenter() << "\t";
+			if((*samples).at(i)->getSex()){
 				indeff << "M\t";
 			}
 			else{
 				indeff << "F\t";
 			}
-			indeff << (*samples)[i]->getPheno() << "\t";
-			indeff << (*samples)[i]->getPlate() << "\t"
-				   << (*samples)[i]->getWell() << "\t"
+			indeff << (*samples).at(i)->getPheno() << "\t";
+			indeff << (*samples).at(i)->getPlate() << "\t"
+				   << (*samples).at(i)->getWell() << "\t"
 				   << percent;
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
 				for(int e = 0; e < (int)enzymes.size(); e++){
 					float epercent = 0.0f;
-					if(enzyme_total[i][enzymes[e]] > 0){
-						epercent = (1.0f - ((float)enzyme_zeros[i][enzymes[e]] / (float)enzyme_total[i][enzymes[e]])) * 100.0f;
+					if(enzyme_total.at(i).at(enzymes.at(e)) > 0){
+						epercent = (1.0f - ((float)enzyme_zeros.at(i).at(enzymes.at(e)) / (float)enzyme_total.at(i).at(enzymes.at(e)))) * 100.0f;
 					}
 					indeff << "\t" << epercent;
 				}
 			}
 			if(opts::_SAMPDESC_.length() > 0){
-				indeff << "\t" << (*samples)[i]->getDetails();
+				indeff << "\t" << (*samples).at(i)->getDetails();
 			}
 			indeff << endl;
 		}
@@ -241,7 +241,7 @@ void SampleGenoEff::PrintSummary(){
 
 	int msize = markers->size();
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 	if(indeff.is_open()){
@@ -255,19 +255,19 @@ void SampleGenoEff::filter(){
 		int ssize = samples->size();
 
 		for(int i = 0; i < ssize; i++){
-			if((*samples)[i]->isEnabled()){
+			if((*samples).at(i)->isEnabled()){
 				float percent = 0.0f;
 				bool inc = false;
-				if(total[i] > 0){
-					percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
+				if(total.at(i) > 0){
+					percent = (1.0f - ((float)zeros.at(i)/(float)total.at(i))) * 100.0f;
 				}
 
 				if(options.doThreshSamplesLow() && Helpers::dLess(percent, options.getThreshSamplesLow())){
-					(*samples)[i]->setEnabled(false);
+					(*samples).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(options.doThreshSamplesHigh() && Helpers::dGreater(percent, options.getThreshSamplesHigh())){
-					(*samples)[i]->setEnabled(false);
+					(*samples).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){

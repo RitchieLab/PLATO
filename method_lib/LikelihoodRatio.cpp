@@ -53,7 +53,7 @@ void LikelihoodRatio::resetDataSet(DataSet* ds){
 void LikelihoodRatio::calculate(int locus){
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
-  locus = (*markers)[locus]->getLoc();
+  locus = (*markers).at(locus)->getLoc();
   ContingencyTable table;
   
   table.get_counts(locus, dataset);
@@ -84,9 +84,9 @@ void LikelihoodRatio::calculate(ContingencyTable* table){
   double llr=0.0;
   // calculate expected for each cell
   for(unsigned int cell=0; cell<(*table)[0].size(); cell++){
-    if( totalInCell[cell] > 0){
-      llr += (*table)[0][cell] * log((*table)[0][cell] / (totalInCell[cell]*unaffected/totalinds));      
-      llr += (*table)[1][cell] * log((*table)[1][cell] / (totalInCell[cell]*affected/totalinds));
+    if( totalInCell.at(cell) > 0){
+      llr += (*table)[0][cell] * log((*table)[0][cell] / (totalInCell.at(cell)*unaffected/totalinds));
+      llr += (*table)[1][cell] * log((*table)[1][cell] / (totalInCell.at(cell)*affected/totalinds));
     }
   }
 

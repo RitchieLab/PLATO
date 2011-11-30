@@ -67,25 +67,25 @@ void MitoCheck::PrintSummary(){
 	opts::addFile("Marker",stepname,fname1);
 	myoutput.precision(4);
 	myoutput << "Chrom\trsID\tProbeID\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		myoutput << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		myoutput << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	myoutput << "\tNum_errors" << endl;
 	opts::addHeader(fname1, "Num_errors");
 
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->isEnabled() && (*markers)[i]->getChrom() == opts::_MITO_ && !(*markers)[i]->isFlagged()){
+		if((*markers).at(i)->isEnabled() && (*markers).at(i)->getChrom() == opts::_MITO_ && !(*markers).at(i)->isFlagged()){
 			if(options.doChrom()){
-				if(!options.checkChrom((*markers)[i]->getChrom())){
+				if(!options.checkChrom((*markers).at(i)->getChrom())){
 					continue;
 				}
-				if(!options.checkBp((*markers)[i]->getBPLOC())){
+				if(!options.checkBp((*markers).at(i)->getBPLOC())){
 					continue;
 				}
 			}
 
-			myoutput << (*markers)[i]->toString() << "\t"
-				<< merrors[i] << endl;
+			myoutput << (*markers).at(i)->toString() << "\t"
+				<< merrors.at(i) << endl;
 		}
 	}
 	string fname2 = opts::_OUTPREFIX_ + "mito_check_ind" + options.getOut() + ".txt";
@@ -108,37 +108,37 @@ void MitoCheck::PrintSummary(){
 
     string sdetails = "";
     if(opts::_SAMPDESC_.length() > 0){
-        sdetails = (*samples)[0]->getDetailHeaders();
+        sdetails = (*samples).at(0)->getDetailHeaders();
     	hetout << "\t" << sdetails;
 	}
 
     hetout << endl;
 
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
-			hetout << (*samples)[i]->toString() << "\t"
-				<< (*samples)[i]->getFamily()->getCenter() << "\t";
-			if((*samples)[i]->getSex()){
+		if((*samples).at(i)->isEnabled()){
+			hetout << (*samples).at(i)->toString() << "\t"
+				<< (*samples).at(i)->getFamily()->getCenter() << "\t";
+			if((*samples).at(i)->getSex()){
 				hetout << "M\t";
 			}
 			else{
 				hetout << "F\t";
 			}
-			if((*samples)[i]->getPheno() == 2){
+			if((*samples).at(i)->getPheno() == 2){
 				hetout << "Y\t";
 			}
-			else if((*samples)[i]->getPheno() == 1){
+			else if((*samples).at(i)->getPheno() == 1){
 				hetout << "N\t";
 			}
 			else{
 				hetout << "U\t";
 			}
 
-			hetout << (*samples)[i]->getPlate() << "\t"
-				<< (*samples)[i]->getWell() << "\t"
-				<< serrors[i];
+			hetout << (*samples).at(i)->getPlate() << "\t"
+				<< (*samples).at(i)->getWell() << "\t"
+				<< serrors.at(i);
 			if(opts::_SAMPDESC_.length() > 0){
-				hetout << "\t" << (*samples)[i]->getDetails();
+				hetout << "\t" << (*samples).at(i)->getDetails();
 			}
 			hetout << endl;
 		}
@@ -153,10 +153,10 @@ void MitoCheck::PrintSummary(){
 	errorout << "Chrom\trsID\tProbeID\tbploc\tFamID\tMom\tMom_Genotype\tChild\tChild_Genotype\n";
 
 	for(int i = 0; i < (int)error_map.size(); i++){
-		Sample* child = (*samples)[i];
+		Sample* child = (*samples).at(i);
 		Sample* mom = child->getMom();
-		for(int j = 0; j < (int)error_map[i].size(); j++){
-			Marker* mark = error_map[i][j];
+		for(int j = 0; j < (int)error_map.at(i).size(); j++){
+			Marker* mark = error_map.at(i).at(j);
 			int loc = mark->getLoc();
 			string ma1;
 			string ma2;
@@ -226,7 +226,7 @@ void MitoCheck::PrintSummary(){
 		errorout.close();
 	}
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -249,23 +249,23 @@ void MitoCheck::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int msize = markers->size();
 		for(int m = 0; m < msize; m++){
-			if((*markers)[m]->isEnabled() && (*markers)[m]->getChrom() == opts::_MITO_ && !(*markers)[m]->isFlagged()){
+			if((*markers).at(m)->isEnabled() && (*markers).at(m)->getChrom() == opts::_MITO_ && !(*markers).at(m)->isFlagged()){
 				if(options.doChrom()){
-					if(!options.checkChrom((*markers)[m]->getChrom())){
+					if(!options.checkChrom((*markers).at(m)->getChrom())){
 					    continue;
 				    }
-				    if(!options.checkBp((*markers)[m]->getBPLOC())){
+				    if(!options.checkBp((*markers).at(m)->getBPLOC())){
 					    continue;
 				    }
 				}
 
 				bool inc = false;
-				if(options.doThreshMarkersLow() && merrors[m] < options.getThreshMarkersLow()){
-					(*markers)[m]->setEnabled(false);
+				if(options.doThreshMarkersLow() && merrors.at(m) < options.getThreshMarkersLow()){
+					(*markers).at(m)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersHigh() && merrors[m] > options.getThreshMarkersHigh()){
-					(*markers)[m]->setEnabled(false);
+				if(options.doThreshMarkersHigh() && merrors.at(m) > options.getThreshMarkersHigh()){
+					(*markers).at(m)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -278,14 +278,14 @@ void MitoCheck::filter(){
 	if(options.doThreshSamplesLow() || options.doThreshSamplesHigh()){
 		int ssize = samples->size();
 		for(int i = 0; i < ssize; i++){
-			if((*samples)[i]->isEnabled()){
+			if((*samples).at(i)->isEnabled()){
 				bool inc = false;
-				if(options.doThreshSamplesLow() && serrors[i] < options.getThreshSamplesLow()){
-					(*samples)[i]->setEnabled(false);
+				if(options.doThreshSamplesLow() && serrors.at(i) < options.getThreshSamplesLow()){
+					(*samples).at(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshSamplesHigh() && serrors[i] > options.getThreshSamplesHigh()){
-					(*samples)[i]->setEnabled(false);
+				if(options.doThreshSamplesHigh() && serrors.at(i) > options.getThreshSamplesHigh()){
+					(*samples).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -322,46 +322,46 @@ void MitoCheck::perform_evaluation(bool dofams){
 	msize = good_markers.size();
 
 	for(int m = 0; m < msize; m++){
-		if(good_markers[m]->isEnabled()){
-			if(good_markers[m]->getChrom() != opts::_MITO_){
+		if(good_markers.at(m)->isEnabled()){
+			if(good_markers.at(m)->getChrom() != opts::_MITO_){
 				continue;
 			}
 
-			int mloc = good_markers[m]->getLoc();
-			bool micro = good_markers[m]->isMicroSat();
+			int mloc = good_markers.at(m)->getLoc();
+			bool micro = good_markers.at(m)->isMicroSat();
 			for(int i = 0; i < ssize; i++){
-				if((*samples)[i]->isEnabled()){
+				if((*samples).at(i)->isEnabled()){
 					if(!micro){
-						if((*samples)[i]->getAone(mloc) && (*samples)[i]->getAtwo(mloc) && (*samples)[i]->getAmissing(mloc)){
+						if((*samples).at(i)->getAone(mloc) && (*samples).at(i)->getAtwo(mloc) && (*samples).at(i)->getAmissing(mloc)){
 							continue;
 						}
-						if(!(*samples)[i]->getAone(mloc) && (*samples)[i]->getAtwo(mloc)){
-							serrors[i]++;
-							merrors[m]++;
+						if(!(*samples).at(i)->getAone(mloc) && (*samples).at(i)->getAtwo(mloc)){
+							serrors.at(i)++;
+							merrors.at(m)++;
 						}
-						if((*samples)[i]->getMom()){
-							Sample* mom = (*samples)[i]->getMom();
-							if(mom->getAone(mloc) == mom->getAtwo(mloc) && !mom->getAmissing(mloc) && (*samples)[i]->getAone(mloc) == (*samples)[i]->getAtwo(mloc) && mom->getAone(mloc) != (*samples)[i]->getAone(mloc)){
-								serrors[i]++;
-								merrors[m]++;
-								error_map[i].push_back(good_markers[m]);
+						if((*samples).at(i)->getMom()){
+							Sample* mom = (*samples).at(i)->getMom();
+							if(mom->getAone(mloc) == mom->getAtwo(mloc) && !mom->getAmissing(mloc) && (*samples).at(i)->getAone(mloc) == (*samples).at(i)->getAtwo(mloc) && mom->getAone(mloc) != (*samples).at(i)->getAone(mloc)){
+								serrors.at(i)++;
+								merrors.at(m)++;
+								error_map.at(i).push_back(good_markers.at(m));
 							}
 						}
 					}
 					else{
-						if((*samples)[i]->getAbone(mloc) == -1){
+						if((*samples).at(i)->getAbone(mloc) == -1){
 							continue;
 						}
-						if((*samples)[i]->getAbone(mloc) != (*samples)[i]->getAbtwo(mloc)){
-							serrors[i]++;
-							merrors[m]++;
+						if((*samples).at(i)->getAbone(mloc) != (*samples).at(i)->getAbtwo(mloc)){
+							serrors.at(i)++;
+							merrors.at(m)++;
 						}
-						if((*samples)[i]->getMom()){
-							Sample* mom = (*samples)[i]->getMom();
-							if(mom->getAbone(mloc) == mom->getAbtwo(mloc) && (*samples)[i]->getAbone(mloc) == (*samples)[i]->getAbtwo(mloc) && mom->getAbone(mloc) == (*samples)[i]->getAbone(mloc)){
-								serrors[i]++;
-								merrors[m]++;
-								error_map[i].push_back(good_markers[m]);
+						if((*samples).at(i)->getMom()){
+							Sample* mom = (*samples).at(i)->getMom();
+							if(mom->getAbone(mloc) == mom->getAbtwo(mloc) && (*samples).at(i)->getAbone(mloc) == (*samples).at(i)->getAbtwo(mloc) && mom->getAbone(mloc) == (*samples).at(i)->getAbone(mloc)){
+								serrors.at(i)++;
+								merrors.at(m)++;
+								error_map.at(i).push_back(good_markers.at(m));
 							}
 						}
 					}

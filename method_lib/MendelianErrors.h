@@ -94,8 +94,8 @@ class MendelianErrors{
 			vector<string> tokens;
 			Tokenize(thresh, tokens, ":");
 			if(tokens.size() == 2){
-				fam_thresh = std::atoi(tokens[0].c_str());
-				marker_thresh = std::atoi(tokens[1].c_str());
+				fam_thresh = std::atoi(tokens.at(0).c_str());
+				marker_thresh = std::atoi(tokens.at(1).c_str());
 				cout << fam_thresh << ", " << marker_thresh << endl;
 			}
 			else{

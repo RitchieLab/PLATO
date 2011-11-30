@@ -23,7 +23,7 @@
 using namespace std;
 
 namespace Methods{
-static const double *pxGlobal;
+//static const double *pxGlobal;
 
 class earth{
 

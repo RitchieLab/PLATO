@@ -44,7 +44,7 @@ void PDT2Output::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -112,7 +112,7 @@ void PDT2Output::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	bool alldigit = true;
 
     for(int f = 0; f < fsize; f++){
-        Family* fam = (*families)[f];
+        Family* fam = (*families).at(f);
         if(Helpers::isAlphaNum(fam->getFamID())){
             alldigit = false;
         }
@@ -131,7 +131,7 @@ void PDT2Output::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	af->setOptions(options);
 	af->flagSamples();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			af->calcOne(mark);
 			pdt_dat << "M" << " " << mark->getProbeID() << endl;
@@ -148,11 +148,11 @@ void PDT2Output::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		}
 	}
 	for(int f = 0; f < fsize; f++){
-		Family* fam = (*families)[f];
+		Family* fam = (*families).at(f);
 		if(fam->isEnabled()){
 			vector<Sample*>* famsamps = fam->getSamples();
 			for(int i = 0; i < (int)famsamps->size(); i++){
-				Sample* samp = (*famsamps)[i];
+				Sample* samp = (*famsamps).at(i);
 		if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 			int prev_base = 0;
 			int prev_chrom = -1;
@@ -172,7 +172,7 @@ void PDT2Output::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			prev_base = 0;
 			prev_chrom = -1;
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];
+				Marker* mark = good_markers.at(m);
 				if(mark->isEnabled()){
 					int m_loc = mark->getLoc();
 					if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doZeroDisabled())){

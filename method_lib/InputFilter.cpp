@@ -19,7 +19,7 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 		if(mi >= mlist->size()){
 			break;
 		}
-		while(temp[i]->getRSID() > (*mlist)[mi]->getRSID()){
+		while(temp.at(i)->getRSID() > (*mlist).at(mi)->getRSID()){
 			mi++;
 			if(mi >= mlist->size()){
 				break;
@@ -28,8 +28,8 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 		if(mi >= mlist->size()){
 			break;
 		}
-		if(temp[i]->getRSID() == (*mlist)[mi]->getRSID()){
-			temp[i]->setEnabled(false);
+		if(temp.at(i)->getRSID() == (*mlist).at(mi)->getRSID()){
+			temp.at(i)->setEnabled(false);
 		}
 	}
 }
@@ -47,29 +47,29 @@ void InputFilter::IncludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 	unsigned int mi = 0;
 	for(unsigned int i = 0; i < temp.size(); i++){
 		if(mi >= mlist->size()){
-			temp[i]->setEnabled(false);
+			temp.at(i)->setEnabled(false);
 			continue;
 		}
-		while(temp[i]->getRSID() > (*mlist)[mi]->getRSID()){
+		while(temp.at(i)->getRSID() > (*mlist).at(mi)->getRSID()){
 			mi++;
 			if(mi >= mlist->size()){
 				break;
 			}
 		}
 		if(mi >= mlist->size()){
-			temp[i]->setEnabled(false);
+			temp.at(i)->setEnabled(false);
 			continue;
 		}
-		if(temp[i]->getRSID() == (*mlist)[mi]->getRSID()){
-			temp[i]->setEnabled(true);
-		}else{temp[i]->setEnabled(false);}
+		if(temp.at(i)->getRSID() == (*mlist).at(mi)->getRSID()){
+			temp.at(i)->setEnabled(true);
+		}else{temp.at(i)->setEnabled(false);}
 	}
 }
 
 
 bool InputFilter::IncludeSampleFilter(Sample* s, vector<Sample*>* list){
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(s->getInd() == (*list)[i]->getInd() && s->getFamID() == (*list)[i]->getFamID()){
+		if(s->getInd() == (*list).at(i)->getInd() && s->getFamID() == (*list).at(i)->getFamID()){
 			return true;
 		}
 	}
@@ -78,7 +78,7 @@ bool InputFilter::IncludeSampleFilter(Sample* s, vector<Sample*>* list){
 
 bool InputFilter::ExcludeSampleFilter(Sample* s, vector<Sample*>* list){
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(s->getInd() == (*list)[i]->getInd() && s->getFamID() == (*list)[i]->getFamID()){
+		if(s->getInd() == (*list).at(i)->getInd() && s->getFamID() == (*list).at(i)->getFamID()){
 			return false;
 		}
 	}
@@ -87,7 +87,7 @@ bool InputFilter::ExcludeSampleFilter(Sample* s, vector<Sample*>* list){
 
 bool InputFilter::IncludeFamilyFilter(Family* f, vector<Family*>* list){
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(f->getFamID() == (*list)[i]->getFamID()){
+		if(f->getFamID() == (*list).at(i)->getFamID()){
 			return true;
 		}
 	}
@@ -96,7 +96,7 @@ bool InputFilter::IncludeFamilyFilter(Family* f, vector<Family*>* list){
 
 bool InputFilter::ExcludeFamilyFilter(Family* f, vector<Family*>* list){
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(f->getFamID() == (*list)[i]->getFamID()){
+		if(f->getFamID() == (*list).at(i)->getFamID()){
 			return false;
 		}
 	}
@@ -111,10 +111,10 @@ void InputFilter::LocusChromFilter(vector<Marker*>* marks, vector<Marker*>* list
 	unsigned int ml = 0;
 	for(unsigned int i = 0; i < temp.size(); i++){
 		if(ml >= list->size()){
-			temp[i]->setEnabled(false);
+			temp.at(i)->setEnabled(false);
 			continue;
 		}
-		while((*list)[ml]->getChrom() < temp[i]->getChrom()){
+		while((*list).at(ml)->getChrom() < temp[i]->getChrom()){
 			ml++;
 			if(ml >= list->size()){
 				break;
@@ -122,21 +122,21 @@ void InputFilter::LocusChromFilter(vector<Marker*>* marks, vector<Marker*>* list
 		}
 
 		if(ml >= list->size()){
-			temp[i]->setEnabled(false);
+			temp.at(i)->setEnabled(false);
 			continue;
 		}
-		if((*list)[ml]->getChrom() < temp[i]->getChrom()){
+		if((*list).at(ml)->getChrom() < temp.at(i)->getChrom()){
 			ml++;
 		}
 		if(ml >= list->size()){
-			temp[i]->setEnabled(false);
+			temp.at(i)->setEnabled(false);
 			continue;
 		}
-		if(temp[i]->getChrom() == (*list)[ml]->getChrom()){
-			temp[i]->setEnabled(true);
+		if(temp.at(i)->getChrom() == (*list).at(ml)->getChrom()){
+			temp.at(i)->setEnabled(true);
 		}
 		else{
-			temp[i]->setEnabled(false);
+			temp.at(i)->setEnabled(false);
 		}
 	}
 }
@@ -153,21 +153,21 @@ void InputFilter::LocusBplocRangeFilter(vector<Marker*>* marks, vector<Marker*>*
 	if(list->size() != 2){
 		throw MethodException("Only 2 elements may be passed in the vector to LocusBplocRangeFilter...\n");
 	}
-	Marker* min = (*list)[0];
-	Marker* max = (*list)[1];
+	Marker* min = (*list).at(0);
+	Marker* max = (*list).at(1);
 
 	vector<Marker*> temp = *marks;
 	stable_sort(temp.begin(), temp.end(), less<Methods::Marker*>());
 
 	for(unsigned int i = 0; i < temp.size(); i++){
 		if(min != NULL){
-			if(temp[i]->getBPLOC() < min->getBPLOC()){
-				temp[i]->setEnabled(false);
+			if(temp.at(i)->getBPLOC() < min->getBPLOC()){
+				temp.at(i)->setEnabled(false);
 			}
 		}
 		if(max != NULL){
-			if(temp[i]->getBPLOC() > max->getBPLOC()){
-				temp[i]->setEnabled(false);
+			if(temp.at(i)->getBPLOC() > max->getBPLOC()){
+				temp.at(i)->setEnabled(false);
 			}
 		}
 	}
@@ -178,7 +178,7 @@ bool InputFilter::IncludeCovariateFilter(string cov, vector<string>* list){
 		return true;
 	}
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(cov == (*list)[i]){
+		if(cov == (*list).at(i)){
 			return true;
 		}
 	}
@@ -190,7 +190,7 @@ bool InputFilter::ExcludeCovariateFilter(string cov, vector<string>* list){
 		return true;
 	}
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(cov == (*list)[i]){
+		if(cov == (*list).at(i)){
 			return false;
 		}
 	}
@@ -202,7 +202,7 @@ bool InputFilter::IncludeTraitFilter(string trait, vector<string>* list){
 		return true;
 	}
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(trait == (*list)[i]){
+		if(trait == (*list).at(i)){
 			return true;
 		}
 	}
@@ -214,7 +214,7 @@ bool InputFilter::ExcludeTraitFilter(string trait, vector<string>* list){
 		return true;
 	}
 	for(unsigned int i = 0; i < list->size(); i++){
-		if(trait == (*list)[i]){
+		if(trait == (*list).at(i)){
 			return false;
 		}
 	}
@@ -222,23 +222,23 @@ bool InputFilter::ExcludeTraitFilter(string trait, vector<string>* list){
 }
 
 void InputFilter::run_locus_filter(int f, vector<Marker*>* marks){
-	marker_filters[f](marks, marker_lists[f]);
+	marker_filters.at(f)(marks, marker_lists.at(f));
 }
 
 bool InputFilter::run_sample_filter(int f, Sample* s){
-	return sample_filters[f](s, sample_lists[f]);
+	return sample_filters.at(f)(s, sample_lists.at(f));
 }
 
 bool InputFilter::run_family_filter(int f, Family* fam){
-	return family_filters[f](fam, family_lists[f]);
+	return family_filters.at(f)(fam, family_lists.at(f));
 }
 
 bool InputFilter::run_covariate_filter(int f, string s){
-	return cov_filters[f](s, cov_lists[f]);
+	return cov_filters.at(f)(s, cov_lists.at(f));
 }
 
 bool InputFilter::run_trait_filter(int f, string s){
-	return trait_filters[f](s, trait_lists[f]);
+	return trait_filters.at(f)(s, trait_lists.at(f));
 }
 
 void InputFilter::run_sample_bprange_filter(vector<Sample*>* samples, vector<Marker*>* markers, vector<Sample*> filter_samples,
@@ -257,15 +257,15 @@ void InputFilter::run_sample_bprange_filter(vector<Sample*>* samples, vector<Mar
 
 	for(int s = 0; s < ssize; s++){
 		vector<Sample*>::iterator s_iter;
-		s_iter = find_if(samples->begin(), samples->end(), FindSampleByFamAndID(filter_samples[s]->getFamID(), filter_samples[s]->getInd()));
+		s_iter = find_if(samples->begin(), samples->end(), FindSampleByFamAndID(filter_samples.at(s)->getFamID(), filter_samples.at(s)->getInd()));
 		if(s_iter != samples->end()){
 			Sample* found = (*s_iter);
-			vector<Marker*> range = filter_ranges[s];
-			Marker* min = range[0];
-			Marker* max = range[1];
+			vector<Marker*> range = filter_ranges.at(s);
+			Marker* min = range.at(0);
+			Marker* max = range.at(1);
 
 			for(int m = 0; m < msize; m++){
-				Marker* mark = (*markers)[m];
+				Marker* mark = (*markers).at(m);
 				if(mark->getChrom() == min->getChrom() && mark->getBPLOC() >= min->getBPLOC() && mark->getBPLOC() <= max->getBPLOC()){
 					int loc = mark->getLoc();
 					found->addAone(loc, true);

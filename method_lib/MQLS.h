@@ -103,7 +103,7 @@ class MQLS{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 
 		void calculate(Marker*);
-		void calculate(int m){calculate((*markers)[m]);};
+		void calculate(int m){calculate((*markers).at(m));};
 		double getChi(){return chi_one;};
 		long double getPval(){return pval_one;};
 		int getFamsUsed(){return fams_used_one;};

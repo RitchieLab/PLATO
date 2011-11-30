@@ -45,7 +45,7 @@ void PowerMarkerOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -56,8 +56,8 @@ void PowerMarkerOutput::filter(){
 Sample* PowerMarkerOutput::find_sample(string i, string f){
 	int ssize = samples->size();
 	for(int s = 0; s < ssize; s++){
-		if((*samples)[s]->getInd() == i && (*samples)[s]->getFamID() == f){
-			return ((*samples)[s]);
+		if((*samples).at(s)->getInd() == i && (*samples).at(s)->getFamID() == f){
+			return ((*samples).at(s));
 		}
 	}
 	return NULL;
@@ -66,7 +66,7 @@ Sample* PowerMarkerOutput::find_sample(string i, string f){
 bool PowerMarkerOutput::find_marker(string p){
 	int msize = markers->size();
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->getProbeID() == p){
+		if((*markers).at(i)->getProbeID() == p){
 			return true;
 		}
 	}
@@ -76,8 +76,8 @@ bool PowerMarkerOutput::find_marker(string p){
 int PowerMarkerOutput::get_marker_loc(int i){
 	int msize = markers->size();
 	for(int m = 0; m < msize; m++){
-		if((*markers)[m]->getLoc() == i){
-			return (*markers)[m]->getLoc();
+		if((*markers).at(m)->getLoc() == i){
+			return (*markers).at(m)->getLoc();
 		}
 	}
 	return -1;
@@ -133,7 +133,7 @@ void PowerMarkerOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<
 	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++)
 	{
-		Marker* mark = good_markers[i];
+		Marker* mark = good_markers.at(i);
 		if(mark == NULL)
 		{
 			continue;
@@ -147,7 +147,7 @@ void PowerMarkerOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<
 	pout << endl;
 	for(int s = 0; s < ssize; s++)
 	{
-		Sample* samp = (*samples)[s];
+		Sample* samp = (*samples).at(s);
 		if(!samp->isEnabled() && !samp->isExcluded() && !options.doIncDisabledSamples())
 		{
 			continue;
@@ -193,7 +193,7 @@ void PowerMarkerOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<
 		prev_chrom = -1;
 		for(int i = 0; i < msize; i++)
 		{
-			Marker* mark = good_markers[i];
+			Marker* mark = good_markers.at(i);
 			if(mark == NULL)
 			{
 				continue;

@@ -53,7 +53,7 @@ void UncertaintyCoefficient::resetDataSet(DataSet* ds){
 void UncertaintyCoefficient::calculate(int locus){
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
-  locus = (*markers)[locus]->getLoc();
+  locus = (*markers).at(locus)->getLoc();
   ContingencyTable table;
   table.get_counts(locus, dataset);
   uncertainty_coeff = calculate_uc(&table);
@@ -96,15 +96,15 @@ float UncertaintyCoefficient::calculate_uc(ContingencyTable* orig_table){
   // calculate row and column totals  
   for(row=0; row<num_rows; row++){
     for(col=0; col<num_cols; col++){
-      table_float[row][col] = table[row][col]/total_in_table;
-      row_totals[row]+= table_float[row][col];
-      col_totals[col]+= table_float[row][col];
+      table_float.at(row).at(col) = table[row][col]/total_in_table;
+      row_totals.at(row)+= table_float.at(row).at(col);
+      col_totals.at(col)+= table_float.at(row).at(col);
     }
-    H_A += (row_totals[row] * log2(row_totals[row]));
+    H_A += (row_totals.at(row) * log2(row_totals.at(row)));
   } 
   
   for(col=0; col<num_cols; col++){
-    H_B += (col_totals[col] * log2(col_totals[col]));
+    H_B += (col_totals.at(col) * log2(col_totals.at(col)));
   }
   
   H_B = -H_B;
@@ -118,10 +118,10 @@ float UncertaintyCoefficient::calculate_uc(ContingencyTable* orig_table){
   for(row=0; row<num_rows; row++){
     row_value = 0.0;
     for(col=0; col<num_cols; col++){
-      row_value += (double(table_float[row][col])/row_totals[row]) * log2(double(table_float[row][col])/row_totals[row]);
+      row_value += (double(table_float.at(row).at(col))/row_totals.at(row)) * log2(double(table_float.at(row).at(col))/row_totals.at(row));
     }
 
-    H_B_A = H_B_A + row_totals[row] * row_value;
+    H_B_A = H_B_A + row_totals.at(row) * row_value;
   }
   
   H_B_A = -H_B_A;

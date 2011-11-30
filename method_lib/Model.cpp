@@ -20,7 +20,7 @@ namespace Methods{
 
 	void Model::nullCoefs(){
 		for(int i = 0; i < (int)coef.size(); i++){
-			coef[i] = 0;
+			coef.at(i) = 0;
 		}
 	}
 
@@ -30,9 +30,9 @@ namespace Methods{
     	for (int i=0; i< (int)m.size(); i++)
 		{
 			cout << i << ")\t";
-			for (int j=0; j<(int)m[i].size(); j++)
+			for (int j=0; j<(int)m.at(i).size(); j++)
 			{
-				cout << m[i][j] << " ";
+				cout << m.at(i).at(j) << " ";
 			}
 			cout << "\n";
 		}
@@ -44,7 +44,7 @@ namespace Methods{
     	cout << "\n";
     	for (int i=0; i< (int)m.size(); i++)
     	{
-    		cout << i << ")\t" << m[i] << "\n";
+    		cout << i << ")\t" << m.at(i) << "\n";
     	}
     	cout << "\n";
     	cout << "\n";
@@ -54,7 +54,7 @@ namespace Methods{
     {
     	cout << "\n";
     	for (int i=0; i< (int)m.size(); i++)
-    		cout << i << ")\t" << m[i] << "\n";
+    		cout << i << ")\t" << m.at(i) << "\n";
     	cout << "\n";
     	cout << "\n";
     }
@@ -176,7 +176,7 @@ namespace Methods{
 			  }
 
 			  if(!data_set->get_sample(i)->isEnabled() || pheno_miss ){
-				  miss[i] = true;
+				  miss.at(i) = true;
 			  }
 		}
 	}
@@ -220,7 +220,7 @@ namespace Methods{
 				}
 			}
 
-			if(!data_set->get_sample(i)->isEnabled() || !include[i] || pheno_miss) miss[i] = true;
+			if(!data_set->get_sample(i)->isEnabled() || !include.at(i) || pheno_miss) miss.at(i) = true;
 		  }
 	}
 
@@ -335,10 +335,10 @@ namespace Methods{
 	  for (int i=0; i < data_set->num_inds(); i++)//P->n; i++)
 	  {
 
-		  Sample * person = data_set->get_sample(i);//P->sample[i];
+		  Sample * person = data_set->get_sample(i);//P->sample.at(i);
 
 		  // Ignore if missing phenotype, or the user set this to missing
-		  if ( miss[i] )
+		  if ( miss.at(i) )
 		  {
 			  continue;
 		  }
@@ -362,39 +362,39 @@ namespace Methods{
 		  for (int p = 0; p < np; p++)
 		  {
 
-			  int pType = type[p];
+			  int pType = type.at(p);
 			  switch ( pType )
 			  {
 			  case INTERCEPT :
-				  trow[p] = buildIntercept();
+				  trow.at(p) = buildIntercept();
 				  break;
 			  case ADDITIVE :
-				  trow[p] = buildAdditive( person, order[p] );
+				  trow.at(p) = buildAdditive( person, order.at(p) );
 				  break;
 			  case DOMDEV :
-				  trow[p] = buildDominance(person, order[p] );
+				  trow.at(p) = buildDominance(person, order.at(p) );
 				  break;
 			  case HAPLOTYPE :
-				  trow[p] = buildHaplotype(i, order[p] );
+				  trow.at(p) = buildHaplotype(i, order.at(p) );
 				  break;
 			  case SEX :
-				  trow[p] = buildSex(person);
+				  trow.at(p) = buildSex(person);
 				  break;
 			  case COVARIATE :
-				  trow[p] = buildCovariate( person, order[p] );
+				  trow.at(p) = buildCovariate( person, order.at(p) );
 				  break;
 			  case INTERACTION :
-				  trow[p] = buildInteraction( person, order[p], trow );
+				  trow.at(p) = buildInteraction( person, order.at(p), trow );
 				  break;
 			  case QFAM :
-				  trow[p] = buildQFAM( person );
+				  trow.at(p) = buildQFAM( person );
 				  break;
 			  }
 		  }
 
 		  if (skip)
 		  {
-			  miss[i] = true;
+			  miss.at(i) = true;
 			  skip = false;
 			  continue;
 		  }
@@ -450,9 +450,9 @@ namespace Methods{
 
 	  for (int i = 1; i<np; i++)
 		{
-		  valid[i] = true;
-		  if ( S[i][i] < 1e-20 ) { valid[i] = all_valid = false; }
-		  else if ( ! Helpers::realnum(S[i][i]) ) { valid[i] = all_valid = false; }
+		  valid.at(i) = true;
+		  if ( S.at(i).at(i) < 1e-20 ) { valid.at(i) = all_valid = false; }
+		  else if ( ! Helpers::realnum(S.at(i).at(i)) ) { valid.at(i) = all_valid = false; }
 		}
 
 	  if ( all_valid )
@@ -460,9 +460,9 @@ namespace Methods{
 		  {
 		for (int j = i-1; j>=0; j--)
 		  {
-			if ( S[i][j] / sqrt( S[i][i] * S[j][j] ) > 0.99999 )
+			if ( S.at(i).at(j) / sqrt( S.at(i).at(i) * S.at(j).at(j) ) > 0.99999 )
 			  {
-			valid[i] = false;
+			valid.at(i) = false;
 			all_valid = false;
 			break;
 			  }
@@ -476,8 +476,8 @@ namespace Methods{
 	{
 	  if (all_valid)
 		{
-		  return ( coef[testParameter] * coef[testParameter] )
-		/ S[testParameter][testParameter];
+		  return ( coef.at(testParameter) * coef.at(testParameter) )
+		/ S.at(testParameter).at(testParameter);
 		}
 	  else return 0;
 	}
@@ -500,10 +500,10 @@ namespace Methods{
 
 	  for (int r = 0; r < nc; r++)
 		for (int c = 0; c < np; c++)
-		  outer[r] += H[r][c] * coef[c];
+		  outer.at(r) += H.at(r).at(c) * coef.at(c);
 
 	  for (int r = 0; r < nc; r++)
-		outer[r] -= h[r];
+		outer.at(r) -= h.at(r);
 
 	  // 2. Calculate HVH'
 
@@ -513,7 +513,7 @@ namespace Methods{
 	  for (int r = 0; r < nc; r++)
 		for (int c = 0; c < np; c++)
 		  for (int k = 0; k < np; k++)
-		tmp[r][c] += H[r][k] * S[k][c];
+		tmp.at(r).at(c) += H.at(r).at(k) * S.at(k).at(c);
 
 	  vector<vector<double> > inner;
 	  Helpers::sizeMatrix(inner,nc,nc);
@@ -521,7 +521,7 @@ namespace Methods{
 	  for (int r = 0; r < nc; r++)
 		for (int c = 0; c < nc; c++)
 		  for (int k = 0; k < np; k++)
-		inner[r][c] += tmp[r][k] * H[c][k];
+		inner.at(r).at(c) += tmp.at(r).at(k) * H.at(c).at(k);
 
 	  inner = Helpers::svd_inverse(inner);
 
@@ -530,12 +530,12 @@ namespace Methods{
 
 	  for (int c = 0; c < nc; c++)
 		for (int k = 0; k < nc; k++)
-		  tmp2[c] += outer[k] * inner[k][c];
+		  tmp2.at(c) += outer.at(k) * inner.at(k).at(c);
 
 	  double result = 0;
 
 	  for (int r = 0; r < nc; r++)
-		result += tmp2[r] * outer[r];
+		result += tmp2.at(r) * outer.at(r);
 
 	  return result;
 
@@ -551,7 +551,7 @@ namespace Methods{
 	  int p = X.size();
 	  if (p<2) return false;
 
-	  int q = X[0].size() - 1;
+	  int q = X.at(0).size() - 1;
 	  if ( q < 2 ) return true;
 
 	  vector<double> m(q);
@@ -560,27 +560,27 @@ namespace Methods{
 
 	  for (int i=0; i<p; i++)
 		for (int j=0; j<q; j++)
-		  m[j] += X[i][j+1];
+		  m.at(j) += X.at(i).at(j+1);
 
 	  for (int j=0; j<q; j++)
-		m[j] /= (double)p;
+		m.at(j) /= (double)p;
 
 	  for (int i=0; i<p; i++)
 		for (int j1=0; j1<q; j1++)
 		  for (int j2=j1; j2<q; j2++)
-		c[j1][j2] += ( X[i][j1+1] - m[j1] ) * ( X[i][j2+1] - m[j2] );
+		c.at(j1).at(j2) += ( X.at(i).at(j1+1) - m.at(j1) ) * ( X.at(i).at(j2+1) - m.at(j2) );
 
 	  for (int j1=0; j1<q; j1++)
 		for (int j2=j1; j2<q; j2++)
-		  c[j1][j2] /= (double)(p-1);
+		  c.at(j1).at(j2) /= (double)(p-1);
 
 	  for (int j1=0; j1<q; j1++)
 		for (int j2=j1+1; j2<q; j2++)
 		  {
-		c[j1][j2] /= sqrt( c[j1][j1] * c[j2][j2] );
-		c[j2][j1] = c[j1][j2];
+		c.at(j1).at(j2) /= sqrt( c.at(j1).at(j1) * c.at(j2).at(j2) );
+		c.at(j2).at(j1) = c.at(j1).at(j2);
 
-		if ( c[j2][j1] > 0.999 )
+		if ( c.at(j2).at(j1) > 0.999 )
 		  {
 			return false;
 		  }
@@ -591,11 +591,11 @@ namespace Methods{
 
 	  for (int j=0; j<q; j++)
 		{
-		  if ( c[j][j] == 0 || ! Helpers::realnum( c[j][j] ) )
+		  if ( c.at(j).at(j) == 0 || ! Helpers::realnum( c.at(j).at(j) ) )
 		  {
 			  return false;
 		  }
-		  c[j][j] = 1;
+		  c.at(j).at(j) = 1;
 		}
 
 	  // Get inverse
@@ -609,7 +609,7 @@ namespace Methods{
 		  // correlation matrix
 		  // As VIF = 1 / ( 1 - r^2 ) , implies VIF = x
 
-		  if ( c[j][j] > options.get_vif_threshold() )
+		  if ( c.at(j).at(j) > options.get_vif_threshold() )
 		  {
 			  return false;
 		  }
@@ -637,13 +637,13 @@ namespace Methods{
 		return 0;
 	}
 
-	  int s = additive[snp]->getLoc();
+	  int s = additive.at(snp)->getLoc();
 
 	  bool i1 = person->getAone(s);
 	  bool i2 = person->getAtwo(s);
 	  bool i3 = person->getAmissing(s);
 
-	  if ( xchr[snp] )
+	  if ( xchr.at(snp) )
 		{
 
 		  /////////////////////////
@@ -695,7 +695,7 @@ namespace Methods{
 		}
 
 		}
-	  else if ( haploid[snp] )
+	  else if ( haploid.at(snp) )
 	  {
 
 		  ///////////////////
@@ -760,7 +760,7 @@ namespace Methods{
 	  ////////////////////
 	  // Dominance effects
 
-	  int s = dominance[snp]->getLoc();
+	  int s = dominance.at(snp)->getLoc();
 	  bool i1 = person->getAone(s);
 	  bool i2 = person->getAtwo(s);
 	  bool i3 = person->getAmissing(s);
@@ -817,7 +817,7 @@ namespace Methods{
 
 	  /////////////
 	  // Covariates
-	  return person->getCovariate(covariate[j]);
+	  return person->getCovariate(covariate.at(j));
 
 	}
 
@@ -828,7 +828,7 @@ namespace Methods{
 	if(isnull){
 		return 0;
 	}
-	  return trow[ interaction[j].p1 ] * trow[ interaction[j].p2 ];
+	  return trow.at( interaction.at(j).p1 ) * trow.at( interaction.at(j).p2 );
 
 	}
 

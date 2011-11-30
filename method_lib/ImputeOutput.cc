@@ -44,7 +44,7 @@ void ImputeOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -55,8 +55,8 @@ void ImputeOutput::filter(){
 Sample* ImputeOutput::find_sample(string i, string f){
 	int ssize = samples->size();
 	for(int s = 0; s < ssize; s++){
-		if((*samples)[s]->getInd() == i && (*samples)[s]->getFamID() == f){
-			return ((*samples)[s]);
+		if((*samples).at(s)->getInd() == i && (*samples).at(s)->getFamID() == f){
+			return ((*samples).at(s));
 		}
 	}
 	return NULL;
@@ -65,7 +65,7 @@ Sample* ImputeOutput::find_sample(string i, string f){
 bool ImputeOutput::find_marker(string p){
 	int msize = markers->size();
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->getProbeID() == p){
+		if((*markers).at(i)->getProbeID() == p){
 			return true;
 		}
 	}
@@ -75,8 +75,8 @@ bool ImputeOutput::find_marker(string p){
 int ImputeOutput::get_marker_loc(int i){
 	int msize = markers->size();
 	for(int m = 0; m < msize; m++){
-		if((*markers)[m]->getLoc() == i){
-			return (*markers)[m]->getLoc();
+		if((*markers).at(m)->getLoc() == i){
+			return (*markers).at(m)->getLoc();
 		}
 	}
 	return -1;
@@ -149,7 +149,7 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 	sampout << " P" << endl;
 
 	for(int s = 0; s < ssize; s++){
-		Sample* samp = (*samples)[s];
+		Sample* samp = (*samples).at(s);
 		if(!samp->isEnabled() && !samp->isExcluded() && !options.doIncDisabledSamples()){
 			continue;
 		}
@@ -236,10 +236,10 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 		vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 		msize = good_markers.size();
 		for(int i = 0; i < msize; i++){
-			Marker* mark = good_markers[i];
+			Marker* mark = good_markers.at(i);
 			Marker* mark2 = NULL;
 			if((i + 1) < msize){
-				mark2 = good_markers[i + 1];
+				mark2 = good_markers.at(i + 1);
 			}
 			if(mark == NULL){
 				continue;

@@ -109,8 +109,8 @@ void MendelianErrors::PrintSummary(){
 	opts::addHeader(fname1, "ME_count_All");
 
 	myoutputm << "Chrom\trsID\tProbeID\tbploc\t";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		myoutputm << (*markers)[0]->getDetailHeaders() << "\t";
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		myoutputm << (*markers).at(0)->getDetailHeaders() << "\t";
 	}
 	myoutputm << "ME_count_All" << endl;
 	opts::addHeader(fname3, "ME_count_All");
@@ -123,19 +123,19 @@ void MendelianErrors::PrintSummary(){
     if(opts::_ENZYMES_){
         int msize = markers->size();
         for(int i = 0; i < msize; i++){
-            if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+            if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
 				if(options.doChrom()){
-					if(!options.checkChrom((*markers)[i]->getChrom())){
+					if(!options.checkChrom((*markers).at(i)->getChrom())){
 					    continue;
 				    }
-				    if(!options.checkBp((*markers)[i]->getBPLOC())){
+				    if(!options.checkBp((*markers).at(i)->getBPLOC())){
 					    continue;
 				    }
 				}
 
-                vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), (*markers)[i]->getEnzyme());
+                vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), (*markers).at(i)->getEnzyme());
                 if(e_iter == enzymes.end()){
-                    enzymes.push_back((*markers)[i]->getEnzyme());
+                    enzymes.push_back((*markers).at(i)->getEnzyme());
                 }
             }
         }
@@ -143,44 +143,44 @@ void MendelianErrors::PrintSummary(){
             sort(enzymes.begin(), enzymes.end());
         }
         for(int i = 0; i < (int)enzymes.size(); i++){
-            myoutputi << "\tME_count_" << enzymes[i];
-			myoutputf << "\tME_count_" << enzymes[i];
-			opts::addHeader(fname1, "ME_count_" + enzymes[i]);
-			opts::addHeader(fname2, "ME_count_" + enzymes[i]);
+            myoutputi << "\tME_count_" << enzymes.at(i);
+			myoutputf << "\tME_count_" << enzymes.at(i);
+			opts::addHeader(fname1, "ME_count_" + enzymes.at(i));
+			opts::addHeader(fname2, "ME_count_" + enzymes.at(i));
         }
     }
 	string sdetails = "";
 	if(opts::_SAMPDESC_.length() > 0){
-		sdetails = (*samples)[0]->getDetailHeaders();
+		sdetails = (*samples).at(0)->getDetailHeaders();
 	}
 	myoutputi << "\t" << sdetails;
 	myoutputi << endl;
 	myoutputf << endl;
 
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+		if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
 			if(options.doChrom()){
-				if(!options.checkChrom((*markers)[i]->getChrom())){
+				if(!options.checkChrom((*markers).at(i)->getChrom())){
 				    continue;
 			    }
-			    if(!options.checkBp((*markers)[i]->getBPLOC())){
+			    if(!options.checkBp((*markers).at(i)->getBPLOC())){
 				    continue;
 			    }
 			}
-			myoutputm << (*markers)[i]->toString() << "\t"
-					  << merrors[i] << endl;
+			myoutputm << (*markers).at(i)->toString() << "\t"
+					  << merrors.at(i) << endl;
 		}
 	}
 
 	for(int i = 0; i < fsize; i++){
-		if((*families)[i]->isEnabled()){
-			myoutputf << (*families)[i]->getFamID() << "\t"
-				<< (*families)[i]->getSamples()->size() << "\t"
-				<< (*families)[i]->getCenter() << "\t"
-				<< ferrors[i];
+		if((*families).at(i)->isEnabled()){
+			myoutputf << (*families).at(i)->getFamID() << "\t"
+				<< (*families).at(i)->getSamples()->size() << "\t"
+				<< (*families).at(i)->getCenter() << "\t"
+				<< ferrors.at(i);
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
 				for(int e = 0; e < (int)enzymes.size(); e++){
-					myoutputf << "\t" << fenzyme[i][enzymes[e]];
+					myoutputf << "\t" << fenzyme.at(i).at(enzymes.at(e));
 				}
 			}
 			myoutputf << endl;
@@ -188,35 +188,35 @@ void MendelianErrors::PrintSummary(){
 	}
 
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
-			myoutputi << (*samples)[i]->getFamID() << "\t"
-				<< (*samples)[i]->getInd() << "\t"
-				<< (*samples)[i]->getFamily()->getCenter() << "\t";
-			if((*samples)[i]->getSex()){
+		if((*samples).at(i)->isEnabled()){
+			myoutputi << (*samples).at(i)->getFamID() << "\t"
+				<< (*samples).at(i)->getInd() << "\t"
+				<< (*samples).at(i)->getFamily()->getCenter() << "\t";
+			if((*samples).at(i)->getSex()){
 				myoutputi << "M\t";
 			}
 			else{
 				myoutputi << "F\t";
 			}
-			if((*samples)[i]->getPheno() == 2){
+			if((*samples).at(i)->getPheno() == 2){
 				myoutputi << "Y\t";
 			}
-			else if((*samples)[i]->getPheno() == 1){
+			else if((*samples).at(i)->getPheno() == 1){
 				myoutputi << "N\t";
 			}
 			else{
 				myoutputi << "U\t";
 			}
-			myoutputi << (*samples)[i]->getPlate() << "\t"
-				<< (*samples)[i]->getWell() << "\t"
-				<< serrors[i];
+			myoutputi << (*samples).at(i)->getPlate() << "\t"
+				<< (*samples).at(i)->getWell() << "\t"
+				<< serrors.at(i);
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
 				for(int e = 0; e < (int)enzymes.size(); e++){
-					myoutputi << "\t" << senzyme[i][enzymes[e]];
+					myoutputi << "\t" << senzyme.at(i).at(enzymes.at(e));
 				}
 			}
 			if(opts::_SAMPDESC_.length() > 0){
-				myoutputi << "\t" << (*samples)[i]->getDetails();
+				myoutputi << "\t" << (*samples).at(i)->getDetails();
 			}
 			myoutputi << endl;
 		}
@@ -233,7 +233,7 @@ void MendelianErrors::PrintSummary(){
 	}
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -259,15 +259,15 @@ void MendelianErrors::zeroErrors(){
 
 	int esize = error_map.size();
 	for(int s = 0; s < esize; s++){
-		if(error_map[s].size() > 0){
-			for(int m = 0; m < (int)error_map[s].size(); m++){
-				Marker* aloc = error_map[s][m];
+		if(error_map.at(s).size() > 0){
+			for(int m = 0; m < (int)error_map.at(s).size(); m++){
+				Marker* aloc = error_map.at(s).at(m);
 				int mloc = aloc->getLoc();
-				(*samples)[s]->addAone(mloc, true);
-				(*samples)[s]->addAtwo(mloc, false);
+				(*samples).at(s)->addAone(mloc, true);
+				(*samples).at(s)->addAtwo(mloc, false);
 				if(aloc->isMicroSat()){
-					(*samples)[s]->addAbone(mloc, -1);
-					(*samples)[s]->addAbtwo(mloc, -1);
+					(*samples).at(s)->addAbone(mloc, -1);
+					(*samples).at(s)->addAbtwo(mloc, -1);
 				}
 			}
 		}
@@ -334,201 +334,201 @@ void MendelianErrors::perform_evaluation(bool output){
 	for(int m = 0; m < msize; m++){
 		vector<Family*> family_inc;
 
-		Marker* mark = good_markers[m];//(*markers)[m];
+		Marker* mark = good_markers.at(m);//(*markers).at(m);
 		if(mark->isEnabled() && mark->getChrom() <= opts::_CHRX_){
 			int mloc = mark->getLoc();
 
 			for(int s = 0; s < ssize; s++){
-				if((*samples)[s]->isEnabled()){
+				if((*samples).at(s)->isEnabled()){
 					bool inc = false;
 					bool dadinc = false;
 					bool childinc = false;
 					bool mominc = false;
-					if((*samples)[s]->getDadID() != "0" && (*samples)[s]->getDad() != NULL){
-						if(((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc) && (*samples)[s]->getAmissing(mloc) &&
+					if((*samples).at(s)->getDadID() != "0" && (*samples).at(s)->getDad() != NULL){
+						if(((*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc) && (*samples).at(s)->getAmissing(mloc) &&
 							!mark->isMicroSat()) ||
-							((*samples)[s]->getDad()->getAone(mloc) && (*samples)[s]->getDad()->getAtwo(mloc) && (*samples)[s]->getDad()->getAmissing(mloc) &&
+							((*samples).at(s)->getDad()->getAone(mloc) && (*samples).at(s)->getDad()->getAtwo(mloc) && (*samples).at(s)->getDad()->getAmissing(mloc) &&
 							 !mark->isMicroSat()) ||
-							(mark->isMicroSat() && (*samples)[s]->getAbone(mloc) == -1) ||
-							(mark->isMicroSat() && (*samples)[s]->getDad()->getAbone(mloc) == -1)){
+							(mark->isMicroSat() && (*samples).at(s)->getAbone(mloc) == -1) ||
+							(mark->isMicroSat() && (*samples).at(s)->getDad()->getAbone(mloc) == -1)){
 						}
 						else{
-							if(mark->getChrom() != opts::_CHRX_ || (!(*samples)[s]->getSex() && mark->getChrom() == opts::_CHRX_)){
+							if(mark->getChrom() != opts::_CHRX_ || (!(*samples).at(s)->getSex() && mark->getChrom() == opts::_CHRX_)){
 								if((!mark->isMicroSat() &&
-							   		(*samples)[s]->getAone(mloc) != (*samples)[s]->getDad()->getAone(mloc) &&
-							   		(*samples)[s]->getAtwo(mloc) != (*samples)[s]->getDad()->getAone(mloc) &&
-							   		(*samples)[s]->getAone(mloc) != (*samples)[s]->getDad()->getAtwo(mloc) &&
-							   		(*samples)[s]->getAtwo(mloc) != (*samples)[s]->getDad()->getAtwo(mloc)) ||
+							   		(*samples).at(s)->getAone(mloc) != (*samples).at(s)->getDad()->getAone(mloc) &&
+							   		(*samples).at(s)->getAtwo(mloc) != (*samples).at(s)->getDad()->getAone(mloc) &&
+							   		(*samples).at(s)->getAone(mloc) != (*samples).at(s)->getDad()->getAtwo(mloc) &&
+							   		(*samples).at(s)->getAtwo(mloc) != (*samples).at(s)->getDad()->getAtwo(mloc)) ||
 							   		(mark->isMicroSat() &&
-							   		(*samples)[s]->getAbone(mloc) != (*samples)[s]->getDad()->getAbone(mloc) &&
-							   		(*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getDad()->getAbone(mloc) &&
-							   		(*samples)[s]->getAbone(mloc) != (*samples)[s]->getDad()->getAbtwo(mloc) &&
-							   		(*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getDad()->getAbtwo(mloc))){
-									vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples)[s]->getFamily());
+							   		(*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getDad()->getAbone(mloc) &&
+							   		(*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getDad()->getAbone(mloc) &&
+							   		(*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getDad()->getAbtwo(mloc) &&
+							   		(*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getDad()->getAbtwo(mloc))){
+									vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples).at(s)->getFamily());
 									if(!inc && found == family_inc.end()){
-										ferrors[(*samples)[s]->getFamily()->getLoc()]++;
+										ferrors[(*samples).at(s)->getFamily()->getLoc()]++;
 										if(opts::_ENZYMES_){
-											fenzyme[(*samples)[s]->getFamily()->getLoc()][mark->getEnzyme()]++;
+											fenzyme.at((*samples).at(s)->getFamily()->getLoc()).at(mark->getEnzyme())++;
 										}
-										merrors[m]++;
-										family_inc.push_back((*samples)[s]->getFamily());
+										merrors.at(m)++;
+										family_inc.push_back((*samples).at(s)->getFamily());
 										inc = true;
 									}
 									if(!childinc){
-										serrors[s]++;
+										serrors.at(s)++;
 										if(opts::_ENZYMES_){
-											senzyme[s][mark->getEnzyme()]++;
+											senzyme.at(s).at(mark->getEnzyme())++;
 										}
 										childinc = true;
 									}
 									if(!dadinc){
-										serrors[(*samples)[s]->getDad()->getLoc()]++;
+										serrors[(*samples).at(s)->getDad()->getLoc()]++;
 										if(opts::_ENZYMES_){
-											senzyme[(*samples)[s]->getDad()->getLoc()][mark->getEnzyme()]++;
+											senzyme[(*samples).at(s)->getDad()->getLoc()].at(mark->getEnzyme())++;
 										}
 										dadinc = true;
 									}
-									write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getDad(), mloc);
+									write_error(erroroutput, mark, (*samples).at(s), (*samples).at(s)->getDad(), mloc);
 								}
 							}
 						}//end else
 					}
 
-					if((*samples)[s]->getMomID() != "0" && (*samples)[s]->getMom() != NULL){
+					if((*samples).at(s)->getMomID() != "0" && (*samples).at(s)->getMom() != NULL){
 						if(((!mark->isMicroSat()) &&
-							(((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc) && (*samples)[s]->getAmissing(mloc)) ||
-							((*samples)[s]->getMom()->getAone(mloc) && (*samples)[s]->getMom()->getAtwo(mloc) && (*samples)[s]->getMom()->getAmissing(mloc)))) ||
-							((mark->isMicroSat()) && (((*samples)[s]->getAbone(mloc) == -1 || (*samples)[s]->getAbone(mloc) == -1))) || ((mark->isMicroSat()) && (((*samples)[s]->getMom()->getAbone(mloc) == -1)))){
+							(((*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc) && (*samples).at(s)->getAmissing(mloc)) ||
+							((*samples).at(s)->getMom()->getAone(mloc) && (*samples).at(s)->getMom()->getAtwo(mloc) && (*samples).at(s)->getMom()->getAmissing(mloc)))) ||
+							((mark->isMicroSat()) && (((*samples).at(s)->getAbone(mloc) == -1 || (*samples).at(s)->getAbone(mloc) == -1))) || ((mark->isMicroSat()) && (((*samples).at(s)->getMom()->getAbone(mloc) == -1)))){
 						}
 						else{
 							if((!mark->isMicroSat() &&
-						   		(*samples)[s]->getAone(mloc) != (*samples)[s]->getMom()->getAone(mloc) &&
-						   		(*samples)[s]->getAtwo(mloc) != (*samples)[s]->getMom()->getAone(mloc) &&
-						   		(*samples)[s]->getAone(mloc) != (*samples)[s]->getMom()->getAtwo(mloc) &&
-						   		(*samples)[s]->getAtwo(mloc) != (*samples)[s]->getMom()->getAtwo(mloc)) ||
+						   		(*samples).at(s)->getAone(mloc) != (*samples).at(s)->getMom()->getAone(mloc) &&
+						   		(*samples).at(s)->getAtwo(mloc) != (*samples).at(s)->getMom()->getAone(mloc) &&
+						   		(*samples).at(s)->getAone(mloc) != (*samples).at(s)->getMom()->getAtwo(mloc) &&
+						   		(*samples).at(s)->getAtwo(mloc) != (*samples).at(s)->getMom()->getAtwo(mloc)) ||
 						   		(mark->isMicroSat() &&
-						   		(*samples)[s]->getAbone(mloc) != (*samples)[s]->getMom()->getAbone(mloc) &&
-						   		(*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getMom()->getAbone(mloc) &&
-						   		(*samples)[s]->getAbone(mloc) != (*samples)[s]->getMom()->getAbtwo(mloc) &&
-						   		(*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getMom()->getAbtwo(mloc))){
-								vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples)[s]->getFamily());
+						   		(*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getMom()->getAbone(mloc) &&
+						   		(*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getMom()->getAbone(mloc) &&
+						   		(*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getMom()->getAbtwo(mloc) &&
+						   		(*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getMom()->getAbtwo(mloc))){
+								vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples).at(s)->getFamily());
 								if(!inc && found == family_inc.end()){
-									ferrors[(*samples)[s]->getFamily()->getLoc()]++;
+									ferrors[(*samples).at(s)->getFamily()->getLoc()]++;
 									if(opts::_ENZYMES_){
-										fenzyme[(*samples)[s]->getFamily()->getLoc()][mark->getEnzyme()]++;
+										fenzyme[(*samples).at(s)->getFamily()->getLoc()].at(mark->getEnzyme())++;
 									}
-									merrors[m]++;
-									family_inc.push_back((*samples)[s]->getFamily());
+									merrors.at(m)++;
+									family_inc.push_back((*samples).at(s)->getFamily());
 									inc = true;
 								}
 								if(!childinc){
-									serrors[s]++;
+									serrors.at(s)++;
 									if(opts::_ENZYMES_){
-										senzyme[s][mark->getEnzyme()]++;
+										senzyme.at(s).at(mark->getEnzyme())++;
 									}
 									childinc = true;
 								}
 								if(!mominc){
-									serrors[(*samples)[s]->getMom()->getLoc()]++;
+									serrors[(*samples).at(s)->getMom()->getLoc()]++;
 									if(opts::_ENZYMES_){
-										senzyme[(*samples)[s]->getMom()->getLoc()][mark->getEnzyme()]++;
+										senzyme[(*samples).at(s)->getMom()->getLoc()].at(mark->getEnzyme())++;
 									}
 									mominc = true;
 								}
-								write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getMom(), mloc);
+								write_error(erroroutput, mark, (*samples).at(s), (*samples).at(s)->getMom(), mloc);
 							}
 						}//end else
 					}
-					if((*samples)[s]->getDadID() != "0" && (*samples)[s]->getDad() != NULL && (*samples)[s]->getMomID() != "0" && (*samples)[s]->getMom() != NULL){
+					if((*samples).at(s)->getDadID() != "0" && (*samples).at(s)->getDad() != NULL && (*samples).at(s)->getMomID() != "0" && (*samples).at(s)->getMom() != NULL){
 						if(((!mark->isMicroSat()) &&
-							(((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc) && (*samples)[s]->getAmissing(mloc)) ||
-							((*samples)[s]->getDad()->getAone(mloc) && (*samples)[s]->getDad()->getAtwo(mloc) && (*samples)[s]->getDad()->getAmissing(mloc)) ||
-							((*samples)[s]->getMom()->getAone(mloc) && (*samples)[s]->getMom()->getAtwo(mloc) && (*samples)[s]->getMom()->getAmissing(mloc)))) ||
+							(((*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc) && (*samples).at(s)->getAmissing(mloc)) ||
+							((*samples).at(s)->getDad()->getAone(mloc) && (*samples).at(s)->getDad()->getAtwo(mloc) && (*samples).at(s)->getDad()->getAmissing(mloc)) ||
+							((*samples).at(s)->getMom()->getAone(mloc) && (*samples).at(s)->getMom()->getAtwo(mloc) && (*samples).at(s)->getMom()->getAmissing(mloc)))) ||
 						   ((mark->isMicroSat()) &&
-							(((*samples)[s]->getAbone(mloc) == -1 || (*samples)[s]->getDad()->getAbone(mloc) == -1 || (*samples)[s]->getMom()->getAbone(mloc) == -1)))){
+							(((*samples).at(s)->getAbone(mloc) == -1 || (*samples).at(s)->getDad()->getAbone(mloc) == -1 || (*samples).at(s)->getMom()->getAbone(mloc) == -1)))){
 						}
 						else{
-							if(mark->getChrom() != opts::_CHRX_ || (!(*samples)[s]->getSex() && mark->getChrom() == opts::_CHRX_)){
+							if(mark->getChrom() != opts::_CHRX_ || (!(*samples).at(s)->getSex() && mark->getChrom() == opts::_CHRX_)){
 								if((!mark->isMicroSat() &&
-									(*samples)[s]->getDad()->getAone(mloc) == (*samples)[s]->getDad()->getAtwo(mloc) &&
-									(*samples)[s]->getMom()->getAone(mloc) == (*samples)[s]->getMom()->getAtwo(mloc) &&
-									(*samples)[s]->getMom()->getAone(mloc) == (*samples)[s]->getDad()->getAone(mloc) &&
-									((*samples)[s]->getAone(mloc) != (*samples)[s]->getMom()->getAone(mloc) ||
-									 (*samples)[s]->getAtwo(mloc) != (*samples)[s]->getMom()->getAone(mloc))) ||
+									(*samples).at(s)->getDad()->getAone(mloc) == (*samples).at(s)->getDad()->getAtwo(mloc) &&
+									(*samples).at(s)->getMom()->getAone(mloc) == (*samples).at(s)->getMom()->getAtwo(mloc) &&
+									(*samples).at(s)->getMom()->getAone(mloc) == (*samples).at(s)->getDad()->getAone(mloc) &&
+									((*samples).at(s)->getAone(mloc) != (*samples).at(s)->getMom()->getAone(mloc) ||
+									 (*samples).at(s)->getAtwo(mloc) != (*samples).at(s)->getMom()->getAone(mloc))) ||
 									(mark->isMicroSat() && ((
-									(*samples)[s]->getDad()->getAbone(mloc) == (*samples)[s]->getDad()->getAbtwo(mloc) &&
-									(*samples)[s]->getMom()->getAbone(mloc) == (*samples)[s]->getMom()->getAbtwo(mloc) &&
-									(*samples)[s]->getMom()->getAbone(mloc) == (*samples)[s]->getDad()->getAbone(mloc) &&
-									((*samples)[s]->getAbone(mloc) != (*samples)[s]->getMom()->getAbone(mloc) ||
-									 (*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getMom()->getAbone(mloc))) ||
-										(((*samples)[s]->getAbone(mloc) != (*samples)[s]->getMom()->getAbone(mloc) &&
-										  (*samples)[s]->getAbone(mloc) != (*samples)[s]->getMom()->getAbtwo(mloc) &&
-										  (*samples)[s]->getAbone(mloc) != (*samples)[s]->getDad()->getAbone(mloc) &&
-										  (*samples)[s]->getAbone(mloc) != (*samples)[s]->getDad()->getAbtwo(mloc)
+									(*samples).at(s)->getDad()->getAbone(mloc) == (*samples).at(s)->getDad()->getAbtwo(mloc) &&
+									(*samples).at(s)->getMom()->getAbone(mloc) == (*samples).at(s)->getMom()->getAbtwo(mloc) &&
+									(*samples).at(s)->getMom()->getAbone(mloc) == (*samples).at(s)->getDad()->getAbone(mloc) &&
+									((*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getMom()->getAbone(mloc) ||
+									 (*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getMom()->getAbone(mloc))) ||
+										(((*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getMom()->getAbone(mloc) &&
+										  (*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getMom()->getAbtwo(mloc) &&
+										  (*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getDad()->getAbone(mloc) &&
+										  (*samples).at(s)->getAbone(mloc) != (*samples).at(s)->getDad()->getAbtwo(mloc)
 										 ) ||
-										 ((*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getMom()->getAbone(mloc) &&
-										  (*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getMom()->getAbtwo(mloc) &&
-										  (*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getDad()->getAbone(mloc) &&
-										  (*samples)[s]->getAbtwo(mloc) != (*samples)[s]->getDad()->getAbtwo(mloc)
+										 ((*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getMom()->getAbone(mloc) &&
+										  (*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getMom()->getAbtwo(mloc) &&
+										  (*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getDad()->getAbone(mloc) &&
+										  (*samples).at(s)->getAbtwo(mloc) != (*samples).at(s)->getDad()->getAbtwo(mloc)
 										 )
 										  )))){
 
-									vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples)[s]->getFamily());
+									vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples).at(s)->getFamily());
 									if(!inc && found == family_inc.end()){
-										ferrors[(*samples)[s]->getFamily()->getLoc()]++;
+										ferrors[(*samples).at(s)->getFamily()->getLoc()]++;
 										if(opts::_ENZYMES_){
-											fenzyme[(*samples)[s]->getFamily()->getLoc()][mark->getEnzyme()]++;
+											fenzyme.at((*samples).at(s)->getFamily()->getLoc()).at(mark->getEnzyme())++;
 										}
-										merrors[m]++;
-										family_inc.push_back((*samples)[s]->getFamily());
+										merrors.at(m)++;
+										family_inc.push_back((*samples).at(s)->getFamily());
 										inc = true;
 									}
 									if(!childinc){
-										serrors[s]++;
+										serrors.at(s)++;
 										if(opts::_ENZYMES_){
-											senzyme[s][mark->getEnzyme()]++;
+											senzyme.at(s).at(mark->getEnzyme())++;
 										}
 										childinc = true;
 									}
 									if(!mominc){
-										serrors[(*samples)[s]->getMom()->getLoc()]++;
+										serrors.at((*samples).at(s)->getMom()->getLoc())++;
 										if(opts::_ENZYMES_){
-											senzyme[(*samples)[s]->getMom()->getLoc()][mark->getEnzyme()]++;
+											senzyme.at((*samples).at(s)->getMom()->getLoc()).at(mark->getEnzyme())++;
 										}
 										mominc = true;
 									}
 									if(!dadinc){
-										serrors[(*samples)[s]->getDad()->getLoc()]++;
+										serrors.at((*samples).at(s)->getDad()->getLoc())++;
 										if(opts::_ENZYMES_){
-											senzyme[(*samples)[s]->getDad()->getLoc()][mark->getEnzyme()]++;
+											senzyme.at((*samples).at(s)->getDad()->getLoc()).at(mark->getEnzyme())++;
 										}
 										dadinc = true;
 									}
-									write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getDad(), mloc);
-									write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getMom(), mloc);
+									write_error(erroroutput, mark, (*samples).at(s), (*samples).at(s)->getDad(), mloc);
+									write_error(erroroutput, mark, (*samples).at(s), (*samples).at(s)->getMom(), mloc);
 
 								}
 							}
 						}//end else
 					}
 					if(childinc){
-						(*samples)[s]->getFamily()->setMeError(true);
-						error_map[s].push_back(mark);
+						(*samples).at(s)->getFamily()->setMeError(true);
+						error_map.at(s).push_back(mark);
 					}
 					if(dadinc){
-						(*samples)[s]->getFamily()->setMeError(true);
-						error_map[(*samples)[s]->getDad()->getLoc()].push_back(mark);
+						(*samples).at(s)->getFamily()->setMeError(true);
+						error_map.at((*samples).at(s)->getDad()->getLoc()).push_back(mark);
 					}
 					if(mominc){
-						(*samples)[s]->getFamily()->setMeError(true);
-						error_map[(*samples)[s]->getMom()->getLoc()].push_back(mark);
+						(*samples).at(s)->getFamily()->setMeError(true);
+						error_map.at((*samples).at(s)->getMom()->getLoc()).push_back(mark);
 					}
 				}
 			}// end level 1
 
 			//level 2
 			for(int f = 0; f < fsize; f++){
-				Family* fam = (*families)[f];
+				Family* fam = (*families).at(f);
 				if(fam->isEnabled() && !fam->hasMeError() && fam->getSamples()->size() > 1){
 					bool realgeno = getPossibleGenos(fam, mark);
 					if(!realgeno){
@@ -545,7 +545,7 @@ void MendelianErrors::perform_evaluation(bool output){
 						if(options.zeroL2Genos()){
 							vector<Sample*>* fsamps = fam->getSamples();
 							for(int fs = 0; fs < (int)fsamps->size(); fs++){
-								Sample* mysamp = (*fsamps)[fs];
+								Sample* mysamp = (*fsamps).at(fs);
 								if(options.zeroL2FamGenos()){
 									if(!mark->isMicroSat()){
 										mysamp->addAone(mark->getLoc(), true);
@@ -586,12 +586,12 @@ void MendelianErrors::perform_evaluation(bool output){
 void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &removed){
 	vector<Sample*>* samps = fam->getSamples();
 	for(int s = 0; s < (int)samps->size(); s++){
-		Sample* samp = (*samps)[s];
+		Sample* samp = (*samps).at(s);
 		if(samp->isEnabled() && !samp->getSex() && samp->getChildren()->size() > 0){
 			vector<Sample*>* children = samp->getChildren();
 			int enableddads = 0;
 			for(int ch = 0; ch < (int)children->size(); ch++){
-				Sample* child = (*children)[ch];
+				Sample* child = (*children).at(ch);
 				Sample* dad = child->getDad();
 				Sample* mom = samp;
 				if(dad && dad->isEnabled() && mom->isEnabled()){
@@ -615,14 +615,14 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 								vector<bool> geno2(3,false);
 								vector<bool> geno3(3,false);
 								vector<bool> geno4(3,false);
-								geno1[0] = da1[dg];
-								geno1[1] = ma1[mg];
-								geno2[0] = da1[dg];
-								geno2[1] = ma2[mg];
-								geno3[0] = da2[dg];
-								geno3[1] = ma1[mg];
-								geno4[0] = da2[dg];
-								geno4[1] = ma2[mg];
+								geno1.at(0) = da1.at(dg);
+								geno1.at(1) = ma1.at(mg);
+								geno2.at(0) = da1.at(dg);
+								geno2.at(1) = ma2.at(mg);
+								geno3.at(0) = da2.at(dg);
+								geno3.at(1) = ma1.at(mg);
+								geno4.at(0) = da2.at(dg);
+								geno4.at(1) = ma2.at(mg);
 								vector<vector<bool> >::iterator found = find(zygotes.begin(), zygotes.end(), geno1);
 								if(found == zygotes.end()){
 									zygotes.push_back(geno1);
@@ -642,8 +642,8 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 
 								for(int c = 0; c < (int)ca1.size(); c++){
 									vector<bool> cgeno(3,false);
-									cgeno[0] = ca1[c];
-									cgeno[1] = ca2[c];
+									cgeno.at(0) = ca1.at(c);
+									cgeno.at(1) = ca2.at(c);
 									found = find(zygotes.begin(), zygotes.end(), cgeno);
 									if(found != zygotes.end()){
 										child->addMEsaved(c);
@@ -671,14 +671,14 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 								vector<int> geno2(2,-1);
 								vector<int> geno3(2,-1);
 								vector<int> geno4(2,-1);
-								geno1[0] = da1[dg];
-								geno1[1] = ma1[mg];
-								geno2[0] = da1[dg];
-								geno2[1] = ma2[mg];
-								geno3[0] = da2[dg];
-								geno3[1] = ma1[mg];
-								geno4[0] = da2[dg];
-								geno4[1] = ma2[mg];
+								geno1.at(0) = da1.at(dg);
+								geno1.at(1) = ma1.at(mg);
+								geno2.at(0) = da1.at(dg);
+								geno2.at(1) = ma2.at(mg);
+								geno3.at(0) = da2.at(dg);
+								geno3.at(1) = ma1.at(mg);
+								geno4.at(0) = da2.at(dg);
+								geno4.at(1) = ma2.at(mg);
 								vector<vector<int> >::iterator found = find(zygotes.begin(), zygotes.end(), geno1);
 								if(found == zygotes.end()){
 									zygotes.push_back(geno1);
@@ -697,8 +697,8 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 								}
 								for(int c = 0; c < (int)ca1.size(); c++){
 									vector<int> cgeno(2,-1);
-									cgeno[0] = ca1[c];
-									cgeno[1] = ca2[c];
+									cgeno.at(0) = ca1.at(c);
+									cgeno.at(1) = ca2.at(c);
 									found = find(zygotes.begin(), zygotes.end(), cgeno);
 									if(found != zygotes.end()){
 										child->addMEsaved(c);
@@ -717,7 +717,7 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 			//foreach child, remove child, dad
 			vector<Sample*> dads;
 			for(int ch = 0; ch < (int)children->size(); ch++){
-				Sample* child = (*children)[ch];
+				Sample* child = (*children).at(ch);
 				Sample* dad = child->getDad();
 				if(child->isEnabled() && dad && dad->isEnabled()){
 					vector<Sample*>::iterator found = find(dads.begin(), dads.end(), dad);
@@ -733,9 +733,9 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 						vector<bool> ca2 = child->getAtwoPossible();
 						vector<bool> ca3 = child->getAmissingPossible();
 						for(int i = 0; i < child->getMEsavedCount(); i++){
-							temp1.push_back(ca1[child->getMEsaved(i)]);
-							temp2.push_back(ca2[child->getMEsaved(i)]);
-							temp3.push_back(ca3[child->getMEsaved(i)]);
+							temp1.push_back(ca1.at(child->getMEsaved(i)));
+							temp2.push_back(ca2.at(child->getMEsaved(i)));
+							temp3.push_back(ca3.at(child->getMEsaved(i)));
 						}
 						child->setAonePossible(temp1);
 						child->setAtwoPossible(temp2);
@@ -750,8 +750,8 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 						vector<int> ca1 = child->getAbonePossible();
 						vector<int> ca2 = child->getAbtwoPossible();
 						for(int i = 0; i < child->getMEsavedCount(); i++){
-							temp1.push_back(ca1[child->getMEsaved(i)]);
-							temp2.push_back(ca2[child->getMEsaved(i)]);
+							temp1.push_back(ca1.at(child->getMEsaved(i)));
+							temp2.push_back(ca2.at(child->getMEsaved(i)));
 						}
 						child->setAbonePossible(temp1);
 						child->setAbtwoPossible(temp2);
@@ -761,7 +761,7 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 				}
 			}
 			for(int dd = 0; dd < (int)dads.size(); dd++){
-				Sample* dad = dads[dd];
+				Sample* dad = dads.at(dd);
 				if(!mark->isMicroSat()){
 					vector<bool> temp1;
 					vector<bool> temp2;
@@ -774,9 +774,9 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 					temp2.clear();
 					temp3.clear();
 					for(int i = 0; i < dad->getMEsavedCount(); i++){
-						temp1.push_back(ca1[dad->getMEsaved(i)]);
-						temp2.push_back(ca2[dad->getMEsaved(i)]);
-						temp3.push_back(ca3[dad->getMEsaved(i)]);
+						temp1.push_back(ca1.at(dad->getMEsaved(i)));
+						temp2.push_back(ca2.at(dad->getMEsaved(i)));
+						temp3.push_back(ca3.at(dad->getMEsaved(i)));
 					}
 					dad->setAonePossible(temp1);
 					dad->setAtwoPossible(temp2);
@@ -791,8 +791,8 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 					temp1.clear();
 					temp2.clear();
 					for(int i = 0; i < dad->getMEsavedCount(); i++){
-						temp1.push_back(ca1[dad->getMEsaved(i)]);
-						temp2.push_back(ca2[dad->getMEsaved(i)]);
+						temp1.push_back(ca1.at(dad->getMEsaved(i)));
+						temp2.push_back(ca2.at(dad->getMEsaved(i)));
 					}
 					dad->setAbonePossible(temp1);
 					dad->setAbtwoPossible(temp2);
@@ -810,9 +810,9 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 					vector<bool> ma2 = samp->getAtwoPossible();
 					vector<bool> ma3 = samp->getAmissingPossible();
 					for(int i = 0; i < samp->getMEsavedCount(); i++){
-						temp1.push_back(ma1[samp->getMEsaved(i)]);
-						temp2.push_back(ma2[samp->getMEsaved(i)]);
-						temp3.push_back(ma3[samp->getMEsaved(i)]);
+						temp1.push_back(ma1.at(samp->getMEsaved(i)));
+						temp2.push_back(ma2.at(samp->getMEsaved(i)));
+						temp3.push_back(ma3.at(samp->getMEsaved(i)));
 					}
 					samp->setAonePossible(temp1);
 					samp->setAtwoPossible(temp2);
@@ -826,8 +826,8 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 					vector<int> ma1 = samp->getAbonePossible();
 					vector<int> ma2 = samp->getAbtwoPossible();
 					for(int i = 0; i < samp->getMEsavedCount(); i++){
-						temp1.push_back(ma1[samp->getMEsaved(i)]);
-						temp2.push_back(ma2[samp->getMEsaved(i)]);
+						temp1.push_back(ma1.at(samp->getMEsaved(i)));
+						temp2.push_back(ma2.at(samp->getMEsaved(i)));
 					}
 					samp->setAbonePossible(temp1);
 					samp->setAbtwoPossible(temp2);
@@ -841,7 +841,7 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 bool MendelianErrors::find_match(vector<vector<int> > zygotes, vector<int> geno){
 	bool found = false;
 	for(int i = 0; i < (int)zygotes.size(); i++){
-		if(zygotes[i][0] == geno[0] && zygotes[i][1] == geno[1]){
+		if(zygotes.at(i).at(0) == geno.at(0) && zygotes.at(i).at(1) == geno.at(1)){
 			found = true;
 			break;
 		}
@@ -854,7 +854,7 @@ void MendelianErrors::printError(ofstream &level2output, Family* fam, Marker* ma
 	level2output << "---------------------------\n";
 	vector<Sample*>* samps = fam->getSamples();
 	for(int i = 0; i < (int)samps->size(); i++){
-		Sample* samp = (*samps)[i];
+		Sample* samp = (*samps).at(i);
 		if(samp->isEnabled()){
 			if(samp->IsMEerror()){
 				level2output << "***";
@@ -871,16 +871,16 @@ bool MendelianErrors::checkErrors(Family* fam, Marker* mark){
 	int zero = 0;
 	vector<Sample*>* samps = fam->getSamples();
 	for(int i = 0; i < (int)samps->size(); i++){
-		Sample* samp = (*samps)[i];
+		Sample* samp = (*samps).at(i);
 		samp->setME2error(false);
-		for(int m = 0; m < (int)error_map[samp->getLoc()].size(); m++){
-			if(error_map[samp->getLoc()][m] == mark){
+		for(int m = 0; m < (int)error_map.at(samp->getLoc()).size(); m++){
+			if(error_map.at(samp->getLoc()).at(m) == mark){
 				return false;
 			}
 		}
 	}
 	for(int i = 0; i < (int)samps->size(); i++){
-		Sample* samp = (*samps)[i];
+		Sample* samp = (*samps).at(i);
 		if(samp->isEnabled()){
 			samp->setME2error(false);
 
@@ -906,27 +906,27 @@ bool MendelianErrors::checkErrors(Family* fam, Marker* mark){
 				vector<bool> sa2 = samp->getAtwoPossible();
 				vector<bool> sa3 = samp->getAmissingPossible();
 				for(int a = 0; a < (int)sa1.size(); a++){
-					if(het && sa1[a] && sa2[a] && sa3[a]){
+					if(het && sa1.at(a) && sa2.at(a) && sa3.at(a)){
 						bad = false;
 						break;
 					}
-					if(a1 && sa1[a] && a2 && sa2[a] && !a3 && !sa3[a]){
+					if(a1 && sa1.at(a) && a2 && sa2.at(a) && !a3 && !sa3.at(a)){
 						bad = false;
 						break;
 					}
-					if(!a1 && !sa1[a] && a2 && sa2[a]){
+					if(!a1 && !sa1.at(a) && a2 && sa2.at(a)){
 						bad = false;
 						break;
 					}
-					if(a1 && sa1[a] && !a2 && !sa2[a]){
+					if(a1 && sa1.at(a) && !a2 && !sa2.at(a)){
 						bad = false;
 						break;
 					}
-					if(!a1 && !sa1[a] && !a2 && !sa2[a]){
+					if(!a1 && !sa1.at(a) && !a2 && !sa2.at(a)){
 						bad = false;
 						break;
 					}
-					if(het && sa1[a] && !sa2[a] && !a1 && a2){
+					if(het && sa1.at(a) && !sa2.at(a) && !a1 && a2){
 						bad = false;
 						break;
 					}
@@ -956,11 +956,11 @@ bool MendelianErrors::checkErrors(Family* fam, Marker* mark){
 				vector<int> sa1 = samp->getAbonePossible();
 				vector<int> sa2 = samp->getAbtwoPossible();
 				for(int a = 0; a < (int)sa1.size(); a++){
-					if(sa1[a] == a1 && sa2[a] == a2){
+					if(sa1.at(a) == a1 && sa2.at(a) == a2){
 						bad = false;
 						break;
 					}
-					if(het && sa1[a] == a2 && sa2[a] == a1){
+					if(het && sa1.at(a) == a2 && sa2.at(a) == a1){
 						bad = false;
 						break;
 					}
@@ -985,7 +985,7 @@ int MendelianErrors::checkTypes(Family* fam, Marker* mark){
 	if(mark->isMicroSat()){
 		vector<Sample*>* samps = fam->getSamples();
 		for(int s = 0; s < (int)samps->size(); s++){
-			Sample* samp = (*samps)[s];
+			Sample* samp = (*samps).at(s);
 			if(samp->isEnabled()){
 				samp->clearMEsaved();
 				bool child = false;
@@ -1036,7 +1036,7 @@ int MendelianErrors::checkTypes(Family* fam, Marker* mark){
 					if(samp->getAbone(mloc) == -1 && samp->getAbtwo(mloc) == -1){
 						vector<Sample*>* children = samp->getChildren();
 						for(int c = 0; c < (int)children->size(); c++){
-							Sample* child = (*children)[c];
+							Sample* child = (*children).at(c);
 							if(child->getAbone(mloc) != -1 && child->getAbtwo(mloc) != -1){
 								vector<int> ca1 = child->getAbonePossible();
 								vector<int> ca2 = child->getAbtwoPossible();
@@ -1074,7 +1074,7 @@ int MendelianErrors::checkTypes(Family* fam, Marker* mark){
 	else{
 		vector<Sample*>* samps = fam->getSamples();
 		for(int s = 0; s < (int)samps->size(); s++){
-			Sample* samp = (*samps)[s];
+			Sample* samp = (*samps).at(s);
 			if(samp->isEnabled()){
 				samp->clearMEsaved();
 				bool child = false;
@@ -1127,7 +1127,7 @@ int MendelianErrors::checkTypes(Family* fam, Marker* mark){
 					if(samp->getAone(mloc) && samp->getAtwo(mloc) && samp->getAmissing(mloc)){
 						vector<Sample*>* children = samp->getChildren();
 						for(int c = 0; c < (int)children->size(); c++){
-							Sample* child = (*children)[c];
+							Sample* child = (*children).at(c);
 							if(!(child->getAone(mloc) && child->getAtwo(mloc) && child->getAmissing(mloc))){
 								vector<bool> ca1 = child->getAonePossible();
 								vector<bool> ca2 = child->getAtwoPossible();
@@ -1172,7 +1172,7 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 	vector<Sample*>* samps = fam->getSamples();
 
 	for(int s = 0; s < (int)samps->size(); s++){
-		Sample* samp = (*samps)[s];
+		Sample* samp = (*samps).at(s);
 		if(samp->isEnabled()){
 			Sample* dad = samp->getDad();
 			Sample* mom = samp->getMom();
@@ -1193,39 +1193,39 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 				vector<bool> dadalleles;
 				vector<bool> momalleles;
 				for(int p = 0; p < (int)da1.size(); p++){
-					if(!(da1[p] && !da2[p])){
-						vector<bool>::iterator found = find(dadalleles.begin(), dadalleles.end(), da1[p]);
+					if(!(da1.at(p) && !da2.at(p))){
+						vector<bool>::iterator found = find(dadalleles.begin(), dadalleles.end(), da1.at(p));
 						if(found == dadalleles.end()){
-							dadalleles.push_back(da1[p]);
+							dadalleles.push_back(da1.at(p));
 						}
-						found = find(dadalleles.begin(), dadalleles.end(), da2[p]);
+						found = find(dadalleles.begin(), dadalleles.end(), da2.at(p));
 						if(found == dadalleles.end()){
-							dadalleles.push_back(da2[p]);
+							dadalleles.push_back(da2.at(p));
 						}
 					}
 				}
 				for(int p = 0; p < (int)ma1.size(); p++){
-					if(!(ma1[p] && !ma2[p])){
-						vector<bool>::iterator found = find(momalleles.begin(), momalleles.end(), ma1[p]);
+					if(!(ma1.at(p) && !ma2.at(p))){
+						vector<bool>::iterator found = find(momalleles.begin(), momalleles.end(), ma1.at(p));
 						if(found == momalleles.end()){
-							momalleles.push_back(ma1[p]);
+							momalleles.push_back(ma1.at(p));
 						}
-						found = find(momalleles.begin(), momalleles.end(), ma2[p]);
+						found = find(momalleles.begin(), momalleles.end(), ma2.at(p));
 						if(found == momalleles.end()){
-							momalleles.push_back(ma2[p]);
+							momalleles.push_back(ma2.at(p));
 						}
 					}
 				}
 				vector<bitset<2> > zygotes;
 				for(int d = 0; d < (int)dadalleles.size(); d++){
 					for(int m = 0; m < (int)momalleles.size(); m++){
-						if(!(dadalleles[d] && !momalleles[m])){
+						if(!(dadalleles.at(d) && !momalleles.at(m))){
 							bitset<2> b;
 							b.reset();
-							if(momalleles[m]){
+							if(momalleles.at(m)){
 								b.set(1);
 							}
-							if(dadalleles[d]){
+							if(dadalleles.at(d)){
 								b.set(0);
 							}
 							vector<bitset<2> >::iterator found = find(zygotes.begin(), zygotes.end(), b);
@@ -1233,13 +1233,13 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 								zygotes.push_back(b);
 							}
 						}
-						if(!(momalleles[m] && !dadalleles[d])){
+						if(!(momalleles.at(m) && !dadalleles.at(d))){
 							bitset<2> b;
 							b.reset();
-							if(momalleles[m]){
+							if(momalleles.at(m)){
 								b.set(0);
 							}
-							if(dadalleles[d]){
+							if(dadalleles.at(d)){
 								b.set(1);
 							}
 							vector<bitset<2> >::iterator found = find(zygotes.begin(), zygotes.end(), b);
@@ -1251,13 +1251,13 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 				}
 				for(int m = 0; m < (int)momalleles.size(); m++){
 					for(int d = 0; d < (int)dadalleles.size(); d++){
-						if(!(dadalleles[d] && !momalleles[m])){
+						if(!(dadalleles.at(d) && !momalleles.at(m))){
 							bitset<2> b;
 							b.reset();
-							if(momalleles[m]){
+							if(momalleles.at(m)){
 								b.set(1);
 							}
-							if(dadalleles[d]){
+							if(dadalleles.at(d)){
 								b.set(0);
 							}
 							vector<bitset<2> >::iterator found = find(zygotes.begin(), zygotes.end(), b);
@@ -1265,13 +1265,13 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 								zygotes.push_back(b);
 							}
 						}
-						if(!(momalleles[m] && !dadalleles[d])){
+						if(!(momalleles.at(m) && !dadalleles.at(d))){
 							bitset<2> b;
 							b.reset();
-							if(momalleles[m]){
+							if(momalleles.at(m)){
 								b.set(0);
 							}
-							if(dadalleles[d]){
+							if(dadalleles.at(d)){
 								b.set(1);
 							}
 							vector<bitset<2> >::iterator found = find(zygotes.begin(), zygotes.end(), b);
@@ -1299,26 +1299,26 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 				vector<int> dadalleles;
 				vector<int> momalleles;
 				for(int p = 0; p < (int)da1.size(); p++){
-					if(!(da1[p] && !da2[p])){
-						vector<int>::iterator found = find(dadalleles.begin(), dadalleles.end(), da1[p]);
+					if(!(da1.at(p) && !da2.at(p))){
+						vector<int>::iterator found = find(dadalleles.begin(), dadalleles.end(), da1.at(p));
 						if(found == dadalleles.end()){
-							dadalleles.push_back(da1[p]);
+							dadalleles.push_back(da1.at(p));
 						}
-						found = find(dadalleles.begin(), dadalleles.end(), da2[p]);
+						found = find(dadalleles.begin(), dadalleles.end(), da2.at(p));
 						if(found == dadalleles.end()){
-							dadalleles.push_back(da2[p]);
+							dadalleles.push_back(da2.at(p));
 						}
 					}
 				}
 				for(int p = 0; p < (int)ma1.size(); p++){
-					if(!(ma1[p] && !ma2[p])){
-						vector<int>::iterator found = find(momalleles.begin(), momalleles.end(), ma1[p]);
+					if(!(ma1.at(p) && !ma2.at(p))){
+						vector<int>::iterator found = find(momalleles.begin(), momalleles.end(), ma1.at(p));
 						if(found == momalleles.end()){
-							momalleles.push_back(ma1[p]);
+							momalleles.push_back(ma1.at(p));
 						}
-						found = find(momalleles.begin(), momalleles.end(), ma2[p]);
+						found = find(momalleles.begin(), momalleles.end(), ma2.at(p));
 						if(found == momalleles.end()){
-							momalleles.push_back(ma2[p]);
+							momalleles.push_back(ma2.at(p));
 						}
 					}
 				}
@@ -1327,11 +1327,11 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 				vector<vector<int> > zygotes;
 				for(int d = 0; d < (int)dadalleles.size(); d++){
 					for(int m = 0; m < (int)momalleles.size(); m++){
-						if(dadalleles[d] != -1 && momalleles[m] != -1){
+						if(dadalleles.at(d) != -1 && momalleles.at(m) != -1){
 							vector<int> geno;
 							geno.resize(2,-1);
-							geno[0] = dadalleles[d];
-							geno[1] = momalleles[m];
+							geno.at(0) = dadalleles.at(d);
+							geno.at(1) = momalleles.at(m);
 							vector<vector<int> >::iterator found = find(zygotes.begin(), zygotes.end(), geno);
 							if(found == zygotes.end()){
 								zygotes.push_back(geno);
@@ -1341,11 +1341,11 @@ void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
 				}
 				for(int m = 0; m < (int)momalleles.size(); m++){
 					for(int d = 0; d < (int)dadalleles.size(); d++){
-						if(dadalleles[d] != -1 && momalleles[m] != -1){
+						if(dadalleles.at(d) != -1 && momalleles.at(m) != -1){
 							vector<int> geno;
 							geno.resize(2,-1);
-							geno[0] = dadalleles[d];
-							geno[1] = momalleles[m];
+							geno.at(0) = dadalleles.at(d);
+							geno.at(1) = momalleles.at(m);
 							vector<vector<int> >::iterator found = find(zygotes.begin(), zygotes.end(), geno);
 							if(found == zygotes.end()){
 								zygotes.push_back(geno);
@@ -1369,7 +1369,7 @@ bool MendelianErrors::getPossibleGenos(Family* fam, Marker* mark){
 	int mloc = mark->getLoc();
 	vector<Sample*>* samps = fam->getSamples();
 	for(int s = 0; s < (int)samps->size(); s++){
-		Sample* samp = (*samps)[s];
+		Sample* samp = (*samps).at(s);
 		if(samp->isEnabled()){
 			samp->clearPossible();
 			samp->clearMEsaved();
@@ -1441,14 +1441,14 @@ void MendelianErrors::filter_markers(){
 		int msize = good_markers.size();
 
 		for(int i = 0; i < msize; i++){
-			if(good_markers[i]->isEnabled()){
+			if(good_markers.at(i)->isEnabled()){
 				bool inc = false;
-				if(options.doThreshMarkersHigh() && merrors[i] > options.getThreshMarkersHigh()){
-					(*markers)[i]->setEnabled(false);
+				if(options.doThreshMarkersHigh() && merrors.at(i) > options.getThreshMarkersHigh()){
+					(*markers).at(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersLow() && merrors[i] < options.getThreshMarkersLow()){
-					(*markers)[i]->setEnabled(false);
+				if(options.doThreshMarkersLow() && merrors.at(i) < options.getThreshMarkersLow()){
+					(*markers).at(i)->setEnabled(false);
 					inc = true;
 				}
 
@@ -1471,14 +1471,14 @@ void MendelianErrors::filter(){
 		int fsize = families->size();
 
 		for(int i = 0; i < fsize; i++){
-			if((*families)[i]->isEnabled()){
+			if((*families).at(i)->isEnabled()){
 				bool inc = false;
-				if(options.doThreshFamiliesLow() && ferrors[i] < options.getThreshFamiliesLow()){
-					(*families)[i]->setEnabled(false);
+				if(options.doThreshFamiliesLow() && ferrors.at(i) < options.getThreshFamiliesLow()){
+					(*families).at(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshFamiliesHigh() && ferrors[i] > options.getThreshFamiliesHigh()){
-					(*families)[i]->setEnabled(false);
+				if(options.doThreshFamiliesHigh() && ferrors.at(i) > options.getThreshFamiliesHigh()){
+					(*families).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){

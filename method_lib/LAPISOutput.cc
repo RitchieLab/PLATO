@@ -42,7 +42,7 @@ void LAPISOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -66,7 +66,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	int numfams = 0;
 	bool alldigit = true;
 	for(int f = 0; f < fsize; f++){
-		Family* fam = (*families)[f];
+		Family* fam = (*families).at(f);
 		if(Helpers::isAlphaNum(fam->getFamID())){
 			alldigit = false;
 		}
@@ -76,7 +76,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 		vector<Sample*>* fsamps = fam->getSamples();
 		int fssize = fsamps->size();
 		for(int s = 0; s < fssize; s++){
-			Sample* samp = (*fsamps)[s];
+			Sample* samp = (*fsamps).at(s);
 			if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 				numfams++;
 				break;
@@ -121,7 +121,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	af->setOptions(options);
 	af->flagSamples();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			str << "3 " << mark->getNumAlleles() << " " << mark->getChrom() << " " << mark->getProbeID() << endl;
 			af->calcOne(mark);
@@ -147,7 +147,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	delete(af);
 
 	for(int f = 0; f < fsize; f++){
-		Family* fam = (*families)[f];
+		Family* fam = (*families).at(f);
 		if(fam->isEnabled() || (fam->isExcluded() && options.doIncExcludedSamples()) || (!fam->isEnabled() && options.doIncDisabledSamples())){
 			int toout = 0;
 			int loopcount = 0;
@@ -161,14 +161,14 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 			}
 			int fssize = fsamps->size();
 			for(int s = 0; s < fssize; s++){
-				Sample* samp = (*fsamps)[s];
+				Sample* samp = (*fsamps).at(s);
 				if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 					toout++;
 				}
 			}
 			str << toout << " " << loopcount << " " << type << " " << fam->getFamID_digit() << " ";
 		   	if(options.haveCenterCodes()){
-				Sample* samp = (*fsamps)[0];
+				Sample* samp = (*fsamps).at(0);
 				string cent = options.findCenterCode(samp->getFamID() + " " + samp->getInd());
 				if(cent != ""){
 					str << cent;
@@ -182,7 +182,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 			}
 			str << endl;
 			for(int s = 0; s < fssize; s++){
-				Sample* samp = (*fsamps)[s];
+				Sample* samp = (*fsamps).at(s);
 				if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 					str << samp->getInd_digit() << " " << samp->getDadID_digit() << " " << samp->getMomID_digit() << " ";
 					if(samp->getSex()){
@@ -202,7 +202,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 					}
 
 					for(int m = 0; m < msize; m++){
-						Marker* mark = good_markers[m];
+						Marker* mark = good_markers.at(m);
 						if(mark->isEnabled()){
 							int mloc = mark->getLoc();
 							if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doZeroDisabled())){

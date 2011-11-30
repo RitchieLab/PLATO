@@ -53,7 +53,7 @@ void OddsRatio::resetDataSet(DataSet* ds){
 void OddsRatio::calculate(int locus){
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
-  locus = (*markers)[locus]->getLoc();
+  locus = (*markers).at(locus)->getLoc();
 
   ContingencyTable table;
 

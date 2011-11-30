@@ -163,9 +163,9 @@ class IBS{
 		map<string, int> getGroupTotal(){return grouptotal_one;};
 		double calcPairAverage(int, int);
 		int calcPairLocus(int s1, int s2, Marker* m);
-		int calcPairLocus(int s1, int s2, int m){return calcPairLocus(s1,s2,(*markers)[m]);};
+		int calcPairLocus(int s1, int s2, int m){return calcPairLocus(s1,s2,(*markers).at(m));};
 		vector<double> calcTriosLocus(int s1, int s2, Marker* m);
-		vector<double> calcTriosLocus(int s1, int s2, int m){return calcTriosLocus(s1, s2, (*markers)[m]);};
+		vector<double> calcTriosLocus(int s1, int s2, int m){return calcTriosLocus(s1, s2, (*markers).at(m));};
 		int getComparisons(){return comparisons;}
 		vector<int> calcTrioTransmission(int f1, Marker* m);
 

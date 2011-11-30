@@ -37,8 +37,8 @@ void MQLS::PrintSummary(){
 	opts::addFile("Marker", stepname, fname1);
 	output.precision(4);
 	output << "Chrom\trsID\tProbeID\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		output << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		output << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	output << "\tChi_square\tTDT_pvalue\tTDT_neglog(pvalue)\tNum_Fams\tT:U\tA1:A2\tOR\tL" + getString<double>(options.getCI()*100) + "\t" + "U" + getString<double>(options.getCI()*100) << endl;
 	opts::addHeader(fname1, "Chi_square");
@@ -56,36 +56,36 @@ void MQLS::PrintSummary(){
 	double zt = ltqnorm(1 - (1 - options.getCI()) / 2);
 
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+		if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
             if(options.doChrom()){
-                if(!options.checkChrom((*markers)[i]->getChrom())){
+                if(!options.checkChrom((*markers).at(i)->getChrom())){
                     continue;
                 }
-                if(!options.checkBp((*markers)[i]->getBPLOC())){
+                if(!options.checkBp((*markers).at(i)->getBPLOC())){
                     continue;
                 }
             }
-			output << (*markers)[i]->toString() << "\t";
-			output << chi[i] << "\t"
-				<< pval[i] << "\t"
-				<< (double)abs(log10(pval[i])) << "\t";
-			output << fams_used[i] << "\t"
-				<< trans[i] << ":" << untrans[i] << "\t";
-			if(!(*markers)[i]->isMicroSat()){
-				output << (*markers)[i]->getAllele1() << ":" << (*markers)[i]->getAllele2();
+			output << (*markers).at(i)->toString() << "\t";
+			output << chi.at(i) << "\t"
+				<< pval.at(i) << "\t"
+				<< (double)abs(log10(pval.at(i))) << "\t";
+			output << fams_used.at(i) << "\t"
+				<< trans.at(i) << ":" << untrans.at(i) << "\t";
+			if(!(*markers).at(i)->isMicroSat()){
+				output << (*markers).at(i)->getAllele1() << ":" << (*markers).at(i)->getAllele2();
 			}
 			else{
 				output << "NA";
 			}
-			double OR = (double)trans[i] / (double)untrans[i];
+			double OR = (double)trans.at(i) / (double)untrans.at(i);
 			output << "\t" << OR;
-			double OR_lower = exp(log(OR) - zt * sqrt(1/trans[i] + 1/untrans[i]));
-			double OR_upper = exp(log(OR) + zt * sqrt(1/trans[i] + 1/untrans[i]));
+			double OR_lower = exp(log(OR) - zt * sqrt(1/trans.at(i) + 1/untrans.at(i)));
+			double OR_upper = exp(log(OR) + zt * sqrt(1/trans.at(i) + 1/untrans.at(i)));
 			output << "\t" << OR_lower << "\t" << OR_upper;
 
 				output << endl;
 		}
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 	if(output.is_open()){
@@ -97,23 +97,23 @@ void MQLS::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int size = markers->size();
 		for(int i = 0; i < size; i++){
-			if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+			if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
 	            if(options.doChrom()){
-	                if(!options.checkChrom((*markers)[i]->getChrom())){
+	                if(!options.checkChrom((*markers).at(i)->getChrom())){
 	                    continue;
 		            }
-		            if(!options.checkBp((*markers)[i]->getBPLOC())){
+		            if(!options.checkBp((*markers).at(i)->getBPLOC())){
 			            continue;
 		            }
 		        }
 
 				bool inc = false;
-				if(options.doThreshMarkersHigh() && dGreater(pval[i], options.getThreshMarkersHigh())){
-					(*markers)[i]->setEnabled(false);
+				if(options.doThreshMarkersHigh() && dGreater(pval.at(i), options.getThreshMarkersHigh())){
+					(*markers).at(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersLow() && dLess(pval[i],options.getThreshMarkersLow())){
-					(*markers)[i]->setEnabled(false);
+				if(options.doThreshMarkersLow() && dLess(pval.at(i),options.getThreshMarkersLow())){
+					(*markers).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -163,7 +163,7 @@ void MQLS::calculate(Marker* mark){
 		double trans1 = 0;
 		double trans2 = 0;
 		for(int i = 0; i < ssize; i++){
-			Sample* samp = (*samples)[i];
+			Sample* samp = (*samples).at(i);
 			if(samp != NULL && samp->getDad() != NULL && samp->getMom() != NULL && samp->getDadID() != "0" && samp->getMomID() != "0" && samp->isEnabled() && samp->getDad()->isEnabled() && samp->getMom()->isEnabled()){
 				Sample* dad = samp->getDad();
 				Sample* mom = samp->getMom();
@@ -332,31 +332,31 @@ void MQLS::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, v
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int m = 0; m < msize; m++){
-		if((*markers)[m]->isEnabled()){
+		if((*markers).at(m)->isEnabled()){
             if(options.doChrom()){
-                if(!options.checkChrom((*markers)[m]->getChrom())){
+                if(!options.checkChrom((*markers).at(m)->getChrom())){
                     continue;
                 }
-                if(!options.checkBp((*markers)[m]->getBPLOC())){
+                if(!options.checkBp((*markers).at(m)->getBPLOC())){
                     continue;
                 }
             }
             if(options.doBpSpace()){
 	            if(prev_base == 0){
-	                prev_base = (*markers)[m]->getBPLOC();
-                    prev_chrom = (*markers)[m]->getChrom();
+	                prev_base = (*markers).at(m)->getBPLOC();
+                    prev_chrom = (*markers).at(m)->getChrom();
                 }
                 else{
- 	               if((*markers)[m]->getChrom() == prev_chrom && (((*markers)[m]->getBPLOC() - prev_base) < options.getBpSpace())){
-	               	   (*markers)[m]->setFlag(true);
+ 	               if((*markers).at(m)->getChrom() == prev_chrom && (((*markers).at(m)->getBPLOC() - prev_base) < options.getBpSpace())){
+	               	   (*markers).at(m)->setFlag(true);
 				   	   continue;
                    }
-                   prev_base = (*markers)[m]->getBPLOC();
-                   prev_chrom = (*markers)[m]->getChrom();
+                   prev_base = (*markers).at(m)->getBPLOC();
+                   prev_chrom = (*markers).at(m)->getChrom();
                 }
             }
-			if(!(*markers)[m]->isMicroSat()){
-				int mloc = (*markers)[m]->getLoc();
+			if(!(*markers).at(m)->isMicroSat()){
+				int mloc = (*markers).at(m)->getLoc();
 
 
 				//start new
@@ -364,7 +364,7 @@ void MQLS::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, v
 				double trans1 = 0;
 				double trans2 = 0;
 				for(int i = 0; i < ssize; i++){
-					Sample* samp = (*samples)[i];
+					Sample* samp = (*samples).at(i);
 					if(samp != NULL && samp->getDad() != NULL && samp->getMom() != NULL && samp->getDadID() != "0" && samp->getMomID() != "0" && samp->isEnabled() && samp->getDad()->isEnabled() && samp->getMom()->isEnabled()){
 						Sample* dad = samp->getDad();
 						Sample* mom = samp->getMom();
@@ -374,7 +374,7 @@ void MQLS::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, v
 						int trB = 0; //transmitted allele from second het parent
 						int unB = 0; //untransmitted allele from second het parent
 
-						if(!(*markers)[m]->isMicroSat()){
+						if(!(*markers).at(m)->isMicroSat()){
 							bool pat1 = dad->getAone(mloc);
 							bool pat2 = dad->getAtwo(mloc);
 							bool mat1 = mom->getAone(mloc);
@@ -477,12 +477,12 @@ void MQLS::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, v
 					pvalue = p_from_chi(tdt_chisq, df);
 				}
 
-				pval[m] = pvalue;
-				chi[m] = tdt_chisq;
-				fams_used[m] = fams;
-				maf[m] = -1;
-				trans[m] = trans1;
-				untrans[m] = trans2;
+				pval.at(m) = pvalue;
+				chi.at(m) = tdt_chisq;
+				fams_used.at(m) = fams;
+				maf.at(m) = -1;
+				trans.at(m) = trans1;
+				untrans.at(m) = trans2;
 			}
 			else{
 				//calculate pval for micro satellites
@@ -499,7 +499,7 @@ void MQLS::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, v
 				//-------------------
 				//
 				//Finds Allele/Other combination with lowest pvalue and chooses that one to output.
-				Marker* mark = (*markers)[m];
+				Marker* mark = (*markers).at(m);
 				int numalleles = mark->getNumAlleles();
 				vector<double> results;
 				results.resize(numalleles, 0);

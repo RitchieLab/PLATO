@@ -55,7 +55,7 @@ Sample* Sample::getLastChild(){
 	if(ssize == 0){
 		return NULL;
 	}
-	return children[ssize - 1];
+	return children.at(ssize - 1);
 }
 
 }

@@ -41,7 +41,7 @@ void STRUCTOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int m = 0; m < msize; m++){
-		(*markers)[m]->setFlag(false);
+		(*markers).at(m)->setFlag(false);
 	}
 
 }
@@ -88,7 +88,7 @@ void STRUCTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 		opts::printLog("Using ALL samples in STRUCTURE input file.  WARNING: STRUCTURE may produce strange results due to unexpected relationships since all samples are being used as input.  If you experience strange results, please rerun this step to generate a new STRUCTURE input file by using the -parents-only flag in order to use only unrelated parents.\n");
 	}
 	for(int k = 0; k < (int)marker_sets.size(); k++){
-		vector<Marker*> marks = marker_sets[k];
+		vector<Marker*> marks = marker_sets.at(k);
 		int msize = marks.size();
 
 		string fname1 = opts::_OUTPREFIX_ + "input_struct_" + getString<int>(k + 1) + options.getOut() + ".txt";
@@ -118,11 +118,11 @@ void STRUCTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 		str_map << "Chrom\tBPLOC\tRsid\tA1/A2" << endl;
 		bool map_done = false;
 		for(int i = 0; i < ssize; i++){
-			Sample* samp = (*samples)[i];
+			Sample* samp = (*samples).at(i);
 			if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())) && ((samp->getDadID() == "0" && samp->getMomID() == "0" && options.doParentsOnly()) || (!options.doParentsOnly()))){
 				str << samp->getFamID() << "_" << samp->getInd() << "\t" << pop[samp->getFamID() + " " + samp->getInd()];
 				for(int m = 0; m < msize; m++){
-					Marker* mark = (marks)[m];
+					Marker* mark = (marks).at(m);
 					if(mark->isEnabled()){
 						int m_loc = mark->getLoc();
 						if(!map_done){

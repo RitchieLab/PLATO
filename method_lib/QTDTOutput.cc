@@ -39,7 +39,7 @@ void QTDTOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -109,30 +109,30 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	if(options.doCovarsFile()){
 		vector<string> cov_map = options.getCovarMap();
 		for(int i = 0; i < (int)cov_map.size(); i++){
-			qtdt_dat << "C " << cov_map[i] << endl;
+			qtdt_dat << "C " << cov_map.at(i) << endl;
 		}
 	}
 	//otherwise use global traits
 	else if(options.doCovars()){
 		for(int i = 0; i < (int)opts::cov_loc.size(); i++){
-			qtdt_dat << "C " << opts::cov_loc[i] << endl;
+			qtdt_dat << "C " << opts::cov_loc.at(i) << endl;
 		}
 	}
 	//if file specified do that
 	if(options.doTraitsFile()){
 		vector<string> trait_map = options.getTraitMap();
 		for(int i = 0; i < (int)trait_map.size(); i++){
-			qtdt_dat << "T " << trait_map[i] << endl;
+			qtdt_dat << "T " << trait_map.at(i) << endl;
 		}
 	}
 	//otherwise use global traits
 	else if(options.doTraits()){
 		for(int i = 0; i < (int)opts::trait_loc.size(); i++){
-			qtdt_dat << "T " << opts::trait_loc[i] << endl;
+			qtdt_dat << "T " << opts::trait_loc.at(i) << endl;
 		}
 	}
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			qtdt_dat << "M" << " " << mark->getProbeID() << endl;
 			qtdt_map << mark->getChrom() << "\t" << mark->getProbeID() << "\t" << mark->getBPLOC() << endl;
@@ -141,7 +141,7 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 
 	map<string, string> dummy;
 	for(int i = 0; i < ssize; i++){
-		Sample* samp = (*samples)[i];
+		Sample* samp = (*samples).at(i);
 		if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 			int valid_parents = 0;
 			if(samp->getDad() != NULL){
@@ -219,11 +219,11 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 				if(ctiter != covs.end()){
 					vector<double> data = ctiter->second;
 					for(int c = 0; c < (int)data.size(); c++){
-						if(data[c] == options.getDefaultCovarMissing()){
+						if(data.at(c) == options.getDefaultCovarMissing()){
 							qtdt << "\tx";
 						}
 						else{
-							qtdt << "\t" << data[c];
+							qtdt << "\t" << data.at(c);
 						}
 					}
 				}
@@ -241,11 +241,11 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 				if(ctiter != traits.end()){
 					vector<double> data = ctiter->second;
 					for(int c = 0; c < (int)data.size(); c++){
-						if(data[c] == options.getDefaultTraitMissing()){
+						if(data.at(c) == options.getDefaultTraitMissing()){
 							qtdt << "\tx";
 						}
 						else{
-							qtdt << "\t" << data[c];
+							qtdt << "\t" << data.at(c);
 						}
 					}
 				}
@@ -261,7 +261,7 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			prev_base = 0;
 			prev_chrom = -1;
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];
+				Marker* mark = good_markers.at(m);
 				if(mark->isEnabled()){
 					int m_loc = mark->getLoc();
 					if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doZeroDisabled())){
@@ -324,7 +324,7 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			}
 
 			for(int i = 0; i < msize; i++){
-				Marker* mark = good_markers[i];
+				Marker* mark = good_markers.at(i);
 				if(mark->isEnabled()){
 					qtdt << "\t0/0";
 				}
