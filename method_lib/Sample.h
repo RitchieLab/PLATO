@@ -443,7 +443,10 @@ class Sample{
 		void addMicroSat(int b){
 			vector<int> a;
 			a.resize(2);
-			micro_sat_alleles.at(b) = a;
+			//micro_sat_alleles.at(b) = a;
+			// changed to allow for setting of element
+			// at throws exception if key doesn't exist in map	
+			micro_sat_alleles[b]=a;
 		};
 		void addAbone(int m, int b){
 			micro_sat_alleles.at(m).at(0) = b;
