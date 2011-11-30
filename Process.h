@@ -28,7 +28,7 @@ namespace PlatoLib
 class Process{
 	public:
 		StepOptions options;
-		Process(){options.setCovarMissing(opts::_COVAR_MISSING_); options.setTraitMissing(opts::_TRAIT_MISSING_);};
+                Process(){options.setCovarMissing(opts::_COVAR_MISSING_); options.setTraitMissing(opts::_TRAIT_MISSING_);}
 		virtual ~Process();
 		//virtual void process(Connection*, Families*, Markers*) = 0;
 		//virtual void process(Families*, Markers*) = 0;
@@ -59,7 +59,7 @@ class Process{
         int get_position(){return position;}
         vector<string> get_filenames(){return filenames;}
         virtual void run(DataSetObject*) = 0;
-        virtual void dump2db();
+        virtual void dump2db() = 0;
 
 	protected:
 		Database* db;

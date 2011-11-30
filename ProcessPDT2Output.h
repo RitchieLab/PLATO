@@ -131,8 +131,8 @@ class ProcessPDT2Output : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void outputCovarFile(ofstream& pdt, Sample* samp);
 		void outputCovars(ofstream& pdt, Sample* samp);
-
-
+		void run(DataSetObject*){};
+		void dump2db(){};
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

@@ -125,6 +125,8 @@ class ProcessHomozygous : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void perform_homozyg_permutations();
 		Sample* findRandomSample(map<Sample*, bool>);
+		void run(DataSetObject*){};
+		void dump2db(){};
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

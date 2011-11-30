@@ -128,7 +128,8 @@ class ProcessPEDOutput : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-
+		void run(DataSetObject*){};
+		void dump2db(){};
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

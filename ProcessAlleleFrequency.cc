@@ -40,11 +40,15 @@
 //TODO:  did not import the Vars.h or Vars.cpp, instead replaced
 //			Vars::LOCUS_TABLE with "LOCI" in 10 places
 
-using namespace Methods;
+
 
 //create a namespace to use when using Plato as a library
+#ifdef PLATOLIB
 namespace PlatoLib
 {
+#endif
+
+using namespace Methods;
 
 string ProcessAlleleFrequency::stepname = "allele-freq";
 
@@ -3341,5 +3345,6 @@ void ProcessAlleleFrequency::create_tables(){
     	return;
     }
 #endif
-
+#ifdef PLATOLIB
 }//end namespace PlatoLib
+#endif

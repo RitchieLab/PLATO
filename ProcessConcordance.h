@@ -121,6 +121,8 @@ class ProcessConcordance : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
+		void run(DataSetObject*){};
+		void dump2db(){};
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib
