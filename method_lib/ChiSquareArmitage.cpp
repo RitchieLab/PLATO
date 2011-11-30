@@ -16,24 +16,24 @@ double ChiSquareArmitage::armitage(vector<vector<int> > & chiTotals){
   vector<vector<double> > freqsInCell;
   freqsInCell.push_back(vector<double>(0));
   freqsInCell.push_back(vector<double>(0));
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    unaffected+=chiTotals[0][cell];
-    affected+=chiTotals[1][cell];
-    totalInCell.push_back(chiTotals[0][cell] + chiTotals[1][cell]);
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    unaffected+=chiTotals.at(0).at(cell);
+    affected+=chiTotals.at(1).at(cell);
+    totalInCell.push_back(chiTotals.at(0).at(cell) + chiTotals.at(1).at(cell));
   }
 
   double totalinds = (double)(unaffected + affected);
 
-  for(unsigned int cell = 0; cell < chiTotals[0].size(); cell++){
-	  freqsInCell[0].push_back((chiTotals[0][cell]/(double)unaffected));
-	  freqsInCell[1].push_back((chiTotals[1][cell]/(double)affected));
+  for(unsigned int cell = 0; cell < chiTotals.at(0).size(); cell++){
+	  freqsInCell.at(0).push_back((chiTotals.at(0).at(cell)/(double)unaffected));
+	  freqsInCell.at(1).push_back((chiTotals.at(1).at(cell)/(double)affected));
   }
   
   double chiscore=0.0;
 
   //slager scheid
-  double numer = (((double)unaffected / (double)totalinds * (double)chiTotals[1][1]) - ((double)affected / (double)totalinds * (double)chiTotals[0][1])) + 2*(((double)unaffected / (double)totalinds * (double)chiTotals[1][2]) - ((double)affected / (double)totalinds * (double)chiTotals[0][2]));
-  double denom = (double)affected * (double)unaffected * ( ((double)totalinds * ((double)totalInCell[1] + 4*(double)totalInCell[2]) - (((double)totalInCell[1] + 2*(double)totalInCell[2]) * ((double)totalInCell[1] + 2*(double)totalInCell[2]))) / ((double)totalinds * (double)totalinds * (double)totalinds));
+  double numer = (((double)unaffected / (double)totalinds * (double)chiTotals.at(1).at(1)) - ((double)affected / (double)totalinds * (double)chiTotals.at(0).at(1))) + 2*(((double)unaffected / (double)totalinds * (double)chiTotals.at(1).at(2)) - ((double)affected / (double)totalinds * (double)chiTotals.at(0).at(2)));
+  double denom = (double)affected * (double)unaffected * ( ((double)totalinds * ((double)totalInCell.at(1) + 4*(double)totalInCell.at(2)) - (((double)totalInCell.at(1) + 2*(double)totalInCell.at(2)) * ((double)totalInCell.at(1) + 2*(double)totalInCell.at(2)))) / ((double)totalinds * (double)totalinds * (double)totalinds));
 
   chiscore = (numer * numer) / denom;
   

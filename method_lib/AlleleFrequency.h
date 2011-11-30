@@ -213,7 +213,7 @@ class AlleleFrequency{
 		int getAone_count(){return a1_count;};
 		int getAtwo_count(){return a2_count;};
 		int getPop(){return (getAonehomo() + getAtwohomo() + getHet());};
-		int getMicroCount(int l){return m_allele_counts_o[l];};
+		int getMicroCount(int l){return m_allele_counts_o.at(l);};
 		float getMicroFreq(int l);
 		int getMicroDenom();
 		int getGroupMicroCount(string group, int loc){return gm_allele_counts_o[group][loc];};
@@ -248,7 +248,7 @@ class AlleleFrequency{
 		int getAoneM_count(){return a1_countM;};
 		int getAtwoM_count(){return a2_countM;};
 		int getPopM(){return (getAonehomoM() + getAtwohomoM() + getHetM());};
-		int getMicroCountM(int l){return m_allele_counts_om[l];};
+		int getMicroCountM(int l){return m_allele_counts_om.at(l);};
 
 		//overall female
 		int getAonehomoF(){return a1_homo_countF;};
@@ -262,7 +262,7 @@ class AlleleFrequency{
 		int getAoneF_count(){return a1_countF;};
 		int getAtwoF_count(){return a2_countF;};
 		int getPopF(){return (getAonehomoF() + getAtwohomoF() + getHetF());};
-		int getMicroCountF(int l){return m_allele_counts_of[l];};
+		int getMicroCountF(int l){return m_allele_counts_of.at(l);};
 
 		//parent
 		int getAonehomoP(){return a1_homo_countP;};
@@ -276,7 +276,7 @@ class AlleleFrequency{
 		int getAoneP_count(){return a1_countP;};
 		int getAtwoP_count(){return a2_countP;};
 		int getPopP(){return (getAonehomoP() + getAtwohomoP() + getHetP());};
-		int getMicroCountP(int l){return m_allele_counts_p[l];};
+		int getMicroCountP(int l){return m_allele_counts_p.at(l);};
 
 		//parent MOM
 		int getAonehomoPF(){return a1_homo_countPF;};
@@ -290,7 +290,7 @@ class AlleleFrequency{
 		int getAonePF_count(){return a1_countPF;};
 		int getAtwoPF_count(){return a2_countPF;};
 		int getPopPF(){return (getAonehomoPF() + getAtwohomoPF() + getHetPF());};
-		int getMicroCountPF(int l){return m_allele_counts_pf[l];};
+		int getMicroCountPF(int l){return m_allele_counts_pf.at(l);};
 
 		//parent DAD
 		int getAonehomoPM(){return a1_homo_countPM;};
@@ -304,7 +304,7 @@ class AlleleFrequency{
 		int getAonePM_count(){return a1_countPM;};
 		int getAtwoPM_count(){return a2_countPM;};
 		int getPopPM(){return (getAonehomoPM() + getAtwohomoPM() + getHetPM());};
-		int getMicroCountPM(int l){return m_allele_counts_pm[l];};
+		int getMicroCountPM(int l){return m_allele_counts_pm.at(l);};
 
 		//Child
 		int getAonehomoC(){return a1_homo_countC;};
@@ -357,7 +357,7 @@ class AlleleFrequency{
 		int getAoneCa_count(){return a1_countCa;};
 		int getAtwoCa_count(){return a2_countCa;};
 		int getPopCa(){return (getAonehomoCa() + getAtwohomoCa() + getHetCa());};
-		int getMicroCountCa(int l){return m_allele_counts_ca[l];};
+		int getMicroCountCa(int l){return m_allele_counts_ca.at(l);};
 
 		//Case Male
 		int getAonehomoCaM(){return a1_homo_countCaM;};
@@ -371,7 +371,7 @@ class AlleleFrequency{
 		int getAoneCaM_count(){return a1_countCaM;};
 		int getAtwoCaM_count(){return a2_countCaM;};
 		int getPopCaM(){return (getAonehomoCaM() + getAtwohomoCaM() + getHetCaM());};
-		int getMicroCountCaM(int l){return m_allele_counts_cam[l];};
+		int getMicroCountCaM(int l){return m_allele_counts_cam.at(l);};
 
 		//Case Female
 		int getAonehomoCaF(){return a1_homo_countCaF;};
@@ -385,7 +385,7 @@ class AlleleFrequency{
 		int getAoneCaF_count(){return a1_countCaF;};
 		int getAtwoCaF_count(){return a2_countCaF;};
 		int getPopCaF(){return (getAonehomoCaF() + getAtwohomoCaF() + getHetCaF());};
-		int getMicroCountCaF(int l){return m_allele_counts_caf[l];};
+		int getMicroCountCaF(int l){return m_allele_counts_caf.at(l);};
 
 		//Control
 		int getAonehomoCon(){return (a1_homo_countCon);};
@@ -399,7 +399,7 @@ class AlleleFrequency{
 		int getPopCon(){return (getAonehomoCon() + getAtwohomoCon() + getHetCon());};
 		int getAoneCon_count(){return a1_countCon;};
 		int getAtwoCon_count(){return a2_countCon;};
-		int getMicroCountCon(int l){return m_allele_counts_con[l];};
+		int getMicroCountCon(int l){return m_allele_counts_con.at(l);};
 
 		//Control Male
 		int getAonehomoConM(){return a1_homo_countConM;};
@@ -413,7 +413,7 @@ class AlleleFrequency{
 		int getAoneConM_count(){return a1_countConM;};
 		int getAtwoConM_count(){return a2_countConM;};
 		int getPopConM(){return (getAonehomoConM() + getAtwohomoConM() + getHetConM());};
-		int getMicroCountConM(int l){return m_allele_counts_conm[l];};
+		int getMicroCountConM(int l){return m_allele_counts_conm.at(l);};
 
 		//Control Female
 		int getAonehomoConF(){return a1_homo_countConF;};
@@ -427,17 +427,17 @@ class AlleleFrequency{
 		int getAoneConF_count(){return a1_countConF;};
 		int getAtwoConF_count(){return a2_countConF;};
 		int getPopConF(){return (getAonehomoConF() + getAtwohomoConF() + getHetConF());};
-		int getMicroCountConF(int l){return m_allele_counts_conf[l];};
+		int getMicroCountConF(int l){return m_allele_counts_conf.at(l);};
 
 
 		void flagSamples();
 		void calcOne(Marker*);
-		void calcOne(int m){calcOne((*markers)[m]);};
+		void calcOne(int m){calcOne((*markers).at(m));};
 		void calculate(int m){calcOne(m);};
 		void calculate(Marker* m){calcOne(m);};
 		void calcOneGroups(Marker*);
 		void calculateGroups(Marker* m){calcOneGroups(m);};
-		void calculateGroups(int m){calcOneGroups((*markers)[m]);};
+		void calculateGroups(int m){calcOneGroups((*markers).at(m));};
 		void processtest();
 		void initializeCounts(int);
 		void filterOne(Marker*);

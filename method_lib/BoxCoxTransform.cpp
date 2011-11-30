@@ -56,7 +56,7 @@ void BoxCoxTransform::TransformCovar(DataSet* set, int covar){
 
   double lambda = GetLambda(covars);
 
-  covar_lambda[covar] = lambda;
+  covar_lambda.at(covar) = lambda;
   
   // set covariates
   int c=0;
@@ -81,7 +81,7 @@ double BoxCoxTransform::GetLambda(vector<float>& values){
   
   double log_total=0.0;
   for(unsigned int i=0; i<values.size(); i++){
-    log_total += log(values[i]);
+    log_total += log(values.at(i));
   }
 
   double interval = 1.0;
@@ -189,15 +189,15 @@ double BoxCoxTransform::CalculateLikelihood(vector<float>& values, float log_tot
   double s2t=0.0, transmean = 0.0;
   for(int i=0; i<n; i++){
     if(fabs(lambda) > 0.000001)
-      transformed[i] = (pow(values[i], lambda)-1)/lambda;
+      transformed.at(i) = (pow(values.at(i), lambda)-1)/lambda;
     else
-      transformed[i] = log(values[i]);
-    transmean += transformed[i];
+      transformed.at(i) = log(values.at(i));
+    transmean += transformed.at(i);
   }
   transmean /= n;
   
   for(int i=0; i<n; i++){
-    s2t += pow(transformed[i]-transmean, 2);
+    s2t += pow(transformed.at(i)-transmean, 2);
   }
   s2t = s2t / v;
   
@@ -235,7 +235,7 @@ void BoxCoxTransform::TransformTrait(DataSet* set, int trait){
   
   double lambda = GetLambda(traits);
   // covars contains the new transformed values
-  trait_lambda[trait] = lambda;
+  trait_lambda.at(trait) = lambda;
   
   // set covariates
   int t=0;
@@ -278,7 +278,7 @@ void BoxCoxTransform::UndoCovariate(DataSet* set, int covar){
     samp = set->get_sample(ind);
     if(samp->getCovariate(covar)==missingCoValue)
       continue;
-    samp->setCovariate(Undo(samp->getCovariate(covar), covar_lambda[covar]), covar);
+    samp->setCovariate(Undo(samp->getCovariate(covar), covar_lambda.at(covar)), covar);
   }  
 }
 
@@ -298,7 +298,7 @@ void BoxCoxTransform::UndoTrait(DataSet* set, int trait){
     samp = set->get_sample(ind);
     if(samp->getTrait(trait)==missingCoValue)
       continue;
-    samp->setTrait(Undo(samp->getTrait(trait), trait_lambda[trait]), trait);
+    samp->setTrait(Undo(samp->getTrait(trait), trait_lambda.at(trait)), trait);
   }
 }
 

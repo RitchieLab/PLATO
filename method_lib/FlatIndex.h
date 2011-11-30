@@ -32,7 +32,7 @@ class FlatIndex{
     
     int get_size_array(unsigned int numLoci);
     
-    vector<int> & get_valid_indexes(int numLoci){return includedIndexes[numLoci];}
+    vector<int> & get_valid_indexes(int numLoci){return includedIndexes.at(numLoci);}
        
     void set_included_indexes(int startLoc, int endLoc,
       bool includeAllCells, int missingValue);

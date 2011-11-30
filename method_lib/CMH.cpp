@@ -41,7 +41,7 @@ void CMH::flagSamples(){
 	for(int s = 0; s < data_set->num_inds(); s++){
 		siter = samp_clusters.find(data_set->get_sample(s));
 		if(siter == samp_clusters.end()){
-			samp_flags[s] = true;
+			samp_flags.at(s) = true;
 		}
 	}
 
@@ -121,7 +121,7 @@ void CMH::calcCMH(Marker* mark) {
 			for(int s = 0; s < data_set->num_inds(); s++){
 				Sample* person = data_set->get_sample(s);
 
-				if (!person->isEnabled() || samp_flags[s]){
+				if (!person->isEnabled() || samp_flags.at(s)){
 					// Next person
 					continue;
 				}
@@ -162,8 +162,8 @@ void CMH::calcCMH(Marker* mark) {
 			else
 				res = calcMantelHaenszel_IxJxK(X, Y, Z);
 
-			chisq = res[0];
-			pval = Helpers::p_from_chi(res[0], res[1]);
+			chisq = res.at(0);
+			pval = Helpers::p_from_chi(res.at(0), res.at(1));
 
 	}
 
@@ -230,7 +230,7 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 		bool s3 = pperson->getAmissing(l);
 
 		// Affected individuals
-		if (pperson->getAffected() && pperson->isEnabled() && !samp_flags[s]){
+		if (pperson->getAffected() && pperson->isEnabled() && !samp_flags.at(s)){
 
 			// Haploid?
 			if (haploid || (X && pperson->getSex())) {
@@ -238,22 +238,22 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 				// Allelic marginal
 				if (!s1) {
 					// FF hom
-					n_11[samp_clusters[pperson]]++;
-					n_X1[samp_clusters[pperson]]++;
+					n_11.at(samp_clusters[pperson])++;
+					n_X1.at(samp_clusters[pperson])++;
 				} else {
 					if (s2 && s3) // FT
 					{
 						continue; // skip missing genotypes
 					} else if(s2 && !s3)// TT
 					{
-						n_12[samp_clusters[pperson]]++;
-						n_X2[samp_clusters[pperson]]++;
+						n_12.at(samp_clusters[pperson])++;
+						n_X2.at(samp_clusters[pperson])++;
 					}
 				}
 
 				// Disease marginal
-				n_1X[samp_clusters[pperson]]++;
-				n_TT[samp_clusters[pperson]]++;
+				n_1X.at(samp_clusters[pperson])++;
+				n_TT.at(samp_clusters[pperson])++;
 
 			} else // autosomal
 			{
@@ -262,13 +262,13 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 				if (!s1) {
 					if (!s2) // FF hom
 					{
-						n_11[samp_clusters[pperson]] += 2;
-						n_X1[samp_clusters[pperson]] += 2;
+						n_11.at(samp_clusters[pperson]) += 2;
+						n_X1.at(samp_clusters[pperson]) += 2;
 					} else {
-						n_11[samp_clusters[pperson]]++; // FT het
-						n_12[samp_clusters[pperson]]++;
-						n_X1[samp_clusters[pperson]]++;
-						n_X2[samp_clusters[pperson]]++;
+						n_11.at(samp_clusters[pperson])++; // FT het
+						n_12.at(samp_clusters[pperson])++;
+						n_X1.at(samp_clusters[pperson])++;
+						n_X2.at(samp_clusters[pperson])++;
 					}
 				} else {
 					if (s2 && s3) // FT
@@ -276,14 +276,14 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 						continue; // skip missing genotypes
 					} else if(s2 && !s3) // TT
 					{
-						n_12[samp_clusters[pperson]] += 2;
-						n_X2[samp_clusters[pperson]] += 2;
+						n_12.at(samp_clusters[pperson]) += 2;
+						n_X2.at(samp_clusters[pperson]) += 2;
 					}
 				}
 
 				// Disease marginal
-				n_1X[samp_clusters[pperson]] += 2;
-				n_TT[samp_clusters[pperson]] += 2;
+				n_1X.at(samp_clusters[pperson]) += 2;
+				n_TT.at(samp_clusters[pperson]) += 2;
 
 			} // end autosomal
 
@@ -296,22 +296,22 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 				// Allelic marginal
 				if (!s1) {
 					// FF hom
-					n_21[samp_clusters[pperson]]++;
-					n_X1[samp_clusters[pperson]]++;
+					n_21.at(samp_clusters[pperson])++;
+					n_X1.at(samp_clusters[pperson])++;
 				} else {
 					if (s2 && s3) // FT
 					{
 						continue; // skip missing genotypes
 					} else if(s2 && !s3) // TT
 					{
-						n_22[samp_clusters[pperson]]++;
-						n_X2[samp_clusters[pperson]]++;
+						n_22.at(samp_clusters[pperson])++;
+						n_X2.at(samp_clusters[pperson])++;
 					}
 				}
 
 				// Disease marginal
-				n_2X[samp_clusters[pperson]]++;
-				n_TT[samp_clusters[pperson]]++;
+				n_2X.at(samp_clusters[pperson])++;
+				n_TT.at(samp_clusters[pperson])++;
 
 			} else // autosomal
 			{
@@ -319,13 +319,13 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 				if (!s1) {
 					if (!s2) // FF
 					{
-						n_X1[samp_clusters[pperson]] += 2;
-						n_21[samp_clusters[pperson]] += 2;
+						n_X1.at(samp_clusters[pperson]) += 2;
+						n_21.at(samp_clusters[pperson]) += 2;
 					} else {
-						n_X1[samp_clusters[pperson]]++;
-						n_X2[samp_clusters[pperson]]++;
-						n_21[samp_clusters[pperson]]++;
-						n_22[samp_clusters[pperson]]++;
+						n_X1.at(samp_clusters[pperson])++;
+						n_X2.at(samp_clusters[pperson])++;
+						n_21.at(samp_clusters[pperson])++;
+						n_22.at(samp_clusters[pperson])++;
 					}
 				} else {
 					if (s2 && s3) // FT
@@ -333,14 +333,14 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 						continue; // skip missing genotypes
 					} else if(s2 && !s3) // TT
 					{
-						n_X2[samp_clusters[pperson]] += 2;
-						n_22[samp_clusters[pperson]] += 2;
+						n_X2.at(samp_clusters[pperson]) += 2;
+						n_22.at(samp_clusters[pperson]) += 2;
 					}
 				}
 
 				// disease marginal
-				n_2X[samp_clusters[pperson]] += 2;
-				n_TT[samp_clusters[pperson]] += 2;
+				n_2X.at(samp_clusters[pperson]) += 2;
+				n_TT.at(samp_clusters[pperson]) += 2;
 
 			} // end autosomal
 		} // end unaffected
@@ -354,23 +354,23 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 
 	vector<bool> validK(options.getClusters().size(), false);
 	for (unsigned int k = 0; k < options.getClusters().size(); k++)
-		if (n_TT[k] >= 2)
-			validK[k] = true;
+		if (n_TT.at(k) >= 2)
+			validK.at(k) = true;
 
 	for (unsigned int k = 0; k < options.getClusters().size(); k++) {
-		if (validK[k]) {
-			mean_11[k] = (n_X1[k] * n_1X[k]) / n_TT[k];
-			var_11[k] = (n_X1[k] * n_X2[k] * n_1X[k] * n_2X[k]) / (n_TT[k]
-					* n_TT[k] * (n_TT[k] - 1));
+		if (validK.at(k)) {
+			mean_11.at(k) = (n_X1.at(k) * n_1X.at(k)) / n_TT.at(k);
+			var_11.at(k) = (n_X1.at(k) * n_X2.at(k) * n_1X.at(k) * n_2X.at(k)) / (n_TT.at(k)
+					* n_TT.at(k) * (n_TT.at(k) - 1));
 		}
 	}
 
 	double CMH = 0;
 	double denom = 0;
 	for (unsigned int k = 0; k < options.getClusters().size(); k++) {
-		if (validK[k]) {
-			CMH += n_11[k] - mean_11[k];
-			denom += var_11[k];
+		if (validK.at(k)) {
+			CMH += n_11.at(k) - mean_11.at(k);
+			denom += var_11.at(k);
 		}
 	}
 
@@ -384,22 +384,22 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 	vector<double> s2(options.getClusters().size());
 
 	for (unsigned int k = 0; k < options.getClusters().size(); k++) {
-		if (validK[k]) {
-			r2[k] = (n_11[k] * n_22[k]) / n_TT[k];
-			s2[k] = (n_12[k] * n_21[k]) / n_TT[k];
-			R += r2[k];
-			S += s2[k];
+		if (validK.at(k)) {
+			r2.at(k) = (n_11.at(k) * n_22.at(k)) / n_TT.at(k);
+			s2.at(k) = (n_12.at(k) * n_21.at(k)) / n_TT.at(k);
+			R += r2.at(k);
+			S += s2.at(k);
 		}
 	}
 	OR = R / S;
 
 	double v1 = 0, v2 = 0, v3 = 0;
 	for (unsigned int k = 0; k < options.getClusters().size(); k++) {
-		if (validK[k]) {
-			v1 += (1 / n_TT[k]) * (n_11[k] + n_22[k]) * r2[k];
-			v2 += (1 / n_TT[k]) * (n_12[k] + n_21[k]) * s2[k];
-			v3 += (1 / n_TT[k]) * ((n_11[k] + n_22[k]) * s2[k] + (n_12[k]
-					+ n_21[k]) * r2[k]);
+		if (validK.at(k)) {
+			v1 += (1 / n_TT.at(k)) * (n_11.at(k) + n_22.at(k)) * r2.at(k);
+			v2 += (1 / n_TT.at(k)) * (n_12.at(k) + n_21.at(k)) * s2.at(k);
+			v3 += (1 / n_TT.at(k)) * ((n_11.at(k) + n_22.at(k)) * s2.at(k) + (n_12.at(k)
+					+ n_21.at(k)) * r2.at(k));
 		}
 	}
 
@@ -428,22 +428,22 @@ void CMH::calcMantelHaenszel_2x2xK(Marker* mark) {
 			double BDX2 = 0;
 			int df = 0;
 			for (unsigned int k = 0; k < options.getClusters().size(); k++) {
-				if (validK[k]) {
+				if (validK.at(k)) {
 					df++;
-					amax = (n_1X[k] < n_X1[k]) ? n_1X[k] : n_X1[k];
-					bb = n_2X[k] + n_1X[k] * OR - n_X1[k] * (1 - OR);
-					determ = sqrt(bb * bb + 4 * (1 - OR) * OR * n_1X[k]
-							* n_X1[k]);
+					amax = (n_1X.at(k) < n_X1.at(k)) ? n_1X.at(k) : n_X1.at(k);
+					bb = n_2X.at(k) + n_1X.at(k) * OR - n_X1.at(k) * (1 - OR);
+					determ = sqrt(bb * bb + 4 * (1 - OR) * OR * n_1X.at(k)
+							* n_X1.at(k));
 					as_plus = (-bb + determ) / (2 - 2 * OR);
 					as_minus = (-bb - determ) / (2 - 2 * OR);
 					Astar = as_minus <= amax && as_minus >= 0 ? as_minus
 							: as_plus;
-					Bstar = n_1X[k] - Astar;
-					Cstar = n_X1[k] - Astar;
-					Dstar = n_2X[k] - n_X1[k] + Astar;
+					Bstar = n_1X.at(k) - Astar;
+					Cstar = n_X1.at(k) - Astar;
+					Dstar = n_2X.at(k) - n_X1.at(k) + Astar;
 					Var = 1 / (1 / Astar + 1 / Bstar + 1 / Cstar + 1
 							/ Dstar);
-					BDX2 += ((n_11[k] - Astar) * (n_11[k] - Astar)) / Var;
+					BDX2 += ((n_11.at(k) - Astar) * (n_11.at(k) - Astar)) / Var;
 				}
 			}
 
@@ -471,14 +471,14 @@ vector<double> CMH::calcMantelHaenszel_IxJxK(vector<int> & X, vector<int> & Y,
 	map<int, int> mz;
 
 	for (unsigned int i = 0; i < X.size(); i++) {
-		if (mx.find(X[i]) == mx.end())
-			mx.insert(make_pair(X[i], nx++));
+		if (mx.find(X.at(i)) == mx.end())
+			mx.insert(make_pair(X.at(i), nx++));
 
-		if (my.find(Y[i]) == my.end())
-			my.insert(make_pair(Y[i], ny++));
+		if (my.find(Y.at(i)) == my.end())
+			my.insert(make_pair(Y.at(i), ny++));
 
-		if (mz.find(Z[i]) == mz.end())
-			mz.insert(make_pair(Z[i], nz++));
+		if (mz.find(Z.at(i)) == mz.end())
+			mz.insert(make_pair(Z.at(i), nz++));
 	}
 
 	// Generic function to calculate generalized IxJxK CMH
@@ -493,47 +493,47 @@ vector<double> CMH::calcMantelHaenszel_IxJxK(vector<int> & X, vector<int> & Y,
 	vector<double> T(nz); // totals (per K)
 
 	for (int k = 0; k < nz; k++) {
-		Tx[k].resize(nx);
-		Ty[k].resize(ny);
+		Tx.at(k).resize(nx);
+		Ty.at(k).resize(ny);
 
-		N[k].resize((nx - 1) * (ny - 1));
-		U[k].resize((nx - 1) * (ny - 1));
-		V[k].resize((nx - 1) * (ny - 1));
+		N.at(k).resize((nx - 1) * (ny - 1));
+		U.at(k).resize((nx - 1) * (ny - 1));
+		V.at(k).resize((nx - 1) * (ny - 1));
 		for (int k2 = 0; k2 < (nx - 1) * (ny - 1); k2++) {
-			N[k][k2] = U[k][k2] = 0;
-			V[k][k2].resize((nx - 1) * (ny - 1));
+			N.at(k).at(k2) = U.at(k).at(k2) = 0;
+			V.at(k).at(k2).resize((nx - 1) * (ny - 1));
 			for (int k3 = 0; k3 < (nx - 1) * (ny - 1); k3++)
-				V[k][k2][k3] = 0;
+				V.at(k).at(k2).at(k3) = 0;
 		}
 	}
 
 	// Consider each observation
 	for (unsigned int i = 0; i < X.size(); i++) {
-		int vx = mx.find(X[i])->second;
-		int vy = my.find(Y[i])->second;
-		int vz = mz.find(Z[i])->second;
+		int vx = mx.find(X.at(i))->second;
+		int vy = my.find(Y.at(i))->second;
+		int vz = mz.find(Z.at(i))->second;
 
 		// exclude nx + ny (upper limits)
 		if (vx < nx - 1 && vy < ny - 1)
-			N[vz][vx + vy * (nx - 1)]++;
+			N.at(vz).at(vx + vy * (nx - 1))++;
 
-		Tx[vz][vx]++;
-		Ty[vz][vy]++;
-		T[vz]++;
+		Tx.at(vz).at(vx)++;
+		Ty.at(vz).at(vy)++;
+		T.at(vz)++;
 	}
 
 	// Determine valid clusters (at least 2 people)
 	vector<bool> validK(options.getClusters().size(), false);
 	for (unsigned int k = 0; k < options.getClusters().size(); k++)
-		if (T[k] >= 2)
-			validK[k] = true;
+		if (T.at(k) >= 2)
+			validK.at(k) = true;
 
 	// Calculate expecteds
 	for (int k = 0; k < nz; k++) {
-		if (validK[k]) {
+		if (validK.at(k)) {
 			for (int ix = 0; ix < nx - 1; ix++)
 				for (int iy = 0; iy < ny - 1; iy++) {
-					U[k][ix + iy * (nx - 1)] = (Tx[k][ix] * Ty[k][iy]) / T[k];
+					U.at(k).at(ix + iy * (nx - 1)) = (Tx.at(k).at(ix) * Ty.at(k).at(iy)) / T.at(k);
 
 					for (int ix2 = 0; ix2 < nx - 1; ix2++)
 						for (int iy2 = 0; iy2 < ny - 1; iy2++) {
@@ -543,15 +543,14 @@ vector<double> CMH::calcMantelHaenszel_IxJxK(vector<int> & X, vector<int> & Y,
 								dx = 1;
 							if (iy == iy2)
 								dy = 1;
-							V[k][ix + iy * (nx - 1)][ix2 + iy2 * (nx - 1)]
-									= ((Tx[k][ix] * (dx * T[k] - Tx[k][ix2])
-											* Ty[k][iy] * (dy * T[k]
-											- Ty[k][iy2])) / (T[k] * T[k]
-											* (T[k] - 1)));
+							V.at(k).at(ix + iy * (nx - 1)).at(ix2 + iy2 * (nx - 1))
+									= ((Tx.at(k).at(ix) * (dx * T.at(k) - Tx.at(k).at(ix2))
+											* Ty.at(k).at(iy) * (dy * T.at(k)
+											- Ty.at(k).at(iy2))) / (T.at(k) * T.at(k)
+											* (T.at(k) - 1)));
 							if (ix == ix2 && iy == iy2)
-								V[k][ix + iy * (nx - 1)][ix2 + iy2 * (nx - 1)]
-										= abs(V[k][ix + iy * (nx - 1)][ix2
-												+ iy2 * (nx - 1)]);
+								V.at(k).at(ix + iy * (nx - 1)).at(ix2 + iy2 * (nx - 1))
+										= abs(V.at(k).at(ix + iy * (nx - 1)).at(ix2 + iy2 * (nx - 1)));
 						}
 				}
 		}
@@ -559,19 +558,19 @@ vector<double> CMH::calcMantelHaenszel_IxJxK(vector<int> & X, vector<int> & Y,
 
 	vector<vector<double> > V0((nx - 1) * (ny - 1));
 	for (int k2 = 0; k2 < (nx - 1) * (ny - 1); k2++)
-		V0[k2].resize((nx - 1) * (ny - 1));
+		V0.at(k2).resize((nx - 1) * (ny - 1));
 	vector<double> N0((nx - 1) * (ny - 1));
 	vector<double> U0((nx - 1) * (ny - 1));
 
 	// Sum N, U and V over K
 	for (int k = 0; k < nz; k++) {
-		if (validK[k]) {
+		if (validK.at(k)) {
 			for (int i = 0; i < (nx - 1) * (ny - 1); i++) {
-				N0[i] += N[k][i];
-				U0[i] += U[k][i];
+				N0.at(k) += N.at(k).at(i);
+				U0.at(i) += U.at(k).at(i);
 
 				for (int i2 = 0; i2 < (nx - 1) * (ny - 1); i2++)
-					V0[i][i2] += V[k][i][i2];
+					V0.at(k).at(i2) += V.at(k).at(i).at(i2);
 			}
 		}
 	}
@@ -580,23 +579,23 @@ vector<double> CMH::calcMantelHaenszel_IxJxK(vector<int> & X, vector<int> & Y,
 	vector<double> tmp2((nx - 1) * (ny - 1), 0);
 	V0 = Helpers::svd_inverse(V0);
 	for (int i = 0; i < (nx - 1) * (ny - 1); i++)
-		tmp1[i] = N0[i] - U0[i];
+		tmp1.at(i) = N0.at(i) - U0.at(i);
 
 	// Matrix mult -- rows by columns
 
 	for (int i = 0; i < (nx - 1) * (ny - 1); i++)
 		for (int j = 0; j < (nx - 1) * (ny - 1); j++)
-			tmp2[j] += tmp1[i] * V0[i][j];
+			tmp2.at(j) += tmp1.at(i) * V0.at(i).at(j);
 
 	vector<double> result(2);
 
 	// CMH Chi-square
-	result[0] = 0;
+	result.at(0) = 0;
 	for (int i = 0; i < (nx - 1) * (ny - 1); i++)
-		result[0] += tmp2[i] * tmp1[i];
+		result.at(0) += tmp2.at(i) * tmp1.at(i);
 
 	// DF
-	result[1] = (nx - 1) * (ny - 1);
+	result.at(1) = (nx - 1) * (ny - 1);
 	return result;
 
 }
@@ -620,14 +619,14 @@ vector<double> temp;
 	map<int, int> mz;
 
 	for (unsigned int i = 0; i < X.size(); i++) {
-		if (mx.find(X[i]) == mx.end())
-			mx.insert(make_pair(X[i], nx++));
+		if (mx.find(X.at(i)) == mx.end())
+			mx.insert(make_pair(X.at(i), nx++));
 
-		if (my.find(Y[i]) == my.end())
-			my.insert(make_pair(Y[i], ny++));
+		if (my.find(Y.at(i)) == my.end())
+			my.insert(make_pair(Y.at(i), ny++));
 
-		if (mz.find(Z[i]) == mz.end())
-			mz.insert(make_pair(Z[i], nz++));
+		if (mz.find(Z.at(i)) == mz.end())
+			mz.insert(make_pair(Z.at(i), nz++));
 	}
 
 	// Generic function to calculate generalized ordinal IxJxK CMH
@@ -642,48 +641,48 @@ vector<double> temp;
 	vector<double> T(nz); // totals (per K)
 
 	for (int k = 0; k < nz; k++) {
-		Tx[k].resize(nx);
-		Ty[k].resize(ny);
+		Tx.at(k).resize(nx);
+		Ty.at(k).resize(ny);
 
-		N[k].resize((nx - 1) * (ny - 1));
-		U[k].resize((nx - 1) * (ny - 1));
-		V[k].resize((nx - 1) * (ny - 1));
+		N.at(k).resize((nx - 1) * (ny - 1));
+		U.at(k).resize((nx - 1) * (ny - 1));
+		V.at(k).resize((nx - 1) * (ny - 1));
 		for (int k2 = 0; k2 < (nx - 1) * (ny - 1); k2++) {
-			N[k][k2] = U[k][k2] = 0;
-			V[k][k2].resize((nx - 1) * (ny - 1));
+			N.at(k).at(k2) = U.at(k).at(k2) = 0;
+			V.at(k).at(k2).resize((nx - 1) * (ny - 1));
 			for (int k3 = 0; k3 < (nx - 1) * (ny - 1); k3++)
-				V[k][k2][k3] = 0;
+				V.at(k).at(k2).at(k3) = 0;
 		}
 	}
 
 	// Create counts
 	// Consider each observation
 	for (unsigned int i = 0; i < X.size(); i++) {
-		int vx = mx.find(X[i])->second;
-		int vy = my.find(Y[i])->second;
-		int vz = mz.find(Z[i])->second;
+		int vx = mx.find(X.at(i))->second;
+		int vy = my.find(Y.at(i))->second;
+		int vz = mz.find(Z.at(i))->second;
 
 		// exclude nx + ny (upper limits)
 		if (vx < nx - 1 && vy < ny - 1)
-			N[vz][vx + vy * (nx - 1)]++;
+			N.at(vz).at(vx + vy * (nx - 1))++;
 
-		Tx[vz][vx]++;
-		Ty[vz][vy]++;
-		T[vz]++;
+		Tx.at(vz).at(vx)++;
+		Ty.at(vz).at(vy)++;
+		T.at(vz)++;
 	}
 
 	// Determine valid clusters (at least 2 people)
 	vector<bool> validK(options.getClusters().size(), false);
 	for (unsigned int k = 0; k < options.getClusters().size(); k++)
-		if (T[k] >= 2)
-			validK[k] = true;
+		if (T.at(k) >= 2)
+			validK.at(k) = true;
 
 	// Calculate expecteds
 	for (int k = 0; k < nz; k++) {
-		if (validK[k]) {
+		if (validK.at(k)) {
 			for (int ix = 0; ix < nx - 1; ix++)
 				for (int iy = 0; iy < ny - 1; iy++) {
-					U[k][ix + iy * (nx - 1)] = (Tx[k][ix] * Ty[k][iy]) / T[k];
+					U.at(k).at(ix + iy * (nx - 1)) = (Tx.at(k).at(ix) * Ty.at(k).at(iy)) / T.at(k);
 				}
 		}
 	}

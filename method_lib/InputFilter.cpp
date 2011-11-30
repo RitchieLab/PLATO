@@ -31,6 +31,7 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 		if(temp[i]->getRSID() == (*mlist)[mi]->getRSID()){
 			temp[i]->setEnabled(false);
 		}
+	}
 }
 
 /*

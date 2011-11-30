@@ -39,7 +39,7 @@ void FBATOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -93,7 +93,7 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			fbat << mark->getRSID() << " ";
 		}
@@ -102,7 +102,7 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	prev_base = 0;
 	prev_chrom = -1;
 	for(int i = 0; i < ssize; i++){
-		Sample* samp = (*samples)[i];
+		Sample* samp = (*samples).at(i);
 		if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 			fbat << samp->getFamID() << "\t" << samp->getInd() << "\t" << samp->getDadID() << "\t" << samp->getMomID() << "\t";
 			if(samp->getSex()){
@@ -118,7 +118,7 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 				fbat << " " << samp->getPheno();
 			}
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];
+				Marker* mark = good_markers.at(m);
 				if(mark->isEnabled()){
 					int m_loc = mark->getLoc();
 					if(!map_done){

@@ -52,7 +52,7 @@ void BEAGLEOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -90,7 +90,7 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	int gsize = good_markers.size();
 	for(int i = 0; i < gsize; i++){
-		Marker* mark = good_markers[i];
+		Marker* mark = good_markers.at(i);
 		if(mark->isEnabled()){
 			chrom_counts[mark->getChrom() - 1]++;
 		}
@@ -102,7 +102,7 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 	vector<bool> samp_flags(ssize, false);
 
 	for(int i = 0; i < ssize; i++){
-		Sample* samp = (*samples)[i];
+		Sample* samp = (*samples).at(i);
 		if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())) && !samp->isFlagged()){
 			if(samp->getDad() != NULL && samp->getMom() != NULL &&
 					(samp->getDad()->isEnabled() ||
@@ -127,7 +127,7 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 
 	//Output files by chromosome becaues BEAGLE cannot handle too large of files
 	for(int c = 0; c < (int)chrom_counts.size(); c++){
-		if(chrom_counts[c] > 0){
+		if(chrom_counts.at(c) > 0){
 			if(options.getChrom() == -1 || (options.getChrom() == (c + 1))){
 				string fname1 = opts::_OUTPREFIX_ + "input_beagle_chr" + getString<int>(c + 1) + options.getOut() + ".txt";
 				if(options.getOverrideOut().size() > 0){
@@ -167,11 +167,11 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 				str << "# sampleID";
 				trait << "# sampleID";
 				for(int f = 0; f < fsize; f++){
-					Family* fam = (*families)[f];
+					Family* fam = (*families).at(f);
 					vector<Sample*>* fsamps = fam->getSamples();
 					int fssize = fsamps->size();
 					for(int s = 0; s < fssize; s++){
-						Sample* samp = (*fsamps)[s];
+						Sample* samp = (*fsamps).at(s);
 						if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 							str << " " << samp->getFamID() << "_" << samp->getInd();
 							str << " " << samp->getFamID() << "_" << samp->getInd();
@@ -193,16 +193,16 @@ void BEAGLEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 				trait.close();
 
 				for(int m = 0; m < gsize; m++){
-					Marker* mark = good_markers[m];
+					Marker* mark = good_markers.at(m);
 					if(mark->getChrom() == (c + 1) && mark->isEnabled()){
 						str << "M " << mark->getRSID();
 						int mloc = mark->getLoc();
 						for(int f = 0; f < fsize; f++){
-							Family* fam = (*families)[f];
+							Family* fam = (*families).at(f);
 							vector<Sample*>* fsamps = fam->getSamples();
 							int fssize = fsamps->size();
 							for(int s = 0; s < fssize; s++){
-								Sample* samp = (*fsamps)[s];
+								Sample* samp = (*fsamps).at(s);
 								if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 									if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doZeroDisabled())){
 										str << " 0 0";

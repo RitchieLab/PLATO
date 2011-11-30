@@ -45,13 +45,13 @@ class DataSet{
     inline vector<Family*>* get_families(){return &families;}
 
 	///Get loci by index
-	Marker* get_locus(unsigned int index){return markers[index];}
+	Marker* get_locus(unsigned int index){return markers.at(index);}
 
 	  ///Get sample by index
-	Sample* get_sample(unsigned int index){return samples[index];}
+	Sample* get_sample(unsigned int index){return samples.at(index);}
 
     /// Overloaded to return sample at indicated index
-    inline Sample* operator[](int indIndex){return samples[indIndex];}
+    inline Sample* operator[](int indIndex){return samples.at(indIndex);}
     /// Total number of individuals (samples) in set
     int num_inds(){return samples.size();}
 
@@ -74,7 +74,7 @@ class DataSet{
     /// Number of families in set
     unsigned int num_pedigrees(){return families.size();}
     /// Returns pedigree identified by index
-    Family* get_pedigree(unsigned int index){return families[index];}
+    Family* get_pedigree(unsigned int index){return families.at(index);}
 
     /// clears individuals from set
     void clear();

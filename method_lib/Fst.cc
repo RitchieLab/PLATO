@@ -74,8 +74,8 @@ void Fst::PrintSummary(){
 		opts::addFile("Batch", stepname, filenamegm);
 		bygroupmissing.precision(4);
 
-		if((*markers)[0]->getDetailHeaders().size() > 0){
-			bygroup << "Chrom\trsid\tProbeID\tbploc\t" << (*markers)[0]->getDetailHeaders();
+		if((*markers).at(0)->getDetailHeaders().size() > 0){
+			bygroup << "Chrom\trsid\tProbeID\tbploc\t" << (*markers).at(0)->getDetailHeaders();
 		}
 		else{
 			bygroup << "Chrom\trsid\tProbeID\tbploc";
@@ -98,8 +98,8 @@ void Fst::PrintSummary(){
 
 	opts::addFile("Marker", stepname, filename);
 	bymarker.precision(4);
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		bymarker << "Chrom\trsid\tProbeID\tbploc\t" << (*markers)[0]->getDetailHeaders() << "\t%GenoEff_Ind_All\tInd_Zero_Count\tTotal_Individuals_Used\t%GenoEff_Ind_Cases\tInd_Zero_Count_Cases\tTotal_Individuals_Used_Cases\t%GenoEff_Ind_Controls\tInd_Zero_Count_Controls\tTotal_Individuals_Used_Controls";
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		bymarker << "Chrom\trsid\tProbeID\tbploc\t" << (*markers).at(0)->getDetailHeaders() << "\t%GenoEff_Ind_All\tInd_Zero_Count\tTotal_Individuals_Used\t%GenoEff_Ind_Cases\tInd_Zero_Count_Cases\tTotal_Individuals_Used_Cases\t%GenoEff_Ind_Controls\tInd_Zero_Count_Controls\tTotal_Individuals_Used_Controls";
 	}
 	else{
 		bymarker << "Chrom\trsid\tProbeID\tbploc\t%GenoEff_Ind_All\tInd_Zero_Count\tTotal_Individuals_Used\t%GenoEff_Ind_Cases\tInd_Zero_Count_Cases\tTotal_Individuals_Used_Cases\t%GenoEff_Ind_Controls\tInd_Zero_Count_Controls\tTotal_Individuals_Used_Controls";
@@ -120,40 +120,40 @@ void Fst::PrintSummary(){
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	size = good_markers.size();
 	for(int i = 0; i < size; i++){
-		if(good_markers[i]->isEnabled()){
+		if(good_markers.at(i)->isEnabled()){
 
 			float percent = 0.0f;
 			float caseper = 0.0f;
 			float contper = 0.0f;
-			if(total[i] > 0){
-				percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
+			if(total.at(i) > 0){
+				percent = (1.0f - ((float)zeros.at(i)/(float)total.at(i))) * 100.0f;
 			}
-			if(casetotal[i] > 0){
-				caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
+			if(casetotal.at(i) > 0){
+				caseper = (1.0f - ((float)casezeros.at(i)/(float)casetotal.at(i))) * 100.0f;
 			}
-			if(controltotal[i] > 0){
-				contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
+			if(controltotal.at(i) > 0){
+				contper = (1.0f - ((float)controlzeros.at(i)/(float)controltotal.at(i))) * 100.0f;
 			}
 
-			bymarker << good_markers[i]->toString() << "\t"
+			bymarker << good_markers.at(i)->toString() << "\t"
 					 << percent << "\t"
-					 << zeros[i] << "\t"
-					 << total[i] << "\t"
+					 << zeros.at(i) << "\t"
+					 << total.at(i) << "\t"
 					 << caseper << "\t"
-					 << casezeros[i] << "\t"
-					 << casetotal[i] << "\t"
+					 << casezeros.at(i) << "\t"
+					 << casetotal.at(i) << "\t"
 					 << contper << "\t"
-					 << controlzeros[i] << "\t"
-					 << controltotal[i];
+					 << controlzeros.at(i) << "\t"
+					 << controltotal.at(i);
 			bymarker << endl;
 			if(options.doGroupFile()){
-				bygroup << good_markers[i]->toString();
+				bygroup << good_markers.at(i)->toString();
 				map<string, vector<Sample*> > groups = options.getGroups();
 				map<string, vector<Sample*> >::iterator giter;
 				for(giter = groups.begin(); giter != groups.end(); giter++){
 					string group = giter->first;
-					int gzero = groupzeros[group][i];
-					int gtotal = grouptotal[group][i];
+					int gzero = groupzeros.at(group).at(i);
+					int gtotal = grouptotal.at(group).at(i);
 					float gper = 0.0f;
 					if(gtotal > 0){
 						gper = (float)(1.0f - ((float)gzero/(float)gtotal)) * 100.0f;
@@ -372,29 +372,29 @@ void Fst::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, ve
 		for(giter = groups.begin(); giter != groups.end(); giter++){
 			string mygroup = giter->first;
 			vector<Sample*> mysamps = giter->second;
-			groupzeros[mygroup].resize(markers->size());
-			grouptotal[mygroup].resize(markers->size());
+			groupzeros.at(mygroup).resize(markers->size());
+			grouptotal.at(mygroup).resize(markers->size());
 
 			for(int s = 0; s < (int)mysamps.size(); s++){
-				Sample* samp = mysamps[s];
+				Sample* samp = mysamps.at(s);
 				if(samp->isEnabled()){
 					int prev_base = 0;
 					int prev_chrom = -1;
 					for(int m = 0; m < (int)markers->size(); m++){
-						Marker* mark = (*markers)[m];
+						Marker* mark = (*markers).at(m);
 						if(Helpers::isValidMarker(mark, &options, prev_base, prev_chrom)){
 							int loc = mark->getLoc();
 							if(!mark->isMicroSat()){
 								if(samp->getAone(loc) && !samp->getAtwo(loc)){
-									groupzeros[mygroup][m]++;
+									groupzeros.at(mygroup).at(m)++;
 								}
 							}
 							else{
 								if(samp->getAbone(loc) == -1){
-									groupzeros[mygroup][m]++;
+									groupzeros.at(mygroup).at(m)++;
 								}
 							}
-							grouptotal[mygroup][m]++;
+							grouptotal.at(mygroup).at(m)++;
 						}
 					}
 				}
@@ -409,36 +409,36 @@ void Fst::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, ve
 			int prev_base = 0;
 			int prev_chrom = -1;
 			for(int i = 0; i < end; i++){
-				int loc = (*markers)[i]->getLoc();
-				if(Helpers::isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
-					if(!(*markers)[i]->isMicroSat()){
+				int loc = (*markers).at(i)->getLoc();
+				if(Helpers::isValidMarker((*markers).at(i), &options, prev_base, prev_chrom)){
+					if(!(*markers).at(i)->isMicroSat()){
 						if((*s_iter)->getAone(loc) && !(*s_iter)->getAtwo(loc)){
-							zeros[i]++;
+							zeros.at(i)++;
 							if((*s_iter)->getPheno() == 2){
-								casezeros[i]++;
+								casezeros.at(i)++;
 							}
 							else if((*s_iter)->getPheno() == 1){
-								controlzeros[i]++;
+								controlzeros.at(i)++;
 							}
 						}
 					}
 					else{
 						if((*s_iter)->getAbone(loc) == -1){
-							zeros[i]++;
+							zeros.at(i)++;
 							if((*s_iter)->getPheno() == 2){
-								casezeros[i]++;
+								casezeros.at(i)++;
 							}
 							else if((*s_iter)->getPheno() == 1){
-								controlzeros[i]++;
+								controlzeros.at(i)++;
 							}
 						}
 					}
-					total[i]++;
+					total.at(i)++;
 					if((*s_iter)->getPheno() == 2){
-						casetotal[i]++;
+						casetotal.at(i)++;
 					}
 					else if((*s_iter)->getPheno() == 1){
-						controltotal[i]++;
+						controltotal.at(i)++;
 					}
 				}
 			}

@@ -55,8 +55,8 @@ void GenderCheck::PrintSummary(){
 	opts::addFile("Marker", stepname, fname1);
 	myoutput.precision(4);
 	myoutput << "Chrom\trsID\tProbeID\tbploc\t";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		myoutput << (*markers)[0]->getDetailHeaders() << "\t";
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		myoutput << (*markers).at(0)->getDetailHeaders() << "\t";
 	}
 	myoutput << "Count_Geno_all_Males\tCount_Geno_HET_Males\t%HET_Males" << endl;
 	opts::addHeader(fname1, "Count_Geno_all_Males");
@@ -65,13 +65,13 @@ void GenderCheck::PrintSummary(){
 
 	msize = good_markers.size();
 	for(int i = 0; i < msize; i++){
-		if(good_markers[i]->isEnabled() && (good_markers[i]->getChrom() == opts::_CHRX_ || options.doAll())){
+		if(good_markers.at(i)->isEnabled() && (good_markers.at(i)->getChrom() == opts::_CHRX_ || options.doAll())){
 
-			myoutput << good_markers[i]->toString() << "\t"
-				<< mtotal[i] << "\t"
-				<< merrors[i] << "\t";
-			if(mtotal[i] > 0){
-				myoutput << (((float)merrors[i]/(float)mtotal[i]) * 100.0f);
+			myoutput << good_markers.at(i)->toString() << "\t"
+				<< mtotal.at(i) << "\t"
+				<< merrors.at(i) << "\t";
+			if(mtotal.at(i) > 0){
+				myoutput << (((float)merrors.at(i)/(float)mtotal.at(i)) * 100.0f);
 			}
 			else{
 				myoutput << "0";
@@ -103,10 +103,10 @@ void GenderCheck::PrintSummary(){
     if(opts::_ENZYMES_){
         int msize = good_markers.size();
         for(int i = 0; i < msize; i++){
-            if(good_markers[i]->isEnabled()){
-				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), good_markers[i]->getEnzyme());
+            if(good_markers.at(i)->isEnabled()){
+				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), good_markers.at(i)->getEnzyme());
                 if(e_iter == enzymes.end()){
-                    enzymes.push_back(good_markers[i]->getEnzyme());
+                    enzymes.push_back(good_markers.at(i)->getEnzyme());
                 }
             }
         }
@@ -114,43 +114,43 @@ void GenderCheck::PrintSummary(){
             sort(enzymes.begin(), enzymes.end());
         }
         for(int i = 0; i < (int)enzymes.size(); i++){
-			hetout << "\tCount_Geno_total_" << enzymes[i] << "\tCount_Geno_HET_" << enzymes[i] << "\t%HET_" << enzymes[i];
+			hetout << "\tCount_Geno_total_" << enzymes.at(i) << "\tCount_Geno_HET_" << enzymes.at(i) << "\t%HET_" << enzymes.at(i);
         }
     }
     string sdetails = "";
     if(opts::_SAMPDESC_.length() > 0){
-        sdetails = (*samples)[0]->getDetailHeaders();
+        sdetails = (*samples).at(0)->getDetailHeaders();
     	hetout << "\t" << sdetails;
 	}
 
     hetout << endl;
 
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
-			hetout << (*samples)[i]->toString() << "\t"
-				<< (*samples)[i]->getFamily()->getCenter() << "\t";
-			if((*samples)[i]->getSex()){
+		if((*samples).at(i)->isEnabled()){
+			hetout << (*samples).at(i)->toString() << "\t"
+				<< (*samples).at(i)->getFamily()->getCenter() << "\t";
+			if((*samples).at(i)->getSex()){
 				hetout << "M\t";
 			}
 			else{
 				hetout << "F\t";
 			}
-			if((*samples)[i]->getPheno() == 2){
+			if((*samples).at(i)->getPheno() == 2){
 				hetout << "Y\t";
 			}
-			else if((*samples)[i]->getPheno() == 1){
+			else if((*samples).at(i)->getPheno() == 1){
 				hetout << "N\t";
 			}
 			else{
 				hetout << "U\t";
 			}
 
-			hetout << (*samples)[i]->getPlate() << "\t"
-				<< (*samples)[i]->getWell() << "\t"
-				<< stotal[i] << "\t"
-				<< shets[i] << "\t";
-			if(stotal[i] > 0){
-				hetout << (((float)shets[i]/(float)stotal[i]) * 100.0f);
+			hetout << (*samples).at(i)->getPlate() << "\t"
+				<< (*samples).at(i)->getWell() << "\t"
+				<< stotal.at(i) << "\t"
+				<< shets.at(i) << "\t";
+			if(stotal.at(i) > 0){
+				hetout << (((float)shets.at(i)/(float)stotal.at(i)) * 100.0f);
 			}
 			else{
 				hetout << "0";
@@ -158,10 +158,10 @@ void GenderCheck::PrintSummary(){
 
 			if(opts::_ENZYMES_ && enzymes.size() > 0){
 				for(int e = 0; e < (int)enzymes.size(); e++){
-					hetout << "\t" << senzyme_tot[i][enzymes[e]]
-						<< "\t" << senzyme_hets[i][enzymes[e]];
-					if(senzyme_tot[i][enzymes[e]] > 0){
-						hetout << "\t" << ((1.0f - ((float)senzyme_hets[i][enzymes[e]]/(float)senzyme_tot[i][enzymes[e]])) * 100.0f);
+					hetout << "\t" << senzyme_tot.at(i)[enzymes.at(e)]
+						<< "\t" << senzyme_hets.at(i)[enzymes.at(e)];
+					if(senzyme_tot.at(i)[enzymes.at(e)] > 0){
+						hetout << "\t" << ((1.0f - ((float)senzyme_hets.at(i)[enzymes.at(e)]/(float)senzyme_tot.at(i)[enzymes.at(e)])) * 100.0f);
 					}
 					else{
 						hetout << "\t" << "0";
@@ -169,7 +169,7 @@ void GenderCheck::PrintSummary(){
 				}
 			}
 			if(opts::_SAMPDESC_.length() > 0){
-				hetout << "\t" << (*samples)[i]->getDetails();
+				hetout << "\t" << (*samples).at(i)->getDetails();
 			}
 			hetout << endl;
 		}
@@ -183,7 +183,7 @@ void GenderCheck::PrintSummary(){
 	}
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 }
 
@@ -216,15 +216,15 @@ void GenderCheck::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int msize = markers->size();
 		for(int m = 0; m < msize; m++){
-			if((*markers)[m]->isEnabled() && !(*markers)[m]->isFlagged()){
+			if((*markers).at(m)->isEnabled() && !(*markers).at(m)->isFlagged()){
 
 				bool inc = false;
-				if(options.doThreshMarkersLow() && merrors[m] < options.getThreshMarkersLow()){
-					(*markers)[m]->setEnabled(false);
+				if(options.doThreshMarkersLow() && merrors.at(m) < options.getThreshMarkersLow()){
+					(*markers).at(m)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersHigh() && merrors[m] > options.getThreshMarkersHigh()){
-					(*markers)[m]->setEnabled(false);
+				if(options.doThreshMarkersHigh() && merrors.at(m) > options.getThreshMarkersHigh()){
+					(*markers).at(m)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -237,14 +237,14 @@ void GenderCheck::filter(){
 	if(options.doThreshSamplesLow() || options.doThreshSamplesHigh()){
 		int ssize = samples->size();
 		for(int i = 0; i < ssize; i++){
-			if((*samples)[i]->isEnabled() && (*samples)[i]->getSex()){
+			if((*samples).at(i)->isEnabled() && (*samples).at(i)->getSex()){
 				bool inc = false;
-				if(options.doThreshSamplesLow() && shets[i] < options.getThreshSamplesLow()){
-					(*samples)[i]->setEnabled(false);
+				if(options.doThreshSamplesLow() && shets.at(i) < options.getThreshSamplesLow()){
+					(*samples).at(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshSamplesHigh() && shets[i] > options.getThreshSamplesHigh()){
-					(*samples)[i]->setEnabled(false);
+				if(options.doThreshSamplesHigh() && shets.at(i) > options.getThreshSamplesHigh()){
+					(*samples).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -294,49 +294,49 @@ void GenderCheck::perform_evaluation(bool dofams){
 	senzyme_tot.resize(ssize);
 
 	for(int m = 0; m < msize; m++){
-		if(good_markers[m]->isEnabled()){
-			if(good_markers[m]->getChrom() != opts::_CHRX_ && !options.doAll()){
+		if(good_markers.at(m)->isEnabled()){
+			if(good_markers.at(m)->getChrom() != opts::_CHRX_ && !options.doAll()){
 				continue;
 			}
 
-			int mloc = good_markers[m]->getLoc();
-			bool micro = good_markers[m]->isMicroSat();
+			int mloc = good_markers.at(m)->getLoc();
+			bool micro = good_markers.at(m)->isMicroSat();
 			for(int i = 0; i < ssize; i++){
-				if((*samples)[i]->isEnabled()){
+				if((*samples).at(i)->isEnabled()){
 					if(!micro){
-						if((*samples)[i]->getAone(mloc) && (*samples)[i]->getAtwo(mloc) && (*samples)[i]->getAmissing(mloc)){
+						if((*samples).at(i)->getAone(mloc) && (*samples).at(i)->getAtwo(mloc) && (*samples).at(i)->getAmissing(mloc)){
 						continue;
 						}
-						if(!(*samples)[i]->getAone(mloc) && (*samples)[i]->getAtwo(mloc)){
-							shets[i]++;
+						if(!(*samples).at(i)->getAone(mloc) && (*samples).at(i)->getAtwo(mloc)){
+							shets.at(i)++;
 							if(opts::_ENZYMES_){
-								senzyme_hets[i][(*markers)[m]->getEnzyme()]++;
+								senzyme_hets.at(i)[(*markers)[m]->getEnzyme()]++;
 							}
-							if((*samples)[i]->getSex()){
-								merrors[m]++;
+							if((*samples).at(i)->getSex()){
+								merrors.at(m)++;
 							}
 						}
 					}
 					else{
-						if((*samples)[i]->getAbone(mloc) == -1){
+						if((*samples).at(i)->getAbone(mloc) == -1){
 							continue;
 						}
-						if((*samples)[i]->getAbone(mloc) != (*samples)[i]->getAbtwo(mloc)){
-							shets[i]++;
+						if((*samples).at(i)->getAbone(mloc) != (*samples).at(i)->getAbtwo(mloc)){
+							shets.at(i)++;
 							if(opts::_ENZYMES_){
-								senzyme_hets[i][(*markers)[m]->getEnzyme()]++;
+								senzyme_hets.at(i)[(*markers).at(m)->getEnzyme()]++;
 							}
-							if((*samples)[i]->getSex()){
-								merrors[m]++;
+							if((*samples).at(i)->getSex()){
+								merrors.at(m)++;
 							}
 						}
 					}
-					if((*samples)[i]->getSex()){
-						mtotal[m]++;
+					if((*samples).at(i)->getSex()){
+						mtotal.at(m)++;
 					}
-					stotal[i]++;
+					stotal.at(i)++;
 					if(opts::_ENZYMES_){
-						senzyme_tot[i][(*markers)[m]->getEnzyme()]++;
+						senzyme_tot.at(i)[(*markers).at(m)->getEnzyme()]++;
 					}
 				}
 			}

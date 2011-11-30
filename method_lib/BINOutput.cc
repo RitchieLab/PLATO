@@ -41,7 +41,7 @@ void BINOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -54,8 +54,8 @@ void BINOutput::filter(){
 Sample* BINOutput::find_sample(string i, string f){
 	int ssize = samples->size();
 	for(int s = 0; s < ssize; s++){
-		if((*samples)[s]->getInd() == i && (*samples)[s]->getFamID() == f){
-			return ((*samples)[s]);
+		if((*samples).at(s)->getInd() == i && (*samples).at(s)->getFamID() == f){
+			return ((*samples).at(s));
 		}
 	}
 	return NULL;
@@ -65,7 +65,7 @@ Sample* BINOutput::find_sample(string i, string f){
 bool BINOutput::find_marker(string p){
 	int msize = markers->size();
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->getProbeID() == p){
+		if((*markers).at(i)->getProbeID() == p){
 			return true;
 		}
 	}
@@ -76,8 +76,8 @@ bool BINOutput::find_marker(string p){
 int BINOutput::get_marker_loc(int i){
 	int msize = markers->size();
 	for(int m = 0; m < msize; m++){
-		if((*markers)[m]->getLoc() == i){
-			return (*markers)[m]->getLoc();
+		if((*markers).at(m)->getLoc() == i){
+			return (*markers).at(m)->getLoc();
 		}
 	}
 	return -1;
@@ -126,7 +126,7 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	string female = "\t0\t0\t2\t0";
 
 	for(int s = 0; s < ssize; s++){
-		Sample* samp = (*samples)[s];
+		Sample* samp = (*samples).at(s);
 		if(!samp->isEnabled() && !samp->isExcluded() && !options->doIncDisabledSamples()){
 			continue;
 		}
@@ -235,7 +235,7 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	int gsize = good_markers.size();
 
 	for(int m = 0; m < gsize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 
 			BIT << mark->getChrom() << "\t";
@@ -293,7 +293,7 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	BIT.write(ch,1);
 
 	for(int s = 0; s < ssize; s++){
-		Sample* samp = (*samples)[s];
+		Sample* samp = (*samples).at(s);
 		if(!samp->isEnabled() && !samp->isExcluded() && !options->doIncDisabledSamples()){
 			continue;
 		}
@@ -304,7 +304,7 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 			b.reset();
 			int c = 0;
 			while(c < 8 && m < gsize){
-				Marker* mark = good_markers[m];
+				Marker* mark = good_markers.at(m);
 				if(mark->isEnabled() && !mark->isMicroSat()){
 					int loc = mark->getLoc();
 
@@ -342,7 +342,7 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 				b.reset();
 				int c = 0;
 				while(c < 8 && m < gsize){
-					Marker* mark = good_markers[m];
+					Marker* mark = good_markers.at(m);
 					if(mark->isEnabled() && !mark->isMicroSat()){
 
 						b.set(c);

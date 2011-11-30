@@ -54,8 +54,8 @@ void CaConChisq::PrintSummary(){
 		  << "\trsID"
 		  << "\tProbeID"
 		  << "\tbploc";
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		pvals << "\t" << (*markers)[0]->getDetailHeaders();
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		pvals << "\t" << (*markers).at(0)->getDetailHeaders();
 	}
 	pvals  << "\tArmitage_Chi"
 		  << "\tArmitage_Pval"
@@ -89,9 +89,9 @@ void CaConChisq::PrintSummary(){
 
 
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
-			if((*markers)[i]->isMicroSat()){
-				pvals << (*markers)[i]->toString()
+		if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
+			if((*markers).at(i)->isMicroSat()){
+				pvals << (*markers).at(i)->toString()
 					<< "\tNA"
 					<< "\tNA"
 					<< "\tNA"
@@ -106,25 +106,25 @@ void CaConChisq::PrintSummary(){
 				continue;
 			}
 
-			pvals << (*markers)[i]->toString() << "\t"
-				<< chi_arm[i] << "\t"
-				<< pval_arm[i] << "\t"
-				<< chi_allele[i] << "\t"
-				<< pval_allele[i] << "\t"
-				<< pval_allele_exact[i] << "\t"
-				<< chi_geno[i] << "\t"
-				<< pval_geno[i] << "\t"
-				<< pval_geno_exact[i] << "\t"
-				<< (*markers)[i]->getAllele1() << ":" << (*markers)[i]->getAllele2() << "\t"
-				<< odds_ratio[i] << "\t"
-				<< (*markers)[i]->getAllele1() << "\t"
-				<< ci_l[i] << "\t"
-				<< ci_u[i]
+			pvals << (*markers).at(i)->toString() << "\t"
+				<< chi_arm.at(i) << "\t"
+				<< pval_arm.at(i) << "\t"
+				<< chi_allele.at(i) << "\t"
+				<< pval_allele.at(i) << "\t"
+				<< pval_allele_exact.at(i) << "\t"
+				<< chi_geno.at(i) << "\t"
+				<< pval_geno.at(i) << "\t"
+				<< pval_geno_exact.at(i) << "\t"
+				<< (*markers).at(i)->getAllele1() << ":" << (*markers).at(i)->getAllele2() << "\t"
+				<< odds_ratio.at(i) << "\t"
+				<< (*markers).at(i)->getAllele1() << "\t"
+				<< ci_l.at(i) << "\t"
+				<< ci_u.at(i)
 				<< endl;
 
 			if(options.doGroupFile()){
 			}
-			(*markers)[i]->setFlag(false);
+			(*markers).at(i)->setFlag(false);
 		}
 	}
 
@@ -178,14 +178,14 @@ void CaConChisq::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int msize = markers->size();
 		for(int i = 0; i < msize; i++){
-			if((*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+			if((*markers).at(i)->isEnabled() && !(*markers).at(i)->isFlagged()){
 				bool inc = false;
-				if(options.doThreshMarkersLow() && Helpers::dLess(pval_arm[i], options.getThreshMarkersLow())){
-					(*markers)[i]->setEnabled(false);
+				if(options.doThreshMarkersLow() && Helpers::dLess(pval_arm.at(i), options.getThreshMarkersLow())){
+					(*markers).at(i)->setEnabled(false);
 					inc = true;
 				}
-				if(options.doThreshMarkersHigh() && Helpers::dGreater(pval_arm[i], options.getThreshMarkersHigh())){
-					(*markers)[i]->setEnabled(false);
+				if(options.doThreshMarkersHigh() && Helpers::dGreater(pval_arm.at(i), options.getThreshMarkersHigh())){
+					(*markers).at(i)->setEnabled(false);
 					inc = true;
 				}
 				if(inc){
@@ -244,7 +244,7 @@ void CaConChisq::calculate(Marker* mark){
 			cases = 0;
 			controls = 0;
 			for(int s = 0; s < (int)mysamps.size(); s++){
-				Sample* samp = mysamps[s];
+				Sample* samp = mysamps.at(s);
 				if(samp->getPheno() == 2){
 					cases++;
 				}
@@ -271,10 +271,10 @@ void CaConChisq::calculate(Marker* mark){
 			}
 
 			gpval_geno_exact_one[mygroup] = -1;
-			chitotals[0].push_back(gaf.getAoneCa_count());
-			chitotals[0].push_back(gaf.getAtwoCa_count());
-			chitotals[1].push_back(gaf.getAoneCon_count());
-			chitotals[1].push_back(gaf.getAtwoCon_count());
+			chitotals.at(0).push_back(gaf.getAoneCa_count());
+			chitotals.at(0).push_back(gaf.getAtwoCa_count());
+			chitotals.at(1).push_back(gaf.getAoneCon_count());
+			chitotals.at(1).push_back(gaf.getAtwoCon_count());
 			gchi_allele_one[mygroup] = chi.chisquare(chitotals);
 			gpval_allele_one[mygroup] = -1;
 			if(gchi_allele_one[mygroup] > -1){
@@ -292,15 +292,15 @@ void CaConChisq::calculate(Marker* mark){
 			else{
 				godds_ratio_one[mygroup] = (double)((double)gaf.getAoneCa_count() * (double)gaf.getAtwoCon_count()) / (double)((double)gaf.getAtwoCa_count() * (double)gaf.getAoneCon_count());
 			}
-			chitotals[0].clear();
-			chitotals[1].clear();
+			chitotals.at(0).clear();
+			chitotals.at(1).clear();
 
-			chitotals[0].push_back(gaf.getAonehomoCon());
-			chitotals[0].push_back(gaf.getHetCon());
-			chitotals[0].push_back(gaf.getAtwohomoCon());
-			chitotals[1].push_back(gaf.getAonehomoCa());
-			chitotals[1].push_back(gaf.getHetCa());
-			chitotals[1].push_back(gaf.getAtwohomoCa());
+			chitotals.at(0).push_back(gaf.getAonehomoCon());
+			chitotals.at(0).push_back(gaf.getHetCon());
+			chitotals.at(0).push_back(gaf.getAtwohomoCon());
+			chitotals.at(1).push_back(gaf.getAonehomoCa());
+			chitotals.at(1).push_back(gaf.getHetCa());
+			chitotals.at(1).push_back(gaf.getAtwohomoCa());
 			gchi_arm_one[mygroup] = arm.armitage(chitotals);
 			gpval_arm_one[mygroup] = -1;
 			if(gchi_arm_one[mygroup] >= 0){
@@ -312,8 +312,8 @@ void CaConChisq::calculate(Marker* mark){
 
 				gpval_arm_one[mygroup] = pvalue;
 			}
-			chitotals[0].clear();
-			chitotals[1].clear();
+			chitotals.at(0).clear();
+			chitotals.at(1).clear();
 			double lOR = log(godds_ratio_one[mygroup]);
 			double SE = sqrt(1/(double)gaf.getAoneCa_count() + 1/(double)gaf.getAtwoCa_count() + 1/(double)gaf.getAoneCon_count() + 1/(double)gaf.getAtwoCon_count());
 			gci_l_one[mygroup] = exp(lOR - options.getCI() * SE);
@@ -325,11 +325,11 @@ void CaConChisq::calculate(Marker* mark){
 	cases = 0;
 	controls = 0;
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
-			if((*samples)[i]->getPheno() == 2){
+		if((*samples).at(i)->isEnabled()){
+			if((*samples).at(i)->getPheno() == 2){
 				cases++;
 			}
-			else if((*samples)[i]->getPheno() == 1){
+			else if((*samples).at(i)->getPheno() == 1){
 				controls++;
 			}
 		}
@@ -369,10 +369,10 @@ void CaConChisq::calculate(Marker* mark){
 	}
 
 	pval_geno_exact_one = -1;
-	chitotals[0].push_back(af->getAoneCa_count());
-	chitotals[0].push_back(af->getAtwoCa_count());
-	chitotals[1].push_back(af->getAoneCon_count());
-	chitotals[1].push_back(af->getAtwoCon_count());
+	chitotals.at(0).push_back(af->getAoneCa_count());
+	chitotals.at(0).push_back(af->getAtwoCa_count());
+	chitotals.at(1).push_back(af->getAoneCon_count());
+	chitotals.at(1).push_back(af->getAtwoCon_count());
 	chi_allele_one = chi.chisquare(chitotals);
 	pval_allele_one = -1;
 	if(chi_allele_one > -1){
@@ -399,15 +399,15 @@ void CaConChisq::calculate(Marker* mark){
 		ci_u_one = exp(lOR + zt * SE);
 	}
 	//		}
-	chitotals[0].clear();
-	chitotals[1].clear();
+	chitotals.at(0).clear();
+	chitotals.at(0).clear();
 
-	chitotals[0].push_back(af->getAonehomoCon());
-	chitotals[0].push_back(af->getHetCon());
-	chitotals[0].push_back(af->getAtwohomoCon());
-	chitotals[1].push_back(af->getAonehomoCa());
-	chitotals[1].push_back(af->getHetCa());
-	chitotals[1].push_back(af->getAtwohomoCa());
+	chitotals.at(0).push_back(af->getAonehomoCon());
+	chitotals.at(0).push_back(af->getHetCon());
+	chitotals.at(0).push_back(af->getAtwohomoCon());
+	chitotals.at(1).push_back(af->getAonehomoCa());
+	chitotals.at(1).push_back(af->getHetCa());
+	chitotals.at(1).push_back(af->getAtwohomoCa());
 	chi_arm_one = arm.armitage(chitotals);
 	pval_arm_one = -1;
 	if(chi_arm_one >= 0){
@@ -419,8 +419,8 @@ void CaConChisq::calculate(Marker* mark){
 	    arm_df = df;
 		pval_arm_one = pvalue;
 	}
-	chitotals[0].clear();
-	chitotals[1].clear();
+	chitotals.at(0).clear();
+	chitotals.at(1).clear();
 
 }
 
@@ -470,8 +470,8 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		opts::addFile("Marker", stepname, gpfname);
 		gpvals.precision(4);
 		gpvals << "Chrom\trsID\tProbeID\tbploc";
-		if((*markers)[0]->getDetailHeaders().size() > 0){
-			gpvals << "\t" << (*markers)[0]->getDetailHeaders();
+		if((*markers).at(0)->getDetailHeaders().size() > 0){
+			gpvals << "\t" << (*markers).at(0)->getDetailHeaders();
 		}
 		map<string, vector<Sample*> > groups = options.getGroups();
 		map<string, vector<Sample*> >::iterator giter;
@@ -510,9 +510,9 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		int prev_base = 0;
 		int prev_chrom = -1;
 		for(int i = 0; i < msize; i++){
-			if((*markers)[i]->isEnabled() && Helpers::isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
-				gpvals << (*markers)[i]->toString();
-				if((*markers)[i]->isMicroSat()){
+			if((*markers).at(i)->isEnabled() && Helpers::isValidMarker((*markers).at(i), &options, prev_base, prev_chrom)){
+				gpvals << (*markers).at(i)->toString();
+				if((*markers).at(i)->isMicroSat()){
 					for(giter = groups.begin(); giter != groups.end(); giter++){
 						gpvals << "\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA";
 					}
@@ -528,11 +528,11 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					gaf->setRank(rank);
 					gaf->setOptions(options);
 
-					gaf->calcOne((*markers)[i]);
+					gaf->calcOne((*markers).at(i));
 					cases = 0;
 					controls = 0;
 					for(int s = 0; s < (int)mysamps.size(); s++){
-						Sample* samp = mysamps[s];
+						Sample* samp = mysamps.at(s);
 						if(samp->getPheno() == 2){
 							cases++;
 						}
@@ -553,10 +553,10 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					}
 
 					gpval_geno_exact = -1;
-					chitotals[0].push_back(gaf->getAoneCa_count());
-					chitotals[0].push_back(gaf->getAtwoCa_count());
-					chitotals[1].push_back(gaf->getAoneCon_count());
-					chitotals[1].push_back(gaf->getAtwoCon_count());
+					chitotals.at(0).push_back(gaf->getAoneCa_count());
+					chitotals.at(0).push_back(gaf->getAtwoCa_count());
+					chitotals.at(1).push_back(gaf->getAoneCon_count());
+					chitotals.at(1).push_back(gaf->getAtwoCon_count());
 					gchi_allele = chi.chisquare(chitotals);
 					gpval_allele = -1;
 					if(gchi_allele > -1){
@@ -574,15 +574,15 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					else{
 						godds_ratio = (double)((double)gaf->getAoneCa_count() * (double)gaf->getAtwoCon_count()) / (double)((double)gaf->getAtwoCa_count() * (double)gaf->getAoneCon_count());
 					}
-					chitotals[0].clear();
-					chitotals[1].clear();
+					chitotals.at(0).clear();
+					chitotals.at(1).clear();
 
-					chitotals[0].push_back(gaf->getAonehomoCon());
-					chitotals[0].push_back(gaf->getHetCon());
-					chitotals[0].push_back(gaf->getAtwohomoCon());
-					chitotals[1].push_back(gaf->getAonehomoCa());
-					chitotals[1].push_back(gaf->getHetCa());
-					chitotals[1].push_back(gaf->getAtwohomoCa());
+					chitotals.at(0).push_back(gaf->getAonehomoCon());
+					chitotals.at(0).push_back(gaf->getHetCon());
+					chitotals.at(0).push_back(gaf->getAtwohomoCon());
+					chitotals.at(1).push_back(gaf->getAonehomoCa());
+					chitotals.at(1).push_back(gaf->getHetCa());
+					chitotals.at(1).push_back(gaf->getAtwohomoCa());
 					gchi_arm = arm.armitage(chitotals);
 					gpval_arm = -1;
 					if(gchi_arm >= 0){
@@ -594,8 +594,8 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 
 						gpval_arm = pvalue;
 					}
-					chitotals[0].clear();
-					chitotals[1].clear();
+					chitotals.at(0).clear();
+					chitotals.at(1).clear();
 					double lOR = log(godds_ratio);
 					double SE = sqrt(1/(double)gaf->getAoneCa_count() + 1/(double)gaf->getAtwoCa_count() + 1/(double)gaf->getAoneCon_count() + 1/(double)gaf->getAtwoCon_count());
 					double OR_lower = exp( lOR - options.getCI() * SE);
@@ -609,9 +609,9 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 						<< gchi_geno << "\t"
 						<< gpval_geno << "\t"
 						<< gpval_geno_exact << "\t"
-						<< (*markers)[i]->getAllele1() << ":" << (*markers)[i]->getAllele2() << "\t"
+						<< (*markers).at(i)->getAllele1() << ":" << (*markers).at(i)->getAllele2() << "\t"
 						<< godds_ratio << "\t"
-						<< (*markers)[i]->getAllele1() << "\t"
+						<< (*markers).at(i)->getAllele1() << "\t"
 						<< OR_lower << "\t"
 						<< OR_upper;
 					gchi_arm = -1;
@@ -634,11 +634,11 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	cases = 0;
 	controls = 0;
 	for(int i = 0; i < ssize; i++){
-		if((*samples)[i]->isEnabled()){
-			if((*samples)[i]->getPheno() == 2){
+		if((*samples).at(i)->isEnabled()){
+			if((*samples).at(i)->getPheno() == 2){
 				cases++;
 			}
-			else if((*samples)[i]->getPheno() == 1){
+			else if((*samples).at(i)->getPheno() == 1){
 				controls++;
 			}
 		}
@@ -658,73 +658,73 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	int prev_base = 0;
 	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->isEnabled() && Helpers::isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
-			if((*markers)[i]->isMicroSat()){
+		if((*markers).at(i)->isEnabled() && Helpers::isValidMarker((*markers).at(i), &options, prev_base, prev_chrom)){
+			if((*markers).at(i)->isMicroSat()){
 				continue;
 			}
-			af->calcOne((*markers)[i]);
-				chi_geno[i] = calcChiGeno(af->getAonehomoCa(), af->getHetCa(), af->getAtwohomoCa(), af->getAonehomoCon(), af->getHetCon(), af->getAtwohomoCon());
-				pval_geno[i] = -1;
-				if(chi_geno[i] >= 0){
+			af->calcOne((*markers).at(i));
+				chi_geno.at(i) = calcChiGeno(af->getAonehomoCa(), af->getHetCa(), af->getAtwohomoCa(), af->getAonehomoCon(), af->getHetCon(), af->getAtwohomoCon());
+				pval_geno.at(i) = -1;
+				if(chi_geno.at(i) >= 0){
 		             double pvalue, df = 2;
 		             pvalue = -1;
-		             if(chi_geno[i] > -1){
-		            	 pvalue = Helpers::p_from_chi(chi_geno[i], df);
+		             if(chi_geno.at(i) > -1){
+		            	 pvalue = Helpers::p_from_chi(chi_geno.at(i), df);
 		             }
 
-					pval_geno[i] = pvalue;
+					pval_geno.at(i) = pvalue;
 				}
 
-				pval_geno_exact[i] = -1;
-				chitotals[0].push_back(af->getAoneCa_count());
-				chitotals[0].push_back(af->getAtwoCa_count());
-				chitotals[1].push_back(af->getAoneCon_count());
-				chitotals[1].push_back(af->getAtwoCon_count());
-				chi_allele[i] = chi.chisquare(chitotals);
-				pval_allele[i] = -1;
-				if(chi_allele[i] > -1){
+				pval_geno_exact.at(i) = -1;
+				chitotals.at(0).push_back(af->getAoneCa_count());
+				chitotals.at(0).push_back(af->getAtwoCa_count());
+				chitotals.at(1).push_back(af->getAoneCon_count());
+				chitotals.at(1).push_back(af->getAtwoCon_count());
+				chi_allele.at(i) = chi.chisquare(chitotals);
+				pval_allele.at(i) = -1;
+				if(chi_allele.at(i) > -1){
 		             double pvalue,df = 1;
 		             pvalue = -1;
-		             if(chi_allele[i] > -1){
-		            	 pvalue = Helpers::p_from_chi(chi_allele[i], df);
+		             if(chi_allele.at(i) > -1){
+		            	 pvalue = Helpers::p_from_chi(chi_allele.at(i), df);
 		             }
-					pval_allele[i] = pvalue;
+					pval_allele.at(i) = pvalue;
 				}
-				pval_allele_exact[i] = fish.fisher_2_2(af->getAoneCa_count(), af->getAtwoCa_count(), af->getAoneCon_count(), af->getAtwoCon_count());
+				pval_allele_exact.at(i) = fish.fisher_2_2(af->getAoneCa_count(), af->getAtwoCa_count(), af->getAoneCon_count(), af->getAtwoCon_count());
 				if(af->getAtwoCa_count() == 0 ||  af->getAoneCon_count() == 0){
-					odds_ratio[i] = -1;
-					ci_l[i] = -999;
-					ci_u[i] = -999;
+					odds_ratio.at(i) = -1;
+					ci_l.at(i) = -999;
+					ci_u.at(i) = -999;
 				}
 				else{
-					odds_ratio[i] = (double)((double)af->getAoneCa_count() * (double)af->getAtwoCon_count()) / (double)((double)af->getAtwoCa_count() * (double)af->getAoneCon_count());
-					double lOR = log(odds_ratio[i]);
+					odds_ratio.at(i) = (double)((double)af->getAoneCa_count() * (double)af->getAtwoCon_count()) / (double)((double)af->getAtwoCa_count() * (double)af->getAoneCon_count());
+					double lOR = log(odds_ratio.at(i));
 					double SE = sqrt(1/(double)af->getAoneCa_count() + 1/(double)af->getAtwoCa_count() + 1/(double)af->getAoneCon_count() + 1/(double)af->getAtwoCon_count());
-					ci_l[i] = exp( lOR - zt * SE);
-					ci_u[i] = exp(lOR + zt * SE);
+					ci_l.at(i) = exp( lOR - zt * SE);
+					ci_u.at(i) = exp(lOR + zt * SE);
 				}
-			chitotals[0].clear();
-			chitotals[1].clear();
+			chitotals.at(0).clear();
+			chitotals.at(1).clear();
 
-			chitotals[0].push_back(af->getAonehomoCon());
-			chitotals[0].push_back(af->getHetCon());
-			chitotals[0].push_back(af->getAtwohomoCon());
-			chitotals[1].push_back(af->getAonehomoCa());
-			chitotals[1].push_back(af->getHetCa());
-			chitotals[1].push_back(af->getAtwohomoCa());
-			chi_arm[i] = arm.armitage(chitotals);
-			pval_arm[i] = -1;
-			if(chi_arm[i] >= 0){
+			chitotals.at(0).push_back(af->getAonehomoCon());
+			chitotals.at(0).push_back(af->getHetCon());
+			chitotals.at(0).push_back(af->getAtwohomoCon());
+			chitotals.at(1).push_back(af->getAonehomoCa());
+			chitotals.at(1).push_back(af->getHetCa());
+			chitotals.at(1).push_back(af->getAtwohomoCa());
+			chi_arm.at(i) = arm.armitage(chitotals);
+			pval_arm.at(i) = -1;
+			if(chi_arm.at(i) >= 0){
 	             double pvalue, df = 1;
 	             pvalue = -1;
-	             if(chi_arm[i] > -1){
-	            	 pvalue = Helpers::p_from_chi(chi_arm[i], df);
+	             if(chi_arm.at(i) > -1){
+	            	 pvalue = Helpers::p_from_chi(chi_arm.at(i), df);
 	             }
 
-				pval_arm[i] = pvalue;
+				pval_arm.at(i) = pvalue;
 			}
-			chitotals[0].clear();
-			chitotals[1].clear();
+			chitotals.at(0).clear();
+			chitotals.at(1).clear();
 		}
 	}
 

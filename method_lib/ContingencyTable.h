@@ -32,7 +32,7 @@ class ContingencyTable{
     void get_counts(unsigned int curr_loc, DataSet* data);
        
     /// Returns value as set by the pointer
-    vector<float>& operator[](unsigned int index){return current_totals->totals[index];}
+    vector<float>& operator[](unsigned int index){return current_totals->totals.at(index);}
     
     /// Sets type of results to return
     enum TotalType{
@@ -50,7 +50,7 @@ class ContingencyTable{
     unsigned int num_rows(){return current_totals->totals.size();}
     
     /// Returns number of columns  in table
-    unsigned int num_cols(){return current_totals->totals[0].size();}
+    unsigned int num_cols(){return current_totals->totals.at(0).size();}
     
     /// Returns vector for use
     vector<vector<float> >& get_vector(){return current_totals->totals;}

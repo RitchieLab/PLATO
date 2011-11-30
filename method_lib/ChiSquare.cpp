@@ -119,22 +119,22 @@ double ChiSquare::chisquare(vector<vector<unsigned int> > & chiTotals, int * df)
             // the number of cells in the penetrance table
             // This assumes the individuals have only two states
   vector<int> totalInCell;
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    unaffected+=chiTotals[0][cell];
-    affected+=chiTotals[1][cell];
-    totalInCell.push_back(chiTotals[0][cell] + chiTotals[1][cell]);
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    unaffected+=chiTotals.at(0).at(cell);
+    affected+=chiTotals.at(1).at(cell);
+    totalInCell.push_back(chiTotals.at(0).at(cell) + chiTotals.at(1).at(cell));
   }
 
   double totalinds = double(unaffected) + affected;
   double chiscore=0.0;
   // calculate expected for each cell
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    if( totalInCell[cell] > 0){
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    if( totalInCell.at(cell) > 0){
       (*df)++; // increment degrees of freedom when 
-      double unaffexpected = double(totalInCell[cell]) * unaffected / totalinds;
-      double affexpected = double(totalInCell[cell]) * affected / totalinds;
-      chiscore += pow((chiTotals[0][cell]-unaffexpected),2) / unaffexpected;
-      chiscore += pow((chiTotals[1][cell]-affexpected),2) / affexpected;
+      double unaffexpected = double(totalInCell.at(cell)) * unaffected / totalinds;
+      double affexpected = double(totalInCell.at(cell)) * affected / totalinds;
+      chiscore += pow((chiTotals.at(0).at(cell)-unaffexpected),2) / unaffexpected;
+      chiscore += pow((chiTotals.at(1).at(cell)-affexpected),2) / affexpected;
     }
   }
   return chiscore;

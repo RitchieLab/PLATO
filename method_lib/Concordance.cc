@@ -155,8 +155,8 @@ void Concordance::calculate(){
 
 	opts::addFile("Marker", stepname, mfile);
 	opts::addFile("Sample", stepname, sfile);
-	if((*markers)[0]->getDetailHeaders().size() > 0){
-		snp_data << "Chrom\trsID\tProbeID\tbploc\t" << (*markers)[0]->getDetailHeaders() << "\tErrors\tTotal_Compared\t%Concordance";
+	if((*markers).at(0)->getDetailHeaders().size() > 0){
+		snp_data << "Chrom\trsID\tProbeID\tbploc\t" << (*markers).at(0)->getDetailHeaders() << "\tErrors\tTotal_Compared\t%Concordance";
 	}
 	else{
 		snp_data << "Chrom\trsID\tProbeID\tbploc\tErrors\tTotal_Compared\t";
@@ -177,7 +177,7 @@ void Concordance::calculate(){
 	samp_data << "Center\tSex\tAffection_Status\tErrors\tTotal_Compared\t%Concordance";
 
 	if(opts::_SAMPDESC_.length() > 0){
-		samp_data << "\t" << (*samples)[0]->getDetailHeaders();
+		samp_data << "\t" << (*samples).at(0)->getDetailHeaders();
 	}
 	opts::addHeader(sfile, "Errors");
 	opts::addHeader(sfile, "Total_Compared");
@@ -308,7 +308,7 @@ void Concordance::calculate(){
 	for(int i = 0; i < check_data_set->num_inds(); i++){
 		Sample* sconc = check_data_set->get_sample(i);
 		for(unsigned int j = 0; j < samples->size(); j++){
-		Sample* sorig = (*samples)[j];
+		Sample* sorig = (*samples).at(j);
 		if(sorig->toString() != sconc->toString()){
 			continue;
 		}
@@ -317,7 +317,7 @@ void Concordance::calculate(){
 		for(miter = morig_conc_map.begin(); miter != morig_conc_map.end(); miter++){
 			int morig = miter->first;
 			int msecond = miter->second;
-			Marker* mmorig = (*markers)[morig];
+			Marker* mmorig = (*markers).at(morig);
 			Marker* mconc = check_data_set->get_locus(msecond);
 			int oloc = mmorig->getLoc();
 			int cloc = mconc->getLoc();
@@ -603,7 +603,7 @@ void Concordance::calculate(){
 	//output some results
 	for(miter = morig_conc_map.begin(); miter != morig_conc_map.end(); miter++){
 		int morig = miter->first;
-		Marker* mmorig = (*markers)[morig];
+		Marker* mmorig = (*markers).at(morig);
 		int total = snp_total_count[morig];
 		int err = snp_error_count[morig];
 		int zero = snp_zero_count[morig];

@@ -23,7 +23,7 @@ void FisherExact::fill_factorials(unsigned n){
   // only add the factorials that have not
   // already been calculated
   for(unsigned i=logfactorials.size(); i<=n; i++){
-    logfactorials.push_back(log(double(i)) + logfactorials[i-1]);
+    logfactorials.push_back(log(double(i)) + logfactorials.at(i-1));
   }
 
 }
@@ -60,9 +60,9 @@ double FisherExact::fisher_2_2(unsigned a, unsigned b,
 
   double factn;
 
-  factn = logfactorials[n];
-  double num = logfactorials[ab]+logfactorials[cd]+
-    logfactorials[ac]+logfactorials[bd];
+  factn = logfactorials.at(n);
+  double num = logfactorials.at(ab)+logfactorials.at(cd)+
+    logfactorials.at(ac)+logfactorials.at(bd);
 
   int ax,bx,cx,dx;
   double denom;
@@ -83,8 +83,8 @@ double FisherExact::fisher_2_2(unsigned a, unsigned b,
     newdisc = floor(newdisc*1000000);
     if (newdisc< disc) continue;
 
-    denom = factn + logfactorials[ax] + logfactorials[bx] +
-      logfactorials[cx] + logfactorials[dx];
+    denom = factn + logfactorials.at(ax) + logfactorials.at(bx) +
+      logfactorials.at(cx) + logfactorials.at(dx);
     p_two += exp(num-denom);
   }
   
@@ -100,7 +100,7 @@ double FisherExact::fisher_2_2(unsigned a, unsigned b,
 /// @return two tailed p-valuef
 ///
 double FisherExact::fisher_2_2(vector<unsigned> & cells){
-  return fisher_2_2(cells[0], cells[1], cells[2], cells[3]);
+  return fisher_2_2(cells.at(0), cells.at(1), cells.at(2), cells.at(3));
 }
 
 }

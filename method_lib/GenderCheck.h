@@ -131,7 +131,7 @@ class GenderCheck {
 		vector< map<string, int> > getEnzymeTotals(){return senzyme_tot;};
 		int getTotalSamplesUsedAtMarker(int i){
 			if(i < (int)mtotal.size()){
-				return mtotal[i];
+				return mtotal.at(i);
 			}
 			else{
 				return -1;
@@ -139,7 +139,7 @@ class GenderCheck {
 		};
 		int getNumErrorsAtMarker(int i){
 			if(i < (int)merrors.size()){
-				return merrors[i];
+				return merrors.at(i);
 			}
 			else{
 				return -1;
@@ -147,7 +147,7 @@ class GenderCheck {
 		};
 		float getPercentMalesHetAtMarker(int i){
 			if(i < (int)mtotal.size()){
-				return (((float)merrors[i]/(float)mtotal[i]) * 100.0f);
+				return (((float)merrors.at(i)/(float)mtotal.at(i)) * 100.0f);
 			}
 			else{
 				return -1;
@@ -155,7 +155,7 @@ class GenderCheck {
 		};
 		int getNumHetsAtSample(int i){
 			if(i < (int)shets.size()){
-				return shets[i];
+				return shets.at(i);
 			}
 			else{
 				return -1;
@@ -163,7 +163,7 @@ class GenderCheck {
 		};
 		int getTotalMarkersUsedAtSample(int i){
 			if(i < (int)stotal.size()){
-				return stotal[i];
+				return stotal.at(i);
 			}
 			else{
 				return -1;
@@ -171,7 +171,7 @@ class GenderCheck {
 		};
 		float getPercentHetAtSample(int i){
 			if(i < (int)stotal.size()){
-				return (((float)shets[i]/(float)stotal[i]) * 100.0f);
+				return (((float)shets.at(i)/(float)stotal.at(i)) * 100.0f);
 			}
 			else{
 				return -1;

@@ -79,13 +79,13 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   
   // count genotypes
   for(int curr_ind = 0; curr_ind < num_inds; ++curr_ind){
-    ++counts[data->get_sample(curr_ind)->getAffected()][data->get_sample(curr_ind)->get_genotype(curr_loc)];
+    ++counts.at(data->get_sample(curr_ind)->getAffected()).at(data->get_sample(curr_ind)->get_genotype(curr_loc));
   }
   
   // remove last column if missing data is present so it will not be used
   if(data->missing_data_present()){
-    genotype_totals.totals[0].pop_back();
-    genotype_totals.totals[1].pop_back();
+    genotype_totals.totals.at(0).pop_back();
+    genotype_totals.totals.at(1).pop_back();
   }
   
   genotype_totals.total_count=0;
@@ -93,36 +93,36 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   // calculate total and set the totals in floats
   for(unsigned int i=0; i<=1; ++i){
     for(unsigned int j=0; j<=2; ++j){
-      genotype_totals.totals[i][j]=counts[i][j];
-      genotype_totals.total_count += genotype_totals.totals[i][j];
+      genotype_totals.totals.at(i).at(j)=counts.at(i).at(j);
+      genotype_totals.total_count += genotype_totals.totals.at(i).at(j);
     }
   }
 
   // calculate allele totals
   // assume that have 3 genotypes per locus
-  allele_totals.totals[0][0] = 2 * genotype_totals.totals[0][0] + genotype_totals.totals[0][1];
-  allele_totals.totals[0][1] = 2 * genotype_totals.totals[0][2] + genotype_totals.totals[0][1];
+  allele_totals.totals.at(0).at(0) = 2 * genotype_totals.totals.at(0).at(0) + genotype_totals.totals.at(0).at(1);
+  allele_totals.totals.at(0).at(1) = 2 * genotype_totals.totals.at(0).at(2) + genotype_totals.totals.at(0).at(1);
   
-  allele_totals.totals[1][0] = 2 * genotype_totals.totals[1][0] + genotype_totals.totals[1][1];
-  allele_totals.totals[1][1] = 2 * genotype_totals.totals[1][2] + genotype_totals.totals[1][1];
+  allele_totals.totals.at(1).at(0) = 2 * genotype_totals.totals.at(1).at(0) + genotype_totals.totals.at(1).at(1);
+  allele_totals.totals.at(1).at(1) = 2 * genotype_totals.totals.at(1).at(2) + genotype_totals.totals.at(1).at(1);
   
   allele_totals.total_count = 2 * genotype_totals.total_count;
   
   int ref_allele_index = (*data->get_markers())[curr_loc]->getReferentIndex();
-  dominant_totals.totals[0][0] = genotype_totals.totals[0][2*ref_allele_index]  + genotype_totals.totals[0][1];
-  dominant_totals.totals[0][1] = genotype_totals.totals[0][2-2*ref_allele_index];
-  dominant_totals.totals[1][0] = genotype_totals.totals[1][2*ref_allele_index] + genotype_totals.totals[1][1];
-  dominant_totals.totals[1][1] = genotype_totals.totals[1][2-2*ref_allele_index];
+  dominant_totals.totals.at(0).at(0) = genotype_totals.totals.at(0).at(2*ref_allele_index)  + genotype_totals.totals.at(0).at(1);
+  dominant_totals.totals.at(0).at(1) = genotype_totals.totals.at(0).at(2-2*ref_allele_index);
+  dominant_totals.totals.at(1).at(0) = genotype_totals.totals.at(1).at(2*ref_allele_index) + genotype_totals.totals.at(1).at(1);
+  dominant_totals.totals.at(1).at(1) = genotype_totals.totals.at(1).at(2-2*ref_allele_index);
   
 //   //calculate dominant model totals
   dominant_totals.total_count = genotype_totals.total_count;
  
   // calculate recessive model totals
-  recessive_totals.totals[0][0] = genotype_totals.totals[0][2*ref_allele_index]; 
-  recessive_totals.totals[0][1] = genotype_totals.totals[0][2-2*ref_allele_index] + genotype_totals.totals[0][1];
+  recessive_totals.totals.at(0).at(0) = genotype_totals.totals.at(0).at(2*ref_allele_index);
+  recessive_totals.totals.at(0).at(1) = genotype_totals.totals.at(0).at(2-2*ref_allele_index) + genotype_totals.totals.at(0).at(1);
   
-  recessive_totals.totals[1][0] = genotype_totals.totals[1][2*ref_allele_index];
-  recessive_totals.totals[1][1] = genotype_totals.totals[1][2-2*ref_allele_index] + genotype_totals.totals[1][1];  
+  recessive_totals.totals.at(1).at(0) = genotype_totals.totals.at(1).at(2*ref_allele_index);
+  recessive_totals.totals.at(1).at(1) = genotype_totals.totals.at(1).at(2-2*ref_allele_index) + genotype_totals.totals.at(1).at(1);
   recessive_totals.total_count = genotype_totals.total_count;
 
 
@@ -138,13 +138,13 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   additive_totals = genotype_totals;
   
   if(ref_allele_index == 0){
-    additive_totals.totals[0][0] = genotype_totals.totals[0][2];
-    additive_totals.totals[0][1] = genotype_totals.totals[0][1];
-    additive_totals.totals[0][2] = genotype_totals.totals[0][0];
+    additive_totals.totals.at(0).at(0) = genotype_totals.totals.at(0).at(2);
+    additive_totals.totals.at(0).at(1) = genotype_totals.totals.at(0).at(1);
+    additive_totals.totals.at(0).at(2) = genotype_totals.totals.at(0).at(0);
     
-    additive_totals.totals[1][0] = genotype_totals.totals[1][2];
-    additive_totals.totals[1][1] = genotype_totals.totals[1][1];
-    additive_totals.totals[1][2] = genotype_totals.totals[1][0];
+    additive_totals.totals.at(1).at(0) = genotype_totals.totals.at(1).at(2);
+    additive_totals.totals.at(1).at(1) = genotype_totals.totals.at(1).at(1);
+    additive_totals.totals.at(1).at(2) = genotype_totals.totals.at(1).at(0);
     additive_totals.total_count = genotype_totals.total_count;    
   }
   
@@ -157,8 +157,8 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
 void ContingencyTable::output_grid(table_totals tot, string name){
   cout << name << endl;
   for(unsigned int i=0; i<tot.totals.size(); i++){
-    for(unsigned int j=0; j<tot.totals[i].size(); j++){
-      cout << tot.totals[i][j] << " ";
+    for(unsigned int j=0; j<tot.totals.at(i).size(); j++){
+      cout << tot.totals.at(i).at(j) << " ";
     }
     cout << endl;
   }
@@ -170,11 +170,11 @@ void ContingencyTable::output_grid(table_totals tot, string name){
 /// @param tot table_totals
 ///
 void ContingencyTable::correction(table_totals& tot){
-  unsigned int num_cols = tot.totals[0].size();
+  unsigned int num_cols = tot.totals.at(0).size();
   unsigned int j;
   for(unsigned int i=0; i<tot.totals.size(); ++i){
     for(j=0; j<num_cols; ++j){
-      tot.totals[i][j] += 0.5;
+      tot.totals.at(i).at(j) += 0.5;
       tot.total_count += 0.5;
     }
   }
@@ -217,14 +217,14 @@ void ContingencyTable::transpose_vector(vector<vector<float> >& orig,
   vector<vector<float> >& transposed){
   
   unsigned int num_rows = orig.size();
-  unsigned int num_cols = orig[0].size();
+  unsigned int num_cols = orig.at(0).size();
   unsigned int orig_col;
   
   transposed.assign(num_cols, vector<float>(0,0));
   
   for(unsigned int orig_row=0; orig_row<num_rows; ++orig_row){
     for(orig_col=0; orig_col<num_cols; ++orig_col){
-      transposed[orig_col].push_back(orig[orig_row][orig_col]);
+      transposed.at(orig_col).push_back(orig.at(orig_row).at(orig_col));
     }
   }
   

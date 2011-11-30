@@ -88,15 +88,15 @@ void Deletions::zeroErrors(){
 
 	int esize = error_map.size();
 	for(int s = 0; s < esize; s++){
-		if(error_map[s].size() > 0){
-			for(int m = 0; m < (int)error_map[s].size(); m++){
-				int aloc = error_map[s][m];
-				int mloc = (*markers)[aloc]->getLoc();
-				(*samples)[s]->addAone(mloc, true);
-				(*samples)[s]->addAtwo(mloc, false);
-				if((*markers)[aloc]->isMicroSat()){
-					(*samples)[s]->addAbone(mloc, -1);
-					(*samples)[s]->addAbtwo(mloc, -1);
+		if(error_map.at(s).size() > 0){
+			for(int m = 0; m < (int)error_map.at(s).size(); m++){
+				int aloc = error_map.at(s).at(m);
+				int mloc = (*markers).at(aloc)->getLoc();
+				(*samples).at(s)->addAone(mloc, true);
+				(*samples).at(s)->addAtwo(mloc, false);
+				if((*markers).at(aloc)->isMicroSat()){
+					(*samples).at(s)->addAbone(mloc, -1);
+					(*samples).at(s)->addAbtwo(mloc, -1);
 				}
 			}
 		}
@@ -109,7 +109,7 @@ vector<int> Deletions::thisfindValidMarkersIndexes(vector<Methods::Marker*>* mar
 	vector<int> good_markers;
 	int msize = marks->size();
 	for(int m = 0; m < msize; m++){
-		Methods::Marker* mark = (*marks)[m];
+		Methods::Marker* mark = (*marks).at(m);
 		if(mark->isEnabled()){
 			if(options->doChrom()){
 				if(!options->checkChrom(mark->getChrom())){
@@ -172,7 +172,7 @@ void Deletions::perform_evaluation(bool output){
 	}
 	myoutputd << "Chrom\trsID\tProbeID\tbploc\t";
 	if(data_set->get_locus(0)->getDetailHeaders().size() > 0){
-		myoutputd << (*markers)[0]->getDetailHeaders() << "\t";
+		myoutputd << (*markers).at(0)->getDetailHeaders() << "\t";
 	}
 	myoutputd << "Ind_Count" << endl;
 	opts::addHeader(filename2, "Ind_Count");
@@ -200,15 +200,15 @@ void Deletions::perform_evaluation(bool output){
 			int prev_chrom = -1;
 
 			for(int m = 0; m < msize; m++){
-					Methods::Marker* mark = (*markers)[m];
+					Methods::Marker* mark = (*markers).at(m);
 					if(mark->isEnabled()){
 						if(options->doChrom()){
 							if(!options->checkChrom(mark->getChrom())){
-								marker_flags[m] = true;
+								marker_flags.at(m) = true;
 								continue;
 							}
 							if(!options->checkBp(mark->getBPLOC())){
-								marker_flags[m] = true;
+								marker_flags.at(m) = true;
 								continue;
 							}
 						}
@@ -219,7 +219,7 @@ void Deletions::perform_evaluation(bool output){
 							}
 							else{
 								if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options->getBpSpace())){
-									marker_flags[m] = true;
+									marker_flags.at(m) = true;
 									continue;
 								}
 								prev_base = mark->getBPLOC();
@@ -236,72 +236,72 @@ void Deletions::perform_evaluation(bool output){
 						Marker* mark = data_set->get_locus(m);
 						if(!mark->isMicroSat()){
 							if(dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc) && dad->getAone(loc) == child->getAone(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc) && mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc) && mom->getAone(loc) != child->getAone(loc)){
-								cats[loc] =  'A';
+								cats.at(loc) =  'A';
 							}
 							else if(dad->getAone(loc) && dad->getAtwo(loc) && dad->getAmissing(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc) && mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc) && mom->getAone(loc) != child->getAone(loc)){
-								cats[loc] = 'A';
+								cats.at(loc) = 'A';
 							}
 							else if(mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc) && mom->getAone(loc) == child->getAone(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc) && dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc) && dad->getAone(loc) != child->getAone(loc)){
-								cats[loc] = 'B';
+								cats.at(loc) = 'B';
 							}
 							else if(mom->getAone(loc) && mom->getAtwo(loc) && mom->getAmissing(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc) && dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAone(loc) && dad->getAone(loc) != child->getAtwo(loc)){
-								cats[loc]='B';
+								cats.at(loc)='B';
 							}
 							else if(dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc) && mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc) && dad->getAone(loc) == mom->getAone(loc) && ((!child->getAone(loc) && child->getAtwo(loc)) || (child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc) && dad->getAone(loc) != child->getAone(loc)))){
-								cats[loc]= 'C';
+								cats.at(loc)= 'C';
 							}
 							else if(dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc) && mom->getAone(loc) && mom->getAtwo(loc) && mom->getAmissing(loc) && dad->getAone(loc) != child->getAone(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc)){
-								cats[loc] ='C';
+								cats.at(loc) ='C';
 							}
 							else if(mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc) && dad->getAone(loc) && dad->getAtwo(loc) && dad->getAmissing(loc) && mom->getAone(loc) != child->getAone(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc)){
-								cats[loc]= 'C';
+								cats.at(loc)= 'C';
 							}
 							else if(((child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc)) || (child->getAone(loc) && child->getAtwo(loc) && child->getAmissing(loc))) && ((dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc)) || (dad->getAone(loc) && dad->getAtwo(loc) && dad->getAmissing(loc))) && ((mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc)) || (mom->getAone(loc) && mom->getAtwo(loc) && mom->getAmissing(loc)))){
-								cats[loc]= 'D';
+								cats.at(loc)= 'D';
 							}
 							else if(((child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc)) || (child->getAone(loc) && child->getAtwo(loc) && child->getAmissing(loc))) && !dad->getAone(loc) && dad->getAtwo(loc) && ((mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc)) || (mom->getAone(loc) && mom->getAtwo(loc) && mom->getAmissing(loc)))){
-								cats[loc]= 'E';
+								cats.at(loc)= 'E';
 							}
 							else if(((child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc)) || (child->getAone(loc) && child->getAtwo(loc) && child->getAmissing(loc))) && !mom->getAone(loc) && mom->getAtwo(loc) && ((dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc)) || (dad->getAone(loc) && dad->getAtwo(loc) && dad->getAmissing(loc)))){
-								cats[loc]= 'F';
+								cats.at(loc)= 'F';
 							}
 							else if((!child->getAone(loc) && child->getAtwo(loc)) || (!mom->getAone(loc) && mom->getAtwo(loc) && !dad->getAone(loc) && dad->getAtwo(loc))){
-								cats[loc]= 'G';
+								cats.at(loc)= 'G';
 							}
 						}
 						else{
 							if(dad->getAbone(loc) == dad->getAbtwo(loc) && dad->getAbone(loc) == child->getAbone(loc) && child->getAbone(loc) == child->getAbtwo(loc) && mom->getAbone(loc) == mom->getAbtwo(loc) && mom->getAbone(loc) != child->getAbone(loc)){
-								cats[loc]= 'A';
+								cats.at(loc)= 'A';
 							}
 							else if(dad->getAbone(loc) == -1 && dad->getAbtwo(loc) == -1 && child->getAbone(loc) == child->getAbtwo(loc) && mom->getAbone(loc) == mom->getAbtwo(loc) && mom->getAbone(loc) != child->getAbone(loc)){
-								cats[loc]= 'A';
+								cats.at(loc)= 'A';
 							}
 							else if(mom->getAbone(loc) == mom->getAbtwo(loc) && mom->getAbone(loc) == child->getAbone(loc) && child->getAbone(loc) == child->getAbtwo(loc) && dad->getAbone(loc) == dad->getAbtwo(loc) && dad->getAbone(loc) != child->getAbone(loc)){
-								cats[loc]= 'B';
+								cats.at(loc)= 'B';
 							}
 							else if(mom->getAbone(loc) == -1 && mom->getAbtwo(loc) == -1 && child->getAbone(loc) == child->getAbtwo(loc) && dad->getAbone(loc) == dad->getAbtwo(loc) && dad->getAbone(loc) != child->getAbtwo(loc)){
-								cats[loc]= 'B';
+								cats.at(loc)= 'B';
 							}
 							else if(dad->getAbone(loc) == dad->getAbtwo(loc) && mom->getAbone(loc) == mom->getAbtwo(loc) && dad->getAbone(loc) == mom->getAbone(loc) && ((child->getAbone(loc) != child->getAbtwo(loc)) || (child->getAbone(loc) == child->getAbtwo(loc) && dad->getAbone(loc) != child->getAbone(loc)))){
-								cats[loc]= 'C';
+								cats.at(loc)= 'C';
 							}
 							else if(dad->getAbone(loc) == dad->getAbtwo(loc) && mom->getAbone(loc) == -1 && mom->getAbtwo(loc) == -1 && dad->getAbone(loc) != child->getAbone(loc) && child->getAbone(loc) == child->getAbtwo(loc)){
-								cats[loc]= 'C';
+								cats.at(loc)= 'C';
 							}
 							else if(mom->getAbone(loc) == mom->getAbtwo(loc) && dad->getAbone(loc) == -1 && dad->getAbtwo(loc) == -1 && mom->getAbone(loc) != child->getAbone(loc) && child->getAbone(loc) == child->getAbtwo(loc)){
-								cats[loc]= 'C';
+								cats.at(loc)= 'C';
 							}
 							else if(((child->getAbone(loc) == child->getAbtwo(loc)) || (child->getAbone(loc) == -1 && child->getAbtwo(loc) == -1)) && ((dad->getAbone(loc) == dad->getAbtwo(loc)) || (dad->getAbone(loc) == -1 && dad->getAbtwo(loc) == -1)) && ((mom->getAbone(loc) == mom->getAbtwo(loc)) || (mom->getAbone(loc) == -1 && mom->getAbtwo(loc) == -1))){
-								cats[loc]= 'D';
+								cats.at(loc)= 'D';
 							}
 							else if(((child->getAbone(loc) == child->getAbtwo(loc)) || (child->getAbone(loc) == -1 && child->getAbtwo(loc) == -1)) && dad->getAbone(loc) != dad->getAbtwo(loc) && ((mom->getAbone(loc) == mom->getAbtwo(loc)) || (mom->getAbone(loc) == -1 && mom->getAbtwo(loc) == -1))){
-								cats[loc]= 'E';
+								cats.at(loc)= 'E';
 							}
 							else if(((child->getAbone(loc) == child->getAbtwo(loc)) || (child->getAbone(loc) == -1 && child->getAbtwo(loc) == -1)) && mom->getAbone(loc) != mom->getAbtwo(loc) && ((dad->getAbone(loc) == dad->getAbtwo(loc)) || (dad->getAbone(loc) == -1 && dad->getAbtwo(loc) == -1))){
-								cats[loc]= 'F';
+								cats.at(loc)= 'F';
 							}
 							else if((child->getAbone(loc) != child->getAbtwo(loc)) || (mom->getAbone(loc) != mom->getAbtwo(loc) && dad->getAbone(loc) != dad->getAbtwo(loc))){
-								cats[loc]= 'G';
+								cats.at(loc)= 'G';
 							}
 						}
 					}
@@ -324,7 +324,7 @@ void Deletions::perform_evaluation(bool output){
 
 			for(int m = 0; m < msize; m++){
 				Marker* mark = data_set->get_locus(m);
-				if(mark->isEnabled() && !marker_flags[m]){
+				if(mark->isEnabled() && !marker_flags.at(m)){
 					int loc = mark->getLoc();
 					if(currchrom == -1){
 						currchrom = mark->getChrom();
@@ -335,8 +335,8 @@ void Deletions::perform_evaluation(bool output){
 						if(matspan >= options->getDeletionSpan()){
 							for(int l = markstartmat_loc; l <= markendmat_loc; l++){
 								Marker* temp = data_set->get_locus(l);
-								if(temp->isEnabled() && !marker_flags[l]){
-									marker_counts[l]++;
+								if(temp->isEnabled() && !marker_flags.at(l)){
+									marker_counts.at(l)++;
 								}
 							}
 							myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartmat->getProbeID() << "\t" << markendmat->getProbeID() << "\t" << markstartmat->getBPLOC() << "\t" << markendmat->getBPLOC() << "\t" << (markendmat->getBPLOC() - markstartmat->getBPLOC()) << "\t" << matspan << "\tM" << endl;
@@ -344,8 +344,8 @@ void Deletions::perform_evaluation(bool output){
 						if(patspan >= options->getDeletionSpan()){
 							for(int l = markstartpat_loc; l <= markendpat_loc; l++){
 								Marker* temp = data_set->get_locus(l);
-								if(temp->isEnabled() && !marker_flags[l]){
-									marker_counts[l]++;
+								if(temp->isEnabled() && !marker_flags.at(l)){
+									marker_counts.at(l)++;
 								}
 							}
 							myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartpat->getProbeID() << "\t" << markendpat->getProbeID() << "\t" << markstartpat->getBPLOC() << "\t" << markendpat->getBPLOC() << "\t" << (markendpat->getBPLOC() - markstartpat->getBPLOC()) << "\t" << patspan << "\tP" << endl;
@@ -363,7 +363,7 @@ void Deletions::perform_evaluation(bool output){
 						currchrom = mark->getChrom();
 					}
 
-					if(cats[loc] == 'A' || cats[loc] == 'D' || (cats[loc] == 'E' && markstartpat == NULL)){
+					if(cats.at(loc) == 'A' || cats.at(loc) == 'D' || (cats.at(loc) == 'E' && markstartpat == NULL)){
 						if(markstartmat == NULL){
 							markstartmat = mark;
 							markstartmat_loc = m;
@@ -375,8 +375,8 @@ void Deletions::perform_evaluation(bool output){
 						if(patspan >= options->getDeletionSpan()){
 							for(int l = markstartpat_loc; l <= markendpat_loc; l++){
 								Marker* temp = data_set->get_locus(l);
-								if(temp->isEnabled() && !marker_flags[l]){
-									marker_counts[l]++;
+								if(temp->isEnabled() && !marker_flags.at(l)){
+									marker_counts.at(l)++;
 								}
 							}
 							myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartpat->getProbeID() << "\t" << markendpat->getProbeID() << "\t" << markstartpat->getBPLOC() << "\t" << markendpat->getBPLOC() << "\t" << (markendpat->getBPLOC() - markstartpat->getBPLOC()) << "\t" << patspan << "\tP" << endl;
@@ -387,7 +387,7 @@ void Deletions::perform_evaluation(bool output){
 						markstartpat_loc = -1;
 						markendpat_loc = -1;
 					}
-					else if(cats[loc] == 'B' || cats[loc] == 'D' || (cats[loc] == 'F' && markstartmat == NULL)){
+					else if(cats.at(loc) == 'B' || cats.at(loc) == 'D' || (cats.at(loc) == 'F' && markstartmat == NULL)){
 						if(markstartpat == NULL){
 							markstartpat = mark;
 							markstartpat_loc = m;
@@ -399,8 +399,8 @@ void Deletions::perform_evaluation(bool output){
 						if(matspan >= options->getDeletionSpan()){
 							for(int l = markstartmat_loc; l <= markendmat_loc; l++){
 								Marker* temp = data_set->get_locus(l);
-								if(temp->isEnabled() && !marker_flags[l]){
-									marker_counts[l]++;
+								if(temp->isEnabled() && !marker_flags.at(l)){
+									marker_counts.at(l)++;
 								}
 							}
 							myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartmat->getProbeID() << "\t" << markendmat->getProbeID() << "\t" << markstartmat->getBPLOC() << "\t" << markendmat->getBPLOC() << "\t" << (markendmat->getBPLOC() - markstartmat->getBPLOC()) << "\t" << matspan << "\tM" << endl;
@@ -415,8 +415,8 @@ void Deletions::perform_evaluation(bool output){
 						if(matspan >= options->getDeletionSpan()){
 							for(int l = markstartmat_loc; l <= markendmat_loc; l++){
 								Marker* temp = data_set->get_locus(l);
-								if(temp->isEnabled() && !marker_flags[l]){
-									marker_counts[l]++;
+								if(temp->isEnabled() && !marker_flags.at(l)){
+									marker_counts.at(l)++;
 								}
 							}
 							myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartmat->getProbeID() << "\t" << markendmat->getProbeID() << "\t" << markstartmat->getBPLOC() << "\t" << markendmat->getBPLOC() << "\t" << (markendmat->getBPLOC() - markstartmat->getBPLOC()) << "\t" << matspan << "\tM" << endl;
@@ -424,8 +424,8 @@ void Deletions::perform_evaluation(bool output){
 						if(patspan >= options->getDeletionSpan()){
 							for(int l = markstartpat_loc; l <= markendpat_loc; l++){
 								Marker* temp = data_set->get_locus(l);
-								if(temp->isEnabled() && !marker_flags[l]){
-									marker_counts[l]++;
+								if(temp->isEnabled() && !marker_flags.at(l)){
+									marker_counts.at(l)++;
 								}
 							}
 							myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartpat->getProbeID() << "\t" << markendpat->getProbeID() << "\t" << markstartpat->getBPLOC() << "\t" << markendpat->getBPLOC() << "\t" << (markendpat->getBPLOC() - markstartpat->getBPLOC()) << "\t" << patspan << "\tP" << endl;
@@ -448,8 +448,8 @@ void Deletions::perform_evaluation(bool output){
 			if(patspan >= options->getDeletionSpan()){
 				for(int l = markstartpat_loc; l <= markendpat_loc; l++){
 					Marker* temp = data_set->get_locus(l);
-					if(temp->isEnabled() && !marker_flags[l]){
-						marker_counts[l]++;
+					if(temp->isEnabled() && !marker_flags.at(l)){
+						marker_counts.at(l)++;
 					}
 				}
 				myoutput << samp->getFamID() << "\t" << samp->getInd() << "\t" << currchrom << "\t" << markstartpat->getProbeID() << "\t" << markendpat->getProbeID() << "\t" << markstartpat->getBPLOC() << "\t" << markendpat->getBPLOC() << "\t" << (markendpat->getBPLOC() - markstartpat->getBPLOC()) << "\t" << patspan << "\tP" << endl;
@@ -457,7 +457,7 @@ void Deletions::perform_evaluation(bool output){
 			if(matspan >= options->getDeletionSpan()){
 				for(int l = markstartmat_loc; l <= markendmat_loc; l++){
 					Marker* temp = data_set->get_locus(l);
-					if(temp->isEnabled() && !marker_flags[l]){
+					if(temp->isEnabled() && !marker_flags.at(l)){
 						marker_counts[l]++;
 					}
 				}
@@ -468,8 +468,8 @@ void Deletions::perform_evaluation(bool output){
 	for(int i = 0; i < (int)marker_counts.size(); i++){
 		Marker* mark = data_set->get_locus(i);
 		if(mark != NULL){
-		if(mark->isEnabled() && !marker_flags[i]){
-			myoutputd << mark->toString() << "\t" << marker_counts[i] << endl;
+		if(mark->isEnabled() && !marker_flags.at(i)){
+			myoutputd << mark->toString() << "\t" << marker_counts.at(i) << endl;
 		}
 		}
 	}

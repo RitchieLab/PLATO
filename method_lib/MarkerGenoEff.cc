@@ -410,7 +410,7 @@ void MarkerGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 					if(!(*markers)[i]->isMicroSat()){
 						if((*s_iter)->getAone(loc) && !(*s_iter)->getAtwo(loc)){
 							zeros[i]++;
-							if((*s_iter)->getPheno() == 2)
+							if((*s_iter)->getPheno() == 2){
 								casezeros[i]++;
 							}
 							else if((*s_iter)->getPheno() == 1){
@@ -442,5 +442,4 @@ void MarkerGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 	}
 
 }
-
 }

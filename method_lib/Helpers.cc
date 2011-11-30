@@ -220,11 +220,11 @@ void Helpers::printFamsToDigit(vector<Methods::Family*>* families, string name, 
 	}
 	out << "FamID_Digit\tSampID_Digit\tDadID_Digit\tMomID_Digit\tFamID_Orig\tSampID_Orig\tDadID_Orig\tMomID_Orig\n";
 	for(unsigned int i = 0; i < families->size(); i++){
-		Methods::Family* fam = (*families)[i];
+		Methods::Family* fam = (*families).at(i);
 		if(fam->isEnabled()){
 			vector<Methods::Sample*>* samps = fam->getSamples();
 			for(unsigned int s = 0; s < samps->size(); s++){
-				Methods::Sample* samp = (*samps)[s];
+				Methods::Sample* samp = (*samps).at(s);
 				if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 					out << fam->getFamID_digit() << "\t" << samp->getInd_digit() << "\t" << samp->getDadID_digit() << "\t" << samp->getMomID_digit() << "\t" << samp->getFamIDOrig() << "\t" << samp->getIndOrig() << "\t" << samp->getDadIDOrig() << "\t" << samp->getMomIDOrig() << endl;
 				}
@@ -237,7 +237,7 @@ void Helpers::printFamsToDigit(vector<Methods::Family*>* families, string name, 
 
 void Helpers::remapFamsToDigit(vector<Methods::Family*>* families){
 	for(unsigned int i = 0; i < families->size(); i++){
-		Methods::Family* fam = (*families)[i];
+		Methods::Family* fam = (*families).at(i);
 		fam->setFamDigit(i + 1);
 		bool badsamples = true;
 		//vector<Methods::Sample*>* samps = fam->getSamples();
@@ -246,16 +246,16 @@ void Helpers::remapFamsToDigit(vector<Methods::Family*>* families){
 			vector<Methods::Sample*>* founders = fam->getFounders();
 			vector<Methods::Sample*>* nonfounders = fam->getNonFounders();
 			for(unsigned int j = 0; j < founders->size(); j++){
-				Methods::Sample* samp = (*founders)[j];
+				Methods::Sample* samp = (*founders).at(j);
 				samp->setIndDigit(j + 1);
 			}
 			int nonfstart = founders->size() + 1;
 			for(unsigned int j = 0; j < nonfounders->size(); j++){
-				Methods::Sample* samp = (*nonfounders)[j];
+				Methods::Sample* samp = (*nonfounders).at(j);
 				samp->setIndDigit(j + nonfstart);
 			}
 			for(unsigned int j = 0; j < nonfounders->size(); j++){
-				Methods::Sample* samp = (*nonfounders)[j];
+				Methods::Sample* samp = (*nonfounders).at(j);
 				samp->setParentDigits();
 			}
 		}
@@ -296,7 +296,7 @@ vector<Methods::Marker*> Helpers::findValidMarkers(vector<Methods::Marker*>* mar
 	vector<Methods::Marker*> good_markers;
 	int msize = marks->size();
 	for(int m = 0; m < msize; m++){
-		Methods::Marker* mark = (*marks)[m];
+		Methods::Marker* mark = (*marks).at(m);
 		if(mark->isEnabled()){
 			if(options.getAutosomeOnly() && ((mark->getChrom() >= opts::_CHRX_) || (mark->getChrom() < 1))){
 				continue;
@@ -336,7 +336,7 @@ vector<Methods::Marker*> Helpers::findValidMarkers(vector<Methods::Marker*>* mar
 	vector<Methods::Marker*> good_markers;
 	int msize = marks->size();
 	for(int m = 0; m < msize; m++){
-		Methods::Marker* mark = (*marks)[m];
+		Methods::Marker* mark = (*marks).at(m);
 		if(mark->isEnabled()){
 			if(options->getAutosomeOnly() && ((mark->getChrom() >= opts::_CHRX_) || (mark->getChrom() < 1))){
 				continue;
@@ -376,7 +376,7 @@ vector<int> Helpers::findValidMarkersIndexes(vector<Methods::Marker*>* marks, St
 	vector<int> good_markers;
 	int msize = marks->size();
 	for(int m = 0; m < msize; m++){
-		Methods::Marker* mark = (*marks)[m];
+		Methods::Marker* mark = (*marks).at(m);
 		if(mark->isEnabled()){
 			if(options.getAutosomeOnly() && ((mark->getChrom() >= opts::_CHRX_) || (mark->getChrom() < 1))){
 				continue;
@@ -416,7 +416,7 @@ vector<int> Helpers::findValidMarkersIndexes(vector<Methods::Marker*>* marks, St
 	vector<int> good_markers;
 	int msize = marks->size();
 	for(int m = 0; m < msize; m++){
-		Methods::Marker* mark = (*marks)[m];
+		Methods::Marker* mark = (*marks).at(m);
 		if(mark->isEnabled()){
 			if(options->getAutosomeOnly() && ((mark->getChrom() >= opts::_CHRX_) || (mark->getChrom() < 1))){
 				continue;
@@ -473,32 +473,32 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 	int ssize = ds->num_inds();
 	int enabled_size = 0;
 	for(int i =0; i < (int)samples->size(); i++){
-		if((*samples)[i]->isEnabled()){
+		if((*samples).at(i)->isEnabled()){
 			enabled_size++;
 		}
 		else{
-			samples_used[i] = true;
+			samples_used.at(i) = true;
 			numused++;
 		}
 	}
 
 	int enabled_cases = 0;
 	for(int i = 0; i < (int)cases.size(); i++){
-		if(cases[i]->isEnabled()){
+		if(cases.at(i)->isEnabled()){
 			enabled_cases++;
 		}
 		else{
-			case_used[i] = true;
+			case_used.at(i) = true;
 		}
 	}
 
 	int enabled_controls = 0;
 	for(int i = 0; i < (int)controls.size(); i++){
-		if(controls[i]->isEnabled()){
+		if(controls.at(i)->isEnabled()){
 			enabled_controls++;
 		}
 		else{
-			controls_used[i] = true;
+			controls_used.at(i) = true;
 		}
 	}
 
@@ -512,7 +512,7 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 	int num_controls = 0;
 	if(percents.size() > 0){
 		for(int i = 0; i < (int)percents.size(); i++){
-			samps_per_set.push_back((int)(enabled_size * (percents[i] / 100.0f)));
+			samps_per_set.push_back((int)(enabled_size * (percents.at(i) / 100.0f)));
 		}
 	}
 	else{
@@ -549,28 +549,28 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 		vector<bool> set_used(ssize, false);
 		if(num_cases > 0){
 			int used_cases = 0;
-			while(used_cases < num_cases && (int) sample_lists[i].size() < numsamps){
+			while(used_cases < num_cases && (int) sample_lists.at(i).size() < numsamps){
 				random = int (rand() % ssize);
-				if(!samples_used[random] && !set_used[random] && (*samples)[random]->getAffected()){
-					sample_lists[i].push_back((*samples)[random]);
-					set_used[random] = true;
+				if(!samples_used.at(random) && !set_used.at(random) && (*samples).at(random)->getAffected()){
+					sample_lists.at(i).push_back((*samples).at(random));
+					set_used.at(random) = true;
 					used_cases++;
 					if(!repeats){
-						samples_used[random] = true;
+						samples_used.at(random) = true;
 					}
 				}
 			}
 		}
 		if(num_controls > 0){
 			int used_controls = 0;
-			while(used_controls < num_controls && (int) sample_lists[i].size() < numsamps){
+			while(used_controls < num_controls && (int) sample_lists.at(i).size() < numsamps){
 				random = int (rand() % ssize);
-				if(!samples_used[random] && !set_used[random] && !(*samples)[random]->getAffected()){
-					sample_lists[i].push_back((*samples)[random]);
-					set_used[random] = true;
+				if(!samples_used.at(random) && !set_used.at(random) && !(*samples).at(random)->getAffected()){
+					sample_lists.at(i).push_back((*samples).at(random));
+					set_used.at(random) = true;
 					used_controls++;
 					if(!repeats){
-						samples_used[random] = true;
+						samples_used.at(random) = true;
 					}
 				}
 			}
@@ -578,19 +578,19 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 		if(num_cases > 0 && num_controls > 0){
 			continue;
 		}
-		while((int) sample_lists[i].size() < numsamps && numused < ssize){
+		while((int) sample_lists.at(i).size() < numsamps && numused < ssize){
 			random = int(rand() % ssize);
-			if(!samples_used[random] && !set_used[random]){
-				if(num_cases > 0 && (*samples)[random]->getAffected()){
+			if(!samples_used.at(random) && !set_used.at(random)){
+				if(num_cases > 0 && (*samples).at(random)->getAffected()){
 					continue;
 				}
-				if(num_controls > 0 && !(*samples)[random]->getAffected()){
+				if(num_controls > 0 && !(*samples).at(random)->getAffected()){
 					continue;
 				}
-				sample_lists[i].push_back((*samples)[random]);
-				set_used[random] = true;
+				sample_lists.at(i).push_back((*samples).at(random));
+				set_used.at(random) = true;
 				if(!repeats){
-			    	samples_used[random] = true;
+			    	samples_used.at(random) = true;
 			    }
 			}
 		}
@@ -606,7 +606,7 @@ vector<Methods::Marker*> Helpers::findRandomMarkers(vector<Methods::Marker*> goo
 
 	while((int) marks.size() < num && used_markers->size() < good_markers.size()){
 		random = int(rand() % good_markers.size());
-		Methods::Marker* mark = (good_markers)[random];
+		Methods::Marker* mark = (good_markers).at(random);
 		vector<Methods::Marker*>::iterator found = find(used_markers->begin(), used_markers->end(), mark);
 		if(found == used_markers->end()){
 			used_markers->push_back(mark);
@@ -667,12 +667,12 @@ void Helpers::readCovariateFile(string file, DataSet* ds, StepOptions options, I
 				bool use = true;
 				if(filters != NULL){
 					for(int f = 0; f < filters->num_covariate_filters(); f++){
-						use = filters->run_covariate_filter(f, elems[i]);
+						use = filters->run_covariate_filter(f, elems.at(i));
 					}
 				}
 				use_map.push_back(use);
 				if(use){
-					ds->add_covariate(elems[i]);
+					ds->add_covariate(elems.at(i));
 				}
 				opts::_COVS_FOUND_++;
 			}
@@ -680,8 +680,8 @@ void Helpers::readCovariateFile(string file, DataSet* ds, StepOptions options, I
 			continue;
 		}
 
-		string famid = elems[0];
-		string indid = elems[1];
+		string famid = elems.at(0);
+		string indid = elems.at(1);
 
 		Methods::Sample* samp = smap[famid + "#" + indid];
 		if(!samp){
@@ -692,10 +692,10 @@ void Helpers::readCovariateFile(string file, DataSet* ds, StepOptions options, I
 			if(use_map[i - 2]){
 				double value = -1;
 			   	try{
-					if(elems[i] == options.getCovarMissing()){
+					if(elems.at(i) == options.getCovarMissing()){
 						try{
-							for(unsigned int c = 0; c < elems[i].size(); c++){
-								if(!isdigit(elems[i][c]) && elems[i][c] != '.' && elems[i][c] != '-'){
+							for(unsigned int c = 0; c < elems.at(i).size(); c++){
+								if(!isdigit(elems.at(i).at(c)) && elems.at(i).at(c) != '.' && elems.at(i).at(c) != '-'){
 									throw "oops!";
 								}
 							}
@@ -706,10 +706,10 @@ void Helpers::readCovariateFile(string file, DataSet* ds, StepOptions options, I
 						}
 					}
 					else{
-						value = (double) atof(elems[i].c_str());
+						value = (double) atof(elems.at(i).c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + elems[i] + " to number on line " + getString<int>(count) + " in file: " + file + "\n");
+					throw MethodException("Cannot convert " + elems.at(i) + " to number on line " + getString<int>(count) + " in file: " + file + "\n");
 				}
 				samp->addCovariate(value);
 
@@ -774,7 +774,7 @@ void Helpers::readTraitFile(string file, DataSet* ds, StepOptions options, Input
 
 		//2-22-2011 added this to check for header before reading in trait file...
 		//If no header line present, process first row as a header, and still process as a normal row
-		string firstToken = elems[0];	//if this is the header line, this should be equal to some form of 'FamID'
+		string firstToken = elems.at(0);	//if this is the header line, this should be equal to some form of 'FamID'
 		if(count == 1)
 		{
 			if(!(boost::iequals(firstToken, "famid") || boost::iequals(firstToken, "fid")))
@@ -790,21 +790,21 @@ void Helpers::readTraitFile(string file, DataSet* ds, StepOptions options, Input
 				{
 					for(int f = 0; f < filters->num_trait_filters(); f++)
 					{
-						use = filters->run_trait_filter(f, elems[i]);
+						use = filters->run_trait_filter(f, elems.at(i));
 					}
 				}
 				use_map.push_back(use);
 				if(use)
 				{
-					ds->add_trait(elems[i]);
+					ds->add_trait(elems.at(i));
 				}
 				opts::_TRAITS_FOUND_++;
 			}
 			continue;
 		}
 
-		string famid = elems[0];
-		string indid = elems[1];
+		string famid = elems.at(0);
+		string indid = elems.at(1);
 
 		Methods::Sample* samp = smap[famid + "#" + indid];
 		if(!samp){
@@ -818,13 +818,13 @@ void Helpers::readTraitFile(string file, DataSet* ds, StepOptions options, Input
 				double value = -1;
 			   	try
 			   	{
-					if(elems[i] == options.getTraitMissing())
+					if(elems.at(i) == options.getTraitMissing())
 					{
 						try
 						{
-							for(unsigned int c = 0; c < elems[i].size(); c++)
+							for(unsigned int c = 0; c < elems.at(i).size(); c++)
 							{
-								if(!isdigit(elems[i][c]) && elems[i][c] != '.' && elems[i][c] != '-')
+								if(!isdigit(elems.at(i).at(c)) && elems.at(i).at(c) != '.' && elems.at(i).at(c) != '-')
 								{
 									throw "oops!";
 								}
@@ -838,12 +838,12 @@ void Helpers::readTraitFile(string file, DataSet* ds, StepOptions options, Input
 					}
 					else
 					{
-						value = (double) atof(elems[i].c_str());
+						value = (double) atof(elems.at(i).c_str());
 					}
 				}
 			   	catch(...)
 			   	{
-					throw MethodException("Cannot convert " + elems[i] + " to number on line " + getString<int>(count) + " in file: " + file + "\n");
+					throw MethodException("Cannot convert " + elems.at(i) + " to number on line " + getString<int>(count) + " in file: " + file + "\n");
 				}
 				samp->addTrait(value);
 
@@ -908,7 +908,7 @@ void Helpers::readIDFile(string file, DataSet* ds)
 		}
 		if(count == 1)
 		{
-			string firstToken = elems[0];
+			string firstToken = elems.at(0);
 			boost::to_lower(firstToken);
 			if(boost::contains(firstToken, "famid"))
 			{
@@ -920,8 +920,8 @@ void Helpers::readIDFile(string file, DataSet* ds)
 		//build up the strings to place in the map...
 		string oldIDString;
 		string newIDString;
-		oldIDString = elems[0] + " " + elems[1];
-		newIDString = elems[2] + " " + elems[3];
+		oldIDString = elems.at(0) + " " + elems.at(1);
+		newIDString = elems.at(2) + " " + elems.at(3);
 		sampleMap[oldIDString] = newIDString;
 	}
 
@@ -1004,7 +1004,7 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 	map<string, Methods::Sample*>::iterator siter;
 
 	for(unsigned int i = 0; i < samples->size(); i++){
-		Methods::Sample* samp = (*samples)[i];
+		Methods::Sample* samp = (*samples).at(i);
 		smap[samp->getFamID() + "#" + samp->getInd()]= samp;
 	}
 
@@ -1043,13 +1043,13 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 			if(covheaders == NULL){
 				opts::cov_loc.resize(numcovs);
 				for(int c = 0; c < numcovs; c++){
-					opts::cov_loc[c] = "COV"+getString<int>(c+1);
+					opts::cov_loc.at(c) = "COV"+getString<int>(c+1);
 				}
 			}
 			else{
 				covheaders->resize(numcovs);
 				for(int c = 0; c < numcovs; c++){
-					(*covheaders)[c] = "COV"+getString<int>(c+1);
+					(*covheaders).at(c) = "COV"+getString<int>(c+1);
 				}
 			}
 		}
@@ -1058,8 +1058,8 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 			in.close();
 			throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
 		}
-		string fam = elems[0];
-		string ind = elems[1];
+		string fam = elems.at(0);
+		string ind = elems.at(1);
 
 		siter = smap.find(fam +"#"+ind);
 		if(siter != smap.end()){
@@ -1068,7 +1068,7 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 			samp->resizeCovariates(numcovs);
 			for(unsigned int c = 2; c < elems.size(); c++){
 				try{
-					samp->setCovariate(atof(elems[c].c_str()), (c - 2));
+					samp->setCovariate(atof(elems.at(c).c_str()), (c - 2));
 				}catch(...){
 					opts::printLog("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
 					throw MethodException("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
@@ -1078,10 +1078,10 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 		else if(fam == "FamID" && ind == "IndID"){
 			for(unsigned int c = 2; c < elems.size(); c++){
 				if(covheaders == NULL){
-					opts::cov_loc[c-2] = elems[c];
+					opts::cov_loc.at(c-2) = elems.at(c);
 				}
 				else{
-					(*covheaders)[c-2] = elems[c];
+					(*covheaders).at(c-2) = elems.at(c);
 				}
 			}
 		}
@@ -1133,9 +1133,9 @@ void Helpers::readZeroGenoFile(string file){
 		if(tokens.size() != 3){
 			throw MethodException("Zero genotype file column size != 3: " + line + " Exitting!!\n");
 		}
-		fam = tokens[0];
-		ind = tokens[1];
-		snp = tokens[2];
+		fam = tokens.at(0);
+		ind = tokens.at(1);
+		snp = tokens.at(2);
 
 		opts::zerogenoinfo[(fam + "#" + ind)].push_back(snp);
 	}
@@ -1156,7 +1156,7 @@ void Helpers::zeroSingleGenos(vector<Methods::Marker*>* markers, vector<Methods:
 	//create sample map
 	map<string, Methods::Sample*> smap;
 	for(unsigned int i = 0; i < samples->size(); i++){
-		Methods::Sample* samp = (*samples)[i];
+		Methods::Sample* samp = (*samples).at(i);
 		smap[samp->getFamID() + "#" + samp->getInd()] = samp;
 	}
 
@@ -1175,7 +1175,7 @@ void Helpers::zeroSingleGenos(vector<Methods::Marker*>* markers, vector<Methods:
 			Methods::Sample* mysamp = sampiter->second;
 			bool done = false;
 			for(unsigned int m = 0; m < value.size(); m++){
-				string snp = value[m];
+				string snp = value.at(m);
 				markiter = find_if(markers->begin(), markers->end(), FindMarker(snp));
 				if(markiter != markers->end()){
 					Methods::Marker* mark = *markiter;
@@ -1214,14 +1214,14 @@ void Helpers::assignLinks(vector<Methods::Family*>* families){
 	int fsize = families->size();
 
 	for(int f = 0; f < fsize; f++){
-		Methods::Family* fam = (*families)[f];
+		Methods::Family* fam = (*families).at(f);
 		vector<Methods::Sample*>* samps = fam->getSamples();
 		bool good = false;
 		bool excluded = false;
 		int ssize = samps->size();
 
 		for(int s = 0; s < ssize; s++){
-			Methods::Sample* samp = (*samps)[s];
+			Methods::Sample* samp = (*samps).at(s);
 			if(samp->isEnabled()){
 				good = true;
 			}
@@ -1288,62 +1288,62 @@ void Helpers::reorderAlleles(vector<Methods::Sample*>* samples, vector<Methods::
 	int ssize = samples->size();
 
 	for(int m = 0; m < msize; m++){
-		int mloc = (*markers)[m]->getLoc();
-		if((*markers)[m]->getNumAlleles() == 0){
-			(*markers)[m]->addAllele("0");
-			(*markers)[m]->addAllele("0");
+		int mloc = (*markers).at(m)->getLoc();
+		if((*markers).at(m)->getNumAlleles() == 0){
+			(*markers).at(m)->addAllele("0");
+			(*markers).at(m)->addAllele("0");
 		}
-		if((*markers)[m]->getNumAlleles() == 1){
-			(*markers)[m]->addAllele("0");
+		if((*markers).at(m)->getNumAlleles() == 1){
+			(*markers).at(m)->addAllele("0");
 		}
-		if((*markers)[m]->getNumAlleles() <= 2){
+		if((*markers).at(m)->getNumAlleles() <= 2){
 			int a1 = 0;
 			int a2 = 0;
 			for(int s = 0; s < ssize; s++){
-				if((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc) && (*samples)[s]->getAmissing(mloc)){
+				if((*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc) && (*samples).at(s)->getAmissing(mloc)){
 					continue;
 				}
-				if((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc)){
+				if((*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc)){
 					a2+=2;
 				}
-				else if(!(*samples)[s]->getAone(mloc) && !(*samples)[s]->getAtwo(mloc)){
+				else if(!(*samples).at(s)->getAone(mloc) && !(*samples).at(s)->getAtwo(mloc)){
 					a1+=2;
 				}
-				else if(!(*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc)){
+				else if(!(*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc)){
 					a1++;
 					a2++;
 				}
 			}
-			if(a2 < a1 && (*markers)[m]->getAllele2() != "0"){
-				string temp = (*markers)[m]->getAllele1();
-				(*markers)[m]->resetAllele1((*markers)[m]->getAllele2());
-				(*markers)[m]->resetAllele2(temp);
+			if(a2 < a1 && (*markers).at(m)->getAllele2() != "0"){
+				string temp = (*markers).at(m)->getAllele1();
+				(*markers).at(m)->resetAllele1((*markers).at(m)->getAllele2());
+				(*markers).at(m)->resetAllele2(temp);
 				for(int s = 0; s < ssize; s++){
-					if((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc) && !(*samples)[s]->getAmissing(mloc)){
-						(*samples)[s]->addAone(mloc, false);
-						(*samples)[s]->addAtwo(mloc, false);
+					if((*samples).at(s)->getAone(mloc) && (*samples).at(s)->getAtwo(mloc) && !(*samples).at(s)->getAmissing(mloc)){
+						(*samples).at(s)->addAone(mloc, false);
+						(*samples).at(s)->addAtwo(mloc, false);
 					}
-					else if(!(*samples)[s]->getAone(mloc) && !(*samples)[s]->getAtwo(mloc)){
-						(*samples)[s]->addAone(mloc, true);
-						(*samples)[s]->addAtwo(mloc, true);
+					else if(!(*samples).at(s)->getAone(mloc) && !(*samples).at(s)->getAtwo(mloc)){
+						(*samples).at(s)->addAone(mloc, true);
+						(*samples).at(s)->addAtwo(mloc, true);
 					}
 				}
 			}
 			// set referent allele to be minor allele unless it has already been set by map file
-			if((*markers)[m]->getReferent() == ""){
-			  (*markers)[m]->setReferent((*markers)[m]->getAllele1());
+			if((*markers).at(m)->getReferent() == ""){
+			  (*markers).at(m)->setReferent((*markers).at(m)->getAllele1());
 			}
 			// set referent index in Marker for quicker lookup when running analysis
-			if((*markers)[m]->getReferent() == (*markers)[m]->getAllele1()){
-			  (*markers)[m]->setReferentIndex(0);
+			if((*markers).at(m)->getReferent() == (*markers).at(m)->getAllele1()){
+			  (*markers).at(m)->setReferentIndex(0);
 			}
 
-			else if((*markers)[m]->getReferent() == (*markers)[m]->getAllele2()){
-			  (*markers)[m]->setReferentIndex(1);
+			else if((*markers).at(m)->getReferent() == (*markers).at(m)->getAllele2()){
+			  (*markers).at(m)->setReferentIndex(1);
 			}
 			else{
 			  throw MethodException("No match for referent allele specified in map file for marker " +
-			    (*markers)[m]->getRSID());
+			    (*markers).at(m)->getRSID());
 			}
 
 		}
@@ -1425,8 +1425,8 @@ map<string, string> Helpers::readCustomAlleles(string f){
 			opts::printLog("Custom allele mapping file column size != 2: " + line + " Exiting!!\n");
 			throw MethodException("Custom allele mapping file column size != 2: " + line + " Exiting!!\n");
 		}
-		from = tokens[0];
-		to = tokens[1];
+		from = tokens.at(0);
+		to = tokens.at(1);
 
 		mapping[from] = to;
 	}
@@ -1446,7 +1446,7 @@ map<string, string> Helpers::readCustomAlleles(string f){
 void Helpers::remapSamples(vector<Methods::Sample*>* samples, vector<Methods::Marker*>* markers, vector<int>* marker_map, int loc){
 
 	for(unsigned int i = 0; i < samples->size(); i++){
-		Methods::Sample* samp = (*samples)[i];
+		Methods::Sample* samp = (*samples).at(i);
 		if(!samp->haveMicroSat(loc)){
 			samp->addMicroSat(loc);
 			if(!samp->getAone(loc) && !samp->getAtwo(loc)){
@@ -1599,10 +1599,10 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
 			for(unsigned int i = 2; i < descheaders.size(); i++){
 				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
+					samp->assignDetail(descheaders.at(i), tokens.at(i));
 				}
 				else{
-					samp->assignDetail(descheaders[i], "NA");
+					samp->assignDetail(descheaders.at(i), "NA");
 				}
 			}
 
@@ -1687,7 +1687,7 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 					text += "\n";
 					throw MethodException(text);
 				}
-				Methods::Marker* m = (*markers)[(*marker_map)[i]];
+				Methods::Marker* m = (*markers)[(*marker_map).at(i)];
 				if(m->isEnabled()){
 					int oldallelecount = m->getNumAlleles();
 	                if(one != "0"){
@@ -1864,8 +1864,8 @@ void Helpers::readSampleFile(string file, vector<Methods::Sample*>* mlist){
 			throw MethodException("Sample list file column size != 2: " + line + "\n");
 		}
 		Methods::Sample* m = new Sample();
-		m->setFamID(tokens[0]);
-		m->setInd(tokens[1]);
+		m->setFamID(tokens.at(0));
+		m->setInd(tokens.at(1));
 		mlist->push_back(m);
 	}
 	input.close();
@@ -1903,7 +1903,7 @@ void Helpers::readFamilyFile(string file, vector<Methods::Family*>* mlist){
 			throw MethodException("Family list file column size != 1: " + line + "\n");
 		}
 		Methods::Family* m = new Family();
-		m->setFamID(tokens[0]);
+		m->setFamID(tokens.at(0));
 		mlist->push_back(m);
 	}
 	input.close();
@@ -1937,7 +1937,7 @@ void Helpers::readCovTraitFile(string file, vector<string>* list){
 			opts::printLog("Cov/Trait list file column size != 1: " + line + "\n");
 			throw MethodException("Cov/Trait list file column size != 1: " + line + "\n");
 		}
-		list->push_back(tokens[0]);
+		list->push_back(tokens.at(0));
 	}
 	input.close();
 }
@@ -1974,7 +1974,7 @@ void Helpers::readLocusFile(string file, vector<Methods::Marker*>* mlist){
 			throw MethodException("Locus list file column size != 1: " + line + "\n");
 		}
 		Methods::Marker* m = new Marker();
-		m->setRSID(tokens[0]);
+		m->setRSID(tokens.at(0));
 		mlist->push_back(m);
 	}
 	input.close();
@@ -2007,16 +2007,16 @@ map<string, float> Helpers::readFreqFile(string file){
 		if(tokens.size() != 2){
 			throw MethodException("Marker frequency file column size != 2 on line: " + line + "\n");
 		}
-		if(tokens[0].at(0) == '#'){
+		if(tokens.at(0).at(0) == '#'){
 			continue;
 		}
 
 		float freq = -1.0f;
-		istringstream b(tokens[1]);
+		istringstream b(tokens.at(1));
 		if(!(b >> freq)){
-			throw MethodException(tokens[1] + " is not a valid number on line: " + getString<int>(freqline));
+			throw MethodException(tokens.at(1) + " is not a valid number on line: " + getString<int>(freqline));
 		}
-		freqs[tokens[0]] = freq;
+		freqs[tokens.at(0)] = freq;
 		freqline++;
 	}
 
@@ -2091,12 +2091,12 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
 			throw MethodException("Map file has fewer than 3 elements on line: " + line + "\n");
 		}
 
-        string chr = elems[0];
-        string probe_id = elems[1];
-        int bploc = atoi(elems[2].c_str());
+        string chr = elems.at(0);
+        string probe_id = elems.at(1);
+        int bploc = atoi(elems.at(2).c_str());
         string ref_allele = "";
         if(elems.size() > 3){
-          ref_allele = elems[3];
+          ref_allele = elems.at(3);
         }
 
 		if(chr == "C"){
@@ -2181,7 +2181,7 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;
+		(*marker_map)[(*markers).at(i)->getLoc()] = i;
 	}
 
 	//filter marker, set enabled to T/F based on filters.
@@ -2254,9 +2254,9 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
 		}
 
 
-        string chr = elems[0];
-        string probe_id = elems[1];
-        int bploc = atoi(elems[2].c_str());
+        string chr = elems.at(0);
+        string probe_id = elems.at(1);
+        int bploc = atoi(elems.at(2).c_str());
 
 		bool use = true;
 
@@ -2313,7 +2313,7 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;
+		(*marker_map)[(*markers).at(i)->getLoc()] = i;
 	}
 
 }
@@ -2419,8 +2419,8 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 			filters->run_locus_filter(f, markers);
 		}
 		for(unsigned int i = 0; i < markers->size(); i++){
-			if(!(*markers)[i]->isEnabled()){
-				includeme[i] = false;
+			if(!(*markers).at(i)->isEnabled()){
+				includeme.at(i) = false;
 			}
 		}
 	}
@@ -2431,14 +2431,14 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;
+		(*marker_map)[(*markers).at(i)->getLoc()] = i;
 	}
 
 	count = 0;
 	for(unsigned int i = 0; i < samples->size(); i++){
-		(*samples)[i]->resizeAlleles(markers->size());
-		(*samples)[i]->resizeCovariates(covs->size());
-		(*samples)[i]->resizeTraits(traits->size());
+		(*samples).at(i)->resizeAlleles(markers->size());
+		(*samples).at(i)->resizeCovariates(covs->size());
+		(*samples).at(i)->resizeTraits(traits->size());
 	}
 
 	FILE* PED;
@@ -2460,7 +2460,7 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 			continue;
 		}
 
-		if(!includeme[i]){
+		if(!includeme.at(i)){
 			while(fgetc(PED) != '\n' && !feof(PED)){}
 			i++;
 			continue;
@@ -2480,7 +2480,7 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 		bool linedone = false;
 		string fmsg;
 		while(!linedone){
-			Methods::Sample* samp = (*samples)[c];
+			Methods::Sample* samp = (*samples).at(c);
 			cout << "Working on Sample: " << samp->toString() << endl;
 			string one = "";
 			string two = "";
@@ -2512,7 +2512,7 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 						value = (double) atof(one.c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(i + 1) + " for covariate <" + (*covs)[cloc] + "> in file: " + options.getTPedFile() + "\n");
+					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(i + 1) + " for covariate <" + (*covs).at(cloc) + "> in file: " + options.getTPedFile() + "\n");
 				}
 				samp->setCovariate(value, cloc);
 				cloc++;
@@ -2528,7 +2528,7 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 						value = (double) atof(one.c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(i + 1) + " for trait <" + (*traits)[tloc] + "> in file: " + options.getTPedFile() + "\n");
+					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(i + 1) + " for trait <" + (*traits).at(tloc) + "> in file: " + options.getTPedFile() + "\n");
 				}
 				samp->setTrait(value, tloc);
 				tloc++;
@@ -2561,8 +2561,8 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 			}
 
 			if(includeme[i]){
-				int k = (*marker_map)[i];
-				Methods::Marker* mark = (*markers)[k];
+				int k = (*marker_map).at(i);
+				Methods::Marker* mark = (*markers).at(k);
 
 				int oldallelecount = mark->getNumAlleles();
                 if(one != opts::_NOCALL_){
@@ -2680,12 +2680,12 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
 			opts::printLog("Family information file column size != 6: " + line + "\n");
 			throw MethodException("Family information file column size != 6: " + line + "\n");
 		}
-		fam = tokens[0];
-		ind = tokens[1];
-		dad = tokens[2];
-		mom = tokens[3];
-		sex = tokens[4];
-		aff = tokens[5];
+		fam = tokens.at(0);
+		ind = tokens.at(1);
+		dad = tokens.at(2);
+		mom = tokens.at(3);
+		sex = tokens.at(4);
+		aff = tokens.at(5);
 		Methods::Sample* samp = new Sample();
 		samp->setFamID(fam);
 		samp->setInd(ind);
@@ -2739,10 +2739,10 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
 			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
 			for(unsigned int i = 2; i < descheaders.size(); i++){
 				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
+					samp->assignDetail(descheaders.at(i), tokens.at(i));
 				}
 				else{
-				    samp->assignDetail(descheaders[i], "NA");
+				    samp->assignDetail(descheaders.at(i), "NA");
 				}
 			}
 
@@ -2845,14 +2845,14 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			opts::printLog(".bim file column size != " + getString<int>(num_cols) + ": " + line + " stopping!!\n");
 			throw MethodException(".bim file column size != " + getString<int>(num_cols) + ": " + line + " stopping!!\n");
 		}
-		chrom = tokens[0];
-		probe = tokens[1];
-		centi = tokens[2];
-		bploc = atoi(tokens[3].c_str());
-		a1 = tokens[4];
-		a2 = tokens[5];
+		chrom = tokens.at(0);
+		probe = tokens.at(1);
+		centi = tokens.at(2);
+		bploc = atoi(tokens.at(3).c_str());
+		a1 = tokens.at(4);
+		a2 = tokens.at(5);
 		if(options.getMapContainsReferent()){
-			referent = tokens[6];
+			referent = tokens.at(6);
 		}
 		if(rsid == "."){
 			rsid = "";
@@ -2918,7 +2918,7 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i = 0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;
+		(*marker_map)[(*markers).at(i)->getLoc()] = i;
 	}
 
 
@@ -2952,12 +2952,12 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			opts::printLog("Family information file column size != 6: " + line + " Exitting!!\n");
 			throw MethodException("Family information file column size != 6: " + line + " Exitting!!\n");
 		}
-		fam = tokens[0];
-		ind = tokens[1];
-		dad = tokens[2];
-		mom = tokens[3];
-		sex = tokens[4];
-		aff = tokens[5];
+		fam = tokens.at(0);
+		ind = tokens.at(1);
+		dad = tokens.at(2);
+		mom = tokens.at(3);
+		sex = tokens.at(4);
+		aff = tokens.at(5);
 		Methods::Sample* samp = new Sample();
 		samp->setFamID(fam);
 		samp->setInd(ind);
@@ -3101,7 +3101,7 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 
 	if(ind_major){
 		for(int s = 0; s < ssize; s++){
-			Methods::Sample* samp = (*samples)[s];
+			Methods::Sample* samp = (*samples).at(s);
 			for(int m = 0; m < msize;){
 				char ch[1];
 				BIT.read(ch, 1);
@@ -3115,10 +3115,10 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 				int c = 0;
 				while(c < 7 && m < msize)
 				{
-					Methods::Marker* mark = (*markers)[m];
+					Methods::Marker* mark = (*markers).at(m);
 					if(mark->isEnabled())
 					{
-						int mloc = (*markers)[m]->getLoc();
+						int mloc = (*markers).at(m)->getLoc();
 						samp->addAone(mloc, b[c++]);
 						samp->addAtwo(mloc, b[c++]);
 						if(samp->getAone(mloc) && !samp->getAtwo(mloc))
@@ -3138,7 +3138,7 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 	}
 	else{//SNP_MAJOR
 		for(int m = 0; m < msize; m++){
-			Methods::Marker* mark = (*markers)[m];
+			Methods::Marker* mark = (*markers).at(m);
 			int mloc = mark->getLoc();
 			for(int s = 0; s < ssize;){
 				char ch[1];
@@ -3151,7 +3151,7 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 				b = ch[0];
 				int c = 0;
 				while(c < 7 && s < ssize){
-					Methods::Sample* samp = (*samples)[s];
+					Methods::Sample* samp = (*samples).at(s);
 					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
 						samp->addAone(mloc, b[c++]);
 						samp->addAtwo(mloc, b[c++]);
@@ -3211,12 +3211,12 @@ void Helpers::readPedInfo(){
 			opts::printLog("Pedigree information file column size != 6: " + line + " Exiting!!\n");
 			throw MethodException("Pedigree information file column size != 6: " + line + " Exiting!!\n");
 		}
-		fam = tokens[0];
-		ind = tokens[1];
-		dad = tokens[2];
-		mom = tokens[3];
-		sex = tokens[4];
-		aff = tokens[5];
+		fam = tokens.at(0);
+		ind = tokens.at(1);
+		dad = tokens.at(2);
+		mom = tokens.at(3);
+		sex = tokens.at(4);
+		aff = tokens.at(5);
 		Methods::Sample* samp = new Sample();
 		samp->setFamID(fam);
 		samp->setInd(ind);
@@ -3372,10 +3372,10 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
 			for(unsigned int i = 2; i < descheaders.size(); i++){
 				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
+					samp->assignDetail(descheaders.at(i), tokens.at(i));
 				}
 				else{
-					samp->assignDetail(descheaders[i], "NA");
+					samp->assignDetail(descheaders.at(i), "NA");
 				}
 			}
 
@@ -3445,7 +3445,7 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 					text += "\n";
 					throw MethodException(text);
 				}
-				Methods::Marker* m = (*markers)[(*marker_map)[i]];
+				Methods::Marker* m = (*markers)[(*marker_map).at(i)];
 				if(m->isEnabled()){
 					int oldallelecount = m->getNumAlleles();
 	                if(one != "0"){
@@ -3659,22 +3659,22 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 			throw MethodException("Map file has fewer than 3 elements on line: " + line + "\n");
 		}
 
-        string chr = elems[0];
-        string probe_id = elems[1];
-        int bploc = atoi(elems[2].c_str());
+        string chr = elems.at(0);
+        string probe_id = elems.at(1);
+        int bploc = atoi(elems.at(2).c_str());
         string ref_allele = "";
         string allele1 = "A";
         string allele2 = "B";
         if(elems.size() > 3 && elems.size() < 5){
-          ref_allele = elems[3];
+          ref_allele = elems.at(3);
         }
         if(!no_alleles && referent && elems.size() == 6){
-        	allele1 = elems[4];
-        	allele2 = elems[5];
+        	allele1 = elems.at(4);
+        	allele2 = elems.at(5);
         }
         else if(!no_alleles && !referent && elems.size() == 5){
-        	allele1 = elems[3];
-        	allele2 = elems[4];
+        	allele1 = elems.at(3);
+        	allele2 = elems.at(4);
         }
 
 		if(chr == "C"){
@@ -3738,13 +3738,13 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 			}
 		}
 		if(opts::_MAPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[probe_id];
+			vector<string> tokens = descinfo.at(probe_id);
 			for(unsigned int i = 1; i < descheaders.size(); i++){
 				if(tokens.size() == descheaders.size()){
-					m->assignDetail(descheaders[i], tokens[i]);
+					m->assignDetail(descheaders.at(i), tokens.at(i));
 				}
 				else{
-					m->assignDetail(descheaders[i], "NA");
+					m->assignDetail(descheaders.at(i), "NA");
 				}
 			}
 		}
@@ -3763,7 +3763,7 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;
+		(*marker_map)[(*markers).at(i)->getLoc()] = i;
 	}
 
 	//filter marker, set enabled to T/F based on filters.
@@ -3918,10 +3918,10 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
 			for(unsigned int i = 2; i < descheaders.size(); i++){
 				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
+					samp->assignDetail(descheaders.at(i), tokens.at(i));
 				}
 				else{
-					samp->assignDetail(descheaders[i], "NA");
+					samp->assignDetail(descheaders.at(i), "NA");
 				}
 			}
 
@@ -3981,7 +3981,7 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 						value = (double) atof(one.c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for covariate <" + (*covariates)[cloc] + "> in file: " + options.getPedFile() + "\n");
+					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for covariate <" + (*covariates).at(cloc) + "> in file: " + options.getPedFile() + "\n");
 				}
 				samp->setCovariate(value, cloc);
 				overall++;
@@ -4007,7 +4007,7 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 						value = (double) atof(one.c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for trait <" + (*traits)[tloc] + "> in file: " + options.getPedFile() + "\n");
+					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for trait <" + (*traits).at(tloc) + "> in file: " + options.getPedFile() + "\n");
 				}
 				samp->setTrait(value, tloc);
 				overall++;
@@ -4030,7 +4030,7 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 					text += "\n";
 					throw MethodException(text);
 				}
-				Methods::Marker* m = (*markers)[(*marker_map)[i]];
+				Methods::Marker* m = (*markers)[(*marker_map).at(i)];
 				if(m->isEnabled()){
 	                if(one != opts::_NOCALL_){
 	                	if(m->getAllele1() == "" && m->getAllele2() == ""){
@@ -4215,7 +4215,7 @@ void Helpers::readLgenFile(DataSet* set, StepOptions options, InputFilter* filte
 	vector<Methods::Marker*>* markers = set->get_markers();
 	for(unsigned int i = 0; i < markers->size(); i++)
 	{
-		markers_map[(*markers)[i]->getRSID()] = (*markers)[i];
+		markers_map[(*markers).at(i)->getRSID()] = (*markers).at(i);
 	}
 
 	//Create a hash of Samples
@@ -4223,7 +4223,7 @@ void Helpers::readLgenFile(DataSet* set, StepOptions options, InputFilter* filte
 	map<string, Sample*> samples_map;
 	for (unsigned int i = 0; i < samples->size(); i++)
 	{
-		samples_map[(*samples)[i]->getFamID() + "#" + (*samples)[i]->getIndOrig()] = (*samples)[i];
+		samples_map[(*samples).at(i)->getFamID() + "#" + (*samples).at(i)->getIndOrig()] = (*samples).at(i);
 	}
 
 	//process each line of the file
@@ -4440,7 +4440,7 @@ void Helpers::readReferenceFile(DataSet* set, StepOptions options, InputFilter* 
 	vector<Methods::Marker*>* markers = set->get_markers();
 	for(int i = 0; i < (int)markers->size(); i++)
 	{
-		markers_map[(*markers)[i]->getRSID()] = (*markers)[i];
+		markers_map[(*markers).at(i)->getRSID()] = (*markers).at(i);
 	}
 
 	string temp = "";
@@ -4611,10 +4611,10 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
 			for(unsigned int i = 2; i < descheaders.size(); i++){
 				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders[i], tokens[i]);
+					samp->assignDetail(descheaders.at(i), tokens.at(i));
 				}
 				else{
-					samp->assignDetail(descheaders[i], "NA");
+					samp->assignDetail(descheaders.at(i), "NA");
 				}
 			}
 
@@ -4680,7 +4680,7 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 						value = (double) atof(one.c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for covariate <" + (*covariates)[cloc] + "> in file: " + options.getPedFile() + "\n");
+					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for covariate <" + (*covariates).at(cloc) + "> in file: " + options.getPedFile() + "\n");
 				}
 				samp->setCovariate(value, cloc);
 				overall++;
@@ -4706,7 +4706,7 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 						value = (double) atof(one.c_str());
 					}
 				}catch(...){
-					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for trait <" + (*traits)[tloc] + "> in file: " + options.getPedFile() + "\n");
+					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(onind + 1) + " for trait <" + (*traits).at(tloc) + "> in file: " + options.getPedFile() + "\n");
 				}
 				samp->setTrait(value, tloc);
 				overall++;
@@ -4752,7 +4752,7 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 					text += "\n";
 					throw MethodException(text);
 				}
-				Methods::Marker* m = (*markers)[(*marker_map)[i]];
+				Methods::Marker* m = (*markers)[(*marker_map).at(i)];
 				if(m->isEnabled()){
 					int oldallelecount = m->getNumAlleles();
 	                if(one != opts::_NOCALL_){
@@ -5029,121 +5029,121 @@ void Helpers::svdcmp(vector<vector<double> > & a,
   g=scale=anorm=0.0;
   for (i=0;i<n;i++) {
     l=i+2;
-    rv1[i]=scale*g;
+    rv1.at(i)=scale*g;
     g=s=scale=0.0;
     if (i < m) {
-      for (k=i;k<m;k++) scale += fabs(a[k][i]);
+      for (k=i;k<m;k++) scale += fabs(a.at(k).at(i));
       if (scale != 0.0) {
         for (k=i;k<m;k++) {
-	      a[k][i] /= scale;
-	      s += a[k][i]*a[k][i];
+	      a.at(k).at(i) /= scale;
+	      s += a.at(k).at(i)*a.at(k).at(i);
     	}
-		f=a[i][i];
+		f=a.at(i).at(i);
 		g = -SIGN(sqrt(s),f);
 		h=f*g-s;
-		a[i][i]=f-g;
+		a.at(i).at(i)=f-g;
 		for (j=l-1;j<n;j++) {
-		  for (s=0.0,k=i;k<m;k++) s += a[k][i]*a[k][j];
+		  for (s=0.0,k=i;k<m;k++) s += a.at(k).at(i)*a.at(k).at(j);
 		  f=s/h;
-		  for (k=i;k<m;k++) a[k][j] += f*a[k][i];
+		  for (k=i;k<m;k++) a.at(k).at(j) += f*a.at(k).at(i);
 		}
-		for (k=i;k<m;k++) a[k][i] *= scale;
+		for (k=i;k<m;k++) a.at(k).at(i) *= scale;
 	  }
 	}
-	w[i]=scale *g;
+	w.at(i)=scale *g;
 	g=s=scale=0.0;
 	if (i+1 <= m && i+1 != n) {
-	  for (k=l-1;k<n;k++) scale += fabs(a[i][k]);
+	  for (k=l-1;k<n;k++) scale += fabs(a.at(i).at(k));
 	  if (scale != 0.0) {
 	    for (k=l-1;k<n;k++) {
-	      a[i][k] /= scale;
-	      s += a[i][k]*a[i][k];
+	      a.at(i).at(k) /= scale;
+	      s += a.at(i).at(k)*a.at(i).at(k);
 	    }
-	    f=a[i][l-1];
+	    f=a.at(i).at(l-1);
 	    g = -SIGN(sqrt(s),f);////////////!!!!!!!!!!!!!
 		h=f*g-s;
-		a[i][l-1]=f-g;
-		for (k=l-1;k<n;k++) rv1[k]=a[i][k]/h;
+		a.at(i).at(l-1)=f-g;
+		for (k=l-1;k<n;k++) rv1.at(k)=a.at(i).at(k)/h;
     	for (j=l-1;j<m;j++) {
-		  for (s=0.0,k=l-1;k<n;k++) s += a[j][k]*a[i][k];
-		  for (k=l-1;k<n;k++) a[j][k] += s*rv1[k];
+		  for (s=0.0,k=l-1;k<n;k++) s += a.at(j).at(k)*a.at(i).at(k);
+		  for (k=l-1;k<n;k++) a.at(j).at(k) += s*rv1.at(k);
 		}
-	    for (k=l-1;k<n;k++) a[i][k] *= scale;
+	    for (k=l-1;k<n;k++) a.at(i).at(k) *= scale;
 	  }
 	}
-	anorm=MAX(anorm,(fabs(w[i])+fabs(rv1[i])));///////!!!!!!!!!!!!!
+	anorm=MAX(anorm,(fabs(w.at(i))+fabs(rv1.at(i))));///////!!!!!!!!!!!!!
   }
   for (i=n-1;i>=0;i--) {
     if (i < n-1) {
       if (g != 0.0) {
         for (j=l;j<n;j++)
-          v[j][i]=(a[i][j]/a[i][l])/g;
+          v.at(j).at(i)=(a.at(i).at(j)/a.at(i).at(l))/g;
         for (j=l;j<n;j++) {
-          for (s=0.0,k=l;k<n;k++) s += a[i][k]*v[k][j];
-	      for (k=l;k<n;k++) v[k][j] += s*v[k][i];
+          for (s=0.0,k=l;k<n;k++) s += a.at(i).at(k)*v.at(k).at(j);
+	      for (k=l;k<n;k++) v.at(k).at(j) += s*v.at(k).at(i);
         }
       }
-      for (j=l;j<n;j++) v[i][j]=v[j][i]=0.0;
+      for (j=l;j<n;j++) v.at(i).at(j)=v.at(j).at(i)=0.0;
     }
-    v[i][i]=1.0;
-    g=rv1[i];
+    v.at(i).at(i)=1.0;
+    g=rv1.at(i);
     l=i;
   }
   for (i=MIN(m,n)-1;i>=0;i--) {
     l=i+1;
-    g=w[i];
-    for (j=l;j<n;j++) a[i][j]=0.0;
+    g=w.at(i);
+    for (j=l;j<n;j++) a.at(i).at(j)=0.0;
     if (g != 0.0) {
       g=1.0/g;
       for (j=l;j<n;j++) {
-        for (s=0.0,k=l;k<m;k++) s += a[k][i]*a[k][j];
-        f=(s/a[i][i])*g;
-	    for (k=i;k<m;k++) a[k][j] += f*a[k][i];
+        for (s=0.0,k=l;k<m;k++) s += a.at(k).at(i)*a.at(k).at(j);
+        f=(s/a.at(i).at(i))*g;
+	    for (k=i;k<m;k++) a.at(k).at(j) += f*a.at(k).at(i);
 	  }
-	  for (j=i;j<m;j++) a[j][i] *= g;
-	} else for (j=i;j<m;j++) a[j][i]=0.0;
-	++a[i][i];
+	  for (j=i;j<m;j++) a.at(j).at(i) *= g;
+	} else for (j=i;j<m;j++) a.at(j).at(i)=0.0;
+	++a.at(i).at(i);
   }
   for (k=n-1;k>=0;k--) {
     for (its=0;its<30;its++) {
       flag=true;
       for (l=k;l>=0;l--) {
         nm=l-1;
-	    temp=fabs(rv1[l])+anorm;
+	    temp=fabs(rv1.at(l))+anorm;
 	    if (temp == anorm) {
 	      flag=false;
 	      break;
 	    }
-	    temp=fabs(w[nm])+anorm;
+	    temp=fabs(w.at(nm))+anorm;
 	    if (temp == anorm) break;
 	  }
 	  if (flag) {
     	c=0.0;
 	    s=1.0;
 		for (i=l;i<k+1;i++) {
-		  f=s*rv1[i];
-		  rv1[i]=c*rv1[i];
+		  f=s*rv1.at(i);
+		  rv1.at(i)=c*rv1.at(i);
 		  temp = fabs(f)+anorm;
 		  if (temp == anorm) break;
-		  g=w[i];
+		  g=w.at(i);
 		  h=pythag(f,g);
-		  w[i]=h;
+		  w.at(i)=h;
 		  h=1.0/h;
 		  c=g*h;
 		  s = -f*h;
 		  for (j=0;j<m;j++) {
-		    y=a[j][nm];
-		    z=a[j][i];
-		    a[j][nm]=y*c+z*s;
-		    a[j][i]=z*c-y*s;
+		    y=a.at(j).at(nm);
+		    z=a.at(j).at(i);
+		    a.at(j).at(nm)=y*c+z*s;
+		    a.at(j).at(i)=z*c-y*s;
 		  }
 		}
 	  }
-	  z=w[k];
+	  z=w.at(k);
 	  if (l == k) {
 	    if (z < 0.0) {
-	      w[k] = -z;
-	      for (j=0;j<n;j++) v[j][k] = -v[j][k];
+	      w.at(k) = -z;
+	      for (j=0;j<n;j++) v.at(j).at(k) = -v.at(j).at(k);
 	    }
         break;
 	  }
@@ -5151,23 +5151,23 @@ void Helpers::svdcmp(vector<vector<double> > & a,
 		  cerr << "SVD function cannot converge: multicollinearity issues?\n";
 		  throw MethodException("SVD function cannot converge: multicollinearity issues?\n");
 	  }
-	  x=w[l];
+	  x=w.at(l);
 	  nm=k-1;
-      y=w[nm];
-      g=rv1[nm];
-      h=rv1[k];
+      y=w.at(nm);
+      g=rv1.at(nm);
+      h=rv1.at(k);
       f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0*h*y);
       g=pythag(f,1.0);
       f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
       c=s=1.0;
       for (j=l;j<=nm;j++) {
         i=j+1;
-        g=rv1[i];
-	    y=w[i];
+        g=rv1.at(i);
+	    y=w.at(i);
 	    h=s*g;
 	    g=c*g;
 	    z=pythag(f,h);/////////!!!!!!!!!!!!!!!!!
-        rv1[j]=z;
+        rv1.at(j)=z;
 	    c=f/z;
 	    s=h/z;
 	    f=x*c+g*s;
@@ -5175,13 +5175,13 @@ void Helpers::svdcmp(vector<vector<double> > & a,
 	    h=y*s;
 	    y *= c;
 	    for (jj=0;jj<n;jj++) {
-	      x=v[jj][j];
-	      z=v[jj][i];
-	      v[jj][j]=x*c+z*s;
-	      v[jj][i]=z*c-x*s;
+	      x=v.at(jj).at(j);
+	      z=v.at(jj).at(i);
+	      v.at(jj).at(j)=x*c+z*s;
+	      v.at(jj).at(i)=z*c-x*s;
 	    }
 	    z=pythag(f,h);
-	    w[j]=z;
+	    w.at(j)=z;
 	    if (z) {
 	      z=1.0/z;
 	      c=f*z;
@@ -5190,15 +5190,15 @@ void Helpers::svdcmp(vector<vector<double> > & a,
 	    f=c*g+s*y;
 	    x=c*y-s*g;
 	    for (jj=0;jj<m;jj++) {
-	      y=a[jj][j];
-	      z=a[jj][i];
-	      a[jj][j]=y*c+z*s;
-	      a[jj][i]=z*c-y*s;
+	      y=a.at(jj).at(j);
+	      z=a.at(jj).at(i);
+	      a.at(jj).at(j)=y*c+z*s;
+	      a.at(jj).at(i)=z*c-y*s;
 	    }
 	  }
-	  rv1[l]=0.0;
-	  rv1[k]=f;
-	  w[k]=x;
+	  rv1.at(l)=0.0;
+	  rv1.at(k)=f;
+	  w.at(k)=x;
 	}
   }
 }
@@ -5214,11 +5214,11 @@ vector< vector<double> > Helpers::svd_inverse(vector< vector<double> > & u){
     cerr << "Internal problem: matrix with no rows (inverse function)\n";
     throw MethodException("Internal problem: matrix with no rows (inverse function)\n");
   }
-  if (u.size() != u[0].size() ){
-    cerr << "Internal problem: Cannot invert non-square matrix\n" << u.size() << " : " << u[0].size() << "\n";
+  if (u.size() != u.at(0).size() ){
+    cerr << "Internal problem: Cannot invert non-square matrix\n" << u.size() << " : " << u.at(0).size() << "\n";
    ss << u.size();
    msga = ss.str();
-   ss << u[0].size();
+   ss << u.at(0).size();
    msgb = ss.str();
 
     throw MethodException("Internal problem: Cannot invert non-square matrix\n" + msga + " : " + msgb + "\n");
@@ -5229,33 +5229,33 @@ vector< vector<double> > Helpers::svd_inverse(vector< vector<double> > & u){
 
   vector<vector<double> > v(n);
   for (int i=0; i<n; i++)
-    v[i].resize(n,0);
+    v.at(i).resize(n,0);
 
   svdcmp(u,w,v);//////!!!!!!!!!!!!!!!!!!!!!!!
 
   // Look for singular values
   double wmax = 0;
   for (int i=0; i<n; i++)
-    wmax = w[i] > wmax ? w[i] : wmax;
+    wmax = w.at(i) > wmax ? w.at(i) : wmax;
   double wmin = wmax * eps;
   for (int i=0; i<n; i++)
   {
-    w[i] = w[i] < wmin ? 0 : 1/w[i];
+    w.at(i) = w.at(i) < wmin ? 0 : 1/w.at(i);
   }
 
   vector<vector<double> > r(n);
   for (int i=0; i<n; i++)
   {
-	r[i].resize(n,0);
+	r.at(i).resize(n,0);
     for (int j=0; j<n; j++)
-      u[i][j] = u[i][j] * w[j];
+      u.at(i).at(j) = u.at(i).at(j) * w.at(j);
   }
 
 
   for (int i=0; i<n; i++)
 	  for (int j=0; j<n; j++)
 		  for (int k=0; k<n; k++)
-			  r[i][j] += u[i][k] * v[j][k];
+			  r.at(i).at(j) += u.at(i).at(k) * v.at(j).at(k);
 
   return r;
 }
@@ -5264,7 +5264,7 @@ void Helpers::sizeMatrix(vector<vector<double> > &m, int r, int c){
 	m.clear();
 	m.resize(r);
 	for(int i = 0; i < r; i++){
-		m[i].resize(c,0);
+		m.at(i).resize(c,0);
 	}
 }
 
@@ -5275,21 +5275,21 @@ void Helpers::svbksb(vector<vector<double> > &u, vector<double> &w, vector<vecto
 	  double s;
 
 	  int m=u.size();
-	  int n=u[0].size();
+	  int n=u.at(0).size();
 	  vector<double> tmp(n);
 	  for (j=0;j<n;j++) {
 	    s=0.0;
-	    if (w[j] != 0.0) {
-	      for (i=0;i<m;i++) s += u[i][j]*b[i];
-	      s /= w[j];
+	    if (w.at(j) != 0.0) {
+	      for (i=0;i<m;i++) s += u.at(i).at(j)*b.at(i);
+	      s /= w.at(j);
 	    }
-	    tmp[j]=s;
+	    tmp.at(j)=s;
 	  }
 
 	  for (j=0;j<n;j++) {
 	    s=0.0;
-	    for (jj=0;jj<n;jj++) s += v[j][jj]*tmp[jj];
-	    x[j]=s;
+	    for (jj=0;jj<n;jj++) s += v.at(j).at(jj)*tmp.at(jj);
+	    x.at(j)=s;
 	  }
 
 }
@@ -5304,8 +5304,8 @@ void Helpers::multMatrix(vector<vector<double> > & a,
   if (ar == 0 || br == 0)
     throw MethodException("Internal error: multiplying 0-sized matrices");
 
-  int ac = a[0].size();
-  int bc = b[0].size();
+  int ac = a.at(0).size();
+  int bc = b.at(0).size();
   if ( ac != br )
     throw MethodException("Internal error: non-conformable matrices in multMatrix()");
 
@@ -5318,7 +5318,7 @@ void Helpers::multMatrix(vector<vector<double> > & a,
   for (int i=0; i<ar; i++)
     for (int j=0; j<bc; j++)
       for (int k=0; k<ac; k++)
-    c[i][j] += a[i][k] * b[k][j];
+    c.at(i).at(j) += a.at(i).at(k) * b.at(k).at(j);
 
 }
 

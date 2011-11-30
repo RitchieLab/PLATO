@@ -153,7 +153,7 @@ class CaConChisq{
 		};
 
 		void calculate(Marker* mark);
-		void calculate(int m){calculate((*markers)[m]);};
+		void calculate(int m){calculate((*markers).at(m));};
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};

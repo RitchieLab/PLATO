@@ -90,7 +90,7 @@ double ClusterMissing::calcPairAverage(int s1, int s2){
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	int msize = good_markers.size();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];
+		Marker* mark = good_markers.at(m);
 		if(mark->isEnabled()){
 			int mloc = mark->getLoc();
 			if((samp1->getAone(mloc) && samp1->getAtwo(mloc) && samp1->getAmissing(mloc))
@@ -128,14 +128,14 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 	//if no file defining pairs
 	for(int i = 0; i < ninds; i++){
 		vector<int> t(1);
-		t[0] = i;
+		t.at(0) = i;
 		cl.push_back(t);
 	}
 
 	vector<vector<bool> > pairable(ninds);
 	for(int i = 0; i < ninds; i++){
 		vector<bool> tmp(ninds, true);
-		pairable[i] = tmp;
+		pairable.at(i) = tmp;
 	}
 
 	opts::printLog("Clustering individuals based on genome-wide IBM\n");
@@ -144,7 +144,7 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 
 	mdist.resize(ninds);
 	for(int j = 0; j < ninds; j++){
-		mdist[j].resize(j);
+		mdist.at(j).resize(j);
 	}
 
 	vector<double> prop_sig_diff(ninds);
@@ -166,11 +166,11 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 				}
 
 				double dst = calcGenomeIBM(data_set->get_sample(i1), data_set->get_sample(i2));
-				mdist[i2][i1] = dst;
+				mdist.at(i2).at(i1) = dst;
 				if(pv < merge_p && Helpers::realnum(pv)){
-					pairable[i1][i2] = pairable[i2][i1] = false;
-					prop_sig_diff[i1]++;
-					prop_sig_diff[i2]++;
+					pairable.at(i1).at(i2) = pairable.at(i2).at(i1) = false;
+					prop_sig_diff.at(i1)++;
+					prop_sig_diff.at(i2)++;
 				}
 
 			}
@@ -188,13 +188,13 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 			//if distance matrix
 			//else
 			if(i > j){
-				MAT << mdist[i][j] << " ";
+				MAT << mdist.at(i).at(j) << " ";
 			}
 			else if(i == j){
 				MAT << 1 << " ";
 			}
 			else{
-				MAT << mdist[j][i] << " ";
+				MAT << mdist.at(j).at(i) << " ";
 			}
 		}
 		MAT << "\n";
@@ -208,15 +208,15 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 	// Matrix of solutions
 	vector<vector<int> > sol(ninds);
 	for(int i =0; i < ninds; i++){
-		sol[i].resize(ninds);
+		sol.at(i).resize(ninds);
 	}
 
 	vector<double> hist(1);
 
 	// Build solution
 	for(int i = 0; i < (int)cl.size(); i++){
-		for(int j = 0; j < (int)cl[i].size(); j++){
-			sol[cl[i][j]][0] = i;
+		for(int j = 0; j < (int)cl.at(i).size(); j++){
+			sol.at(cl.at(i).at(j)).at(0) = i;
 		}
 	}
 
@@ -235,12 +235,12 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 		for(int i = 0; i < (int)cl.size()-1; i++){
 			for(int j = i + 1; j < (int)cl.size(); j++){
 				// Cluster on IBS
-				double d = cldist(mdist, cl[i],cl[j]);
+				double d = cldist(mdist, cl.at(i),cl.at(j));
 
 				// Are these individuals/clusters more similar AND pairable?
-				if(d > dmin && pairable_cluster(pairable, cl[i], cl[j])){
+				if(d > dmin && pairable_cluster(pairable, cl.at(i), cl.at(j))){
 					//And will the max cluster size requirement be fulfilled?
-					if(options.getMaxClusterSize() == 0 || ((int)(cl[i].size()+cl[j].size()) <= options.getMaxClusterSize())){
+					if(options.getMaxClusterSize() == 0 || ((int)(cl.at(i).size()+cl.at(j).size()) <= options.getMaxClusterSize())){
 						//And will the basic phenotypic matching requirement be fulfilled?
 						if(!options.getClusterOnPheno()){
 							//What about the --mcc clustering
@@ -260,20 +260,20 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 		if(imin != -1){
 			hist.push_back(dmin);
 
-			for(int j = 0; j < (int)cl[jmin].size(); j++){
-				cl[imin].push_back(cl[jmin][j]);
+			for(int j = 0; j < (int)cl.at(jmin).size(); j++){
+				cl.at(imin).push_back(cl.at(jmin).at(j));
 			}
 			cl.erase(cl.begin()+jmin);
 			if(cl.size() == 1 || (int)cl.size() == options.getMaxClusterN()){ //-1
 				done = true;
 			}
 
-			CLST << "Merge step " << c << "\t" << hist[c];
+			CLST << "Merge step " << c << "\t" << hist.at(c);
 
 			// Build solution
 			for(int i = 0; i < (int)cl.size(); i++){
-				for(int j = 0; j < (int)cl[i].size(); j++){
-					sol[cl[i][j]][c] = i;
+				for(int j = 0; j < (int)cl.at(i).size(); j++){
+					sol.at(cl.at(i).at(j)).at(c) = i;
 				}
 			}
 
@@ -284,12 +284,12 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 			for(int j1 = 0; j1 < (int)sol.size(); j1++){
 				for(int j2 = 0; j2 < (int)sol.size(); j2++){
 					if(j1 < j2){
-						if(sol[j1][c] == sol[j2][c]){
-							within += mdist[j2][j1];
+						if(sol.at(j1).at(c) == sol.at(j2).at(c)){
+							within += mdist.at(j2).at(j1);
 							withinN++;
 						}
 						else{
-							between += mdist[j2][j1];
+							between += mdist.at(j2).at(j1);
 							betweenN++;
 						}
 					}
@@ -323,8 +323,8 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 		//Display...
 		CLST << data_set->get_sample(j)->getFamID() << " "
 			<< data_set->get_sample(j)->getInd() << "\t";
-		for(int i = 0; i < (int)sol[0].size(); i++){
-			CLST << sol[j][i] << " ";
+		for(int i = 0; i < (int)sol.at(0).size(); i++){
+			CLST << sol.at(j).at(i) << " ";
 		}
 		CLST << "\n";
 	}
@@ -339,19 +339,19 @@ double ClusterMissing::cldist(vector<vector<double> > & d,
 {
   // Compare based on first metric, but also return paired second
   double l;
-  l = a[0]>b[0] ? d[a[0]][b[0]] : d[b[0]][a[0]];
+  l = a.at(0)>b.at(0) ? d.at(a.at(0)).at(b.at(0)) : d.at(b.at(0)).at(a.at(0));
 
   for (int i=0; i< (int)a.size(); i++)
     for (int j=0; j< (int)b.size(); j++)
       {
 
-    if ( a[i] > b[j] )
+    if ( a.at(i) > b.at(j) )
       {
-        if ( d[a[i]][b[j]] < l ) l = d[a[i]][b[j]];
+        if ( d.at(a.at(i)).at(b.at(j)) < l ) l = d.at(a.at(i)).at(b.at(j));
       }
     else
       {
-        if ( d[b[j]][a[i]] < l ) l = d[b[j]][a[i]];
+        if ( d.at(b.at(j)).at(a.at(i)) < l ) l = d.at(b.at(j)).at(a.at(i));
       }
 
       }
@@ -362,7 +362,7 @@ bool ClusterMissing::pairable_cluster(vector<vector<bool> > & pairable, vector<i
 {
   for (int i=0; i< (int)a.size(); i++)
     for (int j=0; j< (int)b.size(); j++)
-       if (!pairable[a[i]][b[j]]) return false;
+       if (!pairable.at(a.at(i)).at(b.at(j))) return false;
   return true;
 }
 

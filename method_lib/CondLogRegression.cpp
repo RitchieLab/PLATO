@@ -77,28 +77,28 @@ void CondLogRegression::set_model(){
   
   switch(modType){
     case Dominant:
-      geno_convert[0][0] = 1;
-      geno_convert[0][1] = 1;
-      geno_convert[0][3] = 2;
-      geno_convert[1][1] = 1;
-      geno_convert[1][2] = 1;
-      geno_convert[1][3] = 2;
+      geno_convert.at(0).at(0) = 1;
+      geno_convert.at(0).at(1) = 1;
+      geno_convert.at(0).at(3) = 2;
+      geno_convert.at(1).at(1) = 1;
+      geno_convert.at(1).at(2) = 1;
+      geno_convert.at(1).at(3) = 2;
       maxLocusValue = 1;
       break;
     case Recessive:
-      geno_convert[0][0] = 1;
-      geno_convert[0][3] = 2;
-      geno_convert[1][2] = 1;
-      geno_convert[1][3] = 2;
+      geno_convert.at(0).at(0) = 1;
+      geno_convert.at(0).at(3) = 2;
+      geno_convert.at(1).at(2) = 1;
+      geno_convert.at(1).at(3) = 2;
       maxLocusValue = 1;
       break;
     case Additive:
-      geno_convert[0][1] = 1;
-      geno_convert[0][0] = 2;
-      geno_convert[0][3] = 3;    
-      geno_convert[1][1] = 1;
-      geno_convert[1][2] = 2;
-      geno_convert[1][3] = 3;
+      geno_convert.at(0).at(1) = 1;
+      geno_convert.at(0).at(0) = 2;
+      geno_convert.at(0).at(3) = 3;
+      geno_convert.at(1).at(1) = 1;
+      geno_convert.at(1).at(2) = 2;
+      geno_convert.at(1).at(3) = 3;
       maxLocusValue = 2;
       break;
   }
@@ -135,7 +135,7 @@ void CondLogRegression::initialize_interactions(){
     do{
       done = generator.GenerateCombinations();
       for(comboIndex=0; comboIndex < generator.ComboList.size(); comboIndex++){
-        interaction_lists[curr_num].push_back(generator.ComboList[comboIndex]);
+        interaction_lists[curr_num].push_back(generator.ComboList.at(comboIndex));
       }
     }while(!done);
 
@@ -177,8 +177,8 @@ void CondLogRegression::setModelType(string modelType){
 void CondLogRegression::select_individuals(){
   // at each index the two inds make a stratum for use
   // in the conditional LR
-  strata_inds[0].clear();
-  strata_inds[1].clear();
+  strata_inds.at(0).clear();
+  strata_inds.at(1).clear();
   
   include_strata.clear();
   
@@ -203,11 +203,11 @@ void CondLogRegression::select_individuals(){
       // to be used must match the status
 //        if(ind->getDad() != NULL){
         if(ind->getAffected() && !affected_found){
-          strata_inds[1].push_back(ind);
+          strata_inds.at(1).push_back(ind);
           affected_found=true;
         }
         else if(!ind->getAffected() && !unaffected_found){
-          strata_inds[0].push_back(ind);
+          strata_inds.at(0).push_back(ind);
           unaffected_found=true;
         }
 //        }
@@ -404,8 +404,8 @@ void CondLogRegression::adjust_arrays(conditional_lr_parameters& params,
   for(unsigned int currstrata=0; currstrata< original_strat_size; currstrata++){
     include_this_stratum = true;
     for(currloc=0; currloc < num_loci; currloc++){
-      if(strata_inds[0][currstrata]->get_genotype(loci[currloc]) == (unsigned int)(missingValue) ||
-        strata_inds[1][currstrata]->get_genotype(loci[currloc]) == (unsigned int)(missingValue)){
+      if(strata_inds.at(0).at(currstrata)->get_genotype(loci.at(currloc)) == (unsigned int)(missingValue) ||
+        strata_inds.at(1).at(currstrata)->get_genotype(loci.at(currloc)) == (unsigned int)(missingValue)){
         include_this_stratum = false;
         break;
       }
@@ -498,8 +498,8 @@ void CondLogRegression::fill_params(conditional_lr_parameters& params,
     for(unsigned int currstrata=0; currstrata< strata_inds.size(); currstrata++){
       include_this_stratum = true;
       for(currloc=0; currloc < num_loci; currloc++){
-        if(strata_inds[0][currstrata]->get_genotype(loci[currloc]) == (unsigned int)(missingValue) ||
-          strata_inds[1][currstrata]->get_genotype(loci[currloc]) == (unsigned int)(missingValue)){
+        if(strata_inds.at(0).at(currstrata)->get_genotype(loci.at(currloc)) == (unsigned int)(missingValue) ||
+          strata_inds.at(1).at(currstrata)->get_genotype(loci.at(currloc)) == (unsigned int)(missingValue)){
           include_this_stratum = false;
           break;
         }
@@ -612,33 +612,33 @@ void CondLogRegression::fill_z_array(conditional_lr_parameters& params,
   for(unsigned int stratum=0; stratum < include_strata.size(); ++stratum){
     for(currloc=0; currloc < num_loci; currloc++){
 //     params.z[curr_z_index++] = geno_convert[strata_inds[1][include_strata[stratum]]->get_genotype(loci[currloc])];
-    params.z[curr_z_index++] = geno_convert[ref_alleles[currloc]][strata_inds[1][include_strata[stratum]]->get_genotype(loci[currloc])];
+    params.z[curr_z_index++] = geno_convert.at(ref_alleles.at(currloc)).at(strata_inds.at(1).at(include_strata.at(stratum))->get_genotype(loci.at(currloc)));
     }
     if(interaction_included){
-      for(interact=0; interact < interaction_lists[num_loci].size(); ++interact){
+      for(interact=0; interact < interaction_lists.at(num_loci).size(); ++interact){
 //         params.z[curr_z_index] = geno_convert[strata_inds[1][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][0]])];
-        params.z[curr_z_index] = geno_convert[ref_alleles[interaction_lists[num_loci][interact][0]]][strata_inds[1][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][0]])];
-        for(currloc=1; currloc < interaction_lists[num_loci][interact].size(); currloc++){
+        params.z[curr_z_index] = geno_convert.at(ref_alleles.at(interaction_lists.at(num_loci).at(interact).at(0))).at(strata_inds.at(1).at(include_strata.at(stratum))->get_genotype(loci.at(interaction_lists.at(num_loci).at(interact).at(0))));
+        for(currloc=1; currloc < interaction_lists.at(num_loci).at(interact).size(); currloc++){
           params.z[curr_z_index] *= 
 //             geno_convert[strata_inds[1][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][currloc]])];
-            geno_convert[ref_alleles[interaction_lists[num_loci][interact][0]]][strata_inds[1][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][currloc]])];
+            geno_convert.at(ref_alleles.at(interaction_lists.at(num_loci).at(interact).at(0))).at(strata_inds.at(1).at(include_strata.at(stratum))->get_genotype(loci.at(interaction_lists.at(num_loci).at(interact).at(currloc))));
         }
         curr_z_index++;
       }
     }
     for(currloc=0; currloc < num_loci; currloc++){     
 //       params.z[curr_z_index++] = geno_convert[strata_inds[0][include_strata[stratum]]->get_genotype(loci[currloc])];
-      params.z[curr_z_index++] = geno_convert[ref_alleles[currloc]][strata_inds[0][include_strata[stratum]]->get_genotype(loci[currloc])];
+      params.z[curr_z_index++] = geno_convert.at(ref_alleles.at(currloc)).at(strata_inds.at(0).at(include_strata.at(stratum))->get_genotype(loci.at(currloc)));
     }
     if(interaction_included){
-      for(interact=0; interact < interaction_lists[num_loci].size(); ++interact){
+      for(interact=0; interact < interaction_lists.at(num_loci).size(); ++interact){
          params.z[curr_z_index] = 
 //            geno_convert[strata_inds[0][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][0]])];
-           geno_convert[ref_alleles[interaction_lists[num_loci][interact][0]]][strata_inds[0][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][0]])];
-        for(currloc=1; currloc < interaction_lists[num_loci][interact].size(); currloc++){
+           geno_convert.at(ref_alleles.at(interaction_lists.at(num_loci).at(interact).at(0))).at(strata_inds.at(0).at(include_strata.at(stratum))->get_genotype(loci.at(interaction_lists.at(num_loci).at(interact).at(0))));
+        for(currloc=1; currloc < interaction_lists.at(num_loci).at(interact).size(); currloc++){
           params.z[curr_z_index] *= 
 //             geno_convert[strata_inds[0][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][currloc]])];
-            geno_convert[ref_alleles[interaction_lists[num_loci][interact][currloc]]][strata_inds[0][include_strata[stratum]]->get_genotype(loci[interaction_lists[num_loci][interact][currloc]])];
+            geno_convert.at(ref_alleles.at(interaction_lists.at(num_loci).at(interact).at(currloc))).at(strata_inds.at(0).at(include_strata.at(stratum))->get_genotype(loci.at(interaction_lists.at(num_loci).at(interact).at(currloc))));
         }
         curr_z_index++;
       }

@@ -32,7 +32,7 @@ string Family::toString(){
 void Family::setEnabled(bool v){
 	enabled = v;
     for(int i = 0; i < (int)samples.size(); i++){
-	    Sample* samp = samples[i];
+	    Sample* samp = samples.at(i);
 	    if(samp->isEnabled()){
 		    samp->setEnabled(v);
 		}
@@ -43,7 +43,7 @@ void Family::setEnabled(bool v){
 void Family::addNonFounder(Sample* s){
 	int fsize = nonfounders.size();
 	for(int f = 0; f < fsize; f++){
-		Sample* fsamp = nonfounders[f];
+		Sample* fsamp = nonfounders.at(f);
 		if(fsamp->getInd() == s->getInd() && fsamp->getSex() == s->getSex()){
 			return;
 		}
@@ -54,7 +54,7 @@ void Family::addNonFounder(Sample* s){
 void Family::addFounder(Sample* s){
 	int fsize = founders.size();
 	for(int f = 0; f < fsize; f++){
-		Sample* fsamp = founders[f];
+		Sample* fsamp = founders.at(f);
 
 		if(fsamp->getInd() == s->getInd() && fsamp->getSex() == s->getSex()){
 			return;

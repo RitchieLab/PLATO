@@ -39,7 +39,7 @@ void EigenstratOutput::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -52,8 +52,8 @@ void EigenstratOutput::filter(){
 Sample* EigenstratOutput::find_sample(string i, string f){
 	int ssize = samples->size();
 	for(int s = 0; s < ssize; s++){
-		if((*samples)[s]->getInd() == i && (*samples)[s]->getFamID() == f){
-			return ((*samples)[s]);
+		if((*samples).at(s)->getInd() == i && (*samples).at(s)->getFamID() == f){
+			return ((*samples).at(s));
 		}
 	}
 	return NULL;
@@ -63,7 +63,7 @@ Sample* EigenstratOutput::find_sample(string i, string f){
 bool EigenstratOutput::find_marker(string p){
 	int msize = markers->size();
 	for(int i = 0; i < msize; i++){
-		if((*markers)[i]->getProbeID() == p){
+		if((*markers).at(i)->getProbeID() == p){
 			return true;
 		}
 	}
@@ -74,8 +74,8 @@ bool EigenstratOutput::find_marker(string p){
 int EigenstratOutput::get_marker_loc(int i){
 	int msize = markers->size();
 	for(int m = 0; m < msize; m++){
-		if((*markers)[m]->getLoc() == i){
-			return (*markers)[m]->getLoc();
+		if((*markers).at(m)->getLoc() == i){
+			return (*markers).at(m)->getLoc();
 		}
 	}
 	return -1;
@@ -169,7 +169,7 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 	msize = good_markers.size();
 	bool inddone = false;
 	for(int i = 0; i < msize; i++){
-		Marker* mark = good_markers[i];
+		Marker* mark = good_markers.at(i);
 		if(mark == NULL){
 			continue;
 		}

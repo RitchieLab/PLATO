@@ -116,22 +116,22 @@ double ChiSquareAllelic::poz (double z)
 vector<vector<double> > ChiSquareAllelic::expecteds(vector<vector<int> > & chiTotals){
   int affected=0, unaffected=0;
   vector<int> totalInCell;
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    unaffected+=chiTotals[0][cell];
-    affected+=chiTotals[1][cell];
-    totalInCell.push_back(chiTotals[0][cell] + chiTotals[1][cell]);
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    unaffected+=chiTotals.at(0).at(cell);
+    affected+=chiTotals.at(1).at(cell);
+    totalInCell.push_back(chiTotals.at(0).at(cell) + chiTotals.at(1).at(cell));
   }
 
   float totalinds = float(unaffected) + affected;
   // calculate expected for each cell
   vector<vector<double> > expected;
   expected.resize(2);
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    if( totalInCell[cell] > 0){
-      float unaffexpected = float(totalInCell[cell]) * unaffected / totalinds;
-	  expected[0].push_back(unaffexpected);
-      float affexpected = float(totalInCell[cell]) * affected / totalinds;
-	  expected[1].push_back(affexpected);
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    if( totalInCell.at(cell) > 0){
+      float unaffexpected = float(totalInCell.at(cell)) * unaffected / totalinds;
+	  expected.at(0).push_back(unaffexpected);
+      float affexpected = float(totalInCell.at(cell)) * affected / totalinds;
+	  expected.at(1).push_back(affexpected);
 	}
   }
 
@@ -141,21 +141,21 @@ vector<vector<double> > ChiSquareAllelic::expecteds(vector<vector<int> > & chiTo
 double ChiSquareAllelic::chisquare(vector<vector<int> > & chiTotals){
   int affected=0, unaffected=0;
   vector<int> totalInCell;
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    unaffected+=chiTotals[0][cell];
-    affected+=chiTotals[1][cell];
-    totalInCell.push_back(chiTotals[0][cell] + chiTotals[1][cell]);
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    unaffected+=chiTotals.at(0).at(cell);
+    affected+=chiTotals.at(1).at(cell);
+    totalInCell.push_back(chiTotals.at(0).at(cell) + chiTotals.at(1).at(cell));
   }
 
   float totalinds = float(unaffected) + affected;
   double chiscore=0.0;
   // calculate expected for each cell
-  for(unsigned int cell=0; cell<chiTotals[0].size(); cell++){
-    if( totalInCell[cell] > 0){
-      float unaffexpected = float(totalInCell[cell]) * unaffected / totalinds;
-      float affexpected = float(totalInCell[cell]) * affected / totalinds;
-      chiscore += pow((chiTotals[0][cell]-unaffexpected),2) / unaffexpected;
-      chiscore += pow((chiTotals[1][cell]-affexpected),2) / affexpected;
+  for(unsigned int cell=0; cell<chiTotals.at(0).size(); cell++){
+    if( totalInCell.at(cell) > 0){
+      float unaffexpected = float(totalInCell.at(cell)) * unaffected / totalinds;
+      float affexpected = float(totalInCell.at(cell)) * affected / totalinds;
+      chiscore += pow((chiTotals.at(0).at(cell)-unaffexpected),2) / unaffexpected;
+      chiscore += pow((chiTotals.at(1).at(cell)-affexpected),2) / affexpected;
     }
   }
   return chiscore;

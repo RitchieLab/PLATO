@@ -16,7 +16,7 @@ unsigned int FlatIndex::flatten_indexes(vector<int> & indexes){
   
   unsigned int linear_index = 0;
   for(unsigned int i = 0; i < indexes.size(); i++){
-    linear_index += indexes[i];
+    linear_index += indexes.at(i);
     
     if(i+1 < indexes.size())
       linear_index *= num_genos_per_locus;
@@ -37,7 +37,7 @@ vector<unsigned int> FlatIndex::decode_index(int index, int numloci){
   unsigned long locusIndex;
   for(int i=numloci; i; --i){
     locusIndex = i-1;
-    genotype[locusIndex] = index % num_genos_per_locus;
+    genotype.at(locusIndex) = index % num_genos_per_locus;
     index /= num_genos_per_locus;
   }
   return genotype;
@@ -53,7 +53,7 @@ vector<double> FlatIndex::decode_index_double(int index,  int numloci){
   unsigned long locusIndex;
   for(int i=numloci; i; --i){
     locusIndex = i-1;
-    genotype[locusIndex] = index % num_genos_per_locus;
+    genotype.at(locusIndex) = index % num_genos_per_locus;
     index /= num_genos_per_locus;
   }
   return genotype;
@@ -90,7 +90,7 @@ void FlatIndex::set_included_indexes(int startCombSize, int endCombSize,
       currCombSize++){
       sizeVector = FlatIndex::get_size_array(currCombSize);
       for(currCell=0; currCell<sizeVector; currCell++)
-        includedIndexes[currCombSize].push_back(currCell);
+        includedIndexes.at(currCombSize).push_back(currCell);
     }
   }
   else{
@@ -135,7 +135,7 @@ void FlatIndex::set_non_missing_indexes(int comboSize, int missingValue){
         }
         
         if(!containsMissing){
-          includedIndexes[comboSize].push_back(FlatIndex::flatten_indexes(loc_indexes));
+          includedIndexes.at(comboSize).push_back(FlatIndex::flatten_indexes(loc_indexes));
         }
         indexes[cur_depth]++;
       }

@@ -74,7 +74,7 @@ bool ComboGenerator::GenerateCombinations(){
       for (int i=kdec; i >= 1; i--)
       {
     // Add an element to the new combination
-    ComboList[counter].push_back(c[i]-1);
+    ComboList.at(counter).push_back(c[i]-1);
       }
 
 

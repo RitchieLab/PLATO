@@ -45,7 +45,7 @@ void Epistasis::PrintSummary(){
 	int msize = markers->size();
 
 	for(int i = 0; i < msize; i++){
-		(*markers)[i]->setFlag(false);
+		(*markers).at(i)->setFlag(false);
 	}
 
 }
@@ -121,7 +121,7 @@ void Epistasis::evalBioFile(ofstream &EPI)
 		{
 			for(int i = 0; i < (int)snp_list.size(); i++)
 			{
-				epi_log << snp1 << " " << snp_list[i] << " ---> " << snp1 << " not found!" << endl;
+				epi_log << snp1 << " " << snp_list.at(i) << " ---> " << snp1 << " not found!" << endl;
 			}
 			continue;
 		}
@@ -132,7 +132,7 @@ void Epistasis::evalBioFile(ofstream &EPI)
 			{
 				for(int i = 0; i < (int)snp_list.size(); i++)
 				{
-					epi_log << snp1 << " " << snp_list[i] << " ---> " << snp1 << " is disabled!" << endl;
+					epi_log << snp1 << " " << snp_list.at(i) << " ---> " << snp1 << " is disabled!" << endl;
 				}
 				continue;
 			}
@@ -141,23 +141,23 @@ void Epistasis::evalBioFile(ofstream &EPI)
 				Marker* s2 = NULL;
 				try
 				{
-					int s2_loc = data_set->get_locus_index(snp_list[i]);
+					int s2_loc = data_set->get_locus_index(snp_list.at(i));
 					if(s2_loc == s1->getLoc())
 					{
-						epi_log << snp1 << " " << snp_list[i] << " ---> " << "Snps have same index!" << endl;
+						epi_log << snp1 << " " << snp_list.at(i) << " ---> " << "Snps have same index!" << endl;
 						continue;
 					}
 					s2 = data_set->get_locus(s2_loc);
 				}
 				catch(MethodException & ex)
 				{
-					epi_log << snp1 << " " << snp_list[i] << " ---> " << snp_list[i] << " not found!" << endl;
+					epi_log << snp1 << " " << snp_list.at(i) << " ---> " << snp_list.at(i) << " not found!" << endl;
 				}
 				if(s2 != NULL)
 				{
 					if(!s2->isEnabled())
 					{
-						epi_log << snp1 << " " << snp_list[i] << " ---> " << snp_list[i] << " is disabled!" << endl;
+						epi_log << snp1 << " " << snp_list.at(i) << " ---> " << snp_list.at(i) << " is disabled!" << endl;
 						continue;
 					}
 
@@ -414,8 +414,8 @@ void Epistasis::evalBioFile(ofstream &EPI)
 							vector<double> ses = logr.getCoeffStandardErr();
 							if(ses.size() > 0 && b.size() > 0)
 							{
-								double se = ses[2];
-								double Z = b[2] / se;
+								double se = ses.at(2);
+								double Z = b.at(2) / se;
 								chisq = Z*Z;
 							}
 						}
@@ -466,11 +466,11 @@ void Epistasis::evalBioFile(ofstream &EPI)
 							if (!notvalid)
 							{
 								if (opts::_BINTRAIT_)
-									EPI << exp(b[2]) << " "
+									EPI << exp(b.at(2)) << " "
 											<< chisq << " " << pvalue
 											<< " " << "\n";
 								else
-									EPI << b[1] << " " << b[2] << " " << b[3] << " "
+									EPI << b.at(1) << " " << b.at(2) << " " << b.at(3) << " "
 											<< chisq << " " << pvalue
 											<< " " << r2
 											<< " " << fstat
@@ -487,14 +487,14 @@ void Epistasis::evalBioFile(ofstream &EPI)
 
 									for(int l = 1; l < (int)labels.size(); l++)
 									{
-										bool okay = vars[l] < 1e-20 || !Helpers::realnum(vars[l]) ? false : true;
+										bool okay = vars.at(l) < 1e-20 || !Helpers::realnum(vars.at(l)) ? false : true;
 										double se = 0;
 										if(okay)
 										{
-											se = sqrt(vars[l]);
+											se = sqrt(vars.at(l));
 										}
 										EPI << s1->getChrom() << "\t" << s1->getRSID() << "\t" << s2->getChrom() << "\t" << s2->getRSID() << "\t";
-										EPI << labels[l] << "\t" << "\t" << coefs[l] << "\t" << exp(coefs[l]) << "\t" << se << "\t" << zs[l] << "\t" << pvals[l] << endl;
+										EPI << labels.at(l) << "\t" << "\t" << coefs.at(l) << "\t" << exp(coefs.at(l)) << "\t" << se << "\t" << zs.at(l) << "\t" << pvals.at(l) << endl;
 									}
 								}
 							}
@@ -632,7 +632,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		vector<int> first_set;
 		for(int e = 0; e < (int)first_set_str.size(); e++)
 		{
-			int loc = data_set->get_locus_index(first_set_str[e]);
+			int loc = data_set->get_locus_index(first_set_str.at(e));
 			vector<int>::iterator iter = find(good_indexes.begin(), good_indexes.end(), loc);
 			if(iter != good_indexes.end())
 			{
@@ -641,7 +641,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		}
 		for (unsigned int e = 0; e < first_set.size(); e++)
 		{
-			sA[first_set[e]] = true;
+			sA[first_set.at(e)] = true;
 		}
 		// Has a second set been specified?
 
@@ -652,11 +652,11 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 			second_set_str = setiter->second;
 			for (unsigned int e = 0; e < second_set_str.size(); e++)
 			{
-				int loc = data_set->get_locus_index(second_set_str[e]);
+				int loc = data_set->get_locus_index(second_set_str.at(e));
 				vector<int>::iterator iter = find(good_indexes.begin(), good_indexes.end(), loc);
 				if(iter != good_indexes.end())
 				{
-					sB[loc] = true;
+					sB.at(loc) = true;
 				}
 			}
 		}
@@ -665,13 +665,13 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 			opts::printLog("SET1 x SET1 epistasis mode\n");
 			skip_symm = true;
 			for (unsigned int e = 0; e < first_set.size(); e++)
-				sB[first_set[e]] = true;
+				sB[first_set.at(e)] = true;
 		}
 		else // All SNPs in second set
 		{
 			opts::printLog("SET1 x ALL epistasis mode\n");
 			for (unsigned int e = 0; e < good_indexes.size(); e++)
-				sB[good_indexes[e]] = true;
+				sB[good_indexes.at(e)] = true;
 		}
 	}
 	else
@@ -680,8 +680,8 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		skip_symm = true;
 		for (unsigned int e = 0; e < good_indexes.size(); e++)
 		{
-			sA[good_indexes[e]] = true;
-			sB[good_indexes[e]] = true;
+			sA[good_indexes.at(e)] = true;
+			sB[good_indexes.at(e)] = true;
 		}
 	}
 
@@ -739,7 +739,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	int ssize = data_set->num_inds();
 	for (int e1 = 0; e1 < nl_all; e1++)
 	{
-		if (sA[e1])
+		if (sA.at(e1))
 		{
 			cout 	<< "Peforming tests of epistasis: group "
 					<< getString<int>(++epcc)
@@ -756,7 +756,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 				// Skip this test under certain conditions
 
 				// The SNP not in the set
-				if (!sB[e2])
+				if (!sB.at(e2))
 				{
 					continue;
 				}
@@ -1025,38 +1025,38 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 						// One more test performed
 						nepi++;
 						// Count as a good result
-						summary_good[e1]++;
-						if (sA[e2])
+						summary_good.at(e1)++;
+						if (sA.at(e2))
 						{
-							summary_good[e2]++;
+							summary_good.at(e2)++;
 						}
 
 						// Do we want to record this as part of the summary for the first set?
 						if (z >= epi_alpha2)
 						{
 							// first variable will always be in A set
-							summary_sig[e1]++;
+							summary_sig.at(e1)++;
 							// but the second may also be in A set
-							if (sA[e2])
+							if (sA.at(e2))
 							{
-								summary_sig[e2]++;
+								summary_sig.at(e2)++;
 							}
 						}
 
 						// Is this result the best scrore yet for marker in set A?
-						if (z > best_score[e1])
+						if (z > best_score.at(e1))
 						{
-							best_score[e1] = z;
-							best_partner[e1] = e2;
+							best_score.at(e1) = z;
+							best_partner.at(e1) = e2;
 						}
 
 						// The second marker might also be in set A
-						if (sA[e2])
+						if (sA.at(e2))
 						{
-							if (z > best_score[e2])
+							if (z > best_score.at(e2))
 							{
-								best_score[e2] = z;
-								best_partner[e2] = e1;
+								best_score.at(e2) = z;
+								best_partner.at(e2) = e1;
 							}
 						}
 
@@ -1129,8 +1129,8 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 						vector<double> ses = logr.getCoeffStandardErr();
 						if(ses.size() > 0 && b.size() > 0)
 						{
-							double se = ses[2];
-							double Z = b[2] / se;
+							double se = ses.at(2);
+							double Z = b.at(2) / se;
 							chisq = Z*Z;
 						}
 					}
@@ -1169,41 +1169,41 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 
 						// Count as a good result
 
-						summary_good[e1]++;
-						if (sA[e2])
+						summary_good.at(e1)++;
+						if (sA.at(e2))
 						{
-							summary_good[e2]++;
+							summary_good.at(e2)++;
 						}
 
 						// Do we want to record this as part of the summary for the first set?
 						if (z >= epi_alpha2)
 						{
 							// first variable will always be in A set
-							summary_sig[e1]++;
+							summary_sig.at(e1)++;
 
 							// but the second may also be in A set
-							if (sA[e2])
+							if (sA.at(e2))
 							{
-								summary_sig[e2]++;
+								summary_sig.at(e2)++;
 							}
 						}
 
 						// Is this result the best scrore yet for marker in set A?
 
-						if (z > best_score[e1])
+						if (z > best_score.at(e1))
 						{
-							best_score[e1] = z;
-							best_partner[e1] = e2;
+							best_score.at(e1) = z;
+							best_partner.at(e1) = e2;
 						}
 
 						// The second marker might also be in set A
 
-						if (sA[e2])
+						if (sA.at(e2))
 						{
-							if (z > best_score[e2])
+							if (z > best_score.at(e2))
 							{
-								best_score[e2] = z;
-								best_partner[e2] = e1;
+								best_score.at(e2) = z;
+								best_partner.at(e2) = e1;
 							}
 						}
 					}
@@ -1219,11 +1219,11 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 						if (!notvalid)
 						{
 							if (opts::_BINTRAIT_)
-								EPI << exp(b[2]) << " "
+								EPI << exp(b.at(2)) << " "
 									<< chisq << " " << pvalue
 									<< " " << "\n";
 							else
-								EPI << b[1] << " " << b[2] << " " << b[3] << " "
+								EPI << b.at(1) << " " << b.at(2) << " " << b.at(3) << " "
 									<< chisq << " " << pvalue
 									<< " " << r2
 									<< " " << fstat
@@ -1239,16 +1239,16 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 								vector<double> zs = lr.getZs();
 								for(int l = 1; l < (int)labels.size(); l++)
 								{
-									bool okay = vars[l] < 1e-20 || !Helpers::realnum(vars[l]) ? false : true;
+									bool okay = vars.at(l) < 1e-20 || !Helpers::realnum(vars.at(l)) ? false : true;
 									double se = 0;
 									if(okay)
 									{
-										se = sqrt(vars[l]);
+										se = sqrt(vars.at(l));
 									}
 									EPI << mark_e1->getChrom() << "\t" << mark_e1->getRSID() << "\t" << mark_e2->getChrom() << "\t" << mark_e2->getRSID() << "\t";
-									EPI << labels[l] << "\t";
-									EPI << coefs[l] << "\t";
-									EPI << exp(coefs[l]) << "\t";
+									EPI << labels.at(l) << "\t";
+									EPI << coefs.at(l) << "\t";
+									EPI << exp(coefs.at(l)) << "\t";
 									EPI << se << endl;
 								}
 							}
@@ -1295,17 +1295,17 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 
 		for (int e1 = 0; e1 < nl_all; e1++)
 		{
-			if (sA[e1])
+			if (sA.at(e1))
 			{
 				EPI << data_set->get_locus(e1)->getChrom() << " "
 						<< data_set->get_locus(e1)->getRSID() << " "
-						<< summary_sig[e1] << " "
-						<< summary_good[e1] << " "
-						<< (double) summary_sig[e1] / (double) summary_good[e1]
-						<< " " << best_score[e1] * best_score[e1]
-						<< " " << data_set->get_locus(best_partner[e1])->getChrom()
+						<< summary_sig.at(e1) << " "
+						<< summary_good.at(e1) << " "
+						<< (double) summary_sig.at(e1) / (double) summary_good.at(e1)
+						<< " " << best_score.at(e1) * best_score.at(e1)
+						<< " " << data_set->get_locus(best_partner.at(e1))->getChrom()
 						<< " "
-						<< data_set->get_locus(best_partner[e1])->getRSID() << " " << "\n";
+						<< data_set->get_locus(best_partner.at(e1))->getRSID() << " " << "\n";
 
 			}
 		}

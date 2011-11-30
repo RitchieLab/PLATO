@@ -72,7 +72,7 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
    	int ssize = samples->size();
 
 	for(int k = 0; k < (int)marker_sets.size(); k++){
-		vector<Marker*> marks = marker_sets[k];
+		vector<Marker*> marks = marker_sets.at(k);
 		int msize = marks.size();
 
 		string fname1 = opts::_OUTPREFIX_ + "input_grr_" + getString<int>(k + 1) + options.getOut() + ".txt";
@@ -108,7 +108,7 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 		bool map_done = false;
 
 		for(int i = 0; i < ssize; i++){
-			Sample* samp = (*samples)[i];
+			Sample* samp = (*samples).at(i);
 			if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 				grr << samp->getFamID() << "\t" << samp->getInd() << "\t" << samp->getDadID() << "\t" << samp->getMomID() << "\t";
 				if(samp->getSex()){
@@ -118,7 +118,7 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 					grr << "2";
 				}
 				for(int m = 0; m < msize; m++){
-					Marker* mark = (marks)[m];
+					Marker* mark = (marks).at(m);
 					if(mark->isEnabled()){
 						int m_loc = mark->getLoc();
 						if(!map_done){

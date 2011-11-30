@@ -21,7 +21,7 @@ vector<string> General::ParseDelimitedLine(string line){
     vector<string> tokens;
     Tokenize(line, temp_tokens, " ");
     for(int i = 0; i < (int)temp_tokens.size(); i++){
-        Tokenize(temp_tokens[i], tokens, "\t");
+        Tokenize(temp_tokens.at(i), tokens, "\t");
     }
     return tokens;
 }

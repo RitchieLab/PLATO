@@ -8,7 +8,7 @@ namespace Methods{
 int DataSet::num_enabled_inds(){
 	int count = 0;
 	for(int i = 0; i < (int)samples.size(); i++){
-		if(samples[i]->isEnabled()){
+		if(samples.at(i)->isEnabled()){
 			count++;
 		}
 	}
@@ -21,7 +21,7 @@ int DataSet::num_enabled_inds(){
 int DataSet::num_enabled_affected(){
 	int count = 0;
 	for(int i = 0; i < (int)affected_inds.size(); i++){
-		if(affected_inds[i]->isEnabled()){
+		if(affected_inds.at(i)->isEnabled()){
 			count++;
 		}
 	}
@@ -34,7 +34,7 @@ int DataSet::num_enabled_affected(){
 int DataSet::num_enabled_unaffected(){
 	int count = 0;
 	for(int i = 0; i < (int)unaffected_inds.size(); i++){
-		if(unaffected_inds[i]->isEnabled()){
+		if(unaffected_inds.at(i)->isEnabled()){
 			count++;
 		}
 	}
@@ -68,13 +68,13 @@ vector<DataSet*> DataSet::generate_case_control_subsets(int size){
 	vector<Sample*> case_pool;
 	vector<Sample*> control_pool;
 	for(int i = 0; i < cases; i++){
-		if(affected_inds[i]->isEnabled()){
-			case_pool.push_back(affected_inds[i]);
+		if(affected_inds.at(i)->isEnabled()){
+			case_pool.push_back(affected_inds.at(i));
 		}
 	}
 	for(int i = 0; i < controls; i++){
-		if(unaffected_inds[i]->isEnabled()){
-			control_pool.push_back(unaffected_inds[i]);
+		if(unaffected_inds.at(i)->isEnabled()){
+			control_pool.push_back(unaffected_inds.at(i));
 		}
 	}
 	unsigned int min_cases = case_pool.size() / 2;
@@ -104,17 +104,17 @@ vector<DataSet*> DataSet::generate_case_control_subsets(int size){
 		if(used == used_samps.end()){
 			used_samps.push_back(random);
 			if(train_samples.size() >= min_cases){
-				test_samples.push_back(case_pool[random]);
+				test_samples.push_back(case_pool.at(random));
 				for(int s = 0; s < (int)case_pool.size(); s++){
 					used = find(used_samps.begin(), used_samps.end(), s);
 					if(used == used_samps.end()){
-						test_samples.push_back(case_pool[s]);
+						test_samples.push_back(case_pool.at(s));
 					}
 				}
 				break;
 			}
 			else{
-				train_samples.push_back(case_pool[random]);
+				train_samples.push_back(case_pool.at(random));
 			}
 		}
 	}
@@ -125,17 +125,17 @@ vector<DataSet*> DataSet::generate_case_control_subsets(int size){
 		if(used == used_samps.end()){
 			used_samps.push_back(random);
 			if(train_control_samples.size() >= min_controls){
-				test_control_samples.push_back(control_pool[random]);
+				test_control_samples.push_back(control_pool.at(random));
 				for(int s = 0; s < (int)control_pool.size(); s++){
 					used = find(used_samps.begin(), used_samps.end(), s);
 					if(used == used_samps.end()){
-						test_control_samples.push_back(control_pool[s]);
+						test_control_samples.push_back(control_pool.at(s));
 					}
 				}
 				break;
 			}
 			else{
-				train_control_samples.push_back(control_pool[random]);
+				train_control_samples.push_back(control_pool.at(random));
 			}
 		}
 	}
@@ -188,7 +188,7 @@ void DataSet::recreate_family_vector(){
 	}
 	vector<Family*>::iterator f_iter;
 	for(unsigned int i = 0; i < samples.size(); i++){
-		Sample* samp = samples[i];
+		Sample* samp = samples.at(i);
 		f_iter = find_if(families.begin(), families.end(), FindFamily(samp->getFamID()));
 		if(f_iter == families.end()){
 			Family* fam = new Family();
@@ -210,7 +210,7 @@ void DataSet::recreate_family_vector(){
 int DataSet::find_snp_index_by_name(string name){
 	int found = -1;
 	for(unsigned int i = 0; i < markers.size(); i++){
-		if(markers[i]->getRSID() == name){
+		if(markers.at(i)->getRSID() == name){
 			return i;
 		}
 	}
@@ -229,10 +229,10 @@ void DataSet::set_affection_vectors(){
   unsigned int curr_ind;
   unsigned int num_samples = num_inds();
   for(curr_ind = 0; curr_ind < num_samples; curr_ind++){
-    if(samples[curr_ind]->getAffected())
-      affected_inds.push_back(samples[curr_ind]);
+    if(samples.at(curr_ind)->getAffected())
+      affected_inds.push_back(samples.at(curr_ind));
     else
-      unaffected_inds.push_back(samples[curr_ind]);
+      unaffected_inds.push_back(samples.at(curr_ind));
   }
 
 }
@@ -285,7 +285,7 @@ void DataSet::check_for_missing(){
 
   for(curr_ind=0; curr_ind < total_inds; curr_ind++){
     for(curr_marker=0; curr_marker < total_markers; curr_marker++){
-      if(samples[curr_ind]->get_genotype(curr_marker) == missing_value){
+      if(samples.at(curr_ind)->get_genotype(curr_marker) == missing_value){
         any_missing = true;
         return;
       }
@@ -303,7 +303,7 @@ void DataSet::check_for_missing(){
 vector<double> DataSet::get_covariates_by_index(int i){
 	vector<double> values;
 	for(unsigned int s = 0; s < samples.size(); s++){
-		values.push_back(samples[s]->getCovariate(i));
+		values.push_back(samples.at(s)->getCovariate(i));
 	}
 	return values;
 }
@@ -314,7 +314,7 @@ vector<double> DataSet::get_covariates_by_index(int i){
 vector<double> DataSet::get_traits_by_index(int i){
 	vector<double> values;
 	for(unsigned int s = 0; s < samples.size(); s++){
-		values.push_back(samples[s]->getTrait(i));
+		values.push_back(samples.at(s)->getTrait(i));
 	}
 	return values;
 }
@@ -329,22 +329,22 @@ vector<string> DataSet::convert_geno_tostring(vector<unsigned int> genos, vector
 
 	for(unsigned int g = 0; g < genos.size(); g++){
 		if(g < loci.size()){
-			Marker* mark = markers[loci[g]];
-			if(genos[g] == 0){
-				strgenos[g] = mark->getAllele1() + "_" + mark->getAllele1();
+			Marker* mark = markers[loci.at(g)];
+			if(genos.at(g) == 0){
+				strgenos.at(g) = mark->getAllele1() + "_" + mark->getAllele1();
 			}
-			else if(genos[g] == 1){
-				strgenos[g] = mark->getAllele1() + "_" + mark->getAllele2();
+			else if(genos.at(g) == 1){
+				strgenos.at(g) = mark->getAllele1() + "_" + mark->getAllele2();
 			}
-			else if(genos[g] == 2){
-				strgenos[g] = mark->getAllele2() + "_" + mark->getAllele2();
+			else if(genos.at(g) == 2){
+				strgenos.at(g) = mark->getAllele2() + "_" + mark->getAllele2();
 			}
 			else{
-				strgenos[g] = "0_0";
+				strgenos.at(g) = "0_0";
 			}
 		}
 		else{
-			strgenos[g] = getString<int>(genos[g]);//traits[traitcount++];
+			strgenos.at(g) = getString<int>(genos.at(g));//traits[traitcount++];
 		}
 	}
 	return strgenos;
@@ -400,13 +400,13 @@ void DataSet::shuffle_inds(){
       lastActive = currSize - 1;
 
       // swap last affected and unaffected
-      tempHolder = affected_inds[lastActive];
-      affected_inds[lastActive] = affected_inds[randIndex];
-      affected_inds[randIndex] = tempHolder;
+      tempHolder = affected_inds.at(lastActive);
+      affected_inds.at(lastActive) = affected_inds.at(randIndex);
+      affected_inds.at(randIndex) = tempHolder;
 
-      tempHolder = unaffected_inds[lastActive];
-      unaffected_inds[lastActive] = unaffected_inds[randIndex];
-      unaffected_inds[randIndex] = tempHolder;
+      tempHolder = unaffected_inds.at(lastActive);
+      unaffected_inds.at(lastActive) = unaffected_inds.at(randIndex);
+      unaffected_inds.at(randIndex) = tempHolder;
 
       currSize--;
     }
@@ -426,16 +426,16 @@ void DataSet::shuffle_inds(){
       // swap this individual and one after with last positions
 
       // add to unaffected and affected
-      if(samples[randIndex]->getAffected()){
-        affected_inds.push_back(samples[randIndex]);
+      if(samples.at(randIndex)->getAffected()){
+        affected_inds.push_back(samples.at(randIndex));
       }
       else{
-        unaffected_inds.push_back(samples[randIndex]);
+        unaffected_inds.push_back(samples.at(randIndex));
       }
 
-      tempHolder = samples[randIndex];
-      samples[randIndex] = samples[lastActive];
-      samples[lastActive] = tempHolder;
+      tempHolder = samples.at(randIndex);
+      samples.at(randIndex) = samples.at(lastActive);
+      samples.at(lastActive) = tempHolder;
 
       currSize--;
     }
@@ -479,7 +479,7 @@ void DataSet::add_ind(Sample* ind){
 /// @return int index
 int DataSet::get_covariate_index(string v){
 	for(int i = 0; i < (int)covariates.size(); i++){
-		if(v == covariates[i]){
+		if(v == covariates.at(i)){
 			return i;
 		}
 	}
@@ -492,7 +492,7 @@ int DataSet::get_covariate_index(string v){
 /// @return int index
 int DataSet::get_trait_index(string v){
 	for(int i = 0; i < (int)traits.size(); i++){
-		if(v == traits[i]){
+		if(v == traits.at(i)){
 			return i;
 		}
 	}
@@ -505,7 +505,7 @@ int DataSet::get_trait_index(string v){
 unsigned int DataSet::num_males(){
 	unsigned int count = 0;
 	for(unsigned int i = 0; i < samples.size(); i++){
-		if(samples[i]->getSex()){
+		if(samples.at(i)->getSex()){
 			count++;
 		}
 	}
@@ -518,7 +518,7 @@ unsigned int DataSet::num_males(){
 unsigned int DataSet::num_females(){
 	unsigned int count = 0;
 	for(unsigned int i = 0; i < samples.size(); i++){
-		if(!samples[i]->getSex()){
+		if(!samples.at(i)->getSex()){
 			count++;
 		}
 	}
