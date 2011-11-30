@@ -125,7 +125,7 @@ void ProcessEarth::process(DataSet* ds) {
 
 	//	lr.setModelType(options.getLRModelType());
 
-	double zt = ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
+//	double zt = ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
 	int prev_base = 0;
 	int prev_chrom = -1;
 	InputFilter ct_filter;
@@ -177,7 +177,7 @@ void ProcessEarth::process(DataSet* ds) {
 			int snploc = iter - ds->get_markers()->begin();
 			if (mark->isEnabled() && isValidMarker(mark, &options, prev_base,
 					prev_chrom)) {
-				int nmiss = 0;
+//				int nmiss = 0;
 				for (int s = 0; s < ds->num_inds(); s++) {
 					Sample* samp = ds->get_sample(s);
 					if (!samp->isEnabled() || samp->getAmissing(mark->getLoc())) {
@@ -213,7 +213,7 @@ void ProcessEarth::process(DataSet* ds) {
 			Marker* mark = ds->get_locus(m);
 			if (mark->isEnabled() && isValidMarker(mark, &options, prev_base,
 					prev_chrom)) {
-				int nmiss = 0;
+//				int nmiss = 0;
 				for (int s = 0; s < ds->num_inds(); s++) {
 					Sample* samp = ds->get_sample(s);
 					if (!samp->isEnabled() || samp->getAmissing(mark->getLoc())) {

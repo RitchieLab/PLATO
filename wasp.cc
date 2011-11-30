@@ -3606,7 +3606,7 @@ void printFamilies(vector<Family*>* families) {
 						map<int, vector<Sample*> >::iterator titer;
 						for(titer = levelstemp.begin(); titer != levelstemp.end(); titer++){
 							vector<Sample*> mysamps = titer->second;
-							for(int ms = 0; ms < mysamps.size(); ms++){
+							for(unsigned int ms = 0; ms < mysamps.size(); ms++){
 								levels[titer->first].push_back(mysamps[ms]);
 							}
 						}
@@ -3632,7 +3632,7 @@ void printFamilies(vector<Family*>* families) {
 						map<int, vector<Sample*> >::iterator titer;
 						for(titer = levelstemp.begin(); titer != levelstemp.end(); titer++){
 							vector<Sample*> mysamps = titer->second;
-							for(int ms = 0; ms < mysamps.size(); ms++){
+							for(unsigned int ms = 0; ms < mysamps.size(); ms++){
 								levels[titer->first].push_back(mysamps[ms]);
 							}
 						}
@@ -3645,7 +3645,7 @@ void printFamilies(vector<Family*>* families) {
 				//sort(levels.begin(), levels.end());
 				//fdout << "\t" << levels[levels.size() - 1];
 			}
-			vector<Sample*>* fsamps = fam->getSamples();
+//			vector<Sample*>* fsamps = fam->getSamples();
 			int affected = 0;
 //			for(int s = 0; s < fsamps->size(); s++){
 //				if((*fsamps)[s]->getPheno() == 2 && (*fsamps)[s]->isFlagged()){
@@ -3663,7 +3663,7 @@ void printFamilies(vector<Family*>* families) {
 			for(iter = levels.begin(); iter != levels.end(); iter++){
 				vector<Sample*> mysamps = iter->second;
 				map<Sample*, bool> newsamps;
-				for(int ms = 0; ms < mysamps.size(); ms++){
+				for(unsigned int ms = 0; ms < mysamps.size(); ms++){
 					newsamps[mysamps[ms]] = mysamps[ms]->getAffected();
 				}
 				map<Sample*, bool>::iterator niter;
@@ -3693,7 +3693,7 @@ void printFamilies(vector<Family*>* families) {
 				int laffected = 0;
 				vector<Sample*> mysamps = iter->second;
 				map<Sample*, bool> newsamps;
-				for(int ms = 0; ms < mysamps.size(); ms++){
+				for(unsigned int ms = 0; ms < mysamps.size(); ms++){
 					newsamps[mysamps[ms]] = mysamps[ms]->getAffected();
 				}
 				bool incme = false;
@@ -3798,7 +3798,7 @@ map<int, vector<Sample*> > descendTree3(Sample* sample, int level){
 		map<int, vector<Sample*> >::iterator iter;
 		for(iter = tempvalues.begin(); iter != tempvalues.end(); iter++){
 			vector<Sample*> samps = iter->second;
-			for(int is = 0; is < samps.size(); is++){
+			for(unsigned int is = 0; is < samps.size(); is++){
 				values[iter->first].push_back(samps[is]);
 			}
 		}

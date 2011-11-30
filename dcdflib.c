@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <string>
 #include <stdlib.h>
 #include <math.h>
 #include "cdflib.h"
@@ -9202,7 +9204,7 @@ Prints msg to standard error and then exits
 void ftnstop(char* msg)
 /* msg - error message */
 {
-  if (msg != NULL) fprintf(stderr,"%s\n",msg);
+  if (msg != "") fprintf(stderr, "%s\n", msg);
   exit(0);
 }
 

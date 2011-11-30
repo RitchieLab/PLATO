@@ -118,8 +118,8 @@ void ProcessKinship::process(DataSet* ds) {
 	Kinship kin;
 //	kin.set_parameters(&options);
 	kin.resetDataSet(ds);
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+	//int prev_chrom = -1;
 
 		eout << "FamID\tIndID\tCMP_IndID\tKinshipCoef\n";
 
