@@ -25,7 +25,7 @@ void Process::setMarkerList(){};
 void Process::setStratify(){};
 void Process::setOrder(int o){};
 void Process::setOverwrite(bool v){};
-bool Process::hasIncExc(){};
+//bool Process::hasIncExc(){};
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif
