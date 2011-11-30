@@ -585,6 +585,9 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	double epi_alpha1 = fabs(Helpers::ltqnorm(options.get_epi_alpha1() / 2));
 	double epi_alpha2 = fabs(Helpers::ltqnorm(options.get_epi_alpha2() / 2));
 
+	cout << "Epi_alpha1: " << getString<double>(epi_alpha1) << endl;
+	cout << "Epi_alpha2: " << getString<double>(epi_alpha2) << endl;
+
 	// Fast epistasis:  case-only or case/control
 	// Regression based test: case/control or quantitative trait
 
@@ -1209,8 +1212,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 
 					// Is this result worth displaying?
 					// TODO:  figure out if this needs to be changed or if my data just doesn't give good enough results....
-					//if (z >= epi_alpha1)
-					if (true)
+					if (z >= epi_alpha1)
 					{
 						EPI << mark_e1->getChrom() << " "
 						    << mark_e1->getRSID() << " "
