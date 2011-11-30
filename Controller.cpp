@@ -24,7 +24,6 @@ void Controller::drop_table(Database* db, string table)
 	Query query(*db);
 	if(!query.execute(sql.c_str()))
 	{
-		//throw PlatoViewerException(query.GetError());
 		throw MethodException(query.GetError());
 	}
 	string tableName = "";
