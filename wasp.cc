@@ -3536,38 +3536,46 @@ void flipStrand(vector<Marker*>* markers){
  *outputs the structure of all families
  *
  */
-void printFamilies(vector<Family*>* families){
+void printFamilies(vector<Family*>* families) {
 	int fsize = families->size();
 
 	string fname = opts::_OUTPREFIX_ + "family_structure.txt";
 	ofstream fout (fname.c_str());
-	if(!fout.is_open()){
+	if(!fout.is_open()) {
 		opts::printLog("Unable to open " + fname + "\n");
 		exit(1);
 	}
-	for(int f = 0; f < fsize; f++){
+
+	fname = opts::_OUTPREFIX_ + "family_data.txt";
+	ofstream fdout (fname.c_str());
+	if(!fdout.is_open()) {
+		opts::printLog("Unable to open " + fname + "\n");
+		exit(1);
+	}
+
+	for(int f = 0; f < fsize; f++) {
 		Family* fam = (*families)[f];
-		if(fam->isEnabled()){
+		if(fam->isEnabled()) {
 			fout << "Family: " << fam->getFamID() << endl;
 			fout << "----------------------------------------------------------" << endl;
 			vector<Sample*>* founders = fam->getFounders();
 			int size = founders->size();
-			if(size > 0){
-				for(int fs = 0; fs < size; fs++){
+			if(size> 0) {
+				for(int fs = 0; fs < size; fs++) {
 					Sample* founder = (*founders)[fs];
-					if(founder->isEnabled() || (founder->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
+					if(founder->isEnabled() || (founder->isExcluded() && opts::_KEEP_EXC_SAMPLES_)) {
 						fout << "Founder: " << founder->getInd() << endl;
 						fout << descendTree(founder, 0) << endl;
 					}
 				}
 			}
-			else{
+			else {
 				fout << "No Founders...\n";
 				vector<Sample*>* samps = fam->getSamples();
 				int ssize = samps->size();
-				for(int ss = 0; ss < ssize; ss++){
+				for(int ss = 0; ss < ssize; ss++) {
 					Sample* samp = (*samps)[ss];
-					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
+					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)) {
 						fout << descendTree(samp, 0) << endl;
 					}
 				}
@@ -3576,7 +3584,159 @@ void printFamilies(vector<Family*>* families){
 		}
 	}
 
+	fdout << "FamID\tMultigenerational?\tMutigen_with_affecteds\tTotal_Generations\tTotal_Num_Affected\tGeneration1-N_Affected Counts\n";
+	//output summary levels & affecteds
+	for(int f = 0; f < fsize; f++){
+		Family* fam = (*families)[f];
+		if(fam->isEnabled()){
+			map<int, vector<Sample*> > levels;
+			fdout << fam->getFamID();
+			vector<Sample*>* founders = fam->getFounders();
+			int size = founders->size();
+			if(size > 0){
+				//vector<int> levels(size);
+				for(int fs = 0; fs < size; fs++){
+					Sample* founder = (*founders)[fs];
+					if(founder->isEnabled() || (founder->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
+						//levels[fs] = descendTree3(founder, 0);
+						map<int, vector<Sample*> > levelstemp = descendTree3(founder, 1);
+						//if(founder->getPheno() == 2){// && !founder->isFlagged()){
+						map<int, vector<Sample*> >::iterator titer;
+						for(titer = levelstemp.begin(); titer != levelstemp.end(); titer++){
+							vector<Sample*> mysamps = titer->second;
+							for(int ms = 0; ms < mysamps.size(); ms++){
+								levels[titer->first].push_back(mysamps[ms]);
+							}
+						}
+						levels[1].push_back(founder);
+//							founder->setFlag(true);
+						//}
+					}
+				}
+				//sort(levels.begin(), levels.end());
+				//fdout << "\t" << levels[levels.size() - 1];
+			}
+			else{
+				vector<Sample*>* samps = fam->getSamples();
+				int ssize = samps->size();
+				//vector<int> levels(ssize);
+				//map<int, int> levels;
+				for(int ss = 0; ss < ssize; ss++){
+					Sample* samp = (*samps)[ss];
+					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
+						//levels[ss] = descendTree3(samp, 0);
+						map<int, vector<Sample*> > levelstemp = descendTree3(samp, 1);
+						//if(samp->getPheno() == 2){// && !samp->isFlagged()){
+						map<int, vector<Sample*> >::iterator titer;
+						for(titer = levelstemp.begin(); titer != levelstemp.end(); titer++){
+							vector<Sample*> mysamps = titer->second;
+							for(int ms = 0; ms < mysamps.size(); ms++){
+								levels[titer->first].push_back(mysamps[ms]);
+							}
+						}
+						levels[1].push_back(samp);
+//							samp->setFlag(true);
+						//}
+					}
+				}
+
+				//sort(levels.begin(), levels.end());
+				//fdout << "\t" << levels[levels.size() - 1];
+			}
+			vector<Sample*>* fsamps = fam->getSamples();
+			int affected = 0;
+//			for(int s = 0; s < fsamps->size(); s++){
+//				if((*fsamps)[s]->getPheno() == 2 && (*fsamps)[s]->isFlagged()){
+					//affected++;
+//					(*fsamps)[s]->setFlag(false);
+//				}
+//			}
+			map<int, vector<Sample*> >::iterator iter = levels.end();
+			if(levels.size() > 1){
+				fdout << "\tY";
+			}
+			else{
+				fdout << "\tN";
+			}
+			for(iter = levels.begin(); iter != levels.end(); iter++){
+				vector<Sample*> mysamps = iter->second;
+				map<Sample*, bool> newsamps;
+				for(int ms = 0; ms < mysamps.size(); ms++){
+					newsamps[mysamps[ms]] = mysamps[ms]->getAffected();
+				}
+				map<Sample*, bool>::iterator niter;
+				for(niter = newsamps.begin(); niter != newsamps.end(); niter++){
+
+					if(niter->second){
+						bool useme = true;
+						map<int, vector<Sample*> >::iterator tempiter;
+						for(tempiter = levels.begin(); tempiter != levels.end(); tempiter++){
+							if(tempiter->first > iter->first){
+								vector<Sample*> findsamples = tempiter->second;
+								vector<Sample*>::iterator findme = find(findsamples.begin(), findsamples.end(), niter->first);
+								if(findme != findsamples.end()){
+									useme = false;
+									break;
+								}
+							}
+						}
+						if(useme)
+							affected++;
+					}
+				}
+			}
+			string affcounts = "";
+			int numlevelsofaff = 0;
+			for(iter = levels.begin(); iter != levels.end(); iter++){
+				int laffected = 0;
+				vector<Sample*> mysamps = iter->second;
+				map<Sample*, bool> newsamps;
+				for(int ms = 0; ms < mysamps.size(); ms++){
+					newsamps[mysamps[ms]] = mysamps[ms]->getAffected();
+				}
+				bool incme = false;
+				map<Sample*, bool>::iterator niter;
+				for(niter = newsamps.begin(); niter != newsamps.end(); niter++){
+					if(niter->second){
+						bool useme = true;
+						map<int, vector<Sample*> >::iterator tempiter;
+						for(tempiter = levels.begin(); tempiter != levels.end(); tempiter++){
+							if(tempiter->first > iter->first){
+								vector<Sample*> findsamples = tempiter->second;
+								vector<Sample*>::iterator findme = find(findsamples.begin(), findsamples.end(), niter->first);
+								if(findme != findsamples.end()){
+									useme = false;
+									break;
+								}
+							}
+						}
+						if(useme){
+							laffected++;
+							if(!incme){
+								numlevelsofaff++;
+								incme = true;
+							}
+						}
+					}
+				}
+				affcounts += "\t" + getString<int>(laffected);
+			}
+			if(numlevelsofaff > 1){
+				fdout << "\tY";
+			}
+			else{
+				fdout << "\tN";
+			}
+			fdout << "\t" << levels.size();
+			fdout << "\t" << affected;
+			fdout << affcounts;
+			fdout << endl;
+		}
+	}
+
 	fout.close();
+	fdout.close();
+
 }
 
 /*
@@ -3614,6 +3774,45 @@ string descendTree(Sample* sample, int level){
 	}
 	return val;
 }
+
+
+/*
+ *Function: descendTree3
+ *Description: returns # of levels
+ *Recursively moves through pedigree until the child leaves are found to find structure
+ */
+map<int, vector<Sample*> > descendTree3(Sample* sample, int level){
+	map<int, vector<Sample*> > values;
+
+	vector<Sample*>* children = sample->getChildren();
+	if(children->size() == 0){
+		return values;
+		//return level;
+	}
+	int csize = children->size();
+	vector<int> levels(csize);
+	for(int c = 0; c < csize; c++){
+		map<int, vector<Sample*> > tempvalues = descendTree3((*children)[c], (level + 1));
+		map<int, vector<Sample*> >::iterator iter;
+		for(iter = tempvalues.begin(); iter != tempvalues.end(); iter++){
+			vector<Sample*> samps = iter->second;
+			for(int is = 0; is < samps.size(); is++){
+				values[iter->first].push_back(samps[is]);
+			}
+		}
+//		if((*children)[c]->getPheno() == 2){// && !(*children)[c]->isFlagged()){
+			values[(level + 1)].push_back((*children)[c]);
+			//(*children)[c]->setFlag(true);
+//		}
+	}
+//	sort(levels.begin(), levels.end());
+//	level = levels[levels.size() - 1];
+	return values;
+}
+
+
+
+
 
 /*
  *Function: compileOutputs
