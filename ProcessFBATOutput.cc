@@ -37,8 +37,17 @@ namespace PlatoLib
 {
 #endif
 
-void ProcessFBATOutput::FilterSummary(){
+ProcessFBATOutput::ProcessFBATOutput(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "Output FBAT";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
 }
+
+void ProcessFBATOutput::FilterSummary(){}
 
 void ProcessFBATOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -48,15 +57,18 @@ void ProcessFBATOutput::PrintSummary(){
 	}
 }
 
-void ProcessFBATOutput::filter(){
-}
+void ProcessFBATOutput::filter(){}
 
 void ProcessFBATOutput::process(DataSet* ds){
 	data_set = ds;
 
 	FBATOutput fbat;
 	fbat.setOrder(this->order);
-	fbat.setOverwrite(this->overwrite);
+	#ifdef PLATOLIB
+		fbat.setOverwrite(true);
+	#else
+		fbat.setOverwrite(this->overwrite);
+	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
 		for(int i = 0; i < (int)sample_sets.size(); i++){
@@ -70,6 +82,9 @@ void ProcessFBATOutput::process(DataSet* ds){
 			ds.set_traits(data_set->get_traits());
 			ds.recreate_family_vector();
 			string tempout = options.getOut();
+			#ifdef PLATOLIB
+				FixOutputName();
+			#endif
 			options.setOut("_random_set_" + getString<int>(i + 1) + tempout);
 			fbat.setOptions(options);
 			fbat.calculate(&ds);
@@ -78,10 +93,36 @@ void ProcessFBATOutput::process(DataSet* ds){
 		}
 	}
 	else{
+	#ifdef PLATOLIB
+		FixOutputName();
+	#endif
 	fbat.setOptions(options);
 	fbat.calculate(data_set);
 	}
 }
+
+void ProcessFBATOutput::dump2db(){}
+void ProcessFBATOutput::create_tables(){}
+
+#ifdef PLATOLIB
+	void ProcessFBATOutput::run(DataSetObject* ds)
+	{
+		process(ds);
+	}
+
+	void ProcessFBATOutput::FixOutputName()
+	{
+
+		#ifdef WIN
+				//use windows version of project path + batchname
+				options.setOverrideOut(projectPath + "\\" + batchname + "_" + name +  "_" + getString<int>(position));
+		#else
+				//use non-windows version of project path + batchname
+				options.setOverrideOut(projectPath + "/" + batchname + "_" + name +  "_" + getString<int>(position));
+		#endif
+
+	}
+#endif
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

@@ -48,11 +48,12 @@ class ProcessBEAGLEOutput : public Process{
 		int orig_num_families;
 		int orig_num_individuals;
 		int rank;
+		int order;
 		bool _DBOUTPUT_;
 		bool _MARKERLIST_;
 		bool _STRATIFY_;
 		bool overwrite;
-		int order;
+		string projectPath;
 
 	public:
 		ProcessBEAGLEOutput(){
@@ -103,6 +104,7 @@ class ProcessBEAGLEOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessBEAGLEOutput(string, int, Database*, string);
 		~ProcessBEAGLEOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -130,8 +132,9 @@ class ProcessBEAGLEOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
         bool hasIncExc(){return options.doIncExcludedSamples();};
-        void run(DataSetObject*){};
+        void run(DataSetObject*);
         void dump2db(){};
+        void create_tables();
 };
 #ifdef PLATOLIB
 };

@@ -4,6 +4,7 @@
  *  Created on: Jun 24, 2010
  *      Author: cozartc
  */
+#include <iostream>
 #include "Controller.h"
 #include "libsqlitewrapped.h"
 

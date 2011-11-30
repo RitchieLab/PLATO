@@ -133,9 +133,9 @@ class ProcessAlleleFrequency : public Process{
 			families = NULL;
 			rank = 0;
 			order = 0;
-		 orig_num_markers = 0;
-		 orig_num_families = 0;
-		 orig_num_individuals = 0;
+			orig_num_markers = 0;
+			orig_num_families = 0;
+			orig_num_individuals = 0;
 		};
 		ProcessAlleleFrequency(vector<Sample*>* samps, vector<Family*>* fams){
 			data_set = NULL;

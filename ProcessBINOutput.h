@@ -52,6 +52,7 @@ class ProcessBINOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessBINOutput(){
@@ -98,7 +99,8 @@ class ProcessBINOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-		~ProcessBINOutput(){};
+		ProcessBINOutput(string, int, Database*, string);
+		~ProcessBINOutput();
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();
@@ -129,8 +131,9 @@ class ProcessBINOutput : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 //define the PlatoLib namespace for use with Plato as a library
 #ifdef PLATOLIB

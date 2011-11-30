@@ -60,6 +60,9 @@ class ProcessDeletions : public Process{
 		vector<int> serrors;
 		vector< map<string,int> > senzyme;
 		vector<vector<int> > error_map;
+		string defaultinsert;
+		string sampleinsert;
+		string projectPath;
 
 	public:
 		ProcessDeletions() : Process(){
@@ -93,6 +96,7 @@ class ProcessDeletions : public Process{
 			orig_num_families = 0;
 			orig_num_samples = 0;
 		};
+		ProcessDeletions(string, int, Database*, string);
 		virtual ~ProcessDeletions(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -116,8 +120,10 @@ class ProcessDeletions : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void resize(int);
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

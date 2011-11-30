@@ -44,9 +44,23 @@ namespace PlatoLib
 
 string ProcessEigenstratOutput::stepname = "output-eigenstrat";
 
-
-void ProcessEigenstratOutput::FilterSummary(){
+ProcessEigenstratOutput::ProcessEigenstratOutput(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "Output Eigenstrature";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
 }
+
+void ProcessEigenstratOutput::FilterSummary(){}
+
+void ProcessEigenstratOutput::filter(){}
+
+void ProcessEigenstratOutput::dump2db(){}
+
+void ProcessEigenstratOutput::create_tables(){}
 
 void ProcessEigenstratOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -57,16 +71,14 @@ void ProcessEigenstratOutput::PrintSummary(){
 
 }
 
-void ProcessEigenstratOutput::filter(){
-}
-
-
 void ProcessEigenstratOutput::process(DataSet* ds){
 	data_set = ds;
 
 	EigenstratOutput ped;
 	ped.setOrder(this->order);
 	ped.setOverwrite(this->overwrite);
+	string tempout = options.getOut();
+
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
 		for(int i = 0; i < (int)sample_sets.size(); i++){
@@ -79,20 +91,49 @@ void ProcessEigenstratOutput::process(DataSet* ds){
 			ds.set_covariates(data_set->get_covariates());
 			ds.set_traits(data_set->get_traits());
 			ds.recreate_family_vector();
-			string tempout = options.getOut();
-			options.setOut("_random_set_" + getString<int>(i + 1) + tempout);
+			#ifdef PLATOLIB
+				FixOutputName(i, tempout);
+			#endif
 			ped.setOptions(options);
 			ped.calculate(&ds);
+			#ifdef PLATOLIB
+				filenames = ped.get_filenames();
+			#endif
 			options.setOut(tempout);
 			ds.clear_all();
-		}
-	}
+		}//end for
+	}//end if
 	else{
-	ped.setOptions(options);
-	ped.calculate(data_set);
+	#ifdef PLATOLIB
+		FixOutputName(1, tempout);
+	#endif
+		ped.setOptions(options);
+		ped.calculate(data_set);
+	#ifdef PLATOLIB
+		filenames = ped.get_filenames();
+	#endif
 	}
+}//end method process(DataSet*)
+
+#ifdef PLATOLIB
+void ProcessEigenstratOutput::run(DataSetObject* ds)
+{
+	process(ds);
+}
+
+void ProcessEigenstratOutput::FixOutputName(int i, string tempout)
+{
+
+#ifdef WIN
+		//use windows version of project path + batchname
+		options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
+#else
+		//use non-windows version of project path + batchname
+		options.setOverrideOut(projectPath + "/" + "_random_set_" + getString<int>(i + 1) + tempout);
+#endif
 
 }
+#endif
 
 #ifdef PLATOLIB
 }//end namespace PlatoLib

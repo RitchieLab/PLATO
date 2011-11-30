@@ -53,6 +53,7 @@ class ProcessEigenstratOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessEigenstratOutput(){
@@ -99,6 +100,7 @@ class ProcessEigenstratOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessEigenstratOutput(string, int, Database*, string);
 		~ProcessEigenstratOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -130,8 +132,10 @@ class ProcessEigenstratOutput : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void FixOutputName(int, string);
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

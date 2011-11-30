@@ -32,7 +32,7 @@
 #include "ProcessAlleleFrequency.h"
 #include "Chrom.h"
 #include <General.h>
-#include <Helpers.h>
+#include "Helpers.h"
 #include <sqlite3.h>
 #include <libsqlitewrapped.h>
 #include "Controller.h"
@@ -350,17 +350,14 @@ void ProcessAlleleFrequency::initializeCounts(int v) {
  */
 void ProcessAlleleFrequency::processtest()
 {
-	cout << "Starting ProcessAlleleFrequency::processtest()\n";
 	int total_snps = 0;
 	map<string, double> group_avg;
 	string afname;
 
 #ifdef USE_DB
 	//create a Query object if set to use a database
-	cout << "Instantiating myQuery(*db)\n";
 	Query myQuery(*db);
 	//TODO:  create the following method...
-	cout << "starting create_tables \n";
 	create_tables();
 	string insert, pinsert, pgeninsert, gendinsert, ginsert;
 	string ccgeninsert, gendgeninsert, ccinsert, ggeninsert;
@@ -964,18 +961,22 @@ void ProcessAlleleFrequency::processtest()
 				myoutput << mark->toString();//data_set->get_locus(k)->toString();
 #else
 				string insert = defaultinsert;
-				insert += "," + mark->toString();
+				//insert += "," + mark->toString();
+				insert += "," + getString<int>(mark->getBPLOC());
 				string geninsert = defaultgenoinsert;
-				geninsert += "," + mark->toString();
+				//geninsert += "," + mark->toString();
+				geninsert += "," + getString<int>(mark->getBPLOC());
 #endif
 				if (options.doGroupFile()) {
 #ifndef USE_DB
 					gmyoutput << mark->toString();//data_set->get_locus(k)->toString();
 #else
 					string ginsert = groupinsert;
-					ginsert += "," + mark->toString();
+					//ginsert += "," + mark->toString();
+					ginsert += "," + getString<int>(mark->getBPLOC());
 					string ggeninsert = groupgenoinsert;
-					ggeninsert += "," + mark->toString();
+					//ggeninsert += "," + mark->toString();
+					ggeninsert += "," + getString<int>(mark->getBPLOC());
 #endif
 				}
 				if (options.doParental()) {
@@ -983,9 +984,11 @@ void ProcessAlleleFrequency::processtest()
 					paren << mark->toString();//data_set->get_locus(k)->toString();
 #else
 					string pinsert = parentalinsert;
-					pinsert += "," + mark->toString();
+					//pinsert += "," + mark->toString();
+					pinsert += "," + getString<int>(mark->getBPLOC());
 					string pgeninsert = parentalgenoinsert;
-					pgeninsert += "," + mark->toString();
+					//pgeninsert += "," + mark->toString();
+					pgeninsert += "," + getString<int>(mark->getBPLOC());
 #endif
 				}
 				if (options.doGender()) {
@@ -993,9 +996,11 @@ void ProcessAlleleFrequency::processtest()
 					gend << mark->toString();//data_set->get_locus(k)->toString();
 #else
 					string gendinsert = genderinsert;
-					gendinsert += "," + mark->toString();
+					//gendinsert += "," + mark->toString();
+					gendinsert += "," + getString<int>(mark->getBPLOC());
 					string gendgeninsert = gendergenoinsert;
-					gendgeninsert += "," + mark->toString();
+					//gendgeninsert += "," + mark->toString();
+					gendgeninsert += "," + getString<int>(mark->getBPLOC());
 #endif
 				}
 				if (options.doCaseControl()) {
@@ -1003,9 +1008,11 @@ void ProcessAlleleFrequency::processtest()
 					cc << mark->toString();//data_set->get_locus(k)->toString();
 #else
 					ccinsert = casecontrolinsert;
-					ccinsert += "," + mark->toString();
+					//ccinsert += "," + mark->toString();
+					ccinsert += "," + getString<int>(mark->getBPLOC());
 					ccgeninsert = casecontrolgenoinsert;
-					ccgeninsert += "," + mark->toString();
+					//ccgeninsert += "," + mark->toString();
+					ccgeninsert += "," + getString<int>(mark->getBPLOC());
 #endif
 				}
 				int total_o = 0;
@@ -1740,9 +1747,11 @@ void ProcessAlleleFrequency::processtest()
 						<< mark->getAllele2();
 #else
 				insert = defaultinsert;
-				insert += "," + mark->toString();
+				//insert += "," + mark->toString();
+				insert += "," + getString<int>(mark->getBPLOC());
 				insert += ",'" + mark->getAllele1() + "'";
 				insert += ",'" + mark->getAllele2() + "'";
+
 #endif
 				if (options.doGroupFile()) {
 #ifndef USE_DB
@@ -1751,7 +1760,8 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2();
 #else
 					ginsert = groupinsert;
-					ginsert += "," + mark->toString();
+					//ginsert += "," + mark->toString();
+					ginsert += "," + getString<int>(mark->getBPLOC());
 					ginsert += ",'" + mark->getAllele1() + "'";
 					ginsert += ",'" + mark->getAllele2() + "'";
 #endif
@@ -1944,7 +1954,8 @@ void ProcessAlleleFrequency::processtest()
 						<< mark->getAllele2();
 #else
 				insert = defaultgenoinsert;
-				insert += "," + mark->toString();
+				//insert += "," + mark->toString();
+				insert += "," + getString<int>(mark->getBPLOC());
 				insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 				insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
 				insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
@@ -1960,7 +1971,8 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2();
 #else
 					ginsert = groupgenoinsert;
-					ginsert += "," + mark->toString();
+					//ginsert += "," + mark->toString();
+					ginsert += "," + getString<int>(mark->getBPLOC());
 					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
 					ginsert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
@@ -2192,7 +2204,8 @@ void ProcessAlleleFrequency::processtest()
 					Controller::execute_sql(myQuery, insert);
 
 					insert = parentalgenoinsert;
-					insert += "," + mark->toString();
+					//insert += "," + mark->toString();
+					insert += "," + getString<int>(mark->getBPLOC());
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
 					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
@@ -2249,7 +2262,8 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2();
 #else
 					insert = genderinsert;
-					insert += "," + mark->toString();
+					//insert += "," + mark->toString();
+					insert += "," + getString<int>(mark->getBPLOC());
 					insert += ",'" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele2() + "'";
 #endif
@@ -2367,7 +2381,8 @@ void ProcessAlleleFrequency::processtest()
 					Controller::execute_sql(myQuery, insert);
 
 					insert = gendergenoinsert;
-					insert += "," + mark->toString();
+					//insert += "," + mark->toString();
+					insert += "," + getString<int>(mark->getBPLOC());
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
 					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
@@ -2468,7 +2483,8 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2();
 #else
 					insert = casecontrolinsert;
-					insert += "," + mark->toString();
+					//insert += "," + mark->toString();
+					insert += "," + getString<int>(mark->getBPLOC());
 					insert += ",'" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele2() + "'";
 #endif
@@ -2618,7 +2634,8 @@ void ProcessAlleleFrequency::processtest()
 					Controller::execute_sql(myQuery, insert);
 
 					insert = casecontrolgenoinsert;
-					insert += "," + mark->toString();
+					//insert += "," + mark->toString();
+					insert += "," + getString<int>(mark->getBPLOC());
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
 					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
@@ -2833,10 +2850,6 @@ void ProcessAlleleFrequency::create_tables(){
     }
     defaultinsert += ") VALUES (NULL";
     sql = sql.replace(sql.size() - 1, 1, ")");
-
-    //just looking...
-    cout<<"The text in 'sql' is: \n" << sql << "\n";
-    cout<<"The text in 'defaultinsert' is: \n" << defaultinsert << "\n";
 
     //Controller::execute_sql(db, sql);
     myQuery.transaction();

@@ -53,6 +53,7 @@ class ProcessConcordance : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 		vector<Sample*> check_samples;
 		vector<Marker*> check_markers;
@@ -95,6 +96,7 @@ class ProcessConcordance : public Process{
 			check_markers.resize(0);
 			check_marker_map.clear();
 		};
+		ProcessConcordance(string, int, Database*, string);
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -121,8 +123,10 @@ class ProcessConcordance : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void resize(int);
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

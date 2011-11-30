@@ -81,51 +81,42 @@ class ProcessCaConChisq : public Process{
 			data_set = NULL;
 			rank = 0;
 			order = 0;
-		orig_num_markers = 0;
-		orig_num_families = 0;
-		orig_num_samples = 0;
+			orig_num_markers = 0;
+			orig_num_families = 0;
+			orig_num_samples = 0;
 		};
 		ProcessCaConChisq(float thresh) : threshold(thresh){
 			data_set = NULL;
 			rank = 0;
 			order =0;
-		 orig_num_markers = 0;
-		 orig_num_families = 0;
-		 orig_num_samples = 0;
+			orig_num_markers = 0;
+			orig_num_families = 0;
+			orig_num_samples = 0;
 		};
-		~ProcessCaConChisq(){
-			//if(af != NULL){
-			//delete(af);
-			//}
-		};
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
-		void PrintSummary();
-		void filter();
-		void setThreshold(string s){
-			options.setUp(s);
-			//threshold = std::atof(s.c_str());
-		};
-		void process(DataSet*);
-		void FilterSummary();
+		ProcessCaConChisq(string, int, Database*);
+
+		~ProcessCaConChisq();
+
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};
-		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
+		void PrintSummary();
+		void filter();
+		void process(DataSet*);
+		void FilterSummary();
+		void resize(int);
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void setRank(int r){rank = r;};
 		void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
         void setDBOUT(){_DBOUTPUT_ = true;};
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-
-		void resize(int i);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void setThreshold(string s){options.setUp(s);};
+
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

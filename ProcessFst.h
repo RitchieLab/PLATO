@@ -57,7 +57,9 @@ private:
 		int run_chr;
 		int run_start;
 		int run_end;
-
+		vector<double> fst_res;
+		vector<double> fst_rh_res;
+		string defaultinsert;
 
 	public:
 		ProcessFst(){
@@ -95,6 +97,7 @@ private:
 			run_start = -1;
 			run_end = -1;
 		};
+		ProcessFst(string, int, Database*);
 		~ProcessFst(){
 		};
 		//void process(Connection*, Families*, Markers*);
@@ -123,8 +126,10 @@ private:
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void resize(int);
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

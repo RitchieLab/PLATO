@@ -28,6 +28,7 @@
 #include <Helpers.h>
 #include <MethodException.h>
 #include "ProcessCaConChisq.h"
+#include "Controller.h"
 using namespace Methods;
 
 #ifdef PLATOLIB
@@ -36,6 +37,17 @@ namespace PlatoLib
 #endif
 
 string ProcessCaConChisq::stepname = "chisquare";
+
+ProcessCaConChisq::ProcessCaConChisq(string bn, int pos, Database* pdb)
+{
+	name = "Chisquare Tests";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+}
+
+ProcessCaConChisq::~ProcessCaConChisq(){};
 
 /*
  * Function: PrintSummary
@@ -342,6 +354,7 @@ void ProcessCaConChisq::process(DataSet* ds){
 	CaConChisq chisq(data_set);
 	chisq.setOptions(options);
 
+#ifndef PLATOLIB
 	if(options.doGroupFile()){
 		options.readGroups(ds->get_samples());
 	}
@@ -430,6 +443,7 @@ void ProcessCaConChisq::process(DataSet* ds){
 
 		}
 	}
+#else
 
 	int msize = good_markers.size();//data_set->num_loci();
 //	int prev_base = 0;
@@ -456,8 +470,129 @@ void ProcessCaConChisq::process(DataSet* ds){
 			arm_df[i] = chisq.getArmitageDF();
 		}
 	}
-
+#endif
 }
+
+#ifdef PLATOLIB
+void ProcessCaConChisq::create_tables()
+{
+	Query myQuery(*db);
+	for(int i = 0; i < (int)tablename.size(); i++){
+	        Controller::drop_table(db, tablename[i]);
+	    }
+	    headers.clear();
+	    tablename.clear();
+	    primary_table.clear();
+
+	    string tempbatch = batchname;
+	    for(int i = 0; i < (int)tempbatch.size(); i++){
+	        if(tempbatch[i] == ' '){
+	            tempbatch[i] = '_';
+	        }
+	    }
+	    string mytablename = tempbatch + "_";
+	    tempbatch = name;
+	    for(int i = 0; i < (int)tempbatch.size(); i++){
+	        if(tempbatch[i] == ' '){
+	            tempbatch[i] = '_';
+	        }
+	    }
+
+	    mytablename += tempbatch + "_" + getString<int>(position);
+	    tablename.push_back(mytablename);
+	    tablenicknames.push_back("");
+	    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+
+	    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+	    sql += "fkey integer not null,";
+	    sql += "Armitage_Chi REAL,";
+	    headers[mytablename].push_back("Armitage_Chi");
+	    sql += "Armitage_Pval REAL,";
+	    headers[mytablename].push_back("Armitage_Pval");
+	    sql += "Allelic_Chi REAL,";
+	    headers[mytablename].push_back("Allelic_Chi");
+	    sql += "Allelic_Pval REAL,";
+	    headers[mytablename].push_back("Allelic_Pval");
+	    sql += "Allelic_Exact_Pval REAL,";
+	    headers[mytablename].push_back("Allelic_Exact_Pval");
+	    sql += "Genotypic_Chi REAL,";
+	    headers[mytablename].push_back("Genotypic_Chi");
+	    sql += "Genotypic_Pval REAL,";
+	    headers[mytablename].push_back("Genotypic_Pval");
+	    sql += "A1_A2 varchar(20),";
+	    sql += "odds_ratio REAL,";
+	    headers[mytablename].push_back("odds_ratio");
+	    sql += "odds_ratio_allele varchar(10),";
+	    sql += "L" + getString<double>(options.getCI()*100) + " REAL,";
+	    headers[mytablename].push_back("L" + getString<double>(options.getCI()*100));
+	    sql += "U" + getString<double>(options.getCI()*100) + " REAL";
+	    headers[mytablename].push_back("U" + getString<double>(options.getCI()*100));
+
+	    sql += ")";
+	    myQuery.transaction();
+	    Controller::execute_sql(myQuery, sql);
+	    myQuery.commit();
+}
+
+void ProcessCaConChisq::dump2db()
+{
+    create_tables();
+
+    Query myQuery(*db);
+    myQuery.transaction();
+    vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
+    int msize = good_markers.size();//data_set->num_loci();
+
+    for(int i = 0; i < msize; i++)
+    {
+        if(good_markers[i]->isEnabled())//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged())
+        {
+            string sql = "INSERT INTO " + tablename.at(0) + " (id, fkey, Armitage_Chi, Armitage_PVal, Allelic_Chi, Allelic_Pval, Allelic_Exact_Pval, ";
+            sql += "Genotypic_Chi, Genotypic_Pval, A1_A2, odds_ratio, odds_ratio_allele, ";
+            sql += "L" + getString<double>(options.getCI()*100) + ",";
+            sql += "U" + getString<double>(options.getCI()*100) + ") VALUES (NULL";
+            sql += "," + getString<int>(good_markers[i]->getSysprobe());//data_set->get_locus(i)->getSysprobe());
+            if(good_markers[i]->isMicroSat())//data_set->get_locus(i)->isMicroSat())
+            {
+                sql += ",NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)";
+                Controller::execute_sql(myQuery, sql);
+                continue;
+            }
+            sql += "," + ((isnan(chi_arm[i]) || isinf(chi_arm[i])) ? "NULL" : getString<double>(chi_arm[i]));
+            sql += "," + ((isnan(pval_arm[i]) || isinf(pval_arm[i])) ? "NULL" : getString<double>(pval_arm[i]));
+            sql += "," + ((isnan(chi_allele[i]) || isinf(chi_allele[i])) ? "NULL" : getString<double>(chi_allele[i]));
+            sql += "," + ((isnan(pval_allele[i]) || isinf(pval_allele[i])) ? "NULL" : getString<double>(pval_allele[i]));
+            sql += "," + ((isnan(pval_allele_exact[i]) || isinf(pval_allele_exact[i])) ? "NULL" : getString<double>(pval_allele_exact[i]));
+            sql += "," + ((isnan(chi_geno[i]) || isinf(chi_geno[i])) ? "NULL" : getString<double>(chi_geno[i]));
+            sql += "," + ((isnan(pval_geno[i]) || isinf(pval_geno[i])) ? "NULL" : getString<double>(pval_geno[i]));
+            //sql += ",'" + data_set->get_locus(i)->getAllele1() + ":" + data_set->get_locus(i)->getAllele2() + "'";
+            sql += ",'" + good_markers[i]->getAllele1() + ":" + good_markers[i]->getAllele2() + "'";
+            sql += "," + ((isnan(odds_ratio[i]) || isinf(odds_ratio[i])) ? "NULL" : getString<double>(odds_ratio[i]));
+            sql += ",'" + good_markers[i]->getAllele1() + "'";//data_set->get_locus(i)->getAllele1() + "'";
+            sql += "," + ((isnan(ci_l[i]) || isinf(ci_l[i])) ? "NULL" : getString<double>(ci_l[i]));
+            sql += "," + ((isnan(ci_u[i]) || isinf(ci_u[i])) ? "NULL" : getString<double>(ci_u[i]));
+
+            sql += ")";
+
+            Controller::execute_sql(myQuery, sql);
+            //data_set->get_locus(i)->setFlag(false);
+            good_markers[i]->setFlag(false);
+        }
+    }
+    myQuery.commit();
+}//end dump2db() function
+
+//The Viewer is expecting a run method, so just call the existing process method within...
+//process now contains the code that was in the Viewer's run method...
+void ProcessCaConChisq::run(DataSetObject* ds)
+{
+	//the process method expects a DataSet*, not a DataSetObject*...need to fix?
+	data_set = ds;
+	process(ds);
+}
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

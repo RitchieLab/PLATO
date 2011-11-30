@@ -24,6 +24,8 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
+#include "Controller.h"
+
 using namespace Methods;
 
 #ifdef PLATOLIB
@@ -33,6 +35,15 @@ namespace PlatoLib
 
 
 string ProcessGenderCheck::stepname = "gender-error";
+
+ProcessGenderCheck::ProcessGenderCheck(string bn, int pos, Database* pdb)
+{
+	name = "Gender Check";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+}
 
 void ProcessGenderCheck::setThreshold(string thresh){
 	options.setUp(thresh);
@@ -281,8 +292,122 @@ void ProcessGenderCheck::process(DataSet* ds){
 	stotal = gc.getSampleTotalMarkersUsed();
 	senzyme_hets = gc.getEnzymeHets();
 	senzyme_tot = gc.getEnzymeTotals();
-
 }
+
+#ifdef PLATOLIB
+
+void ProcessGenderCheck::create_tables()
+{
+	Query myQuery(*db);
+    for(int i = 0; i < (int)tablename.size(); i++){
+        Controller::drop_table(db, tablename[i]);
+    }
+    headers.clear();
+    tablename.clear();
+    primary_table.clear();
+
+    string tempbatch = batchname;
+    for(int i = 0; i < (int)tempbatch.size(); i++){
+        if(tempbatch[i] == ' '){
+            tempbatch[i] = '_';
+        }
+    }
+    string mytablename = tempbatch + "_";
+    tempbatch = name;
+    for(int i = 0; i < (int)tempbatch.size(); i++){
+        if(tempbatch[i] == ' '){
+            tempbatch[i] = '_';
+        }
+    }
+    string base = mytablename + tempbatch;
+
+    mytablename += tempbatch + "_" + getString<int>(position);
+    tablename.push_back(mytablename);
+    tablenicknames.push_back("");
+    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+    myQuery.transaction();
+
+    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+    sql += "fkey integer not null,";
+    sql += "Count_Geno_all_Males REAL,";
+    headers[mytablename].push_back("Count_Geno_all_Males");
+    sql += "Count_Geno_HET_Males REAL,";
+    headers[mytablename].push_back("Count_Geno_HET_Males");
+    sql += "percent_HET_Males REAL";
+    headers[mytablename].push_back("percent_HET_Males");
+    sql += ")";
+    Controller::execute_sql(myQuery, sql);
+
+    mytablename = base + "_samples_" + getString<int>(position);
+    tablename.push_back(mytablename);
+    tablenicknames.push_back("Samples");
+    primary_table[mytablename].push_back(Vars::SAMPLE_TABLE);
+    sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+    sql += "fkey integer not null,";
+    sql += "Count_Geno_total_all integer,";
+    headers[mytablename].push_back("Count_Geno_total_all");
+    sql += "Count_Geno_HET_all integer,";
+    headers[mytablename].push_back("Count_Geno_HET_all");
+    sql += "percent_HET_all REAL";
+    headers[mytablename].push_back("percent_HET_all");
+    sql += ")";
+    Controller::execute_sql(myQuery, sql);
+
+    myQuery.commit();
+}
+
+void ProcessGenderCheck::dump2db(){
+    create_tables();
+
+    Query myQuery(*db);
+    myQuery.transaction();
+    int prev_base = 0;
+    int prev_chrom = -1;
+    for(int i = 0; i < (int)data_set->num_loci(); i++){
+        if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && Helpers::isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+            string sql = "INSERT INTO " + tablename.at(0) + " (id, fkey, Count_Geno_all_Males, Count_Geno_HET_Males, percent_HET_Males) VALUES (NULL";
+            sql += "," + getString<int>(data_set->get_locus(i)->getSysprobe());
+            sql += "," + getString<int>(mtotal[i]);
+            sql += "," + getString<int>(merrors[i]);
+            if(mtotal[i] > 0){
+                sql += "," + getString<float>((((float)merrors[i]/(float)mtotal[i])));
+            }
+            else{
+                sql += ",NULL";
+            }
+            sql += ")";
+            Controller::execute_sql(myQuery, sql);
+        }
+    }
+
+    for(int i = 0; i < data_set->num_inds(); i++){
+        if(data_set->get_sample(i)->isEnabled()){
+            string sql = "INSERT INTO " + tablename.at(1) + " (id, fkey, Count_Geno_total_all, Count_Geno_HET_all, percent_HET_all) VALUES (NULL";
+            sql += "," + getString<int>(data_set->get_sample(i)->getSysid());
+            sql += "," + getString<int>(stotal[i]);
+            sql += "," + getString<int>(shets[i]);
+            if(stotal[i] > 0){
+                sql += "," + getString<float>((((float)shets[i]/(float)stotal[i])));
+            }
+            else{
+                sql += ",NULL";
+            }
+            sql += ")";
+            Controller::execute_sql(myQuery, sql);
+        }
+    }
+    //TODO: implement the commit function in the libsqlwrapped library...
+    //db->commit();
+    myQuery.commit();
+}
+
+void ProcessGenderCheck::run(DataSetObject* ds)
+{
+	process(ds);
+}
+
+#endif
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

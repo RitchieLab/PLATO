@@ -95,6 +95,7 @@ class ProcessGenderCheck : public Process{
 			rank = 0;
 			order =0;
 		};
+		ProcessGenderCheck(string, int, Database*);
 		~ProcessGenderCheck(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -120,8 +121,9 @@ class ProcessGenderCheck : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

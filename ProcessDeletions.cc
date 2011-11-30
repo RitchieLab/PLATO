@@ -44,6 +44,16 @@ namespace PlatoLib
 
 string ProcessDeletions::stepname="deletions";
 
+ProcessDeletions::ProcessDeletions(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "Deletion";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
+}
+
 void ProcessDeletions::setThreshold(string thresh){
 	options.setUp(thresh);
 }
@@ -91,10 +101,19 @@ void ProcessDeletions::process(DataSet* ds){
 	Deletions dels(data_set);
 	dels.setOptions(&options);
 	dels.setOrder(this->order);
+#ifdef PLATOLIB
+	options.setOverrideOut(projectPath + "\\");
+	dels.setOverwrite(true);
+#else
 	dels.setOverwrite(this->overwrite);
+#endif
 
 	dels.calculate();
-	cout << "AFter calculate\n";
+
+#ifdef PLATOLIB
+	filenames.push_back(dels.get_default_filename());
+	filenames.push_back(dels.get_density_filename());
+#endif
 
 }
 
@@ -106,6 +125,17 @@ void ProcessDeletions::filter_markers(){
 void ProcessDeletions::filter(){
 	return;
 }
+void ProcessDeletions::create_tables(){}
+void ProcessDeletions::dump2db(){}
+void ProcessDeletions::resize(int i){}
+
+#ifdef PLATOLIB
+void ProcessDeletions::run(DataSetObject* ds)
+{
+	process(ds);
+}
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

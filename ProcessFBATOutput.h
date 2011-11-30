@@ -53,6 +53,7 @@ class ProcessFBATOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessFBATOutput(){
@@ -103,6 +104,7 @@ class ProcessFBATOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessFBATOutput(string, int, Database*, string);
 		~ProcessFBATOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -130,8 +132,10 @@ class ProcessFBATOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void FixOutputName();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

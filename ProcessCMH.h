@@ -22,6 +22,7 @@
 #include <StepOptions.h>
 #include <DataSet.h>
 #include <CMH.h>
+#include "Controller.h"
 
 using namespace std;
 using namespace Methods;
@@ -56,6 +57,7 @@ private:
 		int run_chr;
 		int run_start;
 		int run_end;
+		string defaultinsert;
 
 
 	public:
@@ -94,8 +96,8 @@ private:
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessCMH(){
-		};
+		~ProcessCMH(){};
+		ProcessCMH(string, int, Database*);
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -122,8 +124,9 @@ private:
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib
