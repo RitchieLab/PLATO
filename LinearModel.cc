@@ -4,7 +4,6 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-
 #include "linear.h"
 #include "Helper.h"
 #include "Options.h"
@@ -239,12 +238,6 @@ void LinearModel::fitLM()
 	}
     }
 
-//   cout << "LM VIEW\n";
-//       display(Y);
-//       display(X);
-//       cout << "---\n";
-
-
   coef.resize(np);
   sizeMatrix(S,np,np);
 
@@ -259,9 +252,6 @@ void LinearModel::fitLM()
   w.resize(np);
   sizeMatrix(u,nind,np);
   sizeMatrix(v,np,np);
-
-
-  //  Perform "svdfit(C,Y,sig,b,u,v,w,chisq,function)"
   
   int i,j;
   const double TOL=1.0e-13;
