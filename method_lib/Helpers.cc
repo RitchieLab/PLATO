@@ -1832,7 +1832,8 @@ string Helpers::removeBeginWhiteSpace(string l){
 	if(l.size() == 0){
 		return l;
 	}
-	while((l.at(0) == ' ' || l.at(0) == '\t') && l.size() > 0){
+//	while((l.at(0) == ' ' || l.at(0) == '\t') && l.size() > 0){
+        while(l.size() > 0 && (l.at(0) == ' ' || l.at(0) == '\t')){
 		l.erase(0);
 	}
 	return l;
