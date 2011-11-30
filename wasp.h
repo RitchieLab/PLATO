@@ -67,6 +67,7 @@
 #include "ProcessFilterProcess.h"
 #include "ProcessFst.h"
 #include "ProcessEpistasis.h"
+#include "ProcessImputeOutput.h"
 #include "Finalize.h"
 #include "Process.h"
 

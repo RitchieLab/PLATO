@@ -71,7 +71,8 @@ enum StepValue{
 					   e_fst,				//fst
 					   e_kinship,			//kinship
 					   e_bin_output,			//binary output
-					   e_epistasis			//epistasis
+					   e_epistasis,			//epistasis
+					   e_impute_output		//IMPUTE
 					 };
 enum cmdArgs{
 	a_h,
@@ -185,6 +186,7 @@ void Initialize(){
 	s_mapStepValues["kinship"] = e_kinship;
 	s_mapStepValues["output-bin"] = e_bin_output;
 	s_mapStepValues["epistasis"] = e_epistasis;
+	s_mapStepValues["output-impute"] = e_impute_output;
 
 	s_mapcmdArgs["-h"] = a_h;
 	s_mapcmdArgs["-S"] = a_S;
@@ -2444,6 +2446,23 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
+			case e_impute_output:
+				newstep = new Step("Create inpute files for IMPUTE", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessImputeOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
 			case e_epistasis:
 				newstep = new Step("Epistasis", "", false);
 				if(tempproc != NULL){
@@ -3288,6 +3307,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessBINOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_impute_output:
+				newstep = new Step("Create input files for IMPUTE", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessImputeOutput();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}

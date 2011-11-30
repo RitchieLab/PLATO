@@ -45,7 +45,7 @@ OBJECTS = ProcessKinship.o ProcessFst.o ProcessEarth.o Step.o wasp.o Process.o P
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
 		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o ProcessLinearReg.o ProcessIBS.o ProcessFilterProcess.o \
-		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o
+		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o
 
 #
 # # Generic .cc -> .o production.
@@ -70,6 +70,9 @@ wasp.o: wasp.cc wasp.h
 
 ProcessEarth.o: ProcessEarth.cc ProcessEarth.h
 	$(CC) ProcessEarth.cc -c $(CFLAGSCC) $(LIBDIR) 
+
+ProcessImputeOutput.o: ProcessImputeOutput.cc ProcessImputeOutput.h
+	$(CC) ProcessImputeOutput.cc -c $(CFLAGSCC) $(LIBDIR) 
 
 ProcessKinship.o: ProcessKinship.cc ProcessKinship.h
 	$(CC) ProcessKinship.cc -c $(CFLAGSCC) $(LIBDIR) 
