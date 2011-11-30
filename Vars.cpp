@@ -54,9 +54,9 @@ namespace PlatoLib
      return distro;
  }
 
- void Vars::initialize(){
-//	 Vars::PLATO_DESIGN_FILES[Vars::LOCUS_FILTER_GUI] = Vars::RESOURCES_DIR + "locus-filter.txt";
-
+ void Vars::initialize()
+ {
+	 //Vars::PLATO_DESIGN_FILES[Vars::LOCUS_FILTER_GUI] = Vars::RESOURCES_DIR + "locus-filter.txt";
 	 {
 		 Vars::processes["Sample Efficiency"] = Processes::p_sampleefficiency;
                  map<int, vector<int> > grouping;
