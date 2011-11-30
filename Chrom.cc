@@ -32,23 +32,6 @@ Chrom::Chrom(string c){
 	p = new Percent(80);
 	percent_counts[80] = *p;
 	delete p;
-	/*
-	p = new Percent(70);
-	percent_counts[70] = *p;
-	delete p;
-	p = new Percent(65);
-	percent_counts[65] = *p;
-	delete p;
-	p = new Percent(60);
-	percent_counts[60] = *p;
-	delete p;
-	p = new Percent(55);
-	percent_counts[55] = *p;
-	delete p;
-	p = new Percent(50);
-	percent_counts[50] = *p;
-	delete p;
-	*/
 	total = 0;
 }
 

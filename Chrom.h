@@ -51,8 +51,6 @@ class Chrom{
 			}
 		};
 		void insert_marker(Marker m){
-			//markers[m.getSysprobe()] = m;
-			//bp_markers.push_back(m);
 		};
 		MKR* getMarkers(){
 			return &markers;
