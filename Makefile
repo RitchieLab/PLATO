@@ -22,8 +22,9 @@ SYS=MAC
 # platform-independent.
 # #
 OTHEROPTS=
+#BIT=-m32
 COMP=g++ #/opt/local/bin/g++-mp-4.4
-CC=$(COMP) -O3  -Wall -Wno-deprecated -g -D_FILE_OFFSET_BITS=64 $(INCLUDEDIR) $(OTHEROPTS)
+CC=$(COMP) $(BIT) -O3  -Wall -Wno-deprecated -g -D_FILE_OFFSET_BITS=64 $(INCLUDEDIR) $(OTHEROPTS)
 #CC=g++ -O3 -D_FILE_OFFSET_BITS=64 -mno-cygwin
 #CC=mpicxx -m64
 

@@ -313,7 +313,7 @@ ofstream myoutput ("gender_errors_markers.txt", ios::out | ios::app);
 
 void ProcessMitoCheck::process(DataSet* ds){
 	data_set = ds;
-	MitoCheck mc;
+	MitoCheck mc(data_set);
 	mc.setOptions(options);
 	mc.calculate();
 	merrors = mc.getNumMarkerErrors();

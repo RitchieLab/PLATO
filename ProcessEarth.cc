@@ -169,6 +169,7 @@ void ProcessEarth::process(DataSet* ds) {
 			}
 		}
 		vector<string> use_loci = options.getUseLoci();
+		if(use_loci.size() > 0){
 		for (unsigned int i = 0; i < use_loci.size(); i++) {
 			vector<Marker*>::iterator iter = find_if(
 					ds->get_markers()->begin(), ds->get_markers()->end(),
@@ -185,6 +186,12 @@ void ProcessEarth::process(DataSet* ds) {
 					}
 				}
 				model.push_back(snploc);
+			}
+		}
+		}
+		else{
+			for(unsigned int i = 0; i < ds->num_loci(); i++){
+				model.push_back(i);
 			}
 		}
 		mars.calculate(model, covs);
