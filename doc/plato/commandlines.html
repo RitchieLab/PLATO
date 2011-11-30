@@ -272,6 +272,10 @@
 											<a href="steps/29.html">Eigenstrat</a>
 										</li>
 										
+										<li>
+											<a href="steps/36.html">Binary (.bim, .bed, .fam) Output</a>
+										</li>
+										
 									
 								</ul>
 						</ul>
@@ -534,21 +538,6 @@
 
   <tr>
   	  <td>
-            	-make-bin
-				
-			</td>
-            <td>
-            	Converts specified PED and Map files into binary format. No steps in the batch file will be processed.
-            </td>
-        </tr>
-        <tr>
-            <td>&nbsp;</td>
-            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -make-bin</b></td>
-        </tr>
-
-
-  <tr>
-  	  <td>
             	-map {filename}
 				
 			</td>
@@ -769,6 +758,21 @@
         <tr>
             <td>&nbsp;</td>
             <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped pedfile.ped -map mapfile.map -sampdesc extrasampleinfo.txt</b></td>
+        </tr>
+
+
+  <tr>
+  	  <td>
+            	-sample-bprange-filter {filename}
+				
+			</td>
+            <td>
+            	Filter option for zero-ing out genotypes for the specified samples in the chromosome/bploc ranges specified in the file.<br/><br/>File columns (no headers please!):<br/><br/>FamID<br/>IndID<br/>Chromosome<br/>Bploc start (inclusive)<br/>Bploc end (inclusive)<br/>
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td style="border-bottom: 1px solid #ddd;"><b>ex: plato batch -ped inputped.ped -map inputmap.map -sample-bprange-filter myrangefilter.txt</b></td>
         </tr>
 
 
