@@ -280,8 +280,8 @@ void MarkerGenoEff::calcOne(Marker* mark){
 		for(giter = groups.begin(); giter != groups.end(); giter++){
 			string mygroup = giter->first;
 			vector<Sample*> mysamps = giter->second;
-			groupzeros_one.at(mygroup) = 0;
-			grouptotal_one.at(mygroup) = 0;
+			groupzeros_one[mygroup]=0;
+			grouptotal_one[mygroup]=0;
 
 			for(int s = 0; s < (int)mysamps.size(); s++){
 				Sample* samp = mysamps.at(s);
