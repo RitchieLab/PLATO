@@ -825,8 +825,8 @@ void ProcessAlleleFrequency::processtest() {
 		useoverall = true;
 	}
 
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 	msize = good_markers.size();
 

@@ -388,8 +388,8 @@ void ProcessCaConChisq::process(DataSet* ds){
 		gpvals << endl;
 
 
-		int prev_base = 0;
-		int prev_chrom = -1;
+//		int prev_base = 0;
+//		int prev_chrom = -1;
 		for(int i = 0; i < (int)good_markers.size(); i++){//data_set->num_loci(); i++){
 			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				gpvals << good_markers[i]->toString();//data_set->get_locus(i)->toString();
@@ -426,8 +426,8 @@ void ProcessCaConChisq::process(DataSet* ds){
 	}
 
 	int msize = good_markers.size();//data_set->num_loci();
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
 		if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 			if(good_markers[i]->isMicroSat()){//data_set->get_locus(i)->isMicroSat()){

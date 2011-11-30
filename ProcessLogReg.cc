@@ -210,8 +210,8 @@ void ProcessLogReg::process(DataSet* ds){
 					<< "\t" << exp(coefs[c] + zt * se)
 					<< "\t" << Z;
 				double zz = Z*Z;
-				double pvalue, p, bound, df = 1;
-				int code = 1, status;
+				double pvalue = 1 , df = 1;
+//				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				//cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
 				if(se > 0){
@@ -245,8 +245,8 @@ void ProcessLogReg::process(DataSet* ds){
 					<< "\t" << exp(coefs[buffer + c] + zt * se)
 					<< "\t" << Z;
 				double zz = Z*Z;
-				double pvalue, p, bound, df = 1;
-				int code = 1, status;
+				double pvalue, df = 1;
+//				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				if(se > 0){
 					pvalue = Helpers::p_from_chi(zz, df);

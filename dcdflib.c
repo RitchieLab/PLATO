@@ -1883,7 +1883,7 @@ S120:
 /*
      S
 */
-    if(!(*s < 0.0e0 || *which != 3 && *s > *xn)) goto S160;
+    if(!(*s < 0.0e0 || (*which != 3 && *s > *xn))) goto S160;
     if(!(*s < 0.0e0)) goto S140;
     *bound = 0.0e0;
     goto S150;
@@ -3545,7 +3545,7 @@ S250:
 S260:
         fx = ccum-*q;
 S270:
-        if(!(qporq && cum > 1.5e0 || !qporq && ccum > 1.5e0)) goto S280;
+        if(!((qporq && cum > 1.5e0) || (!qporq && ccum > 1.5e0))) goto S280;
         *status = 10;
         return;
 S280:
@@ -6023,11 +6023,12 @@ static double absstp,abstol,big,fbig,fsmall,relstp,reltol,small,step,stpmul,xhi,
     xlb,xlo,xsave,xub,yy;
 static int i99999;
 static unsigned long qbdd,qcond,qdum1,qdum2,qincr,qlim,qok,qup;
+char msg[] = " SMALL, X, BIG not monotone in INVR";
     switch(IENTRY){case 0: goto DINVR; case 1: goto DSTINV;}
 DINVR:
     if(*status > 0) goto S310;
     qcond = !qxmon(small,*x,big);
-    if(qcond) ftnstop(" SMALL, X, BIG not monotone in INVR");
+    if(qcond) ftnstop(msg);
     xsave = *x;
 /*
      See that SMALL and BIG bound the zero and set QINCR
@@ -6090,7 +6091,7 @@ S90:
     qok = 1;
     return;
 S100:
-    qup = qincr && yy < 0.0e0 || !qincr && yy > 0.0e0;
+    qup = (qincr && yy < 0.0e0) || (!qincr && yy > 0.0e0);
 /*
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
      HANDLE CASE IN WHICH WE MUST STEP HIGHER
@@ -6114,7 +6115,7 @@ S120:
     goto S300;
 S130:
     yy = *fx;
-    qbdd = qincr && yy >= 0.0e0 || !qincr && yy <= 0.0e0;
+    qbdd = (qincr && yy >= 0.0e0) || (!qincr && yy <= 0.0e0);
     qlim = xub >= big;
     qcond = qbdd || qlim;
     if(qcond) goto S140;
@@ -6155,7 +6156,7 @@ S190:
     goto S300;
 S200:
     yy = *fx;
-    qbdd = qincr && yy <= 0.0e0 || !qincr && yy >= 0.0e0;
+    qbdd = (qincr && yy <= 0.0e0) || (!qincr && yy >= 0.0e0);
     qlim = xlb <= small;
     qcond = qbdd || qlim;
     if(qcond) goto S210;
@@ -6402,8 +6403,9 @@ static double dlanor_var,approx,correc,xx,xx2,T2;
      ..
      .. Executable Statements ..
 */
+	char msg[] = " Argument too small in DLANOR";
     xx = fabs(*x);
-    if(xx < 5.0e0) ftnstop(" Argument too small in DLANOR");
+    if(xx < 5.0e0) ftnstop(msg);
     approx = -dlsqpi-0.5e0*xx*xx-log(xx);
     xx2 = xx*xx;
     T2 = 1.0e0/xx2;
@@ -6784,7 +6786,8 @@ static double dstrem_var,sterl,T2;
             0.347320283765002252252252252252D12
             -0.123696021422692744542517103493D14
 */
-    if(*z <= 0.0e0) ftnstop("Zero or negative argument in DSTREM");
+	char msg[] = "Zero or negative argument in DSTREM";
+    if(*z <= 0.0e0) ftnstop(msg);
     if(!(*z > 6.0e0)) goto S10;
     T2 = 1.0e0/pow(*z,2.0);
     dstrem_var = devlpl(coef,&K1,&T2)**z;
@@ -6999,7 +7002,7 @@ S230:
     goto S80;
 S240:
     *xhi = c;
-    qrzero = fc >= 0.0e0 && fb <= 0.0e0 || fc < 0.0e0 && fb >= 0.0e0;
+    qrzero = (fc >= 0.0e0 && fb <= 0.0e0) || (fc < 0.0e0 && fb >= 0.0e0);
     if(!qrzero) goto S250;
     *status = 0;
     goto S260;

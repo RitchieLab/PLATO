@@ -211,8 +211,8 @@ void ProcessIBS::process(DataSet* ds){
 					if(fam2loc == -1){
 						continue;
 					}
-					int prev_bploc = 0;
-					int prev_chrom = -1;
+//					int prev_bploc = 0;
+//					int prev_chrom = -1;
 					double paternal = 0;
 					double maternal = 0;
 					int total_snps = 0;
@@ -251,8 +251,8 @@ void ProcessIBS::process(DataSet* ds){
 				for(int f2 = f1 + 1; f2 < fsize; f2++){
 					Family* fam1 = data_set->get_pedigree(f1);
 					Family* fam2 = data_set->get_pedigree(f2);
-					int prev_bploc = 0;
-					int prev_chrom = -1;
+//					int prev_bploc = 0;
+//					int prev_chrom = -1;
 					double paternal = 0;
 					double maternal = 0;
 					int total_snps = 0;

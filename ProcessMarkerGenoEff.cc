@@ -130,8 +130,8 @@ void ProcessMarkerGenoEff::PrintSummary(){
 
 
 	int size = good_markers.size();//data_set->num_loci();
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 	map<string, double> group_avgs;
 	int total_snps = 0;
 	for(int i = 0; i < size; i++){
@@ -228,8 +228,8 @@ void ProcessMarkerGenoEff::PrintSummary(){
 void ProcessMarkerGenoEff::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int size = good_markers.size();
-		int prev_base = 0;
-		int prev_chrom = -1;
+//		int prev_base = 0;
+//		int prev_chrom = -1;
 		for(int i = 0; i < size; i++){
 			if(good_markers[i]->isEnabled()){//isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom) && !data_set->get_locus(i)->isFlagged()){
 				double percent = 0.0f;

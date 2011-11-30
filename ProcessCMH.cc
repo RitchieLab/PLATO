@@ -140,7 +140,7 @@ void ProcessCMH::process(DataSet* ds){
 	chis.resize(msize, 0);
 	pvals.resize(msize, 0);
 
-	for(unsigned int m = 0; m < msize; m++){
+	for(int m = 0; m < (int)msize; m++){
 		Marker* mark = good_markers[m];//data_set->get_locus(m);
 
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
@@ -242,7 +242,7 @@ void ProcessCMH::process(DataSet* ds){
 
 		prev_base = 0;
 		prev_chrom = -1;
-		for(unsigned int m = 0; m < msize; m++){//data_set->num_loci(); m++){
+		for(int m = 0; m < (int)msize; m++){//data_set->num_loci(); m++){
 			Marker* mark = good_markers[m];//data_set->get_locus(m);
 
 			if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
@@ -267,7 +267,7 @@ void ProcessCMH::process(DataSet* ds){
 
 	prev_base = 0;
 	prev_chrom = -1;
-	for(unsigned int m = 0; m < msize; m++){//data_set->num_loci(); m++){
+	for(int m = 0; m < (int)msize; m++){//data_set->num_loci(); m++){
 		Marker* mark = good_markers[m];//data_set->get_locus(m);
 
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){

@@ -76,7 +76,7 @@ void ProcessBEAGLEOutput::process(DataSet* ds){
 	bo.setOverwrite(this->overwrite);
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++){
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);

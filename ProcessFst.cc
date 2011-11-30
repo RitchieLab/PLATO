@@ -121,8 +121,8 @@ void ProcessFst::process(DataSet* ds) {
 	Fst fst;
 	fst.set_parameters(&options);
 	fst.resetDataSet(ds);
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 
 	vector<int> good_markers = Helpers::findValidMarkersIndexes(ds->get_markers(), &options);
 	int msize = good_markers.size();

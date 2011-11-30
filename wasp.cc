@@ -298,7 +298,7 @@ main (int argc, char* argv[])
 			webcheck(arguments, batchargs);
 		}
 
-		for(unsigned int j = 0; j < arguments.size(); j++){
+		for(int j = 0; j < (int)arguments.size(); j++){
 			switch(s_mapcmdArgs[arguments[j]]){
 				case a_map_includes_ref:
 				{
@@ -1792,7 +1792,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		int count = 0;
 		vector<boost::thread*> threads_hash;
 		//vector<boost::thread*>::iterator thread_iter;
-		boost::thread *threads[opts::_NUMTHREADS_];
+//		boost::thread *threads[opts::_NUMTHREADS_];
 
 	map<int, int> thread_step_map;
 	ORDER yesthread = optimized[0];
@@ -1812,7 +1812,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 //				for(int i = 0; i < count; i++){
 /////				for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){
 				while(count >= opts::_NUMTHREADS_){
-				for(int i = 0; i < threads_hash.size(); i++){
+				for(int i = 0; i < (int)threads_hash.size(); i++){
 //					if(threads[i]->timed_join(boost::posix_time::milliseconds(500))){
 					if(threads_hash[i]->timed_join(boost::posix_time::milliseconds(500))){
 /////					finalizeStep(order->at(thread_step_map[i]));
@@ -1835,7 +1835,7 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 
 	if(opts::_THREADS_){
 	//for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){//int i = 0; i < count; i++){
-	for(int i = 0; i < threads_hash.size(); i++){
+	for(int i = 0; i < (int)threads_hash.size(); i++){
 		threads_hash[i]->join();//thread_iter->first]->join();
 			delete(threads_hash[i]);//thread_iter->first]);
 
@@ -1913,11 +1913,11 @@ vector<ORDER> optimize(ORDER* order){
 
 
 	cout << "Threadable: \n";
-	for(int i = 0; i < yesthread.size(); i++){
+	for(int i = 0; i < (int)yesthread.size(); i++){
 		cout << yesthread[i].getName() << "\n";
 	}
 	cout << "Un-Threadable: \n";
-	for(int i = 0; i < nothread.size(); i++){
+	for(int i = 0; i < (int)nothread.size(); i++){
 		cout << nothread[i].getName() << "\n";
 	}
 
@@ -1988,7 +1988,7 @@ map<string, vector<string> > getBatchArgs(string f){
 		else{
 			string step = tokens[0];
 			batchargs[step].push_back("NA");
-			for(unsigned int i = 1; i < tokens.size(); i++){
+			for(int i = 1; i < (int)tokens.size(); i++){
 				batchargs[step].push_back(tokens[i]);
 			}
 		}

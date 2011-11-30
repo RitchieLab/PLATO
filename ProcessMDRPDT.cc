@@ -107,8 +107,8 @@ void ProcessMDRPDT::process(DataSet* ds){
     mdrpdt.set_parameters(&options);
     mdrpdt.resetDataSet(data_set);
 
-    int prev_base = 0;
-    int prev_chrom = -1;
+//   int prev_base = 0;
+//    int prev_chrom = -1;
     int msize = good_markers.size();//data_set->num_loci();
     for(int m = 0; m < msize; m++){
     	Marker* mark = data_set->get_locus(good_markers[m]);

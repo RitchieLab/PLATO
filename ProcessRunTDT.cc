@@ -92,8 +92,8 @@ void ProcessRunTDT::PrintSummary(){
 
 	double zt = Helpers::ltqnorm(1 - (1 - options.getCI()) / 2);
 
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
 		if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 			output << good_markers[i]->toString() << "\t";
@@ -145,7 +145,7 @@ void ProcessRunTDT::PrintSummary(){
 		MultComparison mc(options);
 		vector<int> tcnt;
 		mc.calculate(chi, tcnt);
-		for(int i = 0; i < good_markers.size(); i++){
+		for(int i = 0; i < (int)good_markers.size(); i++){
 		compout << good_markers[i]->toString() << "\t"
 			<< "TDT\t"
 			<< pval[i] << "\t"
@@ -171,8 +171,8 @@ void ProcessRunTDT::PrintSummary(){
 void ProcessRunTDT::filter(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int size = good_markers.size();//data_set->num_loci();
-		int prev_base = 0;
-		int prev_chrom = -1;
+//		int prev_base = 0;
+//		int prev_chrom = -1;
 		for(int i = 0; i < size; i++){
 			if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				bool inc = false;
@@ -221,8 +221,8 @@ void ProcessRunTDT::process(DataSet* ds){
 	untrans.resize(msize);
 ////	int ssize = data_set->num_inds();
 
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 	for(int m = 0; m < msize; m++){
 		if(good_markers[m]->isEnabled()){//data_set->get_locus(m)->isEnabled() && isValidMarker(data_set->get_locus(m), &options, prev_base, prev_chrom)){
 			tdt.calculate(good_markers[m]);

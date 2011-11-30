@@ -141,8 +141,8 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	    opts::addHeader(fname, "P_pval_case");
 	    opts::addHeader(fname, "P_pval_control");
 
-		int prev_base = 0;
-		int prev_chrom = -1;
+//		int prev_base = 0;
+//		int prev_chrom = -1;
 		for(int i = 0; i < msize; i++){
 			if(good_markers[i]->isEnabled()){// && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				hwe.calculateHWEPT(data_set->get_locus(i));
@@ -440,8 +440,8 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	opts::addHeader(fname4, "Control_Female_Obs_Genotype22");
 	opts::addHeader(fname4, "Control_Female_Exp_Genotype22");
 	}
-	int prev_base = 0;
-	int prev_chrom = -1;
+//	int prev_base = 0;
+//	int prev_chrom = -1;
 
 	for(int i = 0; i < msize; i++){
 		if(good_markers[i]->isEnabled()){// && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
