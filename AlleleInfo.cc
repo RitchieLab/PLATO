@@ -16,11 +16,6 @@ void AlleleInfo::merge(allele_struct_data a){
 	if(i != string::npos){
 		allele2.erase(i);
 	}
-//	major.assign(a.major);
-//	i = major.find(" ", 0);
-//	if(i != string::npos){
-//		major.erase(i);
-//	}
 	parent_major_count = a.parent_major_count;
 	parent_minor_count = a.parent_minor_count;
 	father_major_count = a.father_major_count;
@@ -101,68 +96,7 @@ void AlleleInfo::merge(allele_struct_data a){
 	control_hw_f = a.control_hw_f;
 	control_hw_m = a.control_hw_m;
 	
-/*cout << "Alleles merged!" << endl;
-cout << "--";
-cout << "allele1 = " << allele1 << endl;
-cout << "--";
-cout << "allele2 = " << allele2 << endl;
-cout << "--";
-cout << "pmc = " << parent_major_count << endl;
-cout << "--";
-cout << "pminc = " << parent_minor_count << endl;
-cout << "--";
-cout << "fmc = " << father_major_count << endl;
-cout << "--";
-cout << "fminc = " << father_minor_count << endl;
-cout << "--";
-cout << "mmc = " << mother_major_count << endl;
-cout << "--";
-cout << "mminc = " << mother_minor_count << endl;
-cout << "--";
-cout << "cmc = " << child_major_count << endl;
-cout << "--";
-cout << "cminc = " << child_minor_count << endl;
-cout << "--";
-cout << "phc = " << parent_het_count << endl;
-cout << "--";
-cout << "fhc = " << father_het_count << endl;
-cout << "--";
-cout << "mhc = " << mother_het_count << endl;
-cout << "--";
-cout << "chc = " << child_het_count << endl;
-cout << "--";
-cout << "ph1c = " << parent_homo1_count << endl;
-cout << "--";
-cout << "ph2c = " << parent_homo2_count << endl;
-cout << "--";
-cout << "fh1c = " << father_homo1_count << endl;
-cout << "--";
-cout << "fh2c = " << father_homo2_count << endl;
-cout << "--";
-cout << "mh1c = " << mother_homo1_count << endl;
-cout << "--";
-cout << "mh2c = " << mother_homo2_count << endl;
-cout << "--";
-cout << "ch1c = " << child_homo1_count << endl;
-cout << "--";
-cout << "ch2c = " << child_homo2_count << endl;
-cout << "--";
-cout << "puc = " << parents_used << endl;
-cout << "--";
-cout << "fuc = " << fathers_used << endl;
-cout << "--";
-cout << "muc = " << mothers_used << endl;
-cout << "--";
-cout << "cuc = " << children_used << endl;
-cout << "--";
-cout << "phw = " << parent_hw << endl;
-cout << "--";
-cout << "fhw = " << father_hw << endl;
-cout << "--";
-cout << "mhw = " << mother_hw << endl;
-cout << "--";
-cout << "chw = " << child_hw << endl;
-*/
+
 	calcFreqs();
 }
 
@@ -459,18 +393,6 @@ float AlleleInfo::calcHW_exact(int obs_hets, int obs_hom1, int obs_hom2){
 	    for (i = 0; i <= rare_copies; i++)
 		    het_probs[i] /= sum;
 	
-	 	/* alternate p-value calculation for p_hi/p_lo
-	    double p_hi = het_probs[obs_hets];
-	    for (i = obs_hets + 1; i <= rare_copies; i++)
-		    p_hi += het_probs[i];
-	
-		double p_lo = het_probs[obs_hets];
-	    for (i = obs_hets - 1; i >= 0; i--)
-		    p_lo += het_probs[i];
-	
-	    double p_hi_lo = p_hi < p_lo ? 2.0 * p_hi : 2.0 * p_lo;
-	    */
-	
 	    double p_hwe = 0.0;
 	    /*  p-value calculation for p_hwe  */
 	    for (i = 0; i <= rare_copies; i++)
@@ -523,7 +445,6 @@ float AlleleInfo::calcHW(float a1freq, float a2freq, int obsa1, int obsa2, int o
 	if(DEBUG){
 		cout << "ChiTot:\t" << chi1 << "\t" << chi2 << "\t" << chi3 << "\t=" << chi << endl;
 	}
-	//float results = _subchisqrprob(1,chi);
 	float results = ChiSquare::pfromchi(chi, 1);
 	if(DEBUG){
 		cout << "Results: " << results << endl;
@@ -1456,7 +1377,6 @@ void AlleleInfo::calcFreqs(){
 
 float AlleleInfo::getABSParentMinorFreq(){
 	calcFreqs();
-	//cout << "Parent minorfreq: " << parent_minor_freq << " " << parent_major_freq << endl;
 	if(parent_minor_freq > parent_major_freq){
 		return parent_major_freq;
 	}
