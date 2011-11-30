@@ -176,13 +176,14 @@ void ProcessLogReg::process(DataSet* ds)
 	if(groups.size() == 0){
 		groups["GROUP_1"] = *(ds->get_samples());
 	}
-
+#ifndef PLATOLIB
 	if(options.doOutputSynthView()){
 		for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 			lrsvout << "\t" << group_iter->first << ":pval" << "\t" << group_iter->first << ":beta" << "\t" << group_iter->first << ":N";
 		}
 		lrsvout << endl;
 	}
+#endif
 
 
 	vector<vector<double> > gchis(ds->num_loci());
@@ -240,9 +241,11 @@ void ProcessLogReg::process(DataSet* ds)
 	for(int m = 0; m < (int)good_markers.size(); m++){//(int)ds->num_loci(); m++){
 		Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+#ifndef PLATOLIB
 			if(options.doOutputSynthView()){
 				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
 			}
+#endif
 
 	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 		DataSet* tempds = new DataSet();
@@ -487,9 +490,11 @@ void ProcessLogReg::process(DataSet* ds)
 			#endif
 
 		}//end group_iter
+#ifndef PLATOLIB
 	if(options.doOutputSynthView()){
 		lrsvout << endl;
 	}
+#endif
 	}
 	}
 
