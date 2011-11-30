@@ -241,14 +241,14 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 						if(first_samp){
 							genoout << "0";
 							if(options.doAncestry()){
-								ancestryout << "0";
+								ancestryout << "2";
 							}
 							first_samp = false;
 						}
 						else{
 							genoout << "0";
 							if(options.doAncestry()){
-								ancestryout << "0";
+								ancestryout << "2";
 							}
 						}
 					}
@@ -271,14 +271,14 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 						if(first_samp){
 							genoout << "2";
 							if(options.doAncestry()){
-								ancestryout << "2";
+								ancestryout << "0";
 							}
 							first_samp = false;
 						}
 						else{
 							genoout << "2";
 							if(options.doAncestry()){
-								ancestryout << "2";
+								ancestryout << "0";
 							}
 						}
 					}
