@@ -5,9 +5,11 @@ LIBPLATODIR=lib/
 LIBPLATO=$(LIBPLATODIR)libplato.a
 PLATO_AS_LIB=sqllib methods $(LIBPLATO)
 METHODDIR=method_lib
-LIBDIR=-L./lib -L/usr/lib -L/opt/local/lib -L./sqlitewrapped
+LIBDIR=-L./lib -L/usr/lib -L./sqlitewrapped $(BOOSTLIB)
 LIB=-lm -lmethods -lboost_thread
-INCLUDEDIR=-I. -I$(METHODDIR) -I/usr/local/boost_1_44_0 -I~/Downloads/R-2.11.1/include -I/opt/local/include
+INCLUDEDIR=-I. -I$(METHODDIR) -I~/Downloads/R-2.11.1/include -I/opt/local/include $(BOOSTINC)
+BOOSTLIB = -L/usr/local/lib
+BOOSTINC = -I/usr/local/boost_1_44_0
 
 SYS=MAC
 #DB=USE_DB
