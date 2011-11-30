@@ -124,6 +124,7 @@ enum cmdArgs{
 	a_inctraits_name,
 	a_covar_file,
 	a_trait_file,
+	a_pheno_missing,
 	a_map_includes_ref,
 	a_samplebprangefilter,
 	a_threads,
@@ -235,6 +236,7 @@ void Initialize(){
 	s_mapcmdArgs["-trait-missing"] = a_trait_missing;
 	s_mapcmdArgs["-covar-file"] = a_covar_file;
 	s_mapcmdArgs["-trait-file"] = a_trait_file;
+	s_mapcmdArgs["-pheno-missing"] = a_pheno_missing;
 	s_mapcmdArgs["-bp-space"] = a_bp_space;
 	s_mapcmdArgs["-todigit"] = a_todigit;
 	s_mapcmdArgs["-map-includes-ref"] = a_map_includes_ref;
@@ -328,6 +330,21 @@ main (int argc, char* argv[])
 					//}
 					opts::_NOCALL_ = arguments[++j];
 					opts::_NOCALLMDR_ = opts::_NOCALL_;
+					break;
+				}
+				case a_pheno_missing:
+				{
+					if(j + 1 >= arguments.size()){
+						cerr << "-pheno-missing option requires specifying a missing code. (Ex: -pheno-missing -9). Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() == 0){
+						cerr << "-pheno-missing option requires specifying a missing code. (Ex: -pheno-missing -9). Halting!" << endl;
+						exit(1);
+					}
+					opts::_PHENO_MISS_ = atoi(test.c_str());
+					j++;
 					break;
 				}
 				case a_covar_missing:
@@ -1742,7 +1759,10 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		vector<ORDER> optimized = optimize(order);
 //		}
 		int count = 0;
-	boost::thread *threads[opts::_NUMTHREADS_];
+		vector<boost::thread*> threads_hash;
+		//vector<boost::thread*>::iterator thread_iter;
+		boost::thread *threads[opts::_NUMTHREADS_];
+
 	map<int, int> thread_step_map;
 	ORDER yesthread = optimized[0];
 	ORDER nothread = optimized[1];
@@ -1752,16 +1772,29 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 //		runStep(current_step, &data_set);
 
 		if(opts::_THREADS_){
-			thread_step_map[count] = o;
-			threads[count++] = new boost::thread(boost::bind(&runStep, current_step, &data_set));
+//			thread_step_map[count] = o;
+//			threads[count++] = new boost::thread(boost::bind(&runStep, current_step, &data_set));
+			threads_hash.push_back(new boost::thread(boost::bind(&runStep, current_step, &data_set)));
+//			cout << "thread count " << count << endl;
+			count++;
 			if(count >= opts::_NUMTHREADS_){
-				for(int i = 0; i < count; i++){
-					threads[i]->join();
-//					finalizeStep(order->at(thread_step_map[i]));
-					delete(threads[i]);
+//				for(int i = 0; i < count; i++){
+/////				for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){
+				while(count >= opts::_NUMTHREADS_){
+				for(int i = 0; i < threads_hash.size(); i++){
+//					if(threads[i]->timed_join(boost::posix_time::milliseconds(500))){
+					if(threads_hash[i]->timed_join(boost::posix_time::milliseconds(500))){
+/////					finalizeStep(order->at(thread_step_map[i]));
+						delete(threads_hash[i]);//thread_iter->first]);
+//						thread_step_map.erase(count - 1);
+						threads_hash.erase(threads_hash.begin() + i);//thread_iter->first);
+						count--;
+						i--;
+					}
 				}
-				count = 0;
-				thread_step_map.clear();
+				}
+//				count = 0;
+//				thread_step_map.clear();
 			}
 		}
 		else{
@@ -1769,11 +1802,13 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		}
 	}
 
-	for(int i = 0; i < count; i++){
-		if(opts::_THREADS_){
-			threads[i]->join();
-			delete(threads[i]);
-		}
+	if(opts::_THREADS_){
+	//for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){//int i = 0; i < count; i++){
+	for(int i = 0; i < threads_hash.size(); i++){
+		threads_hash[i]->join();//thread_iter->first]->join();
+			delete(threads_hash[i]);//thread_iter->first]);
+
+	}
 	}
 
 	for(unsigned int o = 0; o < nothread.size(); o++){

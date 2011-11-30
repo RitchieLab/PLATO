@@ -188,16 +188,16 @@ void ProcessLogReg::process(DataSet* ds){
 //				}
 //			}
 			if(covs.size() == 0){// && traits.size() == 0){
-				cout << "on " << m << endl;
+			//	cout << "on " << m << endl;
 				lr.calculate(model);
 			}
 			else{
 				lr.calculate(model, covs, traits);
 			}
 			vector<double> coefs = lr.getCoefficients();
-			cout << "coefs\n";
+			//cout << "coefs\n";
 			vector<double> ses = lr.getCoeffStandardErr();
-			cout << "stderr\n";
+			//cout << "stderr\n";
 			for(unsigned int c = 0; c < model.size(); c++){
 				lrout << mark->toString() << "\t" << mark->getReferent() << "\t" << options.getLRModelType();
 				lrout << "\t" << nmiss;
@@ -213,7 +213,7 @@ void ProcessLogReg::process(DataSet* ds){
 				double pvalue, p, bound, df = 1;
 				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
-				cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
+				//cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
 				if(se > 0){
 					pvalue = p_from_chi(zz, df);
 					lrout << "\t" << pvalue;
@@ -231,7 +231,7 @@ void ProcessLogReg::process(DataSet* ds){
 //				}
 
 				lrout << endl;
-				cout << "calc done " << c << endl;
+				//cout << "calc done " << c << endl;
 			}
 			int buffer = model.size();
 			for(unsigned int c = 0; c < covs.size(); c++){

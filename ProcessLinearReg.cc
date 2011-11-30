@@ -125,6 +125,7 @@ void ProcessLinearReg::process(DataSet* ds){
 			vector<string>labels = lr.getLabels();
 			vector<double> vars = lr.getVar();
 			vector<double> zs = lr.getZs();
+
 			for(int l = 1; l < (int)labels.size(); l++){
 				bool okay = vars[l] < 1e-20 || !realnum(vars[l]) ? false : true;
 				double se = 0;

@@ -124,7 +124,7 @@ void ProcessFst::process(DataSet* ds) {
 	int prev_base = 0;
 	int prev_chrom = -1;
 
-	vector<Marker*> good_markers = findValidMarkers(ds->get_markers(), &options);
+	vector<int> good_markers = findValidMarkersIndexes(ds->get_markers(), &options);
 	int msize = good_markers.size();
 
 	eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
@@ -136,9 +136,9 @@ void ProcessFst::process(DataSet* ds) {
 
 
 		for (int m = 0; m < (int) msize; m++){//ds->num_loci(); m++) {
-			Marker* mark = good_markers[m];//ds->get_locus(m);
+			Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 			if (mark->isEnabled()){// && isValidMarker(mark, &options, prev_base,prev_chrom)) {
-				fst.calculate(m);
+				fst.calculate(good_markers[m]);
 				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH()// << "\t" << fst.getFstHM()
 						<< endl;
 
