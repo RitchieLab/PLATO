@@ -121,7 +121,8 @@ enum cmdArgs{
 	a_inctraits_name,
 	a_covar_file,
 	a_trait_file,
-	a_map_includes_ref
+	a_map_includes_ref,
+	a_samplebprangefilter
 
 };
 static map<string, StepValue> s_mapStepValues;
@@ -230,6 +231,7 @@ void Initialize(){
 	s_mapcmdArgs["-bp-space"] = a_bp_space;
 	s_mapcmdArgs["-todigit"] = a_todigit;
 	s_mapcmdArgs["-map-includes-ref"] = a_map_includes_ref;
+	s_mapcmdArgs["-sample-bprange-filter"] = a_samplebprangefilter;
 }
 
 int
@@ -365,6 +367,24 @@ main (int argc, char* argv[])
 						exit(1);
 					}
 					opts::_PEDINFO_ = arguments[++j];
+					break;
+				}
+				case a_samplebprangefilter:
+				{
+					if(j + 1 >= arguments.size()){
+						cerr << "-sample-bprange-filter option requires specifying a filename. (Ex: -sample-bprange-filter filter.txt). Halting!" << endl;
+						exit(1);
+					}
+					string test = arguments[j+1];
+					if(test.length() == 0){
+						cerr << "-sample-bprange-filter option requires specifying a filename. (Ex: -sample-bprange-filter filter.txt). Halting!" << endl;
+						exit(1);
+					}
+					if(test[0] == '-'){
+						cerr << "-sample-bprange-filter option missing file name?  Halting." << endl;
+						exit(1);
+					}
+					opts::_SAMPLEBPRANGEFILTER_ = arguments[++j];
 					break;
 				}
 				case a_tped:
@@ -1421,6 +1441,12 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		options.setCovarMissing(opts::_COVAR_MISSING_);
 		options.setTraitMissing(opts::_TRAIT_MISSING_);
 
+		if(opts::_SAMPLEBPRANGEFILTER_.length() > 0){
+			options.setSampleBprangeFile(opts::_SAMPLEBPRANGEFILTER_);
+			opts::printLog("Reading sample/bprange file: " + opts::_SAMPLEBPRANGEFILTER_ + "\n");
+			options.readSampleBprangeFile();
+		}
+
 		if(opts::_FREQ_FILE_EXISTS_){
 			opts::printLog("Reading marker frequencies from: " + opts::_FREQ_FILE_ + "\n");
 			options.setFrequencies(readFreqFile(opts::_FREQ_FILE_));
@@ -1550,6 +1576,11 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 		if(opts::_TRAITFILE_.length() > 0){
 			opts::printLog("Reading trait file: " + opts::_TRAITFILE_ + "\n");
 			readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
+		}
+
+		if(opts::_SAMPLEBPRANGEFILTER_.length() > 0){
+			opts::printLog("Running sample/bprange filter...\n");
+			filters->run_sample_bprange_filter(data_set.get_samples(), data_set.get_markers(), (options.getSampleBprangeSamples()), (options.getSampleBprangeMarkers()));
 		}
 
 		//int goodsamps = 0;
