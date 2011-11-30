@@ -112,13 +112,17 @@ void ProcessLinearReg::process(DataSet* ds){
 		create_tables();
 	#endif
 
+		//MEMORY_LEAK
 		if(options.doGroupFile()){
 			options.readGroups(ds->get_samples());
 		}
+		//END_MEMORY_LEAK
 
 	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
+	//MEMORY_LEAK
 	map<string, vector<Sample*> > groups = options.getGroups();
 	map<string, vector<Sample*> >::iterator group_iter;
+	//END_MEMORY_LEAK
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -139,6 +143,7 @@ void ProcessLinearReg::process(DataSet* ds){
     }
     lrout.precision(4);
 
+    //MEMORY_LEAK
     lrout << "Chrom\trsID\tProbeID\tBPLOC\t";
     if(options.doGroupFile()){
     	lrout << "GRP\t";
@@ -159,6 +164,7 @@ void ProcessLinearReg::process(DataSet* ds){
     	lrsvout.precision(4);
     	lrsvout << "SNP\tChromosome\tLocation";
     }
+    //END_MEMORY_LEAK
 #endif
 
 	LinearRegression lr;
@@ -167,6 +173,7 @@ void ProcessLinearReg::process(DataSet* ds){
 	ds->set_missing_covalues(-99999);
 #endif
 
+	//MEMORY_LEAK
 	if(groups.size() == 0){
 		groups["GROUP_1"] = *(ds->get_samples());
 	}
@@ -179,6 +186,8 @@ void ProcessLinearReg::process(DataSet* ds){
 	}
 #endif
 	//lr.resetDataSet(ds);
+
+	//END_MEMORY_LEAK
 
 	vector<double> chis(ds->num_loci(), 0);
 	vector<double> main_pvals(ds->num_loci(), 0);
@@ -195,6 +204,7 @@ void ProcessLinearReg::process(DataSet* ds){
 		Marker* mark = good_markers[i];//ds->get_locus(i);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 #ifndef PLATOLIB
+			//MEMORY_LEAK
 			if(options.doOutputSynthView()){
 				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
 			}
@@ -211,7 +221,10 @@ void ProcessLinearReg::process(DataSet* ds){
 				tempds->set_traits(ds->get_traits());
 				tempds->set_trait_map(ds->get_trait_map());
 
+
 				lr.resetDataSet(tempds);
+
+			//END_MEMORY_LEAK	
 
 				lr.calculate(mark);//i);
 				vector<double>pvals = lr.getPvalues();
