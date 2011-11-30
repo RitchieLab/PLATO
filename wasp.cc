@@ -68,7 +68,8 @@ enum StepValue{
 					   e_mars,				//mars
 					   e_filter_process,		//plato filter-process,
 					   e_fst,				//fst
-					   e_kinship			//kinship
+					   e_kinship,			//kinship
+					   e_bin_output			//binary output
 					 };
 enum cmdArgs{
 	a_h,
@@ -100,7 +101,7 @@ enum cmdArgs{
 	a_mdrped,
 	a_mdrmap,
 	a_flip,
-	a_make_bin,
+//	a_make_bin,
 	a_print_families,
 	a_zero_geno_file,
 	a_remaining,
@@ -177,6 +178,7 @@ void Initialize(){
 	s_mapStepValues["filter-process"] = e_filter_process;
 	s_mapStepValues["fst"] = e_fst;
 	s_mapStepValues["kinship"] = e_kinship;
+	s_mapStepValues["output-bin"] = e_bin_output;
 
 	s_mapcmdArgs["-h"] = a_h;
 	s_mapcmdArgs["-S"] = a_S;
@@ -205,7 +207,7 @@ void Initialize(){
 	s_mapcmdArgs["-pedinfo"] = a_pedinfo;
 	s_mapcmdArgs["-dog"] = a_dog;
 	s_mapcmdArgs["-flip"] = a_flip;
-	s_mapcmdArgs["-make-bin"] = a_make_bin;
+//	s_mapcmdArgs["-make-bin"] = a_make_bin;
 	s_mapcmdArgs["-mapdesc"] = a_mapdesc;
 	s_mapcmdArgs["-micro-sats"] = a_micro_sats;
 	s_mapcmdArgs["-no-summary"] = a_no_summary;
@@ -875,7 +877,7 @@ main (int argc, char* argv[])
 					opts::_BINPREFIX_ = arguments[++j];
 					break;
 				}
-				case a_make_bin:
+/*				case a_make_bin:
 				{
 					if(j + 1 >= arguments.size()){
 						cerr << "-make-bin option requires specifying a filename prefix. (Ex: -make-bin data).  Halting!" << endl;
@@ -894,6 +896,7 @@ main (int argc, char* argv[])
 					opts::_MAKEBIN_ = true;
 					break;
 				}
+*/
 				case a_out:
 				{
 					if(j + 1 >= arguments.size()){
@@ -1648,9 +1651,9 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 			zeroSingleGenos(data_set.get_markers(), data_set.get_samples());
 		}
 
-		if(opts::_MAKEBIN_){
-			writeBit(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
-		}
+//		if(opts::_MAKEBIN_){
+//			writeBit(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+//		}
 		if(opts::_PRINTFAMS_){
 			opts::printLog("Printing family structure diagram.\n");
 			printFamilies(data_set.get_families());
@@ -2303,6 +2306,23 @@ Step initializeSteps(string i){
 					delete(tempproc);
 				}
 				tempproc = new ProcessPEDOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_bin_output:
+				newstep = new Step("Binary (.bim, .fam, .bed) file output", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessBINOutput();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -3122,6 +3142,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessPEDOutput();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_bin_output:
+				newstep = new Step("Binary (.bed, .fam, .bim) file output", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessBINOutput();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}

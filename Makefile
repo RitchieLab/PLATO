@@ -40,7 +40,7 @@ ifeq ($(SYS),MAC)
 endif
 
 OBJECTS = ProcessKinship.o ProcessFst.o ProcessEarth.o Step.o wasp.o Process.o Percent.o Chrom.o ProcessMarkerGenoEff.o ProcessSampleGenoEff.o PercentByFamily.o ProcessAlleleFrequency.o \
-		  ProcessMendelianErrors.o ProcessHWEquilibrium.o ProcessGenderCheck.o ProcessRunTDT.o ProcessGRROutput.o dcdflib.o ProcessPEDOutput.o \
+		  ProcessMendelianErrors.o ProcessHWEquilibrium.o ProcessGenderCheck.o ProcessRunTDT.o ProcessGRROutput.o dcdflib.o ProcessPEDOutput.o ProcessBINOutput.o \
 		  ProcessCaConChisq.o ipmpar.o ProcessSTRUCTOutput.o ProcessPHASEOutput.o ProcessEigenstratOutput.o \
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
@@ -160,6 +160,8 @@ ProcessEigenstratOutput.o: ProcessEigenstratOutput.cc ProcessEigenstratOutput.h
 	$(CC) ProcessEigenstratOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessPEDOutput.o: ProcessPEDOutput.cc ProcessPEDOutput.h
 	$(CC) ProcessPEDOutput.cc -c $(CFLAGSCC) $(LIBDIR)
+ProcessBINOutput.o: ProcessBINOutput.cc ProcessBINOutput.h
+	$(CC) ProcessBINOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessTPEDOutput.o: ProcessTPEDOutput.cc ProcessTPEDOutput.h
 	$(CC) ProcessTPEDOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 #QSOutput.o: QSOutput.cc QSOutput.h

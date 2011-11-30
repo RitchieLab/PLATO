@@ -216,14 +216,14 @@ void ProcessEarth::process(DataSet* ds) {
 	} else {
 		eout << "Chrom\trsID\tProbeID\tBPLOC\tGRsq\tRsq\tExpression\n";
 
-/*		vector<int> model1;
+		vector<int> model1;
 		vector<int> covs1;
 		for(int m = 0; m < (int) ds->num_loci(); m++){
 			model1.push_back(m);
 		}
 			mars.calculate(model1, covs1);
 			eout << mars.getGeneralRsq() << "\t" << mars.getRsq() << "\t" << mars.getBestModel() << endl;
-*/
+
 		for (int m = 0; m < (int) ds->num_loci(); m++) {
 			Marker* mark = ds->get_locus(m);
 			if (mark->isEnabled() && isValidMarker(mark, &options, prev_base,

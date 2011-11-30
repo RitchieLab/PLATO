@@ -32,6 +32,7 @@
 //#include "QualityScore.h"
 #include "PercentByFamily.h"
 #include "ProcessPEDOutput.h"
+#include "ProcessBINOutput.h"
 #include "ProcessTPEDOutput.h"
 #include "ProcessGRROutput.h"
 #include "ProcessSuperlinkOutput.h"
