@@ -50,6 +50,8 @@ class ProcessRunTDT : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int orig_num_markers;
+		int orig_num_families;
+		int orig_num_individuals;
 		int order;
 
 		vector<double> chi;
@@ -74,6 +76,7 @@ class ProcessRunTDT : public Process{
 			orig_num_markers = 0;
 			order = 0;
 		};
+		ProcessRunTDT(string, int, Database*);
 		~ProcessRunTDT(){};
 		void PrintSummary();
 		void filter();
@@ -89,8 +92,11 @@ class ProcessRunTDT : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

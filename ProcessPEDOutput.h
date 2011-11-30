@@ -51,6 +51,7 @@ class ProcessPEDOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessPEDOutput(){
@@ -97,6 +98,7 @@ class ProcessPEDOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessPEDOutput(string, int, Database*, string);
 		~ProcessPEDOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -128,8 +130,11 @@ class ProcessPEDOutput : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

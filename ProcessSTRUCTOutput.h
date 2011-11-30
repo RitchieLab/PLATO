@@ -52,6 +52,7 @@ class ProcessSTRUCTOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessSTRUCTOutput(){
@@ -102,6 +103,7 @@ class ProcessSTRUCTOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessSTRUCTOutput(string, int, Database*, string);
 		~ProcessSTRUCTOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -110,7 +112,7 @@ class ProcessSTRUCTOutput : public Process{
 		void process(DataSet*);
 		void setThreshold(string s){
 			options.setUp(s);
-			if(options.getStratFile().length() == 0){
+			if(options.getStratFile().length() == 0 && !(options.haveStratification())){
 				opts::printLog("STRUCTURE Output step requires the step option of '-strat-file <filenam>' to specify a stratification file.\n");
 				exit(1);
 			}
@@ -133,8 +135,9 @@ class ProcessSTRUCTOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

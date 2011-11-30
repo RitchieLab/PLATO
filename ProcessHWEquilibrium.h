@@ -54,6 +54,12 @@ class ProcessHWEquilibrium : public Process{
 		bool overwrite;
 		int order;
 
+		string defaultinsert;
+		string hweptinsert;
+		string parentalinsert;
+		string genderinsert;
+		string ccinsert;
+
 		float hw_O;
 		float hw_OM;
 		float hw_OF;
@@ -116,6 +122,7 @@ class ProcessHWEquilibrium : public Process{
 			order = 0;
 			orig_num_markers = 0;
 		};
+		ProcessHWEquilibrium(string, int, Database*);
 		~ProcessHWEquilibrium(){
 			//if(af){
 			//delete(af);
@@ -148,8 +155,9 @@ class ProcessHWEquilibrium : public Process{
 		void doFilter(Marker*, HWEquilibrium*);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

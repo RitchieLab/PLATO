@@ -115,7 +115,11 @@ void ProcessGRROutput::run(DataSetObject* ds)
 
 void ProcessGRROutput::FixOutputName(int i, string tempout)
 {
-	options.setOverrideOut(projectPath + "_random_set_" + getString<int>(i + 1) + tempout);
+#ifdef WIN
+	options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
+#else
+	options.setOverrideOut(projectPath + "/" + "_random-set_" + getString<int>(i + 1) + tempout);
+#endif
 }
 #endif
 

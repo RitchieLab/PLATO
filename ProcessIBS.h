@@ -52,6 +52,8 @@ class ProcessIBS : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string defaultinsert;
+		string projectPath;
 
 	public:
 		ProcessIBS(){
@@ -98,6 +100,7 @@ class ProcessIBS : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessIBS(string, int, Database*, string);
 		~ProcessIBS(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -135,8 +138,10 @@ class ProcessIBS : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void resize(int);
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

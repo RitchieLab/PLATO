@@ -52,11 +52,13 @@ class ProcessMitoCheck : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string defaultinsert;
+		string sampleinsert;
+		string projectPath;
 
 		vector<int> merrors;
 		vector<int> serrors;
 		vector<vector<Marker*> > error_map;
-
 		vector<Marker*> good_markers;
 
 	public:
@@ -92,6 +94,7 @@ class ProcessMitoCheck : public Process{
 			order =0;
 			overwrite = true;
 		};
+		ProcessMitoCheck(string, int, Database*, string);
 		~ProcessMitoCheck(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -117,8 +120,12 @@ class ProcessMitoCheck : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+			void resize(int);
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

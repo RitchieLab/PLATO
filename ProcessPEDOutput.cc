@@ -41,8 +41,17 @@ namespace PlatoLib
 {
 #endif
 
-void ProcessPEDOutput::FilterSummary(){
+ProcessPEDOutput::ProcessPEDOutput(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "Output PED";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
 }
+
+void ProcessPEDOutput::FilterSummary(){}
 
 void ProcessPEDOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -50,23 +59,26 @@ void ProcessPEDOutput::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-
 }
 
-void ProcessPEDOutput::filter(){
-}
+void ProcessPEDOutput::filter(){}
 
-
-
-void ProcessPEDOutput::process(DataSet* ds){
+void ProcessPEDOutput::process(DataSet* ds)
+{
 	data_set = ds;
 
 	PEDOutput ped;
 	ped.setOrder(this->order);
-	ped.setOverwrite(this->overwrite);
-	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
+	#ifdef PLATOLIB
+		ped.setOverwrite(true);
+	#else
+		ped.setOverwrite(this->overwrite);
+	#endif
+	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
+	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < (int)sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++)
+		{
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);
@@ -84,12 +96,30 @@ void ProcessPEDOutput::process(DataSet* ds){
 			ds.clear_all();
 		}
 	}
-	else{
+	else
+	{
 		ped.setOptions(options);
 		ped.calculate(data_set);
 	}
+	#ifdef PLATOLIB
+		filenames = ped.get_filenames();
+	#endif
+}//end method process(DataSet* ds)
 
+#ifdef PLATOLIB
+void ProcessPEDOutput::create_tables(){}
+void ProcessPEDOutput::dump2db(){}
+void ProcessPEDOutput::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
+	#else
+		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
+	#endif
+	process(ds);
 }
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

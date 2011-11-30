@@ -53,6 +53,7 @@ class ProcessSuperlinkOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessSuperlinkOutput(){
@@ -103,6 +104,7 @@ class ProcessSuperlinkOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessSuperlinkOutput(string, int, Database*, string);
 		~ProcessSuperlinkOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -111,12 +113,22 @@ class ProcessSuperlinkOutput : public Process{
 		void process(DataSet*);
 		void setThreshold(string s){
 			options.setUp(s);
-			if(options.havePenetrance()){
-				options.readPenetranceFile(options.getPenetranceFile());
-			}
-			else{
+//			if(options.havePenetrance()){
+//				options.readPenetranceFile(options.getPenetranceFile());
+//			}
+//			else{
+//				opts::printLog(stepname + " requires a penetrance file to be included using the -penetrance-file option!\n");
+//				exit(1);
+//			}
+			cout << "ProcessSuperlinkOutput.h setThreshold \n";
+			if(options.getPenetranceFile().length() == 0 && !(options.havePenetrance()))
+			{
 				opts::printLog(stepname + " requires a penetrance file to be included using the -penetrance-file option!\n");
 				exit(1);
+			}
+			if (!(options.havePenetrance()))
+			{
+				options.readPenetranceFile(options.getPenetranceFile());
 			}
 			//threshold = 0;
 		};
@@ -137,8 +149,11 @@ class ProcessSuperlinkOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

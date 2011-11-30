@@ -53,7 +53,7 @@ class ProcessLAPISOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
-
+		string projectPath;
 	public:
 		ProcessLAPISOutput(){
 //			per_cutoff.push_back(100);
@@ -103,6 +103,7 @@ class ProcessLAPISOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessLAPISOutput(string, int, Database*, string);
 		~ProcessLAPISOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -133,8 +134,11 @@ class ProcessLAPISOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+				void run(DataSetObject*);
+				void dump2db();
+				void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

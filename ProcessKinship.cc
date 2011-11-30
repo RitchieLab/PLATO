@@ -44,6 +44,16 @@ namespace PlatoLib
 {
 #endif
 
+ProcessKinship::ProcessKinship(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "Kinship";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
+}
+
 void ProcessKinship::FilterSummary() {
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
@@ -95,6 +105,10 @@ void ProcessKinship::process(DataSet* ds) {
 	//create vector of covariate indexes to use if specified.
 
 	string fname = opts::_OUTPREFIX_ + "Kinship" + options.getOut() + ".txt";
+	if (options.getOverrideOut().length() > 0)
+	{
+		fname = options.getOverrideOut() + "Kinship.txt";
+	}
 	if (!overwrite) {
 		fname += "." + getString<int> (order);
 	}
@@ -146,7 +160,25 @@ void ProcessKinship::process(DataSet* ds) {
 			}
 		}
 	eout.close();
+	#ifdef PLATOLIB
+		filenames.push_back(fname);
+	#endif
 }
+
+#ifdef PLATOLIB
+void ProcessKinship::create_tables(){}
+void ProcessKinship::dump2db(){}
+void ProcessKinship::resize(int i){}
+void ProcessKinship::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\");
+	#else
+		options.setOverrideOut(projectPath + "/");
+	#endif
+	process(ds);
+}
+#endif
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

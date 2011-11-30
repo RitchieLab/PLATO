@@ -41,8 +41,17 @@ namespace PlatoLib
 {
 #endif
 
-void ProcessTPEDOutput::FilterSummary(){
+ProcessTPEDOutput::ProcessTPEDOutput(string bn, int pos, Database* pdb, string projPath)
+{
+    name = "Output TPED";
+    batchname = bn;
+    position = pos;
+    hasresults = false;
+    db = pdb;
+    projectPath = projPath;
 }
+
+void ProcessTPEDOutput::FilterSummary(){}
 
 void ProcessTPEDOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -50,22 +59,22 @@ void ProcessTPEDOutput::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-
 }
 
-void ProcessTPEDOutput::filter(){
-}
+void ProcessTPEDOutput::filter(){}
 
-
-void ProcessTPEDOutput::process(DataSet* ds){
+void ProcessTPEDOutput::process(DataSet* ds)
+{
 	data_set = ds;
 
 	TPEDOutput ped;
 	ped.setOrder(this->order);
 	ped.setOverwrite(this->overwrite);
-	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
+	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
+	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < (int)sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++)
+		{
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);
@@ -83,11 +92,29 @@ void ProcessTPEDOutput::process(DataSet* ds){
 			ds.clear_all();
 		}
 	}
-	else{
-	ped.setOptions(options);
-	ped.calculate(data_set);
+	else
+	{
+		ped.setOptions(options);
+		ped.calculate(data_set);
 	}
+}//end method process(DataSet* ds)
+
+#ifdef PLATOLIB
+void ProcessTPEDOutput::dump2db(){}
+
+void ProcessTPEDOutput::create_tables(){}
+
+void ProcessTPEDOutput::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
+	#else
+		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
+	#endif
+	process(ds);
 }
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

@@ -35,9 +35,8 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
+#include "Controller.h"
+
 using namespace Methods;
 #ifdef PLATOLIB
 namespace PlatoLib
@@ -45,6 +44,15 @@ namespace PlatoLib
 #endif
 
 string ProcessMarkerGenoEff::stepname = "marker-geno-eff";
+
+ProcessMarkerGenoEff::ProcessMarkerGenoEff(string bn, int pos, Database* pdb)
+{
+	name = "Marker Efficiency";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+}
 
 void ProcessMarkerGenoEff::FilterSummary(){
 	opts::printLog("Options:\t" + options.toString() + "\n");
@@ -318,8 +326,223 @@ void ProcessMarkerGenoEff::process(DataSet* ds){
 			}
 		}
 	}
+}//end method process(DataSetObject*)
 
-}
+#ifdef PLATOLIB
+void ProcessMarkerGenoEff::create_tables()
+{
+	Query myQuery(*db);
+	myQuery.transaction();
+
+    for(int i = 0; i < (int)tablename.size(); i++)
+    {
+        Controller::drop_table(db, tablename[i]);
+    }
+    headers.clear();
+    tablename.clear();
+    primary_table.clear();
+
+    string tempbatch = batchname;
+    for(int i = 0; i < (int)tempbatch.size(); i++)
+    {
+        if(tempbatch[i] == ' ')
+        {
+            tempbatch[i] = '_';
+        }
+    }
+    string mytablename = tempbatch + "_";
+    tempbatch = name;
+    for(int i = 0; i < (int)tempbatch.size(); i++)
+    {
+        if(tempbatch[i] == ' ')
+        {
+            tempbatch[i] = '_';
+        }
+    }
+
+    mytablename += tempbatch + "_" + getString<int>(position);
+    tablename.push_back(mytablename);
+    tablenicknames.push_back("");
+    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+    sql += "fkey integer not null,";
+    sql += "percent_GenoEff_Ind_all REAL,";
+    headers[mytablename].push_back("percent_GenoEff_Ind_all");
+    sql += "Ind_Zero_Count integer,";
+    headers[mytablename].push_back("Ind_Zero_Count");
+    sql += "Total_Individuals_Used integer,";
+    headers[mytablename].push_back("Total_Individuals_Used");
+    sql += "percent_GenoEff_Ind_Cases REAL,";
+    headers[mytablename].push_back("percent_GenoEff_Ind_Cases");
+    sql += "Ind_Zero_Count_Cases integer,";
+    headers[mytablename].push_back("Ind_Zero_Count_Cases");
+    sql += "Total_Individuals_Used_Cases integer,";
+    headers[mytablename].push_back("Total_Individuals_Used_Cases");
+    sql += "percent_GenoEff_Ind_Controls REAL,";
+    headers[mytablename].push_back("percent_GenoEff_Ind_Controls");
+    sql += "Ind_Zero_Count_Controls integer,";
+    headers[mytablename].push_back("Ind_Zero_Count_Controls");
+    sql += "Total_Individuals_Used_Controls integer";
+    headers[mytablename].push_back("Total_Individuals_Used_Controls");
+
+    if(options.doGroupFile())
+    {
+        map<string, vector<Methods::Sample*> > groups = options.getGroups();
+        map<string, vector<Methods::Sample*> >::iterator giter;
+        for(giter = groups.begin(); giter != groups.end(); giter++)
+        {
+            string group = giter->first;
+            sql += ",percent_" + group + " REAL,";
+            headers[mytablename].push_back("percent_" + group);
+            sql += group + "_Zero_Count integer,";
+            headers[mytablename].push_back(group + "_Zero_Count");
+            sql += group + "_Total_Used integer";
+            headers[mytablename].push_back(group + "_Total_Used");
+        }
+    }
+
+    sql += ")";
+    Controller::execute_sql(myQuery, sql);
+    myQuery.commit();
+}//end method create_tables()
+
+void ProcessMarkerGenoEff::dump2db(){
+    create_tables();
+
+//    int prev_base = 0;
+//    int prev_chrom = -1;
+    good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
+    int msize = good_markers.size();
+
+    cout << "START MGE INSERT" << endl;
+
+    Query myQuery(*db);
+    myQuery.transaction();
+
+    for(int i = 0; i < (int)msize; i++){
+        if(good_markers[i]->isEnabled()){//data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && Helpers::isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
+            float percent = 0.0f;
+            float caseper = 0.0f;
+            float contper = 0.0f;
+            //		int contzero = 0;
+            //		int conttot = 0;
+            if(total[i] > 0){
+                percent = (1.0f - ((float)zeros[i]/(float)total[i]));// * 100.0f;
+            }
+            if(casetotal[i] > 0){
+                caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i]));// * 100.0f;
+            }
+            //		contzero = zeros[i] - casezeros[i];
+            //		conttot = total[i] - casetotal[i];
+            if(controltotal[i] > 0){
+                contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i]));// * 100.0f;
+            }
+            string sql = "INSERT INTO " + tablename.at(0) + " (id, fkey, percent_GenoEff_Ind_All, Ind_Zero_Count, Total_Individuals_Used, percent_GenoEff_Ind_Cases, Ind_Zero_Count_Cases, Total_Individuals_Used_Cases, percent_GenoEff_Ind_Controls, Ind_Zero_Count_Controls, Total_Individuals_Used_Controls";
+            if(options.doGroupFile()){
+                map<string, vector<Methods::Sample*> > groups = options.getGroups();
+                map<string, vector<Methods::Sample*> >::iterator giter;
+                for(giter = groups.begin(); giter != groups.end(); giter++){
+                    string group = giter->first;
+                    sql += ",percent_" + group + ",";
+                    sql += group + "_Zero_Count,";
+                    sql += group + "_Total_Used";
+                }
+            }
+           sql += ") VALUES (NULL, ";
+            sql += getString<int>(good_markers[i]->getSysprobe()) + ",";
+            sql += (isnan(percent) || isinf(percent)) ? "NULL," : getString<double>(percent) + ", ";
+            sql += (isnan(zeros[i]) || isinf(zeros[i])) ? "NULL," : getString<int>(zeros[i]) + ", ";
+            sql += (isnan(total[i]) || isinf(total[i])) ? "NULL," : getString<int>(total[i]) + ", ";
+            sql += (isnan(caseper) || isinf(caseper)) ? "NULL," : getString<double>(caseper) + ", ";
+            sql += (isnan(casezeros[i]) || isinf(casezeros[i])) ? "NULL," : getString<int>(casezeros[i]) + ", ";
+            sql += (isnan(casetotal[i]) || isinf(casetotal[i])) ? "NULL," : getString<int>(casetotal[i]) + ", ";
+            sql += (isnan(contper) || isinf(contper)) ? "NULL," : getString<double>(contper) + ", ";
+            sql += (isnan(controlzeros[i]) || isinf(controlzeros[i])) ? "NULL," : getString<int>(controlzeros[i]) + ", ";
+            sql += (isnan(controltotal[i]) || isinf(controltotal[i])) ? "NULL," : getString<int>(controltotal[i]);
+
+            if(options.doGroupFile()){
+                map<string, vector<Methods::Sample*> > groups = options.getGroups();
+                map<string, vector<Methods::Sample*> >::iterator giter;
+                for(giter = groups.begin(); giter != groups.end(); giter++){
+                    string group = giter->first;
+                    int gzero = groupzeros[group][i];
+                    int gtotal = grouptotal[group][i];
+                    float gper = 0.0f;
+                    if(gtotal > 0){
+                        gper = (float)(1.0f - ((float)gzero/(float)gtotal));// * 100.0f;
+                    }
+                    sql += ", " + (isnan(gper) || isinf(gper)) ? "NULL," : getString<double>(gper) + ", ";
+                    sql += (isnan(gzero) || isinf(gzero)) ? "NULL," : getString<int>(gzero) + ", ";
+                    sql += (isnan(gtotal) || isinf(gtotal)) ? "NULL," : getString<int>(gtotal);
+                }
+            }
+
+            sql += ")";
+            Controller::execute_sql(myQuery, sql);
+        }
+        good_markers[i]->setFlag(false);
+    }
+    myQuery.commit();
+    cout << "END MGE INSERT" << endl;
+    hasresults = true;
+}//end method dump2db()
+
+void ProcessMarkerGenoEff::run(DataSetObject* ds)
+{
+	data_set = ds;
+	zeros.resize(data_set->num_loci());
+	total.resize(data_set->num_loci());
+	casezeros.resize(data_set->num_loci());
+	casetotal.resize(data_set->num_loci());
+	controlzeros.resize(data_set->num_loci());
+	controltotal.resize(data_set->num_loci());
+
+	if(options.doGroupFile())
+	{
+		options.readGroups(data_set->get_samples());
+                map<string, vector<Methods::Sample*> >::iterator giter;
+                map<string, vector<Methods::Sample*> > groups = options.getGroups();
+
+		for(giter = groups.begin(); giter != groups.end(); giter++)
+		{
+			string mygroup = giter->first;
+			groupzeros[mygroup].resize(data_set->num_loci());
+			grouptotal[mygroup].resize(data_set->num_loci());
+		}
+	}
+
+        Methods::MarkerGenoEff mge(data_set);
+//	mge.resetDataSet(data_set);
+	mge.set_parameters(&options);
+
+        for(int i = 0; i < (int)data_set->num_loci(); i++)
+        {
+		mge.calcOne(i);
+		zeros[i] = mge.getZeros();
+		total[i] = mge.getTotal();
+		casezeros[i] = mge.getCaseZeros();
+		casetotal[i] = mge.getCaseTotal();
+		controlzeros[i] = mge.getControlZeros();
+		controltotal[i] = mge.getControlTotal();
+		if(options.doGroupFile())
+		{
+			map<string, int> gzeros = mge.getGroupZeros();
+			map<string, int> gtotal = mge.getGroupTotal();
+			map<string, int>::iterator iter;
+			for(iter = gzeros.begin(); iter!= gzeros.end(); iter++)
+			{
+				groupzeros[iter->first][i] = iter->second;
+			}
+			for(iter = gtotal.begin(); iter != gtotal.end(); iter++)
+			{
+				grouptotal[iter->first][i] = iter->second;
+			}
+		}
+	}
+}//end method run(DataSetObject*)
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

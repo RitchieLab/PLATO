@@ -42,6 +42,16 @@ namespace PlatoLib
 #endif
 string ProcessIBS::stepname = "ibs";
 
+ProcessIBS::ProcessIBS(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "IBS";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
+}
+
 void ProcessIBS::FilterSummary(){
 }
 
@@ -54,9 +64,7 @@ void ProcessIBS::PrintSummary(){
 
 }
 
-void ProcessIBS::filter(){
-}
-
+void ProcessIBS::filter(){}
 
 void ProcessIBS::process(DataSet* ds){
 	data_set = ds;
@@ -65,12 +73,19 @@ void ProcessIBS::process(DataSet* ds){
 	IBS ibs;
 	ibs.resetDataSet(data_set);
 	ibs.set_parameters(&options);
-
 	int ssize = data_set->num_inds();
+#ifdef PLATOLIB
+	ibs.setOverwrite(true);
+	ibs.setRank(position);
+#endif
 ////	int msize = data_set->num_loci();
 
 	if (options.getDoIBSAllPairs()) {
 		string filename = opts::_OUTPREFIX_ + "ibs" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if (options.getOverrideOut().length() > 0)
+		{
+			filename = options.getOverrideOut() + "ibs.txt";
+		}
 		if (!overwrite) {
 			filename += "." + getString<int> (order);
 		}
@@ -80,6 +95,10 @@ void ProcessIBS::process(DataSet* ds){
 			opts::printLog("Unable to open " + filename + "\n");
 			throw MethodException("");
 		}
+
+		#ifdef PLATOLIB
+				filenames.push_back(filename);
+		#endif
 
 		out.precision(4);
 		out << "FamID1\tInd1\tFamID2\tInd2\tNum_Comps\tIBS_AVG\n";
@@ -101,6 +120,10 @@ void ProcessIBS::process(DataSet* ds){
 
 	if(options.getDoIBSPairs()){
 		string filename2 = opts::_OUTPREFIX_ + "ibs_raw" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if (options.getOverrideOut().length() > 0)
+		{
+			filename2 = options.getOverrideOut() + "ibs_raw.txt";
+		}
 		if(!overwrite){
 			filename2 += "." + getString<int>(order);
 		}
@@ -110,6 +133,10 @@ void ProcessIBS::process(DataSet* ds){
 			opts::printLog("Unable to open " + filename2 + "\n");
 			throw MethodException("");
 		}
+
+		#ifdef PLATOLIB
+				filenames.push_back(filename2);
+		#endif
 
 		rawout.precision(4);
 		rawout << "SNP\tFamID1\tInd1\tFamID2\tInd2\tIBS\n";
@@ -156,6 +183,10 @@ void ProcessIBS::process(DataSet* ds){
 
 	if(options.getDoIBSTrioPairs() || options.getDoIBSAllTrioPairs()){
 		string filename2 = opts::_OUTPREFIX_ + "ibs_trios" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		if (options.getOverrideOut().length() > 0)
+		{
+			filename2 = options.getOverrideOut() + "ibs_trios.txt";
+		}
 		if(!overwrite){
 			filename2 += "." + getString<int>(order);
 		}
@@ -166,12 +197,20 @@ void ProcessIBS::process(DataSet* ds){
 			throw MethodException("");
 		}
 
+		#ifdef PLATOLIB
+				filenames.push_back(filename2);
+		#endif
+
 		rawout.precision(4);
 		rawout << "FamID1\tFamID2\tPaternal_avg\tMaternal_avg\tITBS_avg\tNsnps\n";
 
 		ofstream fullraw;
 		if(options.getIbsTriosRaw()){
 			string filename3 = opts::_OUTPREFIX_ + "ibs_trios_raw" + options.getOut() + ".txt";
+			if (options.getOverrideOut().length() > 0)
+			{
+				filename3 = options.getOverrideOut() + "ibs_trios_raw.txt";
+			}
 			if(!overwrite){
 				filename3 += "." + getString<int>(order);
 			}
@@ -295,6 +334,23 @@ void ProcessIBS::process(DataSet* ds){
 	}
 
 }
+
+#ifdef PLATOLIB
+void ProcessIBS::create_tables(){}
+void ProcessIBS::dump2db(){}
+void ProcessIBS::resize(int i){}
+void ProcessIBS::run(DataSetObject* ds)
+{
+#ifdef PLATOLIB
+	options.setOverrideOut(projectPath + "\\");
+#else
+	options.setOverrideOut(projectPath + "/");
+#endif
+	process(ds);
+}
+
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

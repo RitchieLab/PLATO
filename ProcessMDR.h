@@ -56,7 +56,6 @@ class ProcessMDR : public Process{
 		int run_start;
 		int run_end;
 
-
 	public:
 		ProcessMDR(){
 			data_set = NULL;
@@ -93,8 +92,8 @@ class ProcessMDR : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessMDR(){
-		};
+
+		~ProcessMDR(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -120,8 +119,11 @@ class ProcessMDR : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+#ifdef PLATOLIB
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

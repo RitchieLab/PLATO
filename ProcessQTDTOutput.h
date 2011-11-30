@@ -53,6 +53,7 @@ class ProcessQTDTOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessQTDTOutput(){
@@ -103,6 +104,7 @@ class ProcessQTDTOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessQTDTOutput(string, int, Database*, string);
 		~ProcessQTDTOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -130,8 +132,9 @@ class ProcessQTDTOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

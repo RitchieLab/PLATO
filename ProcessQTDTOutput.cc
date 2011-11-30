@@ -36,8 +36,17 @@ namespace PlatoLib
 {
 #endif
 
-void ProcessQTDTOutput::FilterSummary(){
+ProcessQTDTOutput::ProcessQTDTOutput(string bn, int pos, Database* pdb, string projPath)
+{
+    name = "Output QTDT";
+    batchname = bn;
+    position = pos;
+    hasresults = false;
+    db = pdb;
+    projectPath = projPath;
 }
+
+void ProcessQTDTOutput::FilterSummary(){}
 
 void ProcessQTDTOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,18 +56,24 @@ void ProcessQTDTOutput::PrintSummary(){
 	}
 }
 
-void ProcessQTDTOutput::filter(){
-}
+void ProcessQTDTOutput::filter(){}
 
-void ProcessQTDTOutput::process(DataSet* ds){
+void ProcessQTDTOutput::process(DataSet* ds)
+{
 	data_set = ds;
 
 	QTDTOutput qtdt;
-	qtdt.setOverwrite(this->overwrite);
+	#ifdef PLATOLIB
+		qtdt.setOverwrite(true);
+	#else
+		qtdt.setOverwrite(this->overwrite);
+	#endif
 	qtdt.setOrder(this->order);
-	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
+	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
+	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < (int)sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++)
+		{
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);
@@ -76,11 +91,32 @@ void ProcessQTDTOutput::process(DataSet* ds){
 			ds.clear_all();
 		}
 	}
-	else{
-	qtdt.setOptions(options);
-	qtdt.calculate(data_set);
+	else
+	{
+		qtdt.setOptions(options);
+		qtdt.calculate(data_set);
 	}
+	#ifdef PLATOLIB
+		filenames = qtdt.get_filenames();
+	#endif
+}//end method process(DataSet* ds)
+
+#ifdef PLATOLIB
+void ProcessQTDTOutput::dump2db(){}
+
+void ProcessQTDTOutput::create_tables(){}
+
+void ProcessQTDTOutput::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
+	#else
+		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
+	#endif
+	process(ds);
 }
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

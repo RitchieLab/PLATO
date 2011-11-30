@@ -54,7 +54,7 @@ class ProcessLogReg : public Process{
 		int run_chr;
 		int run_start;
 		int run_end;
-
+		string defaultinsert;
 
 	public:
 		ProcessLogReg(){
@@ -92,8 +92,8 @@ class ProcessLogReg : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessLogReg(){
-		};
+		ProcessLogReg(string, int, Database*);
+		~ProcessLogReg(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -108,10 +108,6 @@ class ProcessLogReg : public Process{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
@@ -120,8 +116,11 @@ class ProcessLogReg : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

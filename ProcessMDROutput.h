@@ -52,6 +52,7 @@ class ProcessMDROutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessMDROutput(){
@@ -102,6 +103,7 @@ class ProcessMDROutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessMDROutput(string, int, Database*, string);
 		~ProcessMDROutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -129,8 +131,12 @@ class ProcessMDROutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+#ifdef PLATOLIB
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+#endif
+
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

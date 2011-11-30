@@ -40,6 +40,16 @@ namespace PlatoLib
 
 string ProcessLAPISOutput::stepname = "output-lapis";
 
+ProcessLAPISOutput::ProcessLAPISOutput(string bn, int pos, Database* pdb, string projPath)
+{
+	name = "Output Lapis";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+	projectPath = projPath;
+}
+
 void ProcessLAPISOutput::FilterSummary(){
 }
 
@@ -52,8 +62,7 @@ void ProcessLAPISOutput::PrintSummary(){
 
 }
 
-void ProcessLAPISOutput::filter(){
-}
+void ProcessLAPISOutput::filter(){}
 
 void ProcessLAPISOutput::process(DataSet* ds){
 	data_set = ds;
@@ -85,9 +94,22 @@ void ProcessLAPISOutput::process(DataSet* ds){
 	lapis.setOptions(options);
 	lapis.calculate(data_set);
 	}
-
-
 }
+
+#ifdef PLATOLIB
+void ProcessLAPISOutput::dump2db(){}
+void ProcessLAPISOutput::create_tables(){}
+void ProcessLAPISOutput::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + "input_lapis");
+	#else
+		options.setOverrideOut(projectPath + "/" + "input_lapis");
+	#endif
+	process(ds);
+}
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

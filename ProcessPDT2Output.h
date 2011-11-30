@@ -52,6 +52,7 @@ class ProcessPDT2Output : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessPDT2Output(){
@@ -102,6 +103,7 @@ class ProcessPDT2Output : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessPDT2Output(string, int, Database*, string);
 		~ProcessPDT2Output(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -131,8 +133,11 @@ class ProcessPDT2Output : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void outputCovarFile(ofstream& pdt, Sample* samp);
 		void outputCovars(ofstream& pdt, Sample* samp);
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

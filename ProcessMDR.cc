@@ -43,6 +43,7 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
+
 void ProcessMDR::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
@@ -58,11 +59,9 @@ void ProcessMDR::PrintSummary(){
 	for(int m = 0; m < msize; m++){
 		data_set->get_locus(m)->setFlag(false);
 	}
-
 }
 
-void ProcessMDR::filter(){
-}
+void ProcessMDR::filter(){}
 
 
 void ProcessMDR::process(DataSet* ds){
@@ -288,6 +287,12 @@ void ProcessMDR::process(DataSet* ds){
     	mdrout.close();
     }
 }
+
+#ifdef PLATOLIB
+void ProcessMDR::dump2db(){}//end method dump2db()
+void ProcessMDR::create_tables(){}//end method create_tables()
+void ProcessMDR::run(DataSetObject* ds){}//end method run(DataSetObject*)
+#endif
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

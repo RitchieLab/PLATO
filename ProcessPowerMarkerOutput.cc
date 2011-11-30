@@ -43,9 +43,17 @@ namespace PlatoLib
 
 string ProcessPowerMarkerOutput::stepname = "output-powermarker";
 
-
-void ProcessPowerMarkerOutput::FilterSummary(){
+ProcessPowerMarkerOutput::ProcessPowerMarkerOutput(string bn, int pos, Database* pdb, string projPath)
+{
+    name = "Output PowerMarker";
+    batchname = bn;
+    position = pos;
+    hasresults = false;
+    db = pdb;
+    projectPath = projPath;
 }
+
+void ProcessPowerMarkerOutput::FilterSummary(){}
 
 void ProcessPowerMarkerOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -53,22 +61,26 @@ void ProcessPowerMarkerOutput::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-
 }
 
-void ProcessPowerMarkerOutput::filter(){
-}
+void ProcessPowerMarkerOutput::filter(){}
 
-
-void ProcessPowerMarkerOutput::process(DataSet* ds){
+void ProcessPowerMarkerOutput::process(DataSet* ds)
+{
 	data_set = ds;
 
 	PowerMarkerOutput pmo;
 	pmo.setOrder(this->order);
-	pmo.setOverwrite(this->overwrite);
-	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
+	#ifdef PLATOLIB
+		pmo.setOverwrite(true);
+	#else
+		pmo.setOverwrite(this->overwrite);
+	#endif
+	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
+	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < (int)sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++)
+		{
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);
@@ -86,11 +98,30 @@ void ProcessPowerMarkerOutput::process(DataSet* ds){
 			ds.clear_all();
 		}
 	}
-	else{
-	pmo.setOptions(options);
-	pmo.calculate(data_set);
+	else
+	{
+		pmo.setOptions(options);
+		pmo.calculate(data_set);
 	}
+	#ifdef PLATOLIB
+		filenames = pmo.get_filenames();
+	#endif
+}//end method process(DataSet* ds)
+
+#ifdef PLATOLIB
+void ProcessPowerMarkerOutput::dump2db(){}
+void ProcessPowerMarkerOutput::create_tables(){}
+void ProcessPowerMarkerOutput::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
+	#else
+		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
+	#endif
+	process(ds);
 }
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

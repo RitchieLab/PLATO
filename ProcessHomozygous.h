@@ -53,6 +53,9 @@ class ProcessHomozygous : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string defaultinsert;
+		string projectPath;
+
 		vector<int> homoaffcount;
 		vector<int> homounaffcount;
 		vector<int> homoallcount;
@@ -92,8 +95,8 @@ class ProcessHomozygous : public Process{
 			_STRATIFY_ = false;
 			order = 0;
 		};
-		~ProcessHomozygous(){
-		};
+		ProcessHomozygous(string, int, Database*, string);
+		~ProcessHomozygous(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -125,8 +128,11 @@ class ProcessHomozygous : public Process{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void perform_homozyg_permutations();
 		Sample* findRandomSample(map<Sample*, bool>);
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void resize(int);
+		void FixOutputName();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

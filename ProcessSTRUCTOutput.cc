@@ -38,8 +38,17 @@ namespace PlatoLib
 {
 #endif
 
-void ProcessSTRUCTOutput::FilterSummary(){
+ProcessSTRUCTOutput::ProcessSTRUCTOutput(string bn, int pos, Database* pdb, string projPath)
+{
+    name = "Output Structure";
+    batchname = bn;
+    position = pos;
+    hasresults = false;
+    db = pdb;
+    projectPath = projPath;
 }
+
+void ProcessSTRUCTOutput::FilterSummary(){}
 
 void ProcessSTRUCTOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,21 +56,26 @@ void ProcessSTRUCTOutput::PrintSummary(){
 	for(int m = 0; m < msize; m++){
 		data_set->get_locus(m)->setFlag(false);
 	}
-
 }
 
-void ProcessSTRUCTOutput::filter(){
-}
+void ProcessSTRUCTOutput::filter(){}
 
-void ProcessSTRUCTOutput::process(DataSet* ds){
+void ProcessSTRUCTOutput::process(DataSet* ds)
+{
 	data_set = ds;
 
 	STRUCTOutput str;
 	str.setOrder(this->order);
-	str.setOverwrite(this->overwrite);
-	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
+	#ifdef PLATOLIB
+		str.setOverwrite(true);
+	#else
+		str.setOverwrite(this->overwrite);
+	#endif
+	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
+	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < (int)sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++)
+		{
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);
@@ -79,11 +93,32 @@ void ProcessSTRUCTOutput::process(DataSet* ds){
 			ds.clear_all();
 		}
 	}
-	else{
-	str.setOptions(options);
-	str.calculate(data_set);
+	else
+	{
+		str.setOptions(options);
+		str.calculate(data_set);
 	}
+	#ifdef PLATOLIB
+		filenames = str.get_filenames();
+	#endif
+}//end method process(DataSet* ds)
+
+#ifdef PLATOLIB
+void ProcessSTRUCTOutput::dump2db(){}
+
+void ProcessSTRUCTOutput::create_tables(){}
+
+void ProcessSTRUCTOutput::run(DataSetObject* ds)
+{
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
+	#else
+		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
+	#endif
+	process(ds);
 }
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

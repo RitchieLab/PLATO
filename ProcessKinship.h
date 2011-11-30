@@ -54,7 +54,8 @@ class ProcessKinship : public Process{
 		int run_chr;
 		int run_start;
 		int run_end;
-
+		string defaultinsert;
+		string projectPath;
 
 	public:
 		ProcessKinship(){
@@ -92,6 +93,7 @@ class ProcessKinship : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
+		ProcessKinship(string, int, Database*, string);
 		~ProcessKinship(){
 		};
 		//void process(Connection*, Families*, Markers*);
@@ -120,8 +122,12 @@ class ProcessKinship : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+#ifdef PLATOLIB
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
+		void resize(int);
+#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

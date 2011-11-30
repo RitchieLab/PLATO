@@ -106,6 +106,7 @@ class ProcessSampleGenoEff : public Process{
 		 orig_num_families = 0;
 		 orig_num_samples = 0;
 		};
+		ProcessSampleGenoEff(string, int, Database*);
 		~ProcessSampleGenoEff(){
 		zeros.resize(0);
 		total.resize(0);
@@ -136,8 +137,9 @@ class ProcessSampleGenoEff : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		void run(DataSetObject*);
+		void dump2db();
+		void create_tables();
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

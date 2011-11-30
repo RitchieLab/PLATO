@@ -21,17 +21,26 @@
 #include <algorithm>
 #include "ProcessHWEquilibrium.h"
 #include "Chrom.h"
-//#include "ChiSquare.h"
-//#include "helper.h"
 #include <cdflib.h>
 #include <General.h>
 #include <Helpers.h>
+#include "Controller.h"
+
 using namespace Methods;
 #ifdef PLATOLIB
 namespace PlatoLib
 {
 #endif
 string ProcessHWEquilibrium::stepname = "hw";
+
+ProcessHWEquilibrium::ProcessHWEquilibrium(string bn, int pos, Database* pdb)
+{
+	name = "HWE";
+	batchname = bn;
+	position = pos;
+	hasresults = false;
+	db = pdb;
+}
 
 /*
  * Function: PrintSummary
@@ -67,9 +76,22 @@ void ProcessHWEquilibrium::FilterSummary(){
 
 }
 
-void ProcessHWEquilibrium::filter(){
+void ProcessHWEquilibrium::filter()
+{
+	#ifdef PLATOLIB
+		for(int i = 0; i < (int)data_set->num_loci(); i++)
+		{
+			data_set->get_locus(i)->setFlag(false);
+		}
+
+		for(int i = 0; i < (int)data_set->get_families()->size(); i++)
+		{
+			data_set->get_pedigree(i)->setFlagAFCM(false);
+			data_set->get_pedigree(i)->setFlagAFCF(false);
+		}
+	#endif
 	return;
-}
+}//end method filter
 
 /*
  * Function: doFilter
@@ -91,8 +113,7 @@ void ProcessHWEquilibrium::doFilter(Marker* mark, HWEquilibrium* hwe){
 			orig_num_markers++;
 		}
 	}
-
-}
+}//end method doFilter
 
 
 
@@ -103,6 +124,10 @@ void ProcessHWEquilibrium::doFilter(Marker* mark, HWEquilibrium* hwe){
  */
 void ProcessHWEquilibrium::process(DataSet* ds){
 	data_set = ds;
+	#ifdef PLATOLIB
+		create_tables();
+		Query myQuery(*db);
+	#endif
 
 	useoverall = false;
 	if(options.doRandomChild() || options.doAll() || options.doAllChildren()){
@@ -121,6 +146,9 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	int msize = good_markers.size();//data_set->num_loci();
 
 	if(options.doHWEPT()){
+	#ifndef PLATOLIB
+		//this section deals with setting up the output files and creating headers
+		//not necessary for the Viewer...
 	    string fname = opts::_OUTPREFIX_ + "hw" + options.getOut() + ".txt";
 	    if(!overwrite){
 	        fname += "." + getString<int>(order);
@@ -144,22 +172,44 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	    opts::addHeader(fname, "P_pval_allelic");
 	    opts::addHeader(fname, "P_pval_case");
 	    opts::addHeader(fname, "P_pval_control");
-
+	#endif
 //		int prev_base = 0;
 //		int prev_chrom = -1;
+		#ifdef PLATOLIB
+			myQuery.transaction();
+		#endif
 		for(int i = 0; i < msize; i++){
 			if(good_markers[i]->isEnabled()){// && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 				hwe.calculateHWEPT(data_set->get_locus(i));
+				#ifdef PLATOLIB
+				string sql = hweptinsert;
+				sql += "," + getString<int>(data_set->get_locus(i)->getSysprobe());
+				sql += "," + getString<float>(hwe.getCasePvalHWEPT());
+				sql += "," + getString<float>(hwe.getControlPvalHWEPT());
+				sql += "," + getString<float>(hwe.getGenotypicPval());
+				sql += "," + getString<float>(hwe.getAllelicPval());
+				sql += "," + getString<float>(hwe.getCaseGeneralHWEPT());
+				sql += "," + getString<float>(hwe.getControlGeneralHWEPT());
+				sql += ")";
+				Controller::execute_sql(myQuery, sql);
+				#else
 				pvals << data_set->get_locus(i)->toString() << "\t" << hwe.getCasePvalHWEPT() << "\t"
 					<< hwe.getControlPvalHWEPT() << "\t" << hwe.getGenotypicPval() << "\t"
 					<< hwe.getAllelicPval() << "\t" << hwe.getCaseGeneralHWEPT() << "\t"
 					<< hwe.getControlGeneralHWEPT() << endl;
+				#endif
 			}
 		}
+		#ifdef PLATOLIB
+		myQuery.commit();
+		#else
 		pvals.close();
+		#endif
 		return;
 	}
 
+#ifndef PLATOLIB
+	//more stuff dealing with file creation and headers. Not in Viewer
 	string fname1 = opts::_OUTPREFIX_ + "hw" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
@@ -444,27 +494,55 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 	opts::addHeader(fname4, "Control_Female_Obs_Genotype22");
 	opts::addHeader(fname4, "Control_Female_Exp_Genotype22");
 	}
+#endif
 //	int prev_base = 0;
 //	int prev_chrom = -1;
-
+	#ifdef PLATOLIB
+		myQuery.transaction();
+	#endif
 	for(int i = 0; i < msize; i++){
 		if(good_markers[i]->isEnabled()){// && isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
 			hwe.calculate(good_markers[i]);
 			af.calculate(good_markers[i]);
 
+			#ifdef PLATOLIB
+			string insert = defaultinsert;
+			insert += "," + getString<int>(good_markers[i]->getSysprobe());
+			#else
 			pvals << good_markers[i]->toString();
+			#endif
 			if(good_markers[i]->isMicroSat()){
 				for(int l = 0; l < 27; l++){
+					#ifdef PLATOLIB
+					insert += ",NULL";
+					#else
 					pvals << "\tNA";
+					#endif
 				}
 			}
 			else{
 				//overall default = founders
+				#ifdef PLATOLIB
+				insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele1() + "'";
+				insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele2() + "'";
+				insert += ",'" + good_markers[i]->getAllele2() + "_" + good_markers[i]->getAllele2() + "'";
+				insert += "," + getString<float>(hwe.getOverall());
+				#else
 				pvals << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
 				<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
 				<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t"
 				<< hwe.getOverall() << "\t";
+				#endif
 				if(useoverall){
+					#ifdef PLATOLIB
+					insert += "," + getString<int>(af.getPop());
+					insert += "," + getString<int>(af.getAonehomo());
+					insert += "," + getString<float>(af.getAonehomo_exp());
+					insert += "," + getString<int>(af.getHet());
+					insert += "," + getString<float>(af.getHet_exp());
+					insert += "," + getString<int>(af.getAtwohomo());
+					insert += "," + getString<float>(af.getAtwohomo_exp());
+					#else
 					pvals << af.getPop() << "\t"
 					<< af.getAonehomo() << "\t"
 					<< af.getAonehomo_exp() << "\t"
@@ -472,8 +550,18 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 					<< af.getHet_exp() << "\t"
 					<< af.getAtwohomo() << "\t"
 					<< af.getAtwohomo_exp() << "\t";
+					#endif
 				}
 				else{
+					#ifdef PLATOLIB
+					insert += "," + getString<int>(af.getPopP());
+					insert += "," + getString<int>(af.getAonehomoP());
+					insert += "," + getString<float>(af.getAonehomoP_exp());
+					insert += "," + getString<int>(af.getHetP());
+					insert += "," + getString<float>(af.getHetP_exp());
+					insert += "," + getString<int>(af.getAtwohomoP());
+					insert += "," + getString<float>(af.getAtwohomoP_exp());
+					#else
 					pvals << af.getPopP() << "\t"
 					<< af.getAonehomoP() << "\t"
 					<< af.getAonehomoP_exp() << "\t"
@@ -481,7 +569,28 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 					<< af.getHetP_exp() << "\t"
 					<< af.getAtwohomoP() << "\t"
 					<< af.getAtwohomoP_exp() << "\t";
+					#endif
 				}
+				#ifdef PLATOLIB
+				//cases
+				insert += "," + getString<float>(hwe.getCase());
+				insert += "," + getString<int>(af.getPopCa());
+				insert += "," + getString<int>(af.getAonehomoCa());
+				insert += "," + getString<float>(af.getAonehomoCa_exp());
+				insert += "," + getString<int>(af.getHetCa());
+				insert += "," + getString<float>(af.getHetCa_exp());
+				insert += "," + getString<int>(af.getAtwohomoCa());
+				insert += "," + getString<float>(af.getAtwohomoCa_exp());
+				//controls
+				insert += "," + getString<float>(hwe.getControl());
+				insert += "," + getString<int>(af.getPopCon());
+				insert += "," + getString<int>(af.getAonehomoCon());
+				insert += "," + getString<float>(af.getAonehomoCon_exp());
+				insert += "," + getString<int>(af.getHetCon());
+				insert += "," + getString<float>(af.getHetCon_exp());
+				insert += "," + getString<int>(af.getAtwohomoCon());
+				insert += "," + getString<float>(af.getAtwohomoCon_exp());
+				#else
 				//cases
 				pvals << hwe.getCase() << "\t"
 				<< af.getPopCa() << "\t"
@@ -500,16 +609,54 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 				<< af.getHetCon_exp() << "\t"
 				<< af.getAtwohomoCon() << "\t"
 				<< af.getAtwohomoCon_exp();
+				#endif
 			}
+			#ifdef PLATOLIB
+			insert += ")";
+			Controller::execute_sql(myQuery, insert);
+			#else
 			pvals << endl;
+			#endif
 			if(options.doParental()){
+				#ifdef PLATOLIB
+				insert = parentalinsert;
+				insert += "," + getString<int>(good_markers[i]->getSysprobe());
+				#else
 				paren << good_markers[i]->toString();
+				#endif
 				if(good_markers[i]->isMicroSat()){
 					for(int l = 0; l < 19; l++){
+						#ifdef PLATOLIB
+						insert += ",NULL";
+						#else
 						paren << "\tNA";
+						#endif
 					}
 				}
 				else{
+#ifdef PLATOLIB
+					insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele1() + "'";
+					insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele2() + "'";
+					insert += ",'" + good_markers[i]->getAllele2() + "_" + good_markers[i]->getAllele2() + "'";
+					//parent male
+					insert += "," + getString<float>(hwe.getParentalMale());
+					insert += "," + getString<int>(af.getPopPM());
+					insert += "," + getString<int>(af.getAonehomoPM());
+					insert += "," + getString<float>(af.getAonehomoPM_exp());
+					insert += "," + getString<int>(af.getHetPM());
+					insert += "," + getString<float>(af.getHetPM_exp());
+					insert += "," + getString<int>(af.getAtwohomoPM());
+					insert += "," + getString<float>(af.getAtwohomoPM_exp());
+					//parent female
+					insert += "," + getString<float>(hwe.getParentalFemale());
+					insert += "," + getString<int>(af.getPopPF());
+					insert += "," + getString<int>(af.getAonehomoPF());
+					insert += "," + getString<float>(af.getAonehomoPF_exp());
+					insert += "," + getString<int>(af.getHetPF());
+					insert += "," + getString<float>(af.getHetPF_exp());
+					insert += "," + getString<int>(af.getAtwohomoPF());
+					insert += "," + getString<float>(af.getAtwohomoPF_exp());
+				#else
 					paren << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
 					<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
 					<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t"
@@ -531,21 +678,62 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 					<< af.getAtwohomoPF_exp() << "\t"
 					<< af.getHetPF() << "\t"
 					<< af.getHetPF_exp();
+					#endif
 				}
+				#ifdef PLATOLIB
+				insert += ")";
+				Controller::execute_sql(myQuery, insert);
+				#else
 				paren << endl;
+				#endif
 			}
 			if(options.doGender()){
+				#ifdef PLATOLIB
+				insert = genderinsert;
+				insert += "," + getString<int>(good_markers[i]->getSysprobe());
+				#else
 				gend << good_markers[i]->toString();
+				#endif
 				if(good_markers[i]->isMicroSat()){
 					for(int l = 0; l < 19; l++){
+						#ifdef PLATOLIB
+						insert += ",NULL";
+						#else
 						gend << "\tNA";
+						#endif
 					}
 				}
 				else{
+					#ifdef PLATOLIB
+					insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele1() + "'";
+					insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele2() + "'";
+					insert += ",'" + good_markers[i]->getAllele2() + "_" + good_markers[i]->getAllele2() + "'";
+					#else
 					gend << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
 					<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
 					<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t";
+					#endif
 					if(useoverall){
+						#ifdef PLATOLIB
+						//parent male
+						insert += "," + getString<float>(hwe.getOverallMale());
+						insert += "," + getString<int>(af.getPopM());
+						insert += "," + getString<int>(af.getAonehomoM());
+						insert += "," + getString<float>(af.getAonehomoM_exp());
+						insert += "," + getString<int>(af.getHetM());
+						insert += "," + getString<float>(af.getHetM_exp());
+						insert += "," + getString<int>(af.getAtwohomoM());
+						insert += "," + getString<float>(af.getAtwohomoM_exp());
+						//parent female
+						insert += "," + getString<float>(hwe.getOverallFemale());
+						insert += "," + getString<int>(af.getPopF());
+						insert += "," + getString<int>(af.getAonehomoF());
+						insert += "," + getString<float>(af.getAonehomoF_exp());
+						insert += "," + getString<int>(af.getHetF());
+						insert += "," + getString<float>(af.getHetF_exp());
+						insert += "," + getString<int>(af.getAtwohomoF());
+						insert += "," + getString<float>(af.getAtwohomoF_exp());
+						#else
 						//parent male
 						gend << hwe.getOverallMale() << "\t"
 						<< af.getPopM() << "\t"
@@ -564,8 +752,29 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 						<< af.getAtwohomoF_exp() << "\t"
 						<< af.getHetF() << "\t"
 						<< af.getHetF_exp();
+						#endif
 					}
 					else{
+						#ifdef PLATOLIB
+						//parent male
+						insert += "," + getString<float>(hwe.getParentalMale());
+						insert += "," + getString<int>(af.getPopPM());
+						insert += "," + getString<int>(af.getAonehomoPM());
+						insert += "," + getString<float>(af.getAonehomoPM_exp());
+						insert += "," + getString<int>(af.getHetPM());
+						insert += "," + getString<float>(af.getHetPM_exp());
+						insert += "," + getString<int>(af.getAtwohomoPM());
+						insert += "," + getString<float>(af.getAtwohomoPM_exp());
+						//parent female
+						insert += "," + getString<float>(hwe.getParentalFemale());
+						insert += "," + getString<int>(af.getPopPF());
+						insert += "," + getString<int>(af.getAonehomoPF());
+						insert += "," + getString<float>(af.getAonehomoPF_exp());
+						insert += "," + getString<int>(af.getHetPF());
+						insert += "," + getString<float>(af.getHetPF_exp());
+						insert += "," + getString<int>(af.getAtwohomoPF());
+						insert += "," + getString<float>(af.getAtwohomoPF_exp());
+						#else
 						//parent male
 						gend << hwe.getParentalMale() << "\t"
 						<< af.getPopPM() << "\t"
@@ -584,18 +793,74 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 						<< af.getAtwohomoPF_exp() << "\t"
 						<< af.getHetPF() << "\t"
 						<< af.getHetPF_exp();
+						#endif
 					}
 				}
+				#ifdef PLATOLIB
+				insert += ")";
+				Controller::execute_sql(myQuery, insert);
+				#else
 				gend << endl;
+				#endif
 			}
 			if(options.doCaseControl()){
+				#ifdef PLATOLIB
+				insert == ccinsert;
+				insert += "," + getString<int>(good_markers[i]->getSysprobe());
+				#else
 				cc << good_markers[i]->toString();
+				#endif
 				if(good_markers[i]->isMicroSat()){
 					for(int l = 0; l < 35; l++){
+						#ifdef PLATOLIB
+						ccinsert += ",NULL";
+						#else
 						cc << "\tNA";
+						#endif
 					}
 				}
 				else{
+					#ifdef PLATOLIB
+					insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele1() + "'";
+					insert += ",'" + good_markers[i]->getAllele1() + "_" + good_markers[i]->getAllele2() + "'";
+					insert += ",'" + good_markers[i]->getAllele2() + "_" + good_markers[i]->getAllele2() + "'";
+
+					insert += "," + getString<float>(hwe.getCaseMale());
+					insert += "," + getString<int>(af.getPopCaM());
+					insert += "," + getString<int>(af.getAonehomoCaM());
+					insert += "," + getString<float>(af.getAonehomoCaM_exp());
+					insert += "," + getString<int>(af.getHetCaM());
+					insert += "," + getString<float>(af.getHetCaM_exp());
+					insert += "," + getString<int>(af.getAtwohomoCaM());
+					insert += "," + getString<float>(af.getAtwohomoCaM_exp());
+
+					insert += "," + getString<float>(hwe.getCaseFemale());
+					insert += "," + getString<int>(af.getPopCaF());
+					insert += "," + getString<int>(af.getAonehomoCaF());
+					insert += "," + getString<float>(af.getAonehomoCaF_exp());
+					insert += "," + getString<int>(af.getHetCaF());
+					insert += "," + getString<float>(af.getHetCaF_exp());
+					insert += "," + getString<int>(af.getAtwohomoCaF());
+					insert += "," + getString<float>(af.getAtwohomoCaF_exp());
+
+					insert += "," + getString<float>(hwe.getControlMale());
+					insert += "," + getString<int>(af.getPopConM());
+					insert += "," + getString<int>(af.getAonehomoConM());
+					insert += "," + getString<float>(af.getAonehomoConM_exp());
+					insert += "," + getString<int>(af.getHetConM());
+					insert += "," + getString<float>(af.getHetConM_exp());
+					insert += "," + getString<int>(af.getAtwohomoConM());
+					insert += "," + getString<float>(af.getAtwohomoConM_exp());
+
+					insert += "," + getString<float>(hwe.getControlFemale());
+					insert += "," + getString<int>(af.getPopConF());
+					insert += "," + getString<int>(af.getAonehomoConF());
+					insert += "," + getString<float>(af.getAonehomoConF_exp());
+					insert += "," + getString<int>(af.getHetConF());
+					insert += "," + getString<float>(af.getHetConF_exp());
+					insert += "," + getString<int>(af.getAtwohomoConF());
+					insert += "," + getString<float>(af.getAtwohomoConF_exp());
+					#else
 					cc << "\t" << good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele1() << "\t"
 					<< good_markers[i]->getAllele1() << "_" << good_markers[i]->getAllele2() << "\t"
 					<< good_markers[i]->getAllele2() << "_" << good_markers[i]->getAllele2() << "\t"
@@ -634,19 +899,278 @@ void ProcessHWEquilibrium::process(DataSet* ds){
 					<< af.getAtwohomoConF_exp() << "\t"
 					<< af.getHetConF() << "\t"
 					<< af.getHetConF_exp();
+					#endif
 				}
+#ifdef PLATOLIB
+				insert += ")";
+				Controller::execute_sql(myQuery, insert);
+#else
 				cc << endl;
+#endif
 			}
 
 			doFilter(good_markers[i], &hwe);
 		}
 	}
-
-	if(pvals.is_open()){
+#ifdef PLATOLIB
+	myQuery.commit();
+#else
+	if(pvals.is_open())
+	{
 		pvals.close();
 	}
+#endif
 
+}//end method process()
+
+#ifdef PLATOLIB
+void ProcessHWEquilibrium::dump2db(){}
+
+void ProcessHWEquilibrium::create_tables()
+{
+	Query myQuery(*db);
+	myQuery.transaction();
+    for(int i = 0; i < (int)tablename.size(); i++)
+    {
+        Controller::drop_table(db, tablename[i]);
+    }
+    headers.clear();
+    tablename.clear();
+    primary_table.clear();
+
+    string tempbatch = batchname;
+    for(int i = 0; i < (int)tempbatch.size(); i++)
+    {
+        if(tempbatch[i] == ' ')
+        {
+            tempbatch[i] = '_';
+        }
+    }
+    string mytablename = tempbatch + "_";
+    tempbatch = name;
+    for(int i = 0; i < (int)tempbatch.size(); i++)
+    {
+        if(tempbatch[i] == ' ')
+        {
+            tempbatch[i] = '_';
+        }
+    }
+    string base = mytablename + tempbatch;
+
+    if(options.doHWEPT())
+    {
+        mytablename = base + "_hwept_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("HWE PT");
+        primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+
+        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "PT_pval_case REAL,";
+        sql += "PT_pval_control REAL,";
+        sql += "P_pval_genotypic REAL,";
+        sql += "P_pval_allelic REAL,";
+        sql += "P_pval_case REAL,";
+        sql += "P_pval_control REAL";
+        sql += ")";
+        hweptinsert = "INSERT INTO " + mytablename + "(id, fkey, PT_pval_case, PT_pval_control, P_pval_genotypic, P_pval_allelic, P_pval_case, P_pval_control) VALUES (NULL";
+        Controller::execute_sql(myQuery, sql);
+
+        return;
+    }
+
+    mytablename = base + "_" + getString<int>(position);
+    tablename.push_back(mytablename);
+    tablenicknames.push_back("");
+    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+
+    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+    sql += "fkey integer not null,";
+    sql += "Genotype11 varchar(20),";
+    sql += "Genotype12 varchar(20),";
+    sql += "Genotype22 varchar(20),";
+    sql += "Overall_Pvalue REAL,";
+    sql += "Overall_Total_Count integer,";
+    sql += "Overall_Obs_Genotype11 integer,";
+    sql += "Overall_Exp_Genotype11 REAL,";
+    sql += "Overall_Obs_Genotype12 integer,";
+    sql += "Overall_Exp_Genotype12 REAL,";
+    sql += "Overall_Obs_Genotype22 integer,";
+    sql += "Overall_Exp_Genotype22 REAL,";
+    sql += "Case_Pvalue REAL,";
+    sql += "Case_Total_Count integer,";
+    sql += "Case_Obs_Genotype11 integer,";
+    sql += "Case_Exp_Genotype11 REAL,";
+    sql += "Case_Obs_Genotype12 integer,";
+    sql += "Case_Exp_Genotype12 REAL,";
+    sql += "Case_Obs_Genotype22 integer,";
+    sql += "Case_Exp_Genotype22 REAL,";
+    sql += "Control_Pvalue REAL,";
+    sql += "Control_Total_Count integer,";
+    sql += "Control_Obs_Genotype11 integer,";
+    sql += "Control_Exp_Genotype11 REAL,";
+    sql += "Control_Obs_Genotype12 integer,";
+    sql += "Control_Exp_Genotype12 REAL,";
+    sql += "Control_Obs_Genotype22 integer,";
+    sql += "Control_Exp_Genotype22 REAL";
+    sql += ")";
+    Controller::execute_sql(myQuery, sql);
+    defaultinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+    defaultinsert += ",Overall_Pvalue, Overall_Total_Count, Overall_Obs_Genotype11, Overall_Exp_Genotype11,";
+    defaultinsert += "Overall_Obs_Genotype12, Overall_Exp_Genotype12, Overall_Obs_Genotype22, Overall_Exp_Genotype22";
+    defaultinsert += ",Case_Pvalue, Case_Total_Count, Case_Obs_Genotype11, Case_Exp_Genotype11,";
+    defaultinsert += "Case_Obs_Genotype12, Case_Exp_Genotype12, Case_Obs_Genotype22, Case_Exp_Genotype22";
+    defaultinsert += ",Control_Pvalue, Control_Total_Count, Control_Obs_Genotype11, Control_Exp_Genotype11,";
+    defaultinsert += "Control_Obs_Genotype12, Control_Exp_Genotype12, Control_Obs_Genotype22, Control_Exp_Genotype22";
+    defaultinsert += ") VALUES (NULL";
+
+    if(options.doParental())
+    {
+        mytablename = base + "_parental_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Parental");
+        primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+        sql += "Genotype12 varchar(20),";
+        sql += "Genotype22 varchar(20),";
+        sql += "Parent_Male_Pvalue REAL,";
+        sql += "Parent_Male_Total_Count integer,";
+        sql += "Parent_Male_Obs_Genotype11 integer,";
+        sql += "Parent_Male_Exp_Genotype11 REAL,";
+        sql += "Parent_Male_Obs_Genotype12 integer,";
+        sql += "Parent_Male_Exp_Genotype12 REAL,";
+        sql += "Parent_Male_Obs_Genotype22 integer,";
+        sql += "Parent_Male_Exp_Genotype22 REAL,";
+        sql += "Parent_Female_Pvalue REAL,";
+        sql += "Parent_Female_Total_Count integer,";
+        sql += "Parent_Female_Obs_Genotype11 integer,";
+        sql += "Parent_Female_Exp_Genotype11 REAL,";
+        sql += "Parent_Female_Obs_Genotype12 integer,";
+        sql += "Parent_Female_Exp_Genotype12 REAL,";
+        sql += "Parent_Female_Obs_Genotype22 integer,";
+        sql += "Parent_Female_Exp_Genotype22 REAL";
+        sql += ")";
+        Controller::execute_sql(myQuery, sql);
+        parentalinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+        parentalinsert += ",Parent_Male_Pvalue, Parent_Male_Total_Count, Parent_Male_Obs_Genotype11, Parent_Male_Exp_Genotype11,";
+        parentalinsert += "Parent_Male_Obs_Genotype12, Parent_Male_Exp_Genotype12, Parent_Male_Obs_Genotype22, Parent_Male_Exp_Genotype22";
+        parentalinsert += ",Parent_Female_Pvalue, Parent_Female_Total_Count, Parent_Female_Obs_Genotype11, Parent_Female_Exp_Genotype11,";
+        parentalinsert += "Parent_Female_Obs_Genotype12, Parent_Female_Exp_Genotype12, Parent_Female_Obs_Genotype22, Parent_Female_Exp_Genotype22";
+        parentalinsert += ") VALUES (NULL";
+    }
+
+    if(options.doGender())
+    {
+        mytablename = base + "_gender_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Gender");
+        primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+        sql += "Genotype12 varchar(20),";
+        sql += "Genotype22 varchar(20),";
+        sql += "Overall_Male_Pvalue REAL,";
+        sql += "Overall_Male_Total_Count integer,";
+        sql += "Overall_Male_Obs_Genotype11 integer,";
+        sql += "Overall_Male_Exp_Genotype11 REAL,";
+        sql += "Overall_Male_Obs_Genotype12 integer,";
+        sql += "Overall_Male_Exp_Genotype12 REAL,";
+        sql += "Overall_Male_Obs_Genotype22 integer,";
+        sql += "Overall_Male_Exp_Genotype22 REAL,";
+        sql += "Overall_Female_Pvalue REAL,";
+        sql += "Overall_Female_Total_Count integer,";
+        sql += "Overall_Female_Obs_Genotype11 integer,";
+        sql += "Overall_Female_Exp_Genotype11 REAL,";
+        sql += "Overall_Female_Obs_Genotype12 integer,";
+        sql += "Overall_Female_Exp_Genotype12 REAL,";
+        sql += "Overall_Female_Obs_Genotype22 integer,";
+        sql += "Overall_Female_Exp_Genotype22 REAL";
+        sql += ")";
+        Controller::execute_sql(myQuery, sql);
+        genderinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+        genderinsert += ",Overall_Male_Pvalue, Overall_Male_Total_Count, Overall_Male_Obs_Genotype11, Overall_Male_Exp_Genotype11,";
+        genderinsert += "Overall_Male_Obs_Genotype12, Overall_Male_Exp_Genotype12, Overall_Male_Obs_Genotype22, Overall_Male_Exp_Genotype22";
+        genderinsert += ",Overall_Female_Pvalue, Overall_Female_Total_Count, Overall_Female_Obs_Genotype11, Overall_Female_Exp_Genotype11,";
+        genderinsert += "Overall_Female_Obs_Genotype12, Overall_Female_Exp_Genotype12, Overall_Female_Obs_Genotype22, Overall_Female_Exp_Genotype22";
+        genderinsert += ") VALUES (NULL";
+
+    }
+
+    if(options.doCaseControl())
+    {
+        mytablename = base + "_casecontrol_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Case/Control");
+        primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
+
+        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+        sql += "Genotype12 varchar(20),";
+        sql += "Genotype22 varchar(20),";
+        sql += "Case_Male_Pvalue REAL,";
+        sql += "Case_Male_Total_Count integer,";
+        sql += "Case_Male_Obs_Genotype11 integer,";
+        sql += "Case_Male_Exp_Genotype11 REAL,";
+        sql += "Case_Male_Obs_Genotype12 integer,";
+        sql += "Case_Male_Exp_Genotype12 REAL,";
+        sql += "Case_Male_Obs_Genotype22 integer,";
+        sql += "Case_Male_Exp_Genotype22 REAL,";
+        sql += "Case_Female_Pvalue REAL,";
+        sql += "Case_Female_Total_Count integer,";
+        sql += "Case_Female_Obs_Genotype11 integer,";
+        sql += "Case_Female_Exp_Genotype11 REAL,";
+        sql += "Case_Female_Obs_Genotype12 integer,";
+        sql += "Case_Female_Exp_Genotype12 REAL,";
+        sql += "Case_Female_Obs_Genotype22 integer,";
+        sql += "Case_Female_Exp_Genotype22 REAL,";
+        sql += "Control_Male_Pvalue REAL,";
+        sql += "Control_Male_Total_Count integer,";
+        sql += "Control_Male_Obs_Genotype11 integer,";
+        sql += "Control_Male_Exp_Genotype11 REAL,";
+        sql += "Control_Male_Obs_Genotype12 integer,";
+        sql += "Control_Male_Exp_Genotype12 REAL,";
+        sql += "Control_Male_Obs_Genotype22 integer,";
+        sql += "Control_Male_Exp_Genotype22 REAL,";
+        sql += "Control_Female_Pvalue REAL,";
+        sql += "Control_Female_Total_Count integer,";
+        sql += "Control_Female_Obs_Genotype11 integer,";
+        sql += "Control_Female_Exp_Genotype11 REAL,";
+        sql += "Control_Female_Obs_Genotype12 integer,";
+        sql += "Control_Female_Exp_Genotype12 REAL,";
+        sql += "Control_Female_Obs_Genotype22 integer,";
+        sql += "Control_Female_Exp_Genotype22 REAL";
+        sql += ")";
+        Controller::execute_sql(myQuery, sql);
+        ccinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+        ccinsert += ",Case_Male_Pvalue, Case_Male_Total_Count, Case_Male_Obs_Genotype11, Case_Male_Exp_Genotype11,";
+        ccinsert += "Case_Male_Obs_Genotype12, Case_Male_Exp_Genotype12, Case_Male_Obs_Genotype22, Case_Male_Exp_Genotype22";
+        ccinsert += ",Case_Female_Pvalue, Case_Female_Total_Count, Case_Female_Obs_Genotype11, Case_Female_Exp_Genotype11,";
+        ccinsert += "Case_Female_Obs_Genotype12, Case_Female_Exp_Genotype12, Case_Female_Obs_Genotype22, Case_Female_Exp_Genotype22";
+        ccinsert += ",Control_Male_Pvalue, Control_Male_Total_Count, Control_Male_Obs_Genotype11, Control_Male_Exp_Genotype11,";
+        ccinsert += "Control_Male_Obs_Genotype12, Control_Male_Exp_Genotype12, Control_Male_Obs_Genotype22, Control_Male_Exp_Genotype22";
+        ccinsert += ",Control_Female_Pvalue, Control_Female_Total_Count, Control_Female_Obs_Genotype11, Control_Female_Exp_Genotype11,";
+        ccinsert += "Control_Female_Obs_Genotype12, Control_Female_Exp_Genotype12, Control_Female_Obs_Genotype22, Control_Female_Exp_Genotype22";
+        ccinsert += ") VALUES (NULL";
+
+    }
+    myQuery.commit();
 }
+
+void ProcessHWEquilibrium::run(DataSetObject* ds)
+{
+	process(ds);
+}
+
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

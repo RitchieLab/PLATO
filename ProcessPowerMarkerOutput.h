@@ -52,6 +52,7 @@ class ProcessPowerMarkerOutput : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string projectPath;
 
 	public:
 		ProcessPowerMarkerOutput(){
@@ -98,6 +99,7 @@ class ProcessPowerMarkerOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
+		ProcessPowerMarkerOutput(string, int, Database*, string);
 		~ProcessPowerMarkerOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -131,8 +133,11 @@ class ProcessPowerMarkerOutput : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

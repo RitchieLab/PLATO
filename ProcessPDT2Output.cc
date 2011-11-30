@@ -40,6 +40,16 @@ namespace PlatoLib
 {
 #endif
 
+ProcessPDT2Output::ProcessPDT2Output(string bn, int pos, Database* pdb, string projPath)
+{
+    name = "Output PDT2";
+    batchname = bn;
+    position = pos;
+    hasresults = false;
+    db = pdb;
+    projectPath = projPath;
+}
+
 void ProcessPDT2Output::FilterSummary(){
 }
 
@@ -51,16 +61,17 @@ void ProcessPDT2Output::PrintSummary(){
 	}
 }
 
-void ProcessPDT2Output::filter(){
-}
+void ProcessPDT2Output::filter(){}
 
 void ProcessPDT2Output::process(DataSet* ds){
 	data_set = ds;
 
 	PDT2Output pdt2;
-	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
+	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
+	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
-		for(int i = 0; i < (int)sample_sets.size(); i++){
+		for(int i = 0; i < (int)sample_sets.size(); i++)
+		{
 //			cout << "Sample vect size: " << sample_sets[i].size() << endl;
 			DataSet ds;
 			ds.set_samples(&sample_sets[i]);
@@ -78,13 +89,30 @@ void ProcessPDT2Output::process(DataSet* ds){
 			ds.clear_all();
 		}
 	}
-	else{
-
+	else
+	{
 	pdt2.setOptions(options);
 	pdt2.calculate(data_set);
 	}
+#ifdef PLATOLIB
+	filenames = pdt2.get_filenames();
+#endif
+}//end method process(DataSet*)
 
+#ifdef PLATOLIB
+void ProcessPDT2Output::dump2db(){}
+void ProcessPDT2Output::create_tables(){}
+void ProcessPDT2Output::run(DataSetObject* ds)
+{
+#ifdef WIN
+	options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
+#else
+	options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
+#endif
+	process(ds);
 }
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

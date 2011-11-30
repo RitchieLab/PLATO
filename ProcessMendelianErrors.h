@@ -55,6 +55,12 @@ class ProcessMendelianErrors : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
+		string defaultinsert;
+		string sampleinsert;
+		string pedigreeinsert;
+		string error_filename;
+		string level2_filename;
+		string projectPath;
 
 		vector<int> ferrors;
 		vector< map<string,int> > fenzyme;
@@ -62,7 +68,6 @@ class ProcessMendelianErrors : public Process{
 		vector<int> serrors;
 		vector< map<string,int> > senzyme;
 		vector<vector<Marker*> > error_map;
-
 		vector<Marker*> good_markers;
 
 	public:
@@ -104,6 +109,7 @@ class ProcessMendelianErrors : public Process{
 			rank = 0;
 			order = 0;
 		};
+		ProcessMendelianErrors(string, int, Database*, string);
 		virtual ~ProcessMendelianErrors(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -122,8 +128,12 @@ class ProcessMendelianErrors : public Process{
 		void zeroErrors();
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+				void run(DataSetObject*);
+				void dump2db();
+				void create_tables();
+		#endif
+
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

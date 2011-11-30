@@ -54,7 +54,7 @@ class ProcessLinearReg : public Process{
 		int run_chr;
 		int run_start;
 		int run_end;
-
+		string defaultinsert;
 
 	public:
 		ProcessLinearReg(){
@@ -92,8 +92,8 @@ class ProcessLinearReg : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessLinearReg(){
-		};
+		ProcessLinearReg(string, int, Database*);
+		~ProcessLinearReg(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -120,8 +120,11 @@ class ProcessLinearReg : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
-		void dump2db(){};
+		#ifdef PLATOLIB
+				void run(DataSetObject*);
+				void dump2db();
+				void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib
