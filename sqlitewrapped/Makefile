@@ -1,7 +1,7 @@
 VERSION =	1.3.1
 DIFF_VERSION =	1.3
 
-INSTALL_PREFIX = ./sqlitewrapped
+INSTALL_PREFIX = ../sqlitewrapped
 INSTALL_LIB =	../lib
 INSTALL_INCLUDE = $(INSTALL_PREFIX)/include
 INSTALL =	./sqlitewrapped/bin/install
@@ -28,11 +28,16 @@ $(LIBNAME).a: 	$(LIBM)
 $(LIBNAME).h:	IError.h StderrLog.h SysLog.h Database.h Query.h 
 		cat IError.h StderrLog.h SysLog.h Database.h Query.h > $(LIBNAME).h
 
-install:	all
+#install:	all
+#		@mkdir -p $(INSTALL_LIB)
+#		@mkdir -p $(INSTALL_INCLUDE)
+#		$(INSTALL) $(LIBNAME).a $(INSTALL_LIB)
+#		$(INSTALL) $(LIBNAME).h $(INSTALL_INCLUDE)
+install: all
 		@mkdir -p $(INSTALL_LIB)
 		@mkdir -p $(INSTALL_INCLUDE)
-		$(INSTALL) $(LIBNAME).a $(INSTALL_LIB)
-		$(INSTALL) $(LIBNAME).h $(INSTALL_INCLUDE)
+		@cp $(LIBNAME).a $(INSTALL_LIB)
+		@cp $(LIBNAME).h $(INSTALL_INCLUDE)
 
 clean:
 		rm -f *~ *.o $(PROGS) *.d slask *.a $(LIBNAME).h
