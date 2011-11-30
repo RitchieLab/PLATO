@@ -30,7 +30,7 @@ class Step{
 			name = n;
 			threshold = t;
 		};
-		~Step(){
+		virtual ~Step(){
 		//	if(myprocess){
 		//		delete(myprocess);
 		//	}
