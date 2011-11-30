@@ -209,51 +209,51 @@ void ProcessLinearReg::process(DataSet* ds){
 				lr.resetDataSet(tempds);
 
 				lr.calculate(mark);//i);
-			vector<double>pvals = lr.getPvalues();
-			vector<double>coefs = lr.getCoefs();
-			vector<string>labels = lr.getLabels();
-			vector<double> vars = lr.getVar();
-			vector<double> zs = lr.getZs();
+				vector<double>pvals = lr.getPvalues();
+				vector<double>coefs = lr.getCoefs();
+				vector<string>labels = lr.getLabels();
+				vector<double> vars = lr.getVar();
+				vector<double> zs = lr.getZs();
 
-			for(int l = 1; l < (int)labels.size(); l++)
-			{
-				#ifdef PLATOLIB
-				string sql = defaultinsert;
-				sql += "," + getString<int>(mark->getSysprobe());
-				sql += ",'" + mark->getReferent() + "'";
-				sql += ",'" + labels[l] + "'";
-				sql += "," + getString<int>(lr.getCalcMissing());
-				sql += ",";
-				sql += (isnan(coefs[l]) || isinf(coefs[l])) ? "NULL," : (getString<double>(coefs[l]) + ",");
-				sql += (isnan(zs[l]) || isinf(zs[l])) ? "NULL," : (getString<double>(zs[l]) + ",");
-				sql += (isnan(pvals[l]) || isinf(pvals[l])) ? "NULL," : (getString<double>(pvals[l]));
-				sql += ")";
-				cout << "SQL: " << sql << endl;
-				Controller::execute_sql(myQuery, sql);
-				#else
-				bool okay = vars[l] < 1e-20 || !Helpers::realnum(vars[l]) ? false : true;
-				double se = 0;
-				if(okay){
-					se = sqrt(vars[l]);
-				}
-				lrout << mark->getChrom() << "\t" << mark->getRSID() << "\t" << mark->getProbeID() << "\t";
-				lrout << mark->getBPLOC();
-				if(options.doGroupFile()){
-					lrout << "\t" << group_iter->first;
-				}
-				lrout << "\t" << mark->getReferent() << "\t";
-				lrout << labels[l] << "\t" << lr.getCalcMissing() << "\t" << coefs[l] << "\t" << exp(coefs[l]) << "\t" << se << "\t" << zs[l] << "\t" << pvals[l] << endl;
+				for(int l = 1; l < (int)labels.size(); l++)
+				{
+					#ifdef PLATOLIB
+					string sql = defaultinsert;
+					sql += "," + getString<int>(mark->getSysprobe());
+					sql += ",'" + mark->getReferent() + "'";
+					sql += ",'" + labels[l] + "'";
+					sql += "," + getString<int>(lr.getCalcMissing());
+					sql += ",";
+					sql += (isnan(coefs[l]) || isinf(coefs[l])) ? "NULL," : (getString<double>(coefs[l]) + ",");
+					sql += (isnan(zs[l]) || isinf(zs[l])) ? "NULL," : (getString<double>(zs[l]) + ",");
+					sql += (isnan(pvals[l]) || isinf(pvals[l])) ? "NULL," : (getString<double>(pvals[l]));
+					sql += ")";
+					cout << "SQL: " << sql << endl;
+					Controller::execute_sql(myQuery, sql);
+					#else
+					bool okay = vars[l] < 1e-20 || !Helpers::realnum(vars[l]) ? false : true;
+					double se = 0;
+					if(okay){
+						se = sqrt(vars[l]);
+					}
+					lrout << mark->getChrom() << "\t" << mark->getRSID() << "\t" << mark->getProbeID() << "\t";
+					lrout << mark->getBPLOC();
+					if(options.doGroupFile()){
+						lrout << "\t" << group_iter->first;
+					}
+					lrout << "\t" << mark->getReferent() << "\t";
+					lrout << labels[l] << "\t" << lr.getCalcMissing() << "\t" << coefs[l] << "\t" << exp(coefs[l]) << "\t" << se << "\t" << zs[l] << "\t" << pvals[l] << endl;
 
-				if(options.doOutputSynthView()){
-					lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();
-				}
+					if(options.doOutputSynthView()){
+						lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();
+					}
+					#endif
+				}//end loop through labels
+				#ifndef PLATOLIB
+				chis[i] = lr.getStatistic();
+				main_pvals[i] = pvals[1];
 				#endif
-			}
-			#ifndef PLATOLIB
-			chis[i] = lr.getStatistic();
-			main_pvals[i] = pvals[1];
-			#endif
-			}
+			}//end loop through Groups
 			if(options.doOutputSynthView()){
 				lrsvout << endl;
 			}
@@ -263,7 +263,7 @@ void ProcessLinearReg::process(DataSet* ds){
 		#endif
 //		lrout << options.getLinRModelType() << "\t";
 //		lrout << lr.getCalcMissing() << "\t" << lr.getTestCoef() << "\t" << lr.getZ() << "\t" << lr.getPValue() << endl;
-	}
+	}//end loop through Markers
 	#ifdef PLATOLIB
 				myQuery.commit();
 	#endif

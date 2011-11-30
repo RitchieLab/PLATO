@@ -5,13 +5,15 @@ LIBPLATODIR=lib/
 LIBPLATO=$(LIBPLATODIR)libplato.a
 PLATO_AS_LIB=sqllib methods $(LIBPLATO)
 METHODDIR=method_lib
-LIBDIR=-Llib -L/opt/local/lib #-L/home/cozartc/boost/stage/lib -L/home/cozartc/sqlitewrapped/lib
-LIB=-lm -lmethods -lboost_thread-mt#mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include #-I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
+#LIBDIR=-Llib -L/opt/local/lib #-L/home/cozartc/boost/stage/lib -L/home/cozartc/sqlitewrapped/lib
+LIBDIR=-L./lib -L/usr/lib -L/opt/local/lib
+LIB=-lm -lmethods -lboost_thread#mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) -I/usr/local/boost_1_44_0 -I~/Downloads/R-2.11.1/include -I/opt/local/include
+															#-I/opt/local/include #-I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
 SYS=MAC
 #DB=USE_DB
 #COMPASLIB=PLATOLIB
-R=USE_R
+#R=USE_R
 
 #
 # # Default target builds all programs: (make)
