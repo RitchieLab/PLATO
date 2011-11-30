@@ -19,7 +19,6 @@
 #include "StepOptions.h"
 #include "DataSet.h"
 #include "MethodException.h"
-//#include "plink.h"
 
 using namespace std;
 
@@ -81,7 +80,6 @@ class Model {
   vector<bool> validParameters();
   bool isValid() { return all_valid; }
   double getStatistic();
-  //  double getPValue();
   double linearHypothesis(vector<vector<double> > &, vector<double> &);
   int Ysize() { return nind; }
   int getNP() { return np; }
@@ -115,8 +113,7 @@ class Model {
 
  protected:
 
-  //Plink * P;
-	 StepOptions options;
+  StepOptions options;
   // Missing flag
   vector<bool> miss;
 

@@ -11,11 +11,9 @@
 #include <string.h>
 #include <string>
 #include <list>
-//#include "Process.h"
 #include "Family.h"
 #include "Marker.h"
 #include "Sample.h"
-//#include "Chrom.h"
 #include "DataSet.h"
 #include "Globals.h"
 #include "Options.h"
@@ -24,7 +22,7 @@
 using namespace std;
 
 namespace Methods{
-class MendelianErrors{// : public Process{
+class MendelianErrors{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -35,8 +33,6 @@ class MendelianErrors{// : public Process{
 		vector<int>* marker_map;
 		StepOptions options;
 
-//		Markers* markers;
-//		Families* families;
 		int fam_thresh;
 		int marker_thresh;
 		void Tokenize(const string&, vector<string>&, const string&);
@@ -64,7 +60,7 @@ class MendelianErrors{// : public Process{
 
 
 	public:
-		MendelianErrors(){// : Process(){
+		MendelianErrors(){
 			markers = NULL;
 			samples = NULL;
 			families = NULL;
@@ -120,8 +116,6 @@ class MendelianErrors{// : public Process{
 
 		string get_error_filename(){return errors_file_name;}
 		string get_level2_filename(){return level2_file_name;}
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
@@ -131,17 +125,12 @@ class MendelianErrors{// : public Process{
 		};
 		void filter_markers();
 		void perform_evaluation(bool);
-//		void perform_evaluation(Connection*, bool);
 		void FilterSummary();
 		void resetCounts();
 		void calcThreshold();
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
 		void mid_process_output();
         void setDBOUT(){_DBOUTPUT_ = true;};
         void setMarkerList(){_MARKERLIST_ = true;};

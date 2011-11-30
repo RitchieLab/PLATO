@@ -31,9 +31,6 @@
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 namespace Methods{
 string IBS::stepname = "ibs";
 
@@ -70,8 +67,6 @@ vector<int> IBS::calcTrioTransmission(int f1, Marker* m){
 	Marker* mark = m;
 	int mloc = mark->getLoc();
 	Family* fam = data_set->get_pedigree(f1);
-	//[0] = maternal
-	//[1] = paternal
 	vector<int> count (2, -9);
 	vector<Sample*>* fsamps = fam->getSamples();
 	if(mark != NULL && fam != NULL && fsamps->size() == 3){
@@ -105,11 +100,6 @@ vector<int> IBS::calcTrioTransmission(int f1, Marker* m){
 		bool f1kid1 = child->getAone(mloc);
 		bool f1kid2 = child->getAtwo(mloc);
 		bool f1kid3 = child->getAmissing(mloc);
-//		int f1ptr = 0;
-//		int f1pun = 0;
-//		int f1mtr = 0;
-//		int f1mun = 0;
-//		bool f1_allhet = false;
 
 		//zero geno for fam1?
 		if((f1pa1 && f1pa2 && f1pa3) || (f1ma1 && f1ma2 && f1ma3) || (f1kid1 && f1kid2 && f1kid3)){
@@ -156,112 +146,13 @@ vector<int> IBS::calcTrioTransmission(int f1, Marker* m){
 				count[0] = 1;
 			}
 		}
-/*
-		if(!f1kid1 && !f1kid2){
-			return count;
-		}
-		else if(!f1kid1 && f1kid2){
-			if(f1pa1 != f1pa2 && f1ma1 != f1ma2){
-				f1_allhet = true;
-			}
-			else{
-				//father het
-				if(f1pa1 != f1pa2){
-					//mother minor homozygous
-					if(!f1ma1){
-						//mom transmits minor, dad major
-						f1ptr = 2;
-						f1pun = 1;
-					}
-					//mother major homozygous
-					else{
-						//mom transmits major, dad minor
-						f1ptr = 1;
-						f1pun = 2;
-					}
-				}
-				//dad not het
-				else{
-					//dad minor homozygous
-					if(!f1pa1){
-						//mom transmits major, dad minor
-						f1mtr = 2;
-						f1mun = 1;
-					}
-					//dad major homozygous
-					else{
-						//mom transmits minor, dad major
-						f1mtr = 1;
-						f1mun = 2;
-					}
-				}
-			}
-		}
-
-		if(!f1kid1 && !f1kid2){
-			if(!f1pa1){//!f1pa1 && f1pa2){
-				f1ptr = 1;
-				f1pun = 2;
-			}
-			if(!f1ma1){//!f1ma1 && f1ma2){
-				f1mtr = 1;
-				f1mun = 2;
-			}
-		}
-		else if(!f1kid1 && f1kid2){
-			if(f1pa1 != f1pa2 && f1ma1 != f1ma2){
-				f1_allhet = true;
-			}
-			else{
-				if(f1pa1 != f1pa2){
-					if(!f1ma1){
-						f1ptr = 2;
-						f1pun = 1;
-					}
-					else{
-						f1ptr = 1;
-						f1pun = 2;
-					}
-				}
-				else{
-					if(!f1pa1){
-						f1mtr = 2;
-						f1mun = 1;
-					}
-					else{
-						f1mtr = 1;
-						f1mun = 2;
-					}
-				}
-			}
-		}
-		else{ //kid is 1/1
-			if(!f1pa1 && f1pa2){
-				f1ptr = 2;
-				f1pun = 1;
-			}
-			else if(f1pa1 && f1pa2){
-				f1ptr = 1;
-				f1pun = 2;
-			}
-			if(!f1ma1 && f1ma2){
-				f1mtr = 2;
-				f1mun = 1;
-			}
-			else if(f1ma1 && f1ma2){
-				f1mtr = 1;
-				f1mun = 2;
-			}
-		}
-*/
-
 	}
 	return count;
 }
 
 //calculates IBS based on sample/sample pair and a locus
 int IBS::calcPairLocus(int s1, int s2, Marker* m){
-	Marker* mark = m;//data_set->get_locus(m);
+	Marker* mark = m;
 	Sample* samp1 = data_set->get_sample(s1);
 	Sample* samp2 = data_set->get_sample(s2);
 	int count = 0;
@@ -289,12 +180,10 @@ int IBS::calcPairLocus(int s1, int s2, Marker* m){
 
 //Calculates IBS based on two trios and a locus
 vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
-	Marker* mark = m;//data_set->get_locus(m);
+	Marker* mark = m;
 	Family* fam1 = data_set->get_pedigree(f1);
 	Family* fam2 = data_set->get_pedigree(f2);
 
-////	int pcount = 0;
-////	int mcount = 0;
 	vector<double> counts(2, 0);
 
 	if(mark != NULL && fam1 != NULL && fam2 != NULL && fam1->getSamples()->size() == 3 && fam2->getSamples()->size() == 3){
@@ -334,11 +223,11 @@ vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
 					}
 
 					if(!f1kid1 && !f1kid2){
-						if(!f1pa1){//!f1pa1 && f1pa2){
+						if(!f1pa1){
 							f1ptr = 1;
 							f1pun = 2;
 						}
-						if(!f1ma1){//!f1ma1 && f1ma2){
+						if(!f1ma1){
 							f1mtr = 1;
 							f1mun = 2;
 						}
@@ -413,11 +302,11 @@ vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
 						return counts;
 					}
 					if(!f2kid1 && !f2kid2){
-						if(!f2pa1){//!f1pa1 && f1pa2){
+						if(!f2pa1){
 							f2ptr = 1;
 							f2pun = 2;
 						}
-						if(!f2ma1){//!f1ma1 && f1ma2){
+						if(!f2ma1){
 							f2mtr = 1;
 							f2mun = 2;
 						}
@@ -514,21 +403,19 @@ vector<double> IBS::calcTriosLocus(int f1, int f2, Marker* m){
 //calculates average IBS over a pair of samples
 double IBS::calcPairAverage(int s1, int s2){
 	comparisons = 0;
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	Sample* samp1 = data_set->get_sample(s1);
 	Sample* samp2 = data_set->get_sample(s2);
 
 	int sum = 0;
 	int num_loci = 0;
-//pair of inds, snp, and 0, 1 or 2
+	//pair of inds, snp, and 0, 1 or 2
 	int msize = data_set->num_loci();
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];//data_set->get_locus(m);
-		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		Marker* mark = good_markers[m];
+		if(mark->isEnabled()){
 			int mloc = mark->getLoc();
 			if((samp1->getAone(mloc) && samp1->getAtwo(mloc) && samp1->getAmissing(mloc))
 					|| (samp2->getAone(mloc) && samp2->getAtwo(mloc) && samp2->getAmissing(mloc))){
@@ -554,10 +441,6 @@ double IBS::calcPairAverage(int s1, int s2){
 
 //DEPRECATED
 void IBS::calcOne(int m){
-////	Marker* mark = data_set->get_locus(m);
-////	int mloc = mark->getLoc();
-
-
 }
 
 //NOT USED

@@ -37,16 +37,6 @@ double ChiSquareArmitage::armitage(vector<vector<int> > & chiTotals){
 
   chiscore = (numer * numer) / denom;
   
-  /*  English way
-  double numer = (freqsInCell[1][1] * 0.5 + freqsInCell[1][2]) - (freqsInCell[0][1]*0.5 + freqsInCell[0][2]);
-  numer = numer * numer;
-  double denom = (1/(double)cases + 1/(double)controls) * (1/((double) total_pop * (double) total_pop)) * ((total_pop * (0.25 * totalInCell[1] + totalInCell[2])) - ((0.5 * totalInCell[1]+ totalInCell[2]) * (0.5 * totalInCell[1] + totalInCell[2])));
-
-  cout << "numer = " << numer << " denom = " << denom << " un = " << unaffected << " aff = " << affected << " caf0 = " << freqsInCell[1][0] << " caf1 = " << freqsInCell[1][1] << " caf2 = " << freqsInCell[1][2] << " conf0 = " << freqsInCell[0][0] << " conf1 = " << freqsInCell[0][1] << " conf2 = " << freqsInCell[0][2] << endl;
-  
-  chiscore = numer / denom;
-  */
-  
   // need to take square root -- adjusted on account of Ben's review of formulas 3/13/09 -- smd
   // returned to original so that score can be used to get p value against standard distribution 4/30/09 -- smd
   return chiscore;

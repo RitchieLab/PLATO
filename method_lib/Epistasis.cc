@@ -336,7 +336,6 @@ void Epistasis::evalBioFile(ofstream &EPI)
 							if (Helpers::realnum(z))
 							{
 								nepi++;
-							//	cout << "first nepi increased: " << nepi << endl;
 
 								if (z >= epi_alpha1)
 									EPI << s1->getChrom() << " "
@@ -512,7 +511,6 @@ void Epistasis::evalBioFile(ofstream &EPI)
 		}//end if(s2 != NULL)
 	}// end loop through pairs map
 
-//	if (!par::silent)
 		cout << "\n";
 }
 
@@ -643,7 +641,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		}
 		for (unsigned int e = 0; e < first_set.size(); e++)
 		{
-			sA[first_set[e]] = true;//snpset[0][e]] = true;
+			sA[first_set[e]] = true;
 		}
 		// Has a second set been specified?
 
@@ -658,7 +656,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 				vector<int>::iterator iter = find(good_indexes.begin(), good_indexes.end(), loc);
 				if(iter != good_indexes.end())
 				{
-					sB[loc] = true;//snpset[1][e]] = true;
+					sB[loc] = true;
 				}
 			}
 		}

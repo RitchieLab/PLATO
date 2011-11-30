@@ -20,9 +20,6 @@
 #include <fstream>
 #include <algorithm>
 #include "HWEquilibrium.h"
-//#include "Chrom.h"
-//#include "ChiSquare.h"
-//#include "helper.h"
 #include "cdflib.h"
 #include "General.h"
 #include "Helpers.h"
@@ -58,7 +55,6 @@ void HWEquilibrium::FilterSummary(){
 	}
 
 
-	//int msize = (int)markers->size();
 	opts::printLog("Options:\t" + options.toString() + "\n");
     opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
 	        getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
@@ -82,11 +78,11 @@ void HWEquilibrium::filter(){
 void HWEquilibrium::doFilter(Marker* mark){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		bool inc = false;
-		if(options.doThreshMarkersLow() && ((Helpers::dLess(hw_O, options.getThreshMarkersLow()) && hw_O != -1))){// || (dLess(hw_C,options.getThreshMarkersLow()) && hw_C != -1))){
+		if(options.doThreshMarkersLow() && ((Helpers::dLess(hw_O, options.getThreshMarkersLow()) && hw_O != -1))){
 			mark->setEnabled(false);
 			inc = true;
 		}
-		if(options.doThreshMarkersHigh() && ((Helpers::dGreater(hw_O, options.getThreshMarkersHigh()) && hw_O != -1))){// || (dGreater(hw_C, options.getThreshMarkersHigh()) && hw_C != -1))){
+		if(options.doThreshMarkersHigh() && ((Helpers::dGreater(hw_O, options.getThreshMarkersHigh()) && hw_O != -1))){
 			mark->setEnabled(false);
 			inc = true;
 		}
@@ -113,9 +109,6 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 		else if((*samples)[i]->getPheno() == 1){
 			sample_status[i] = false;
 		}
-//		else{
-//			cout << "POSSIBLE ERROR!! PHENO = " << (*samples)[i]->getPheno() << endl;
-//		}
 	}
 
 	af->calcOne(mark);
@@ -125,9 +118,7 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 	if(geno_chi >= 0){
 				double pvalue, df = 2;
 				pvalue = -1;
-//				int code = 1, status;
 				if(geno_chi > -1){
-				//	cdfchi(&code, &p, &pvalue, &geno_chi, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(geno_chi, df);
 				}
 				geno_pval = pvalue;
@@ -141,9 +132,7 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 			if(allele_chi > -1){
 				double pvalue, df = 1;
 				pvalue = -1;
-//				int code = 1, status;
 				if(allele_chi > -1){
-				//	cdfchi(&code, &p, &pvalue, &allele_chi, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(allele_chi, df);
 				}
 				allele_p = pvalue;
@@ -159,49 +148,22 @@ void HWEquilibrium::calculateHWEPT(Marker* mark){
 				vector<bool> temp_status = sample_status;
 				random_shuffle(temp_status.begin(), temp_status.end());
 				vector<double> temp = hwePT(temp_status, mark);
-				////double use_case = 0;
-				////double use_cont = 0;
 				if(temp[0] < results[0]){
-					ca_pt += 0;//temp[0];
+					ca_pt += 0;
 				}
 				else{
-					ca_pt += 1;//results[0];
+					ca_pt += 1;
 				}
 				if(temp[1] < results[1]){
-					con_pt += 0;//temp[1];
+					con_pt += 0;
 				}
 				else{
-					con_pt += 1;//results[1];
+					con_pt += 1;
 				}
 			}
 
-			//cout << mark->toString() << "\tca_pt: " << ca_pt << endl;
-			//cout << mark->toString() << "\tcon_pt: " << con_pt << endl;
 			ca_pval = (double)ca_pt/(double)options.getPermutations();
 			con_pval = (double)con_pt/(double)options.getPermutations();
-			//ca_pval = chiprobP(ca_pt, 2);
-			//con_pval = chiprobP(con_pt, 2);
-			/*ca_pval = 0;
-			con_pval = 0;
-			if(ca_pt >= 0){
-				double pvalue, p, bound, df = 2;
-				pvalue = -1;
-				int code = 1, status;
-				if(ca_pt > -1){
-//					cdfchi(&code, &p, &pvalue, &ca_pt, &df, &status, &bound);
-				}
-				ca_pval = pvalue;
-			}
-			if(con_pt >= 0){
-				double pvalue, p, bound, df = 2;
-				pvalue = -1;
-				int code = 1, status;
-				if(con_pt > -1){
-//					cdfchi(&code, &p, &pvalue, &con_pt, &df, &status, &bound);
-				}
-				con_pval = pvalue;
-			}*/
-
 }
 
 /*
@@ -217,7 +179,6 @@ void HWEquilibrium::processHWEPT(){
 	ofstream pvals (fname.c_str());
 	if(!pvals){
 		opts::printLog("Error opening " + fname + "!  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname + "!  Exiting!\n");
 	}
 	pvals.precision(4);
@@ -265,9 +226,7 @@ void HWEquilibrium::processHWEPT(){
 			if(geno_chi >= 0){
 				double pvalue, df = 2;
 				pvalue = -1;
-//				int code = 1, status;
 				if(geno_chi > -1){
-				//	cdfchi(&code, &p, &pvalue, &geno_chi, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(geno_chi, df);
 				}
 				geno_pval = pvalue;
@@ -281,9 +240,7 @@ void HWEquilibrium::processHWEPT(){
 			if(allele_chi > -1){
 				double pvalue, df = 1;
 				pvalue = -1;
-//				int code = 1, status;
 				if(allele_chi > -1){
-				//	cdfchi(&code, &p, &pvalue, &allele_chi, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(allele_chi, df);
 				}
 				allele_p = pvalue;
@@ -320,9 +277,7 @@ void HWEquilibrium::processHWEPT(){
 			if(ca_pt >= 0){
 				double pvalue, df = 2;
 				pvalue = -1;
-//				int code = 1, status;
 				if(ca_pt > -1){
-				//	cdfchi(&code, &p, &pvalue, &ca_pt, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(ca_pt, df);
 				}
 				ca_pval = pvalue;
@@ -330,9 +285,7 @@ void HWEquilibrium::processHWEPT(){
 			if(con_pt >= 0){
 				double pvalue, df = 2;
 				pvalue = -1;
-//				int code = 1, status;
 				if(con_pt > -1){
-				//	cdfchi(&code, &p, &pvalue, &con_pt, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(con_pt, df);
 				}
 				con_pval = pvalue;
@@ -340,7 +293,6 @@ void HWEquilibrium::processHWEPT(){
 
 			pvals.precision(8);
 			pvals << fixed << mark->toString() << "\t" << ca_pval << "\t" << con_pval << "\t" << geno_pval << "\t" << allele_p << "\t" << hw_Ca << "\t" << hw_Con << endl;
-//			doFilterHWEPT(mark);
 		}
 	}
 	pvals.close();
@@ -416,54 +368,27 @@ vector<double> HWEquilibrium::hwePT(vector<bool> sample_status, Marker* mark){
 			}
 		}
 	}
-//	cout << mark->toString() << "\t" << "ca1count:" << ca1count << " ca2count:" << ca2count << " ca1homo:" << ca1homo << " cahet:" << cahet << " ca2homo:" << ca2homo << " cazero:" << cazero << endl;
-//	cout << mark->toString() << "\t" << "con1count:" << con1count << " con2count:" << con2count << " con1homo:" << con1homo << " conhet:" << conhet << " con2homo:" << con2homo << " conzero:" << conzero << " prev:" << options.getPrevalance() << endl;
-
-
-//ca1homo is really supposed to be ca2 homo, so flip the corresponding calculations to match
-//cout << mark->toString() << "\t" <<	ca2homo << " " << cahet << " " << ca1homo << " ZERO: " << cazero << endl;
-//cout << mark->toString() << "\t" <<	con2homo << " " << conhet << " " << con1homo << " ZERO: " << conzero << endl;
 	double ca_tot = ca1homo + cahet + ca2homo;
 	double con_tot = con1homo + conhet + con2homo;
-	double p_case = (ca2homo + (0.5*cahet))/ca_tot;//(ca1homo + (0.5*cahet))/ca_tot;//(2*cahet + ca1homo)/(2*ca_tot);
-	double p_cont = (con2homo + (0.5*conhet))/con_tot;//(con1homo + (0.5*conhet))/con_tot;//(2*conhet + con1homo)/(2*con_tot);
+	double p_case = (ca2homo + (0.5*cahet))/ca_tot;
+	double p_cont = (con2homo + (0.5*conhet))/con_tot;
 	double ptot = options.getPrevalance() * p_case + (1-options.getPrevalance())*p_cont;
-//cout << mark->toString() << "\t" << "p_case:" << p_case << endl;
-//cout << mark->toString() << "\t" << "p_cont:" << p_cont << endl;
-//cout << mark->toString() << "\t" << "p_tot:" << ptot << endl;
-//	cout << mark->toString() << "\t" << "p_case:" << p_case << " p_cont:" << p_cont << " ptot:" << ptot << endl;
-
 	double p1 = ptot * ptot;
 	double p2 = 2*ptot*(1-ptot);
 	double p3 = (1-ptot) * (1-ptot);
-//cout << mark->toString() << "\t" << p1 << " " << p2 << " " << p3 << endl;
 	double ca_chi3 = (((ca1homo / ca_tot) * (ca1homo / ca_tot)) / p3);
 	double ca_chi2 = (((cahet / ca_tot) * (cahet / ca_tot)) / p2);
 	double ca_chi1 = (((ca2homo / ca_tot) * (ca2homo / ca_tot)) / p1);
 	double ca_chi = ca_chi3 + ca_chi2 + ca_chi1;
 	ca_chi = (ca_chi - 1) * ca_tot;
-	//cout << mark->toString() << "\t" << "ca_chi1:" << ca_chi1 << " ca_chi2:" << ca_chi2 << " ca_chi3:" << ca_chi3 << " = " << ca_chi << endl;
 	double con_chi3 = (((con1homo / con_tot) * (con1homo / con_tot)) / p3);
 	double con_chi2 = (((conhet / con_tot) * (conhet / con_tot)) / p2);
 	double con_chi1 = (((con2homo / con_tot) * (con2homo / con_tot)) / p1);
 	double con_chi = con_chi3 + con_chi2 + con_chi1;
 	con_chi = (con_chi - 1) * con_tot;
-	//cout << mark->toString() << "\t" << "con_chi1:" << con_chi1 << " con_chi2:" << con_chi2 << " con_chi3:" << con_chi3 << " = " << con_chi << endl;
-//	double p1 = ptot*ptot;
-//	double p2 = 2*ptot*(1-ptot);
-//	double p3 = (1-ptot)*(1-ptot);
-//	double ca_chi = (((ca2homo/ca_tot)*(ca2homo/ca_tot))/p1) - 1;
-//	ca_chi += (((cahet/ca_tot)*(cahet/ca_tot))/p2) - 1;
-//	ca_chi += (((ca1homo/ca_tot)*(ca1homo/ca_tot))/p3) - 1;
-//	ca_chi *= ca_tot;
-//	double con_chi = (((con2homo/con_tot)*(con2homo/con_tot))/p1) - 1;
-//	con_chi += (((conhet/con_tot)*(conhet/con_tot))/p2) - 1;
-//	con_chi += (((con1homo/con_tot)*(con1homo/con_tot))/p3) - 1;
-//	con_chi *= con_tot;
 	vector<double> results;
 	results.push_back(ca_chi);
 	results.push_back(con_chi);
-//	cout << mark->toString() << " cachi:" << ca_chi << " conchi:" << con_chi << endl;
 	return results;
 }
 
@@ -477,16 +402,6 @@ void HWEquilibrium::doFilterHWEPT(Marker* mark){
 
 
 void HWEquilibrium::calculate(Marker* mark){
-//	if(options.doRandomChild() || options.doAll() || options.doAllChildren()){
-//		af->flagSamples();
-//		useoverall = true;
-//	}
-//	else{
-//		options.setFoundersOnly();
-//		af->setOptions(options);
-//		af->flagSamples();
-//	}
-
 	if(options.doHWEPT()){
 		calculateHWEPT(mark);
 	}
@@ -573,37 +488,22 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		processHWEPT();
 		return;
 	}
-//	af->process_hw(samples, families, markers, marker_map);
 
 	int msize = markers->size();
 
-	//hwO.resize(msize);
-//	hwP.resize(msize);
-//	hwPM.resize(msize);
-//	hwPD.resize(msize);
-//	hwC.resize(msize);
-//	hwCM.resize(msize);
-//	hwCF.resize(msize);
-//	hwCa.resize(msize);
-//	hwCaF.resize(msize);
-//	hwCaM.resize(msize);
-//	hwCon.resize(msize);
-//	hwConF.resize(msize);
-//	hwConM.resize(msize);
-
-	string fname1 = opts::_OUTPREFIX_ + "hw" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "hw" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
-	string fname2 = opts::_OUTPREFIX_ + "hw_parental" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "hw_parental" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname2 += "." + getString<int>(order);
 	}
-	string fname3 = opts::_OUTPREFIX_ + "hw_gender" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname3 = opts::_OUTPREFIX_ + "hw_gender" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname3 += "." + getString<int>(order);
 	}
-	string fname4 = opts::_OUTPREFIX_ + "hw_casecontrol" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname4 = opts::_OUTPREFIX_ + "hw_casecontrol" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname4 += "." + getString<int>(order);
 	}
@@ -613,7 +513,6 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 	ofstream pvals (fname1.c_str());
 	if(!pvals){
 		opts::printLog("Error opening " + fname1 + "!  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname1 + "!  Exiting!\n");
 	}
 	pvals.precision(4);
@@ -622,7 +521,6 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		paren.open(fname2.c_str());
 		if(!paren){
 			opts::printLog("Error opening " + fname2 + "! Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening " + fname2 + "! Exiting!\n");
 		}
 		paren.precision(4);
@@ -632,7 +530,6 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		gend.open(fname3.c_str());
 		if(!gend){
 			opts::printLog("Error opening " + fname3 + "! Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening " + fname3 + "! Exiting!\n");
 		}
 		gend.precision(4);
@@ -642,7 +539,6 @@ void HWEquilibrium::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		cc.open(fname4.c_str());
 		if(!cc){
 			opts::printLog("Error opening " + fname4 + "! Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening " + fname4 + "! Exiting!\n");
 		}
 		cc.precision(4);
@@ -1181,18 +1077,6 @@ float HWEquilibrium::calcHW_exact(int obs_hets, int obs_hom1, int obs_hom2){
         for (i = 0; i <= rare_copies; i++)
             het_probs[i] /= sum;
 
-        /* alternate p-value calculation for p_hi/p_lo
- *         double p_hi = het_probs[obs_hets];
- *                 for (i = obs_hets + 1; i <= rare_copies; i++)
- *                             p_hi += het_probs[i];
- *
- *                                     double p_lo = het_probs[obs_hets];
- *                                             for (i = obs_hets - 1; i >= 0; i--)
- *                                                         p_lo += het_probs[i];
- *
- *                                                                 double p_hi_lo = p_hi < p_lo ? 2.0 * p_hi : 2.0 * p_lo;
- *                                                                         */
-
         double p_hwe = 0.0;
         /*  p-value calculation for p_hwe  */
         for (i = 0; i <= rare_copies; i++)
@@ -1246,10 +1130,7 @@ float HWEquilibrium::calcHW(float aonefreq, float atwofreq, int aoneobs, int het
     if(DEBUG){
         cout << "ChiTot:\t" << chi1 << "\t" << chi2 << "\t" << chi3 << "\t=" << chi << endl;
     }
-    //float results = _subchisqrprob(1,chi);
 	double results, df = 1;
-//	int code = 1, status;
-    //cdfchi(&code, &p, &results, &chi, &df, &status, &bound);//chiprobP(chi,1);//ChiSquare::pfromchi(chi, 1);
     results = Helpers::p_from_chi(chi, df);
 	if(DEBUG){
       cout << "Results: " << results << endl;

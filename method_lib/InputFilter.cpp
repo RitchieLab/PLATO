@@ -30,18 +30,7 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 		}
 		if(temp[i]->getRSID() == (*mlist)[mi]->getRSID()){
 			temp[i]->setEnabled(false);
-//			mi++;
 		}
-//		else if(temp[i]->getRSID() > (*mlist)[mi]->getRSID()){
-//			mi++;
-//		}
-	}
-//	for(unsigned int i = 0; i < mlist->size(); i++){
-//        if(m->getRSID() == (*mlist)[i]->getRSID()){
-//            return false;
-//        }
-//    }
-//    return true;
 }
 
 /*
@@ -52,9 +41,6 @@ void InputFilter::ExcludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 void InputFilter::IncludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* mlist){
 	stable_sort(mlist->begin(), mlist->end(), greater<Methods::Marker*>());
 	vector<Marker*> temp = *marks;
-///	for(unsigned int i = 0; i < marks->size(); i++){
-///		temp[i] = marks->at(i);
-///	}
 	stable_sort(temp.begin(), temp.end(), greater<Methods::Marker*>());
 
 	unsigned int mi = 0;
@@ -75,36 +61,10 @@ void InputFilter::IncludeLocusFilter(vector<Marker*>* marks, vector<Marker*>* ml
 		}
 		if(temp[i]->getRSID() == (*mlist)[mi]->getRSID()){
 			temp[i]->setEnabled(true);
-//			mi++;
 		}else{temp[i]->setEnabled(false);}
-//		if(mi >= mlist->size()){
-//			return;
-//		}
-//		if(temp[i]->getRSID() > (*mlist)[mi]->getRSID()){
-//			mi++;
-//		}
 	}
 }
 
-/*
- * Function: IncludeLocusFilter
- * Checks if Marker is in list provided.  If so, then return true meaning "use this marker". If not found
- * then return false meaning "don't use this marker"
- *
- * return: bool
- */
-/*bool InputFilter::IncludeLocusFilter(Marker* m, vector<Marker*>* mlist){
-	vector<Marker*>::iterator iter = find_if(mlist->begin(), mlist->end(), FindMarker(m->getRSID()));
-	if(iter != mlist->end()){
-		return true;
-	}
-//	for(unsigned int i = 0; i < mlist->size(); i++){
-//        if(m->getRSID() == (*mlist)[i]->getRSID()){
-//            return true;
-//        }
-//    }
-    return false;
-}*/
 
 bool InputFilter::IncludeSampleFilter(Sample* s, vector<Sample*>* list){
 	for(unsigned int i = 0; i < list->size(); i++){
@@ -178,13 +138,6 @@ void InputFilter::LocusChromFilter(vector<Marker*>* marks, vector<Marker*>* list
 			temp[i]->setEnabled(false);
 		}
 	}
-
-//	for(unsigned int i = 0; i < list->size(); i++){
-//		if(m->getChrom() == (*list)[i]->getChrom()){
-//			return true;
-//		}
-//	}
-//	return false;
 }
 
 /*
@@ -194,7 +147,6 @@ void InputFilter::LocusChromFilter(vector<Marker*>* marks, vector<Marker*>* list
  */
 void InputFilter::LocusBplocRangeFilter(vector<Marker*>* marks, vector<Marker*>* list){
 	if(list == NULL){
-//		return true;
 		return;
 	}
 	if(list->size() != 2){
@@ -218,18 +170,6 @@ void InputFilter::LocusBplocRangeFilter(vector<Marker*>* marks, vector<Marker*>*
 			}
 		}
 	}
-//	bool use = true;
-//	if(min != NULL){
-//		if(m->getBPLOC() < min->getBPLOC()){
-//			use = false;
-//		}
-//	}
-//	if(max != NULL){
-//		if(m->getBPLOC() > max->getBPLOC()){
-//			use = false;
-//		}
-//	}
-//	return use;
 }
 
 bool InputFilter::IncludeCovariateFilter(string cov, vector<string>* list){
@@ -283,10 +223,6 @@ bool InputFilter::ExcludeTraitFilter(string trait, vector<string>* list){
 void InputFilter::run_locus_filter(int f, vector<Marker*>* marks){
 	marker_filters[f](marks, marker_lists[f]);
 }
-
-//bool InputFilter::run_locus_filter(int f, Marker* m){
-//	return marker_filters[f](m, marker_lists[f]);
-//}
 
 bool InputFilter::run_sample_filter(int f, Sample* s){
 	return sample_filters[f](s, sample_lists[f]);

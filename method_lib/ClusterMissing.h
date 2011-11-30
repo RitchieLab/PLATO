@@ -13,10 +13,7 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "Options.h"
 #include "General.h"
 #include "DataSet.h"
@@ -35,8 +32,6 @@ class ClusterMissing{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -120,7 +115,6 @@ class ClusterMissing{
 		controlzeros.resize(0);
 		controltotal.resize(0);
 		};
-		//void process(Connection*, Families*, Markers*);
 		void resetDataSet(DataSet* ds){
 			data_set = ds;
 			samples = ds->get_samples();
@@ -143,7 +137,6 @@ class ClusterMissing{
 		};
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
@@ -151,14 +144,9 @@ class ClusterMissing{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		//void process(Families*, Markers*);
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};

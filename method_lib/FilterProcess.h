@@ -38,7 +38,6 @@ class FilterProcess{
     /// sets DataSet 
     void resetDataSet(DataSet* ds);
     
-    /// 
     inline void setOutputName(string out_name){outputname = out_name;}
 
   private:

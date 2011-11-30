@@ -34,7 +34,6 @@ void StepOptions::setUp(string s){
 			map<string, Argument>::iterator found = s_ArgVals.find(tokens[i]);
 			if(found == s_ArgVals.end()){
 				opts::printLog("Argument: " + tokens[i] + " is an invalid argument in " + options + "\n");
-				//exit(1);
 				throw MethodException("Argument: " + tokens[i] + " is an invalid argument in " + options + "\n");
 			}
 			switch(s_ArgVals[tokens[i]]){
@@ -63,18 +62,15 @@ void StepOptions::setUp(string s){
 									throw "oops!";
 								}
 							}
-							//thresh_markers_min = std::atof(val.c_str());
 							thresh_markers_min = std::strtod(val.c_str(), NULL);
 							dothresh_markers_min = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -91,13 +87,11 @@ void StepOptions::setUp(string s){
 							dothresh_markers_max = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -114,13 +108,11 @@ void StepOptions::setUp(string s){
 							dothresh_samples_min = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -137,13 +129,11 @@ void StepOptions::setUp(string s){
 							dothresh_samples_max = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -160,13 +150,11 @@ void StepOptions::setUp(string s){
 							dothresh_families_min = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -183,13 +171,11 @@ void StepOptions::setUp(string s){
 							dothresh_families_max = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -205,13 +191,11 @@ void StepOptions::setUp(string s){
 							confidence_interval = std::strtod(val.c_str(), NULL);
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -258,13 +242,11 @@ void StepOptions::setUp(string s){
 							}
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -280,13 +262,11 @@ void StepOptions::setUp(string s){
 							epi_alpha2 = std::strtod(val.c_str(), NULL);
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -371,13 +351,11 @@ void StepOptions::setUp(string s){
 							dochrom = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -399,7 +377,6 @@ void StepOptions::setUp(string s){
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -410,7 +387,6 @@ void StepOptions::setUp(string s){
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -421,7 +397,6 @@ void StepOptions::setUp(string s){
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -503,13 +478,11 @@ void StepOptions::setUp(string s){
 							prevalence = std::strtod(val.c_str(), NULL);
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -557,13 +530,11 @@ void StepOptions::setUp(string s){
 							perms = std::atoi(val.c_str());
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -576,13 +547,11 @@ void StepOptions::setUp(string s){
 							map<string, string>::iterator c;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -605,13 +574,11 @@ void StepOptions::setUp(string s){
 							dobp_min = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -628,13 +595,11 @@ void StepOptions::setUp(string s){
 							dobp_max = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -651,13 +616,11 @@ void StepOptions::setUp(string s){
 							dobp_space = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -668,13 +631,11 @@ void StepOptions::setUp(string s){
 							disease = val;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -686,13 +647,11 @@ void StepOptions::setUp(string s){
 							do_pedfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -707,13 +666,11 @@ void StepOptions::setUp(string s){
 							do_mdrfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -725,13 +682,11 @@ void StepOptions::setUp(string s){
 							do_mdrpedfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -743,13 +698,11 @@ void StepOptions::setUp(string s){
 							do_mdrmapfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -761,13 +714,11 @@ void StepOptions::setUp(string s){
 							do_mapfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -779,13 +730,11 @@ void StepOptions::setUp(string s){
 							do_tpedfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -797,13 +746,11 @@ void StepOptions::setUp(string s){
 							do_tfamfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -815,13 +762,11 @@ void StepOptions::setUp(string s){
 							do_binfile = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -833,13 +778,11 @@ void StepOptions::setUp(string s){
 							stratification = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -850,13 +793,11 @@ void StepOptions::setUp(string s){
 							covar_missing = val;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -867,13 +808,11 @@ void StepOptions::setUp(string s){
 							trait_missing = val;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -885,13 +824,11 @@ void StepOptions::setUp(string s){
 							do_group_file = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -903,13 +840,11 @@ void StepOptions::setUp(string s){
 							do_cluster_file = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -921,13 +856,11 @@ void StepOptions::setUp(string s){
 							do_covs_file = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -944,13 +877,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -967,13 +898,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -985,13 +914,11 @@ void StepOptions::setUp(string s){
 							do_traits_file = true;
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1008,13 +935,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1031,13 +956,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1052,13 +975,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1127,13 +1048,11 @@ void StepOptions::setUp(string s){
                             homozyg_permute_count = std::atoi(val.c_str());
                         }catch(...){
                             opts::printLog(val + " is not a valid value for line: " + options + "\n");
-                            //exit(1);
                             throw MethodException(val + " is not a valid value for line: " + options + "\n");
                         }
                     }
                     else{
                         opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-                        //exit(1);
                         throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
                     }
                     break;
@@ -1152,13 +1071,11 @@ void StepOptions::setUp(string s){
 							homozyg_zeros = std::atoi(val.c_str());
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1174,13 +1091,11 @@ void StepOptions::setUp(string s){
 							homozyg_min_samp = std::atoi(val.c_str());
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1196,13 +1111,11 @@ void StepOptions::setUp(string s){
 							homozyg_span = std::atoi(val.c_str());
 						}catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1220,13 +1133,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1251,7 +1162,6 @@ void StepOptions::setUp(string s){
 									throw "oops!";
 								}
 							}
-//							ld_pairwise = true;
 							ld_vif = true;
 							ld_window = std::atoi(win.c_str());
 							ld_step = std::atoi(step.c_str());
@@ -1259,13 +1169,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(win + ", or " + step + ", or " + threshold  + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(win + ", or " + step + ", or " + threshold  + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1287,13 +1195,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1310,13 +1216,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1333,13 +1237,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1372,13 +1274,11 @@ void StepOptions::setUp(string s){
 
 						}catch(...){
 							opts::printLog(win + ", or " + step + ", or " + threshold  + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(win + ", or " + step + ", or " + threshold  + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1389,7 +1289,6 @@ void StepOptions::setUp(string s){
 							myfound = find(tokens.begin(), tokens.end(), "-ld-vif");
 							if(myfound == tokens.end()){
 								opts::printLog(tokens[i] + " requires either -ld-pairwise or -ld-vif on line: " + options + "\n");
-								//exit(1);
 								throw MethodException(tokens[i] + " requires either -ld-pairwise or -ld-vif on line: " + options + "\n");
 							}
 						}
@@ -1400,7 +1299,6 @@ void StepOptions::setUp(string s){
 				case s_filter_overall:
 					if(filter_file){
 						opts::printLog(tokens[i] + " is not allowed when -filter-file is specified on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " is not allowed when -filter-file is specified on line: " + options + "\n");
 					}
 					filter_overall = true;
@@ -1408,12 +1306,10 @@ void StepOptions::setUp(string s){
 				case s_filter_file:
 					if(filter_overall){
 						opts::printLog(tokens[i] + " is not allowed when -filter-overall is specified on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " is not allowed when -filter-overall is specified on line: " + options + "\n");
 					}
 					if(!opts::_FREQ_FILE_EXISTS_){
 						opts::printLog(tokens[i] + " is not allowed when -freq-file is not specified on the command line on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " is not allowed when -freq-file is not specified on the command line on line: " + options + "\n");
 					}
 					filter_file = true;
@@ -1426,7 +1322,6 @@ void StepOptions::setUp(string s){
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1438,14 +1333,12 @@ void StepOptions::setUp(string s){
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
 				case s_unk_spouses:
 					if(unaff_spouses_only || founders_only || all_children || all || random_child){
 						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unaff-spouses-only, or -random-child on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unaff-spouses-only, or -random-child on line: " + options + "\n");
 					}
 					unk_spouses = true;
@@ -1453,7 +1346,6 @@ void StepOptions::setUp(string s){
 				case s_unaff_spouses_only:
 					if(unk_spouses || founders_only || all_children || all || random_child){
 						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, or -random-child on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, or -random-child on line: " + options + "\n");
 					}
 					unaff_spouses_only = true;
@@ -1461,7 +1353,6 @@ void StepOptions::setUp(string s){
 				case s_founders_only:
 					if(unaff_spouses_only || unk_spouses || all_children || all || random_child){
 						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
 					}
 					founders_only = true;
@@ -1469,7 +1360,6 @@ void StepOptions::setUp(string s){
 				case s_random_child:
 					if(unk_spouses || unaff_spouses_only || founders_only || all_children || all){
 						opts::printLog(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, -unaff-spouses-only on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " cannot be used with -all, -all-children, -founders-only, -unk-spouses, -unaff-spouses-only on line: " + options + "\n");
 					}
 					random_child = true;
@@ -1477,7 +1367,6 @@ void StepOptions::setUp(string s){
 				case s_all_children:
 					if(unk_spouses || unaff_spouses_only || founders_only || all || random_child){
 						opts::printLog(tokens[i] + " cannot be used with -all, -founders-only, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " cannot be used with -all, -founders-only, -unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
 					}
 					all_children = true;
@@ -1485,7 +1374,6 @@ void StepOptions::setUp(string s){
 				case s_all:
 					if(unk_spouses || unaff_spouses_only || founders_only || all_children || random_child){
 						opts::printLog(tokens[i] + " cannot be used with -all-children, -founders-only, unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " cannot be used with -all-children, -founders-only, unk-spouses, -unaff-spouses-only or -random-child on line: " + options + "\n");
 					}
 					all = true;
@@ -1516,13 +1404,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1540,13 +1426,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1564,13 +1448,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " is not a valid value for line: " + options + "\n");
 					}
 					break;
@@ -1588,13 +1470,11 @@ void StepOptions::setUp(string s){
 						}
 						catch(...){
 							opts::printLog(val + " is not a valid value for line: " + options + "\n");
-							//exit(1);
 							throw MethodException(val + " is not a valid value for line: " + options + "\n");
 						}
 					}
 					else{
 						opts::printLog(tokens[i] + " requires a value on line: " + options + "\n");
-						//exit(1);
 						throw MethodException(tokens[i] + " requires a value on line: " + options + "\n");
 					}
 					break;
@@ -1728,7 +1608,6 @@ void StepOptions::setUp(string s){
     	  if(i + 1 < (int)tokens.size()){
     		  setLinRCondition(true);
     		  setLinRConditionString(tokens[++i]);
-//    		  parseLinRConditionList(tokens[++i]);
     	  }
     	  else{
     		  opts::printLog(tokens[i] + " requires a parameter.\n");
@@ -1739,7 +1618,6 @@ void StepOptions::setUp(string s){
     	  if(i + 1 < (int)tokens.size()){
     		  setLinRCondition(true);
     		  setLinRConditionFile(tokens[++i]);
-//    		  readLinRConditionFile(tokens[++i]);
     	  }
     	  else{
     		  opts::printLog(tokens[i] + " requires a parameter.\n");
@@ -1766,7 +1644,6 @@ void StepOptions::setUp(string s){
     	  if(i + 1 < (int)tokens.size()){
     		  setDoIBSPairs(true);
     		  setIBSPairsFile(tokens[++i]);
-//    		  readLinRConditionFile(tokens[++i]);
     	  }
     	  else{
     		  opts::printLog(tokens[i] + " requires a parameter.\n");
@@ -1777,7 +1654,6 @@ void StepOptions::setUp(string s){
     	  if(i + 1 < (int)tokens.size()){
     		  setDoIBSTrioPairs(true);
     		  setIBSTrioPairsFile(tokens[++i]);
-//    		  readLinRConditionFile(tokens[++i]);
     	  }
     	  else{
     		  opts::printLog(tokens[i] + " requires a parameter.\n");
@@ -1844,7 +1720,6 @@ void StepOptions::setUp(string s){
 						setLRMaximumIterations(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -1862,7 +1737,6 @@ void StepOptions::setUp(string s){
 						setMarsMaxTerms(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -1879,7 +1753,6 @@ void StepOptions::setUp(string s){
     			  setMarsDegree(std::atoi(val.c_str()));
     		  }catch(...){
     			  opts::printLog(val + " is not a valid value for line: " + options + "\n");
-    			  //exit(1);
     			  throw MethodException(val + " is not a valid value for line: " + options + "\n");
     		  }
     	  }
@@ -1898,7 +1771,6 @@ void StepOptions::setUp(string s){
 						opts::printLog("setting MARS NPRUNE=" + val + "\n");
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -1933,7 +1805,6 @@ void StepOptions::setUp(string s){
 						setCondLRMaximumIterations(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -1985,7 +1856,6 @@ void StepOptions::setUp(string s){
 						setMDRPDTNumPTests(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -2002,7 +1872,6 @@ void StepOptions::setUp(string s){
 						setMDRPDTRandSeed(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -2019,7 +1888,6 @@ void StepOptions::setUp(string s){
 						setMDRPDTNumCrossVals(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -2036,7 +1904,6 @@ void StepOptions::setUp(string s){
 						setMDRPDTMinCombo(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -2053,7 +1920,6 @@ void StepOptions::setUp(string s){
 						setMDRPDTMaxCombo(std::atoi(val.c_str()));
 					}catch(...){
 						opts::printLog(val + " is not a valid value for line: " + options + "\n");
-						//exit(1);
 						throw MethodException(val + " is not a valid value for line: " + options + "\n");
 					}
 			  }
@@ -2061,7 +1927,6 @@ void StepOptions::setUp(string s){
         break;
 		  default:
 					opts::printLog("Error reading step specific arguments, line: " + options + "\n");
-					//exit(1);
 					throw MethodException("Error reading step specific arguments, line: " + options + "\n");
 			}
 		}
@@ -2142,7 +2007,6 @@ void StepOptions::readStratificationFile(string f){
     input.open(f.c_str(), ios::in);
     if(!input){
         opts::printLog("Error opening penetrance file: " + f + "\n");
-        //exit(1);
         throw MethodException("Error opening penetrance file: " + f + "\n");
     }
     string line = "";
@@ -2151,14 +2015,12 @@ void StepOptions::readStratificationFile(string f){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 3){
 			opts::printLog("Stratification file column size != 3 on line: " + line + " Exiting!\n");
-			//exit(1);
 			throw MethodException("Stratification file column size != 3 on line: " + line + " Exiting!\n");
 		}
         try{
 			strat_map[tokens[0] + " " + tokens[1]] = atoi(tokens[2].c_str());
         }catch(...){
            	opts::printLog("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
-   		   	//exit(1);
            	throw MethodException("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
         }
 		count++;
@@ -2174,7 +2036,6 @@ void StepOptions::readPenetranceFile(string f){
     input.open(f.c_str(), ios::in);
     if(!input){
         opts::printLog("Error opening penetrance file: " + f + "\n");
-        //exit(1);
         throw MethodException("Error opening penetrance file: " + f + "\n");
     }
     string line = "";
@@ -2183,14 +2044,12 @@ void StepOptions::readPenetranceFile(string f){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 3){
 			opts::printLog("Penetrance file column size != 3 one line: " + line + " Exiting!\n");
-			//exit(1);
 			throw MethodException("Penetrance file column size != 3 one line: " + line + " Exiting!\n");
 		}
         try{
 			penetrance_map[tokens[0] + " " + tokens[1]] = atof(tokens[2].c_str());
         }catch(...){
            	opts::printLog("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
-   		   	//exit(1);
            	throw MethodException("Column " + getString<int>(3) +" on line: " + getString<int>(count) + " is not a number!?\n");
         }
 		count++;
@@ -2206,7 +2065,6 @@ void StepOptions::readCenterFile(string f){
     input.open(f.c_str(), ios::in);
     if(!input){
         opts::printLog("Error opening center code file: " + f + "\n");
-        //exit(1);
         throw MethodException("Error opening center code file: " + f + "\n");
     }
     string line = "";
@@ -2214,7 +2072,6 @@ void StepOptions::readCenterFile(string f){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 3){
 			opts::printLog("Center code file column size != 3 one line: " + line + " Exiting!\n");
-			//exit(1);
 			throw MethodException("Center code file column size != 3 one line: " + line + " Exiting!\n");
 		}
 		center_map[tokens[0] + " " + tokens[1]] = tokens[2];
@@ -2321,12 +2178,6 @@ void StepOptions::readClusters(vector<Sample*>* samps){
 			}
 		}
 	}
-
-//	map<string, vector<Sample*> >::iterator giter;
-//	for(giter = groups.begin(); giter != groups.end(); giter++){
-//		string group = giter->first;
-//		group_families[group] = generateFamilySet(&(giter->second));
-//	}
 }
 
 void StepOptions::readClustersFromString(vector<Sample*>* samps){
@@ -2369,12 +2220,6 @@ void StepOptions::readClustersFromString(vector<Sample*>* samps){
 			}
 		}
 	}
-
-//	map<string, vector<Sample*> >::iterator giter;
-//	for(giter = groups.begin(); giter != groups.end(); giter++){
-//		string group = giter->first;
-//		group_families[group] = generateFamilySet(&(giter->second));
-//	}
 }
 
 
@@ -2528,7 +2373,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
         if(elems.size() <= 2){
             opts::printLog("Line: " + getString<int>(count) + " has incorrect number of columns!");
             in.close();
-            //exit(1);
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
         string fam = elems[0];
@@ -2540,7 +2384,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 		if(do_covs_name && !haveheader && count == 1){
 			opts::printLog("No headers found.  Please use -covar-number.\n");
 			in.close();
-			//exit(1);
 			throw MethodException("No headers found.  Please use -covar-number.\n");
 		}
         if(numcovs == 0){
@@ -2601,7 +2444,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 								}
 							}
 						}
-//						fnd = find(cov_use.begin(), cov_use.end(), getString<int>(c+1));
 					}
 					else if(do_covs_name){
 						for(int v = 0; v < (int)cov_use.size(); v++){
@@ -2619,7 +2461,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 								}
 							}
 						}
-//						fnd = find(cov_use.begin(), cov_use.end(), elems[c+2]);
 					}
 					if(fnd != ""){
 						string cov = fnd;
@@ -2676,7 +2517,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
         else if((int)elems.size() != numcovs + 2){
             opts::printLog("Line: " + getString<int>(count) + " has incorrect number of columns!");
             in.close();
-            //exit(1);
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
 		if(fam != "FamID" && ind != "IndID"){
@@ -2690,7 +2530,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 					}
                 }catch(...){
                     opts::printLog("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
-                    //exit(1);
                     throw MethodException("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
                 }
             }
@@ -2736,7 +2575,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 					}
 				}catch(...){
 					opts::printLog("Error converting " + trait + " to number.\n");
-					//exit(1);
 					throw MethodException("Error converting " + trait + " to number.\n");
 				}
 			}
@@ -2745,7 +2583,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 	ifstream in(trait_file.c_str(), ios::in);
 	if(!in){
 		opts::printLog("Error opening trait file: " + trait_file + "\n");
-		//exit(1);
 		throw MethodException("Error opening trait file: " + trait_file + "\n");
 	}
 	int count = 0;
@@ -2771,7 +2608,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
         if(elems.size() <= 2){
             opts::printLog("Line: " + getString<int>(count) + " has incorrect number of columns!");
             in.close();
-            //exit(1);
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
         string fam = elems[0];
@@ -2783,7 +2619,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 		if(do_traits_name && !haveheader && count == 1){
 			opts::printLog("No headers found.  Please use -traits-number.\n");
 			in.close();
-			//exit(1);
 			throw MethodException("No headers found.  Please use -traits-number.\n");
 		}
         if(numtraits == 0){
@@ -2844,7 +2679,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 								}
 							}
 						}
-//						fnd = find(cov_use.begin(), cov_use.end(), getString<int>(c+1));
 					}
 					else if(do_traits_name){
 						for(int v = 0; v < (int)trait_use.size(); v++){
@@ -2862,7 +2696,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 								}
 							}
 						}
-//						fnd = find(cov_use.begin(), cov_use.end(), elems[c+2]);
 					}
 					if(fnd != ""){
 						string trait = fnd;
@@ -2919,7 +2752,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
         else if((int)elems.size() != numtraits + 2){
             opts::printLog("Line: " + getString<int>(count) + " has incorrect number of columns!");
             in.close();
-            //exit(1);
             throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
         }
 		if(fam != "FamID" && ind != "IndID"){
@@ -2933,7 +2765,6 @@ void StepOptions::readTraits(vector<Sample*>* samps){
 					}
                 }catch(...){
                     opts::printLog("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
-                    //exit(1);
                     throw MethodException("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
                 }
             }
@@ -3228,7 +3059,6 @@ void StepOptions::readLinRConditionFile(vector<Marker*>* loci){
 		throw MethodException("Error opening condition file: " + linr_condition_file + "\n");
 	}
 	int count = 0;
-	//int numtraits = 0;
 	vector<int> goodlocs;
 	while(!in.eof()){
         count++;

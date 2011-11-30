@@ -18,11 +18,9 @@
 #include <iostream>
 #include <fstream>
 #include "CaConChisq.h"
-//#include "Chrom.h"
 #include "ChiSquareAllelic.h"
 #include "ChiSquareArmitage.h"
 #include "FisherExact.h"
-//#include "helper.h"
 #include "cdflib.h"
 #include "General.h"
 #include "Options.h"
@@ -38,14 +36,13 @@ string CaConChisq::stepname = "chisquare";
  * Resets Marker flags
  */
 void CaConChisq::PrintSummary(){
-	string pfname = opts::_OUTPREFIX_ + "chisquare" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string pfname = opts::_OUTPREFIX_ + "chisquare" + options.getOut() + ".txt";
 	if(!overwrite){
 		pfname += "." + getString<int>(order);
 	}
 	ofstream pvals (pfname.c_str());
 	if(!pvals){
 		opts::printLog("Error opening " + pfname + " for writing results! Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + pfname + " for writing results! Exiting!\n");
 	}
 	opts::addFile("Marker", stepname, pfname);
@@ -143,31 +140,11 @@ void CaConChisq::PrintSummary(){
  * Outputs remaining marker count
  */
 void CaConChisq::FilterSummary(){
-    //string pfname = opts::_OUTPREFIX_ + "post_casecontrol_chisquare_filter_summary_" + getStringInt(order) + ".txt";
-	//ofstream myoutput (pfname.c_str());
-	//if(!myoutput){
-	//	cerr << "Error opening post_casecontrol_chisquare_filter_summary.txt!  Exiting!" << endl;
-	//	exit(1);
-	//}
-    //myoutput.precision(4);
-
-
 	opts::printLog("Options:\t" + options.toString() + "\n");
-    //myoutput << "Threshold:\t" << threshold << endl;
 	opts::printLog("Markers Passed:\t" + getString<int>((opts::_MARKERS_WORKING_ - orig_num_markers)) + " (" +
 	        getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
 	        "%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-    //myoutput << "Markers Passed:\t" << (opts::_MARKERS_WORKING_ - orig_num_markers) << " (" <<
-	//        ((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0 <<
-	//        "%) of " << opts::_MARKERS_WORKING_ << endl;
 	opts::_MARKERS_WORKING_ -= orig_num_markers;
-//    myoutput << "Families Passed:\t" << families->getSize() << " (" <<
-//	        ((float)families->getSize() / (float)orig_num_families) * 100.0 <<
-//	        "%) of " << orig_num_families << endl;
-//    myoutput << "Individuals Passed:\t" << families->getNumInds() << " (" <<
-//	        ((float) families->getNumInds() / (float) orig_num_individuals) * 100.0 <<
-//	        "%) of " << orig_num_individuals << endl;
-    //myoutput.close();
 
 	resize(0);
 	if(af != NULL){
@@ -225,7 +202,6 @@ void CaConChisq::filter(){
  * Calculates by group as well if option is specified
  */
 void CaConChisq::calculate(Marker* mark){
-	//int msize = markers->size();
 	int ssize = samples->size();
 
 	unsigned int cases = 0;
@@ -261,8 +237,7 @@ void CaConChisq::calculate(Marker* mark){
 			string mygroup = giter->first;
 			vector<Sample*> mysamps = giter->second;
 			map<string, vector<Family*> > gfams = options.getGroupFamilies();
-			vector<Family*> myfams = gfams[mygroup];//generateFamilySet(&mysamps);
-			//AlleleFrequency* gaf = new AlleleFrequency(&mysamps, &myfams);
+			vector<Family*> myfams = gfams[mygroup];
 			gaf.resetDataSet(&mysamps, &myfams);
 
 			gaf.calcOne(mark);
@@ -287,9 +262,7 @@ void CaConChisq::calculate(Marker* mark){
 					 df = 1;
 				 }
 	             pvalue = -1;
-//	             int code = 1, status;
 	             if(gchi_geno_one[mygroup] > -1 && !isnan(gchi_geno_one[mygroup]) && !isinf(gchi_geno_one[mygroup])){
-	              //   cdfchi(&code, &p, &pvalue, &(gchi_geno_one[mygroup]), &df, &status, &bound);
 	            	 pvalue = Helpers::p_from_chi(gchi_geno_one[mygroup], df);
 
 	             }
@@ -307,9 +280,7 @@ void CaConChisq::calculate(Marker* mark){
 			if(gchi_allele_one[mygroup] > -1){
             	double pvalue, df = 1;
              	pvalue = -1;
-//             	int code = 1, status;
              	if(gchi_allele_one[mygroup] > -1 && !isnan(gchi_allele_one[mygroup]) && !isinf(gchi_allele_one[mygroup])){
-                //	cdfchi(&code, &p, &pvalue, &(gchi_allele_one[mygroup]), &df, &status, &bound);
              		pvalue = Helpers::p_from_chi(gchi_allele_one[mygroup], df);
              	}
 				gpval_allele_one[mygroup] = pvalue;
@@ -335,9 +306,7 @@ void CaConChisq::calculate(Marker* mark){
 			if(gchi_arm_one[mygroup] >= 0){
 	            double pvalue, df = 1;
            		pvalue = -1;
-//           		int code = 1, status;
            		if(gchi_arm_one[mygroup] > -1 && !isnan(gchi_arm_one[mygroup]) && !isinf(gchi_arm_one[mygroup])){
-               	//	cdfchi(&code, &p, &pvalue, &(gchi_arm_one[mygroup]), &df, &status, &bound);
            			pvalue = Helpers::p_from_chi(gchi_arm_one[mygroup], df);
            		}
 
@@ -349,8 +318,6 @@ void CaConChisq::calculate(Marker* mark){
 			double SE = sqrt(1/(double)gaf.getAoneCa_count() + 1/(double)gaf.getAtwoCa_count() + 1/(double)gaf.getAoneCon_count() + 1/(double)gaf.getAtwoCon_count());
 			gci_l_one[mygroup] = exp(lOR - options.getCI() * SE);
 			gci_u_one[mygroup] = exp(lOR + options.getCI() * SE);
-
-//			delete gaf;
 		}
 	}
 
@@ -394,22 +361,14 @@ void CaConChisq::calculate(Marker* mark){
 			df = 1;
 		}
 	    pvalue = -1;
-//	    int code = 1, status;
 	    if(chi_geno_one > -1 && !isnan(chi_geno_one) && !isinf(chi_geno_one)){
-	    //	cdfchi(&code, &p, &pvalue, &chi_geno_one, &df, &status, &bound);
 	    	pvalue = Helpers::p_from_chi(chi_geno_one, df);
 	    }
 	    geno_df = df;
 		pval_geno_one = pvalue;
 	}
 
-	//		}
-	//		else{
-				//chi_geno[i] = -1;
 	pval_geno_exact_one = -1;
-	//		}
-	//		if(af->getAoneCon_count(i) > 4 && af->getAtwoCon_count(i) > 4 && af->getAoneCa_count(i) > 4 && af->getAtwoCa_count(i) > 4){
-				//cout << (*markers)[i]->getProbeID() << "\t" << af->getAoneCa_count(i) << "\t" << af->getAtwoCa_count(i) << "\t" << af->getAoneCon_count(i) << "\t" << af->getAtwoCon_count(i) << endl;
 	chitotals[0].push_back(af->getAoneCa_count());
 	chitotals[0].push_back(af->getAtwoCa_count());
 	chitotals[1].push_back(af->getAoneCon_count());
@@ -419,17 +378,12 @@ void CaConChisq::calculate(Marker* mark){
 	if(chi_allele_one > -1){
 	    double pvalue, df = 1;
 	    pvalue = -1;
-//		int code = 1, status;
 		if(chi_allele_one > -1 && !isnan(chi_allele_one) && !isinf(chi_allele_one)){
-		//	cdfchi(&code, &p, &pvalue, &chi_allele_one, &df, &status, &bound);
 			pvalue = Helpers::p_from_chi(chi_allele_one, df);
 		}
 		allele_df = df;
 		pval_allele_one = pvalue;
 	}
-	//		}
-	//		else{
-				//chi_allele[i] = -1;
 	pval_allele_exact_one = fish.fisher_2_2(af->getAoneCa_count(), af->getAtwoCa_count(), af->getAoneCon_count(), af->getAtwoCon_count());
 	allele_exact_df = 1;
 	if(af->getAtwoCa_count() == 0 ||  af->getAoneCon_count() == 0){
@@ -459,9 +413,7 @@ void CaConChisq::calculate(Marker* mark){
 	if(chi_arm_one >= 0){
 		double pvalue, df = 1;
 	    pvalue = -1;
-//	    int code = 1, status;
 	    if(chi_arm_one > -1 && !isnan(chi_arm_one) && !isinf(chi_arm_one)){
-	    //	cdfchi(&code, &p, &pvalue, &chi_arm_one, &df, &status, &bound);
 	    	pvalue = Helpers::p_from_chi(chi_arm_one, df);
 	    }
 	    arm_df = df;
@@ -493,7 +445,6 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		options.readGroups(samples);
 	}
 	af->setOptions(options);
-	//af->process(samples, families, markers, marker_map);
 
 	int msize = markers->size();
 	int ssize = samples->size();
@@ -514,7 +465,6 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		gpvals.open(gpfname.c_str());
 		if(!gpvals){
 			opts::printLog("Error opening " + gpfname + " for writing results! Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening " + gpfname + " for writing results! Exiting!\n");
 		}
 		opts::addFile("Marker", stepname, gpfname);
@@ -573,7 +523,7 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					string mygroup = giter->first;
 					vector<Sample*> mysamps = giter->second;
 					map<string, vector<Family*> > gfams = options.getGroupFamilies();
-					vector<Family*> myfams = gfams[mygroup];//generateFamilySet(&mysamps);
+					vector<Family*> myfams = gfams[mygroup];
 					AlleleFrequency* gaf = new AlleleFrequency(&mysamps, &myfams);
 					gaf->setRank(rank);
 					gaf->setOptions(options);
@@ -595,9 +545,7 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					if(gchi_geno >= 0){
 			             double pvalue, df = 2;
 			             pvalue = -1;
-//			             int code = 1, status;
 			             if(gchi_geno > -1){
-			             //    cdfchi(&code, &p, &pvalue, &gchi_geno, &df, &status, &bound);
 			            	 pvalue = Helpers::p_from_chi(gchi_geno, df);
 			             }
 
@@ -614,9 +562,7 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					if(gchi_allele > -1){
 		            	double pvalue, df = 1;
 		             	pvalue = -1;
-//		             	int code = 1, status;
 		             	if(gchi_allele > -1){
-		                //	cdfchi(&code, &p, &pvalue, &gchi_allele, &df, &status, &bound);
 		             		pvalue = Helpers::p_from_chi(gchi_allele, df);
 		             	}
 						gpval_allele = pvalue;
@@ -642,9 +588,7 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					if(gchi_arm >= 0){
 			            double pvalue, df = 1;
 	             		pvalue = -1;
-//	             		int code = 1, status;
 	             		if(gchi_arm > -1){
-	                 	//	cdfchi(&code, &p, &pvalue, &gchi_arm, &df, &status, &bound);
 	             			pvalue = Helpers::p_from_chi(gchi_arm, df);
 	             		}
 
@@ -719,30 +663,19 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 				continue;
 			}
 			af->calcOne((*markers)[i]);
-			//orig_num_markers++;
-	//		if(af->getAonehomoCa(i) > 4 && af->getAtwohomoCa(i) > 4 && af->getHetCa(i) > 4 && af->getAonehomoCon(i) > 4 && af->getAtwohomoCon(i) > 4 && af->getHetCon(i) > 4){
-				//cout << i << ": " << "Case: H1=" << af->getAonehomoCa(i) << " HET=" << af->getHetCa(i) << " H2=" << af->getAtwohomoCa(i) << ":: Control: H1=" << af->getAonehomoCon(i) << " HET=" << af->getHetCon(i) << " H2=" << af->getAtwohomoCon(i) << endl;
 				chi_geno[i] = calcChiGeno(af->getAonehomoCa(), af->getHetCa(), af->getAtwohomoCa(), af->getAonehomoCon(), af->getHetCon(), af->getAtwohomoCon());
 				pval_geno[i] = -1;
 				if(chi_geno[i] >= 0){
 		             double pvalue, df = 2;
 		             pvalue = -1;
-//		             int code = 1, status;
 		             if(chi_geno[i] > -1){
-		             //    cdfchi(&code, &p, &pvalue, &chi_geno[i], &df, &status, &bound);
 		            	 pvalue = Helpers::p_from_chi(chi_geno[i], df);
 		             }
 
 					pval_geno[i] = pvalue;
 				}
 
-	//		}
-	//		else{
-				//chi_geno[i] = -1;
 				pval_geno_exact[i] = -1;
-	//		}
-	//		if(af->getAoneCon_count(i) > 4 && af->getAtwoCon_count(i) > 4 && af->getAoneCa_count(i) > 4 && af->getAtwoCa_count(i) > 4){
-				//cout << (*markers)[i]->getProbeID() << "\t" << af->getAoneCa_count(i) << "\t" << af->getAtwoCa_count(i) << "\t" << af->getAoneCon_count(i) << "\t" << af->getAtwoCon_count(i) << endl;
 				chitotals[0].push_back(af->getAoneCa_count());
 				chitotals[0].push_back(af->getAtwoCa_count());
 				chitotals[1].push_back(af->getAoneCon_count());
@@ -752,16 +685,11 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 				if(chi_allele[i] > -1){
 		             double pvalue,df = 1;
 		             pvalue = -1;
-//		             int code = 1, status;
 		             if(chi_allele[i] > -1){
-		              //   cdfchi(&code, &p, &pvalue, &chi_allele[i], &df, &status, &bound);
 		            	 pvalue = Helpers::p_from_chi(chi_allele[i], df);
 		             }
 					pval_allele[i] = pvalue;
 				}
-	//		}
-	//		else{
-				//chi_allele[i] = -1;
 				pval_allele_exact[i] = fish.fisher_2_2(af->getAoneCa_count(), af->getAtwoCa_count(), af->getAoneCon_count(), af->getAtwoCon_count());
 				if(af->getAtwoCa_count() == 0 ||  af->getAoneCon_count() == 0){
 					odds_ratio[i] = -1;
@@ -775,7 +703,6 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					ci_l[i] = exp( lOR - zt * SE);
 					ci_u[i] = exp(lOR + zt * SE);
 				}
-	//		}
 			chitotals[0].clear();
 			chitotals[1].clear();
 
@@ -790,9 +717,7 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			if(chi_arm[i] >= 0){
 	             double pvalue, df = 1;
 	             pvalue = -1;
-//	             int code = 1, status;
 	             if(chi_arm[i] > -1){
-	                 //cdfchi(&code, &p, &pvalue, &chi_arm[i], &df, &status, &bound);
 	            	 pvalue = Helpers::p_from_chi(chi_arm[i], df);
 	             }
 
@@ -803,21 +728,6 @@ void CaConChisq::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		}
 	}
 
-/*	markers->resetAlleleInfo();
-
-    FAM::iterator fam_iter;
-    FAM* myfams = families->getList();
-    MKR* mymarkers = markers->getList();
-
-	AlleleFrequency* af = new AlleleFrequency();
-	af->setRank(rank);
-	af->process(samples, families, markers, marker_map);
-
-	MKR::iterator m_iter;
-	for(m_iter = mymarkers->begin(); m_iter != mymarkers->end(); m_iter++){
-		m_iter->second.calcHW();
-	}
-*/
 	if(af){
 		delete(af);
 		af = NULL;
@@ -849,30 +759,23 @@ double CaConChisq::calcChiGeno(int cahomo1, int cahet, int cahomo2, int conhomo1
 	conhetexp = (float) (((float) het * (float) con) / (float)(ca + con));
 	cahomo2exp = (float) (((float) homo2 * (float) ca) / (float)(ca + con));
 	conhomo2exp = (float) (((float) homo2 * (float) con) / (float)(ca + con));
-	//cout << "  EXP: Case: H1=" << cahomo1exp << " HET=" << cahetexp << " H2=" << cahomo2exp << " :: Controls: H1=" << conhomo1exp << " HET=" << conhetexp << " H2=" << conhomo2exp << "\n";
 
 	if(cahomo1exp > 0){
-	//	cout << "CaH1=" << ((pow(((float)cahomo1 - cahomo1exp),2)) / cahomo1exp) << ", ";
 		chi += (pow(((float)cahomo1 - cahomo1exp),2)) / cahomo1exp;
 	}
 	if(conhomo1exp > 0){
-	//	cout << "ConH1=" << ((pow(((float)conhomo1 - conhomo1exp),2)) / conhomo1exp) << ", ";
 		chi += (pow(((float)conhomo1 - conhomo1exp),2)) / conhomo1exp;
 	}
 	if(cahetexp > 0){
-	//	cout << "CaHet=" << ((pow(((float)cahet - cahetexp),2)) / cahetexp) << ", ";
 		chi += (pow(((float)cahet - cahetexp),2)) / cahetexp;
 	}
 	if(conhetexp > 0){
-	//	cout << "ConHet=" << ((pow(((float)conhet - conhetexp),2)) / conhetexp) << ", ";
 		chi += (pow(((float)conhet - conhetexp),2)) / conhetexp;
 	}
 	if(cahomo2exp > 0){
-	//	cout << "CaH2=" << ((pow(((float)cahomo2 - cahomo2exp),2)) / cahomo2exp) << ", ";
 		chi += (pow(((float)cahomo2 - cahomo2exp),2)) / cahomo2exp;
 	}
 	if(conhomo2exp > 0){
-	//	cout << "ConH2=" << ((pow(((float)conhomo2 - conhomo2exp),2)) / conhomo2exp) << endl;
 		chi += (pow(((float)conhomo2 - conhomo2exp),2)) / conhomo2exp;
 	}
 

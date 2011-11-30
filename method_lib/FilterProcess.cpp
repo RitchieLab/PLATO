@@ -65,9 +65,6 @@ double FilterProcess::GetEstimatedRunTime(){
   analysis_set.set_parameters(&config, outputname);
   
   return analysis_set.run_time_estimate();
-  
-//   analysis_set.set_parameters(&config, outputname);
-//   analysis_set.run();
 }
  
 ///

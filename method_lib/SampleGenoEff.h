@@ -17,7 +17,6 @@
 #include "Sample.h"
 #include "Options.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "DataSet.h"
 #include "StepOptions.h"
 using namespace std;
@@ -34,8 +33,6 @@ class SampleGenoEff{
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;
 		PERCENT per_cutoff;
 		int orig_num_markers;
@@ -87,9 +84,9 @@ class SampleGenoEff{
 			samples = NULL;
 			rank = 0;
 			order = 0;
-		 orig_num_markers = 0;
-		 orig_num_families = 0;
-		 orig_num_samples = 0;
+			orig_num_markers = 0;
+			orig_num_families = 0;
+			orig_num_samples = 0;
 		};
 		SampleGenoEff(float thresh) : threshold(thresh){
 			per_cutoff.push_back(100);
@@ -108,16 +105,14 @@ class SampleGenoEff{
 			samples = NULL;
 			rank = 0;
 			order = 0;
-		 orig_num_markers = 0;
-		 orig_num_families = 0;
-		 orig_num_samples = 0;
+			orig_num_markers = 0;
+			orig_num_families = 0;
+			orig_num_samples = 0;
 		};
 		~SampleGenoEff(){
 		zeros.resize(0);
 		total.resize(0);
 		};
-		//void process(Connection*, Families*, Markers*);
-		//void process(Families*, Markers*);
 		void resetDataSet(DataSet* ds){
 			data_set = ds;
 			samples = ds->get_samples();
@@ -134,7 +129,6 @@ class SampleGenoEff{
 		void filterOne(int s);
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void setOptions(StepOptions o){
 			options = o;
@@ -147,7 +141,6 @@ class SampleGenoEff{
 		int getTotal(){return total_one;};
 		double getPercent(){return (1 - ((double)zeros_one/(double)total_one));};
 
-//			(1 - (double)((double)zeros_one/(double)total_one)*100.0f);};
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};
@@ -155,10 +148,6 @@ class SampleGenoEff{
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
         void setOrder(int o){order = o;};
-//        void updateFamsMarks(Families* f, Markers* m){
-//			families = f;
-//			markers = m;
-//		};
         void setDBOUT(){_DBOUTPUT_ = true;};
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};

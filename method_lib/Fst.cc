@@ -30,9 +30,6 @@
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 namespace Methods{
 string Fst::stepname = "fst";
 
@@ -46,8 +43,8 @@ void Fst::FilterSummary(){
 }
 
 void Fst::PrintSummary(){
-	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";
+	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";
 	string filenamegm = opts::_OUTPREFIX_ + "marker_geno_eff_groups_missing" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
@@ -57,7 +54,6 @@ void Fst::PrintSummary(){
 	ofstream bymarker (filename.c_str());
 	if(!bymarker.is_open()){
 		opts::printLog("Unable to open " + filename + "\n");
-		//exit(1);
 		throw MethodException("Unable to open " + filename + "\n");
 	}
 
@@ -124,26 +120,22 @@ void Fst::PrintSummary(){
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	size = good_markers.size();
 	for(int i = 0; i < size; i++){
-		if(good_markers[i]->isEnabled()){//(*markers)[i]->isEnabled() && !(*markers)[i]->isFlagged()){
+		if(good_markers[i]->isEnabled()){
 
 			float percent = 0.0f;
 			float caseper = 0.0f;
 			float contper = 0.0f;
-	//		int contzero = 0;
-	//		int conttot = 0;
 			if(total[i] > 0){
 				percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
 			}
 			if(casetotal[i] > 0){
 				caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
 			}
-	//		contzero = zeros[i] - casezeros[i];
-	//		conttot = total[i] - casetotal[i];
 			if(controltotal[i] > 0){
 				contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
 			}
 
-			bymarker << good_markers[i]->toString() << "\t"//(*markers)[i]->toString() << "\t"
+			bymarker << good_markers[i]->toString() << "\t"
 					 << percent << "\t"
 					 << zeros[i] << "\t"
 					 << total[i] << "\t"
@@ -155,7 +147,7 @@ void Fst::PrintSummary(){
 					 << controltotal[i];
 			bymarker << endl;
 			if(options.doGroupFile()){
-				bygroup << good_markers[i]->toString();//(*markers)[i]->toString();
+				bygroup << good_markers[i]->toString();
 				map<string, vector<Sample*> > groups = options.getGroups();
 				map<string, vector<Sample*> >::iterator giter;
 				for(giter = groups.begin(); giter != groups.end(); giter++){
@@ -173,7 +165,6 @@ void Fst::PrintSummary(){
 				bygroup << endl;
 			}
 		}
-		//(*markers)[i]->setFlag(false);
 	}
 
 	if(bymarker.is_open()){
@@ -216,17 +207,10 @@ void Fst::calcOne(int m){
 		nc = nc + (af.getGroupPop(giter->first));
 		den = den + af.getGroupPop(giter->first);
 
-//		cout << data_set->get_locus(m)->toString() << "\t" << af.getGroupAone_freq(giter->first) << endl;
 	}
 
 	nc = (den - (nc/den))/(double)(groups.size() - 1);
 
-
-//	for(giter = groups.begin(); giter != groups.end(); giter++){
-//		float het_exp = hwe.calcHW(af.getGroupAone_freq(giter->first), af.getGroupAtwo_freq(giter->first),
-//				af.getGroupAonehomo(giter->first), af.getGroupHet(giter->first), af.getGroupAtwohomo(giter->first),
-//				af.getGroupPop(giter->first));
-//	}
 
 	double MSG = 0;
 	double pmed = 0;
@@ -305,8 +289,6 @@ void Fst::calcOne(int m){
 	}
 	if(Ht == 0){
 		FstRH = -1;
-//		FstWC = -1;
-//		FstHM = -1;
 	}
 	else{
 		FstRH = (Ht - Hs) / Ht;
@@ -427,37 +409,12 @@ void Fst::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, ve
 			int prev_base = 0;
 			int prev_chrom = -1;
 			for(int i = 0; i < end; i++){
-				//int loc = (*marker_map)[i];
 				int loc = (*markers)[i]->getLoc();
 				if(Helpers::isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
-//				if((*markers)[i]->isEnabled()){
-//					if(options.doChrom()){
-//						if(!options.checkChrom((*markers)[i]->getChrom())){
-//							continue;
-//						}
-//						if(!options.checkBp((*markers)[i]->getBPLOC())){
-//							continue;
-//						}
-//					}
- //                   if(options.doBpSpace()){
-//						if(prev_base == 0){
-//							prev_base = (*markers)[i]->getBPLOC();
-//							prev_chrom = (*markers)[i]->getChrom();
-//						}
-//						else{
-//							if((*markers)[i]->getChrom() == prev_chrom && (((*markers)[i]->getBPLOC() - prev_base) < options.getBpSpace())){
-//								(*markers)[i]->setFlag(true);
-//								continue;
-//							}
-//							prev_base = (*markers)[i]->getBPLOC();
-//							prev_chrom = (*markers)[i]->getChrom();
-//						}
-//					}
-
 					if(!(*markers)[i]->isMicroSat()){
 						if((*s_iter)->getAone(loc) && !(*s_iter)->getAtwo(loc)){
 							zeros[i]++;
-							if((*s_iter)->getPheno() == 2){//getAffected()){
+							if((*s_iter)->getPheno() == 2){
 								casezeros[i]++;
 							}
 							else if((*s_iter)->getPheno() == 1){
@@ -466,7 +423,6 @@ void Fst::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, ve
 						}
 					}
 					else{
-		//				int marrloc = (*s_iter)->getMicroSat(loc);
 						if((*s_iter)->getAbone(loc) == -1){
 							zeros[i]++;
 							if((*s_iter)->getPheno() == 2){
@@ -478,7 +434,7 @@ void Fst::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, ve
 						}
 					}
 					total[i]++;
-					if((*s_iter)->getPheno() == 2){//getAffected()){
+					if((*s_iter)->getPheno() == 2){
 						casetotal[i]++;
 					}
 					else if((*s_iter)->getPheno() == 1){

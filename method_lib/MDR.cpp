@@ -49,22 +49,6 @@ void MDR::resetDataSet(DataSet* ds){
     missingValue);
 }
 
-
-
-///
-/// Sets FlatIndex object to match current analysis
-///
-// void MDR::setIndexConverter(){
-//   int numGenosPerLocus = dataset->get_max_locus()+1;
-//   if(dataset->missing_data_present())
-//     numGenosPerLocus++;
-//   indexConverter.set_genos_per_locus(numGenosPerLocus);
-//
-//   indexConverter.set_included_indexes(LociComboMin, LociComboLimit,
-//     !dataset->missing_data_present(), missingValue);
-//   includedIndexes = indexConverter.get_included_indexes();
-// }
-
 ///
 /// Sets FlatIndex object to match current analysis
 /// @param max_locus Maximum locus value for data
@@ -98,7 +82,6 @@ void MDR::calculate_set_threshold(){
   int numInds = dataset->num_inds();
 
   for(int currInd=0; currInd < numInds; currInd++)
-//     statusTotals[dataset[currInd].status]++;
     statusTotals[dataset->get_sample(currInd)->getAffected()]++;
 
   set_threshold = 0.0;
@@ -161,7 +144,6 @@ float MDR::calculate_model_threshold(vector<unsigned int> loci,
   for(int currInd=0; currInd < numInds; currInd++){
     missingPresent = false;
     for(curr=0; curr < numLoci; curr++)
-//       if(dataset[currInd][lociComb[currLoc]]==missingValue){
       if(dataset->get_sample(currInd)->get_genotype(loci[curr])==missingValue){
         missingPresent=true;
         break;
@@ -365,7 +347,6 @@ void MDR::calculateStats(unsigned int combSize){
   mod.classlow = 0;
   mod.misclasslow = 0;
   mod.totaltiecells = 0;
-//cout << "numCells = " << numCells << " combSize = " << combSize << " includedindexes = " << includedIndexes.size() << endl;
   for(unsigned int currCell=0; currCell<numCells; currCell++){
     // check that unaffected total in cell is greater than zero
     if(mod.unaffected[includedCells[currCell]]>0)

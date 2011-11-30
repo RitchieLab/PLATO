@@ -343,9 +343,6 @@ vector<string> DataSet::convert_geno_tostring(vector<unsigned int> genos, vector
 				strgenos[g] = "0_0";
 			}
 		}
-		//else if(g < (loci.size() + covs.size())){
-		//	strgenos[g] = genos[g];//covs[covcount++];
-		//}
 		else{
 			strgenos[g] = getString<int>(genos[g]);//traits[traitcount++];
 		}

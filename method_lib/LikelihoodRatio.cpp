@@ -24,8 +24,6 @@ LikelihoodRatio::LikelihoodRatio(DataSet* ds){
 /// Initialize starting variables
 ///
 void LikelihoodRatio::initialize(){
-
-//   maxLocusValue = 2;
   likelihood_ratio = 0.0;
   
   total_type = ContingencyTable::Allele;
@@ -35,13 +33,6 @@ void LikelihoodRatio::initialize(){
   TotalTypeMap["DOMINANT"] = ContingencyTable::Dominant;
   TotalTypeMap["ALLELE"] = ContingencyTable::Allele;
   TotalTypeMap["GENOTYPE"] = ContingencyTable::Genotype;
-  
-//   missingValue = maxLocusValue+1;
-//   LociComboLimit = 10;
-//   LociComboMin = 1;
-//   
-//   set_threshold = 1.0;
-  
 }
 
 
@@ -51,10 +42,7 @@ void LikelihoodRatio::initialize(){
 ///
 void LikelihoodRatio::resetDataSet(DataSet* ds){
   dataset = ds;
-//   calculate_set_threshold();
-//   missingValue = dataset->get_missing_value();
   markers = dataset->get_markers();
-//   setIndexConverter();
 }
 
 
@@ -66,15 +54,10 @@ void LikelihoodRatio::calculate(int locus){
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
   locus = (*markers)[locus]->getLoc();
-  
-// cout << "running locus=" << locus << endl;  
-  
   ContingencyTable table;
   
   table.get_counts(locus, dataset);
-// cout << "uncertainty coeff before=" << uncertainty_coeff;
   calculate(&table);
-// cout << " after=" << uncertainty_coeff << endl;
   
 }
 

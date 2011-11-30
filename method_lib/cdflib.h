@@ -46,7 +46,6 @@ double dbetrm(double*,double*);
 double devlpl(double [],int*,double*);
 double dexpm1(double*);
 double dinvnr(double *p,double *q);
-//static void E0000(int,int*,double*,double*,unsigned long*,
 void E0000(int,int*,double*,double*,unsigned long*,
                   unsigned long*,double*,double*,double*,
                   double*,double*,double*,double*);
@@ -60,7 +59,6 @@ double dlnbet(double*,double*);
 double dlngam(double*);
 double dstrem(double*);
 double dt1(double*,double*,double*);
-//static void E0001(int,int*,double*,double*,double*,double*,
 void E0001(int,int*,double*,double*,double*,double*,
                   unsigned long*,unsigned long*,double*,double*,
                   double*,double*);

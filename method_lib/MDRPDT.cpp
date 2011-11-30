@@ -121,7 +121,6 @@ void  MDRPDT::calculate(vector<unsigned int>& loci){
 void MDRPDT::runPDT(MdrPDT::PdtModel& model){
   eval->EvaluateModel(&data, model);
 
-//   t_stat = model.GetTrainingT(0);
   t_stats_training.clear();
   mor_values.clear();
   for(int cv=0; cv < xvCount; cv++){
@@ -190,8 +189,6 @@ void MDRPDT::RunPTests(){
     delete dist;
 
   dist = new MdrPDT::Distribution::OmnibusDistribution(num_ptests);
-
-//   dist = new MdrPDT::Distribution::NTestDistribution(num_ptests);
 
   MdrPDT::Evaluation::TStatistic eval(xvCount, repo.GetPedigreeCount(), data.GetIndividualCount());
 

@@ -8,8 +8,6 @@
 #include <strings.h>
 #include <string>
 #include "Globals.h"
-//#include "Families.h"
-//#include "Markers.h"
 using namespace std;
 
 namespace Methods{

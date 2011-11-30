@@ -78,11 +78,11 @@ void TPEDOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 
-	string fname1 = opts::_OUTPREFIX_ + "input_tped" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "input_tped" + options.getOut() + ".txt";
 	if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".ped";
 	}
-	string fname2 = opts::_OUTPREFIX_ + "input_tped_map" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "input_tped_map" + options.getOut() + ".txt";
 	if(options.getOverrideOut().size() > 0){
 		fname2 = options.getOverrideOut() + ".map";
 	}
@@ -167,40 +167,14 @@ void TPEDOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*
 	}
 	mout.close();
 
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
-		//Marker* mark = (*markers)[mloc];
-		Marker* mark = good_markers[i];//(*markers)[i];
+		Marker* mark = good_markers[i];
 		if(mark == NULL){
-			//cout << "Marker not found: " << i << endl;
 			continue;
 		}
 		if(!mark->isEnabled()){
 			continue;
 		}
-/*		if(options.doChrom()){
-			if(!options.checkChrom(mark->getChrom())){
-				continue;
-			}
-			if(!options.checkBp(mark->getBPLOC())){
-				continue;
-			}
-		}
-        if(options.doBpSpace()){
-            if(prev_base == 0){
-	            prev_base = mark->getBPLOC();
-	            prev_chrom = mark->getChrom();
-	        }
-           	else{
-           		if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-					continue;
-           		}
-           		prev_base = mark->getBPLOC();
-           		prev_chrom = mark->getChrom();
-          	}
-    	}
-*/
 		pout << mark->getChrom() << "\t" << mark->getRSID() << "\t0\t" << mark->getBPLOC();
 		if(options.getMapContainsReferent()){
 			pout << "\t" << mark->getReferent();

@@ -93,15 +93,15 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 
 	int ssize = samples->size();
 	int msize = markers->size();
-	string fname1 = opts::_OUTPREFIX_ + "impute_format" + options.getOut() + ".gen";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "impute_format" + options.getOut() + ".gen";
 	if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".gen";
 	}
-	string fname2 = opts::_OUTPREFIX_ + "impute_format" + options.getOut() + ".map";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "impute_format" + options.getOut() + ".map";
 	if(options.getOverrideOut().size() > 0){
 		fname2 = options.getOverrideOut() + ".map";
 	}
-	string fname3 = opts::_OUTPREFIX_ + "impute_format" + options.getOut() + ".sample";//getString<int>(order) + ".description";
+	string fname3 = opts::_OUTPREFIX_ + "impute_format" + options.getOut() + ".sample";
 	if(options.getOverrideOut().size() > 0){
 		fname3 = options.getOverrideOut() + ".sample";
 	}
@@ -118,17 +118,14 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 	ofstream sampout (fname3.c_str());
 	if(!genout){
 		opts::printLog("Error opening " + fname1 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname1 + ". Exiting!\n");
 	}
 	if(!mapout){
 		opts::printLog("Error opening " + fname2 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname2 + ". Exiting!\n");
 	}
 	if(!sampout){
 		opts::printLog("Error opening " + fname3 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname3 + ". Exiting!\n");
 	}
 	bool first = true;
@@ -236,55 +233,20 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 			sampout << iter->first << " " << iter->second << endl;
 		}
 	}
-		//if(samp->getAffected()){
-		//	pout << "2\t";
-		//}
-		//else{
-		//	pout << "1\t";
-		//}
-//		int prev_base = 0;
-//		int prev_chrom = -1;
-//		bool first_marker = true;
 		vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 		msize = good_markers.size();
 		for(int i = 0; i < msize; i++){
-			//Marker* mark = (*markers)[mloc];
-			Marker* mark = good_markers[i];//(*markers)[i];
+			Marker* mark = good_markers[i];
 			Marker* mark2 = NULL;
 			if((i + 1) < msize){
-				mark2 = good_markers[i + 1];//(*markers)[i + 1];
+				mark2 = good_markers[i + 1];
 			}
 			if(mark == NULL){
-				//cout << "Marker not found: " << i << endl;
 				continue;
 			}
 			if(!mark->isEnabled()){
 				continue;
 			}
-/*			if(options.doChrom()){
-				if(!options.checkChrom(mark->getChrom())){
-					continue;
-				}
-				if(!options.checkBp(mark->getBPLOC())){
-					continue;
-				}
-			}
-*/
-/*            if(options.doBpSpace()){
-	            if(prev_base == 0){
-		            prev_base = mark->getBPLOC();
-		            prev_chrom = mark->getChrom();
-		        }
-            	else{
-            		if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-            			mark->setFlag(true);
-						continue;
-            		}
-            		prev_base = mark->getBPLOC();
-            		prev_chrom = mark->getChrom();
-            	}
-            }
-*/
             genout << mark->getChrom() << " " << mark->getProbeID() << " " << mark->getBPLOC() << " "
 					<< mark->getAllele1() << " " << mark->getAllele2();
 
@@ -306,7 +268,6 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 				}
 				bool a1 = samp->getAone(loc);
 				bool a2 = samp->getAtwo(loc);
-//				bool a3 = samp->getAmissing(loc);
 
 				string value = "0 0 0";
 				if(!a1 && !a2){
@@ -334,10 +295,6 @@ void ImputeOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marke
 			genout << endl;
 
 		}
-//		first = false;
-//		pout << "\n";
-//	}
-
 
 	sampout.close();
 	genout.close();
@@ -351,29 +308,5 @@ int ImputeOutput::map_sex(char c){
 	}
 	return 2;
 }
-
-/*string ImputeOutput::map_allele(string a){
-	if(options.doAllele1234()){
-		if(a == "A"){
-			return "1";
-		}
-		else if(a == "C"){
-			return "2";
-		}
-		else if(a == "G"){
-			return "3";
-		}
-		else if(a == "T"){
-			return "4";
-		}
-		else if(a == opts::_NOCALL_){
-			return "0";
-		}
-		else{
-			return "0";
-		}
-	}
-	return a;
-}*/
 
 }

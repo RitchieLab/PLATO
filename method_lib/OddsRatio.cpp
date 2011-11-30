@@ -29,23 +29,10 @@ OddsRatio::OddsRatio(DataSet* ds){
 ///
 void OddsRatio::initialize(){
 
-//   maxLocusValue = 2;
   odds_ratio = 0.0;
 
   total_type = ContingencyTable::Allele;
-
-//   TotalTypeMap["ADDITIVE"] = ContingencyTable::Additive;
-//   TotalTypeMap["RECESSIVE"] = ContingencyTable::Recessive;
-//   TotalTypeMap["DOMINANT"] = ContingencyTable::Dominant;
   TotalTypeMap["ALLELE"] = ContingencyTable::Allele;
-//   TotalTypeMap["GENOTYPE"] = ContingencyTable::Genotype;
-
-//   missingValue = maxLocusValue+1;
-//   LociComboLimit = 10;
-//   LociComboMin = 1;
-//
-//   set_threshold = 1.0;
-
 }
 
 
@@ -55,10 +42,7 @@ void OddsRatio::initialize(){
 ///
 void OddsRatio::resetDataSet(DataSet* ds){
   dataset = ds;
-//   calculate_set_threshold();
-//   missingValue = dataset->get_missing_value();
   markers = dataset->get_markers();
-//   setIndexConverter();
 }
 
 

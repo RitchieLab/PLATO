@@ -11,7 +11,6 @@ LogisticRegression::LogisticRegression(){
   initialize();
 }
 
-
 ///
 /// Alternative constructor
 ///
@@ -91,16 +90,6 @@ void LogisticRegression::initialize_interactions(){
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci){
   // determine included indexes to use in running this dataset
-//   int numGenosPerLocus = set->get_max_locus()+1;
-//   missingValue = numGenosPerLocus;
-//   if(set->missing_data_present())
-//     numGenosPerLocus++;
-//
-//   indexConverter.set_genos_per_locus(numGenosPerLocus);
-//   indexConverter.set_included_indexes(LociComboMin, LociComboLimit,
-//     !set->missing_data_present(), missingValue);
-//   includedIndexes = indexConverter.get_included_indexes();
-
   // when model is too large for current interaction list
   // update interactions
   if(loci.size() > LociComboLimit){
@@ -115,12 +104,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci){
 
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
-//   vector<unsigned int>::iterator iter;
-//
-//   for(iter=loci.begin(); iter!=loci.end(); iter++){
-//     *iter = (*markers)[*iter]->getLoc();
-//   }
-
   // run routine that calculates LR values
   calculateLR(summary_data, true, includedCells);
 
@@ -165,17 +148,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, DataSet* dataset)
 
 void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary_data, vector<int>& includedCells){
 
-
-//output data
-/*
-for(size_t i=0; i < data.size();i++){
-  cout << data[i][0];
-  for(size_t j=1; j < data[i].size(); j++){
-   cout << "," << data[i][j];
-  }
-cout << endl;
-}
-*/
    unsigned int nRows = includedCells.size();
   // number of coefficients is equal to the main effects + the interactions
   unsigned int nColumns = data[0].size()-2;
@@ -198,7 +170,6 @@ cout << endl;
   vector<unsigned int> Y1(nRows,0);
   vector<double> xM(nColumns+1,0.0);
   vector<double> xSD(nColumns+1, 0.0);
-//  vector<double> coefficients(nP);
   vector<double> Par(nP);
   coefficients.resize(nP-1);
   standard_errors.resize(nP-1);
@@ -212,7 +183,6 @@ cout << endl;
   // xM and xSD for mean and standard deviation calculations
   for(i=0; i<nRows; i++){
     X[ix(i,0,nColumns+1)] = 1;
-// cout << "X[" << ix(i,0,nColumns+1) << "]=1" << endl;
     // store predictor values
     for(j=1; j<=nColumns; j++){
       X[ix(i,j,nColumns+1)] = data[includedCells[i]][j-1];
@@ -256,9 +226,7 @@ cout << endl;
   // adjusts X values using the mean and standard deviation values
   for (i = 0; i<nRows; i++) {
     for (j = 1; j<=nColumns; j++) {
-// cout << "X from " << X[ix(i,j,nColumns+1)] << " ";
       X[ix(i,j,nColumns+1)] = ( X[ix(i,j,nColumns+1)] - xM[j] ) / xSD[j];
-// cout << X[ix(i,j,nColumns+1)] << endl;
     }
   }
 
@@ -292,7 +260,6 @@ cout << endl;
       v = Par[0]; // for this ind start with Par[0] value
       for (j = 1; j<=nColumns; j++) {
         v = v + Par[j] * X[ix(i,j,nColumns+1)]; // add the value of Par for column and the value at that column
-// cout << "v=" << v << endl;
       }
       if( v>15 ) { LnV = -exp(-v); Ln1mV = -v; q = exp(-v); v=exp(LnV); }
       else {
@@ -358,20 +325,14 @@ cout << endl;
     j=nColumns;
     coeffPvalue = norm(fabs(Par[j]/SEP[j]));
     // calculate overall p value
-// cout << "df=" << nColumns ;
     overallPvalue = ChiSq(fabs(LLn-LL), nColumns);
-// cout << " pvalue = " << overallPvalue << endl;
-// exit(1);
 
     coeff_intercept = Par[0];
     // adjust coefficients so that the zero index is now first coefficient
-//cout << "-----------" << endl;
     for(j=1; j<=nColumns; j++) {
       coefficients[j-1] = Par[j];
 standard_errors[j-1] = SEP[j];
-//cout << "coef=" << coefficients[j-1] << " stderror=" << standard_errors[j-1] << endl;
     }
-//cout << "-------------" << endl;
 
     // calculate
     LLR = LLn-LL;
@@ -438,13 +399,8 @@ int LogisticRegression::get_geno_conversion(int geno, int referent_allele){
 /// Only works for SNPs currently.
 ///
 void LogisticRegression::set_model(){
-//cout << "in set_model" << endl;
-//cout << "modType=" << modType << endl;
   // set up 2-D array
   geno_convert.assign(2, vector<unsigned int>(4,0));
-
-//   geno_convert_zero.assign(4,0);
-//   geno_convert_one.assign(4,0);
 
   switch(modType){
     case Dominant:
@@ -457,7 +413,6 @@ void LogisticRegression::set_model(){
       maxLocusValue = 1;
       break;
     case Recessive:
-//geno_convert[0] = 1;
       geno_convert[0][0] = 1;
       geno_convert[0][3] = 2;
       geno_convert[1][2] = 1;
@@ -526,27 +481,12 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos){
   for(currInd=0; currInd < numInds; currInd++){
     for(currLoc=0; currLoc < combSize;
       currLoc++){
-      // genotype[currLoc] = geno_convert[dataset[currInd][genos[currLoc]]];
-      // genotype[currLoc] = geno_convert[(*set)[currInd]->get_genotype(genos[currLoc])];
       genotype[currLoc] = geno_convert[ref_alleles[currLoc]][(*set)[currInd]->get_genotype(genos[currLoc])];
     }
 
     // increment count based on status of individual
-    // summary_data[indexConverter.flatten_indexes(genotype)][unaffIndex+dataset[currInd].status]++;
     summary_data[indexConverter.flatten_indexes(genotype)][unaffIndex+(*set)[currInd]->getAffected()]++;
   }
-
-//output summary data
-// cout << "Summary data in summarize_data:" << endl;
-// for(uint y=0; y<summary_data.size(); y++){
-//   for(uint z=0; z<summary_data[y].size(); z++){
-//      cout << summary_data[y][z] << " ";
-//   }
-//   cout << endl;
-// }
-// cout << "------- end summary data ---------" << endl;
-
-
 }
 
 ///
@@ -555,8 +495,6 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos){
 /// @return
 ///
 void LogisticRegression::initialize_summary(unsigned int currModelSize){
-
-//   unsigned int counter;
 
   unsigned int array_size = indexConverter.get_size_array(currModelSize);
 
@@ -633,13 +571,6 @@ void LogisticRegression::zero_summary(unsigned int array_size, unsigned int mode
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci,
   vector<unsigned int>& covars, vector<unsigned int> & traits){
-
-//for(uint i=0; i<geno_convert.size(); i++){
-//  cout << "genoconvert i=" << geno_convert[i] << endl;
-//}
-
-// cout << "negative calculate" << endl;
-
   unsigned int numLoci = loci.size();
   unsigned int numCovars = covars.size();
   unsigned int numTraits = traits.size();
@@ -668,10 +599,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci,
     currValue = 0;
     bool any_missing = false;
     for(i=0; i < numLoci; i++){
-//  cout << "geno=" << (*set)[currInd]->get_genotype(converted_loci[i]) <<  " missingValue = " << missingValue << endl;
-
-//       if((*set)[currInd]->get_genotype(converted_loci[i]) != missingValue)
-//         row[currValue++] = geno_convert[(*set)[currInd]->get_genotype(converted_loci[i])];
       if((*set)[currInd]->get_genotype(converted_loci[i]) != missingValue){
         row[currValue++] = geno_convert[ref_alleles[i]][(*set)[currInd]->get_genotype(converted_loci[i])];
       }
@@ -680,8 +607,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci,
         break;
       }
     }
-//  cout << "any_missing=" << any_missing << endl;
-//  exit(1);
     for(i=0; i < numCovars; i++){
       if((*set)[currInd]->getCovariate(covars[i]) != missingCoValue)
         row[currValue++] = (*set)[currInd]->getCovariate(covars[i]);
@@ -699,7 +624,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci,
         break;
       }
     }
-// cout << "any_missing=" << any_missing << endl;
     if(!any_missing){
       row[currValue] = ((*set)[currInd]->getAffected());
       summary_data.push_back(row);
@@ -707,19 +631,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci,
     }
 
   }
-
-// output data in summary_data
-/*
- for(uint i=0; i<summary_data.size(); i++){
-   if(summary_data[i].size() > 0){
-     cout << summary_data[i][0];
-   }
-   for(uint j=1; j<summary_data[i].size(); j++){
-     cout << "," << summary_data[i][j];
-   }
-   cout << endl;
- }
- */
   calculateLR(summary_data, false, includedCells);
 
 }
@@ -797,17 +708,6 @@ void LogicRegression::logreg(vector<int> resp, vector<int> bin, vector<int> sep,
 	TreeAnnealParameters tree_control;
 	//build matrices?  Phenotype + genotype columns, rows are samples
 
-	//tree.control = unknown
-	//mc.control = unknown
-	//resp = phenotype column
-	//bin = binary columns (genotypes, covars, etc)
-	//anneal.control = anneal_* vars
-	//seed = seed value?
-	//penalty = penalty value?
-	//type=mdl can be 1,2,3,4,5,0 or C,R,L,S,E,O (<- letter O)
-	//select=choice cat be 1,2,3,4,5,6,7 or S,M,C,N,R,G,B
-	//sep = separate predictors?
-
 	if(oldfit != NULL){
 		if(oldfit->getResp().size() > 0){
 			resp = oldfit->getResp();
@@ -839,12 +739,9 @@ void LogicRegression::logreg(vector<int> resp, vector<int> bin, vector<int> sep,
 		if(oldfit->getAnnealControl().size() > 0){
 			anneal_control = oldfit->getAnnealControl();
 		}
-		//mc.control
-		//tree.control
 		if(oldfit->getNTrees().size() > 0){
 			ntrees = oldfit->getNTrees();
 			if(ntrees.size() == 1){
-				//ntrees <- c(ntrees, ntrees)
 				ntrees.clear();
 				ntrees.push_back(ntrees[0]);
 				ntrees.push_back(ntrees[0]);
@@ -853,7 +750,6 @@ void LogicRegression::logreg(vector<int> resp, vector<int> bin, vector<int> sep,
 		if(oldfit->getNLeaves().size() > 0){
 			nleaves = oldfit->getNLeaves();
 			if(nleaves.size() == 1){
-				//nleavs <- c(nleaves, nleaves)
 				nleaves.clear();
 				nleaves.push_back(nleaves[0]);
 				nleaves.push_back(nleaves[0]);

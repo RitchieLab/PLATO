@@ -266,11 +266,9 @@ bool Helpers::isValidMarker(Methods::Marker* mark, StepOptions* options, int& pr
 	if(mark->isEnabled()){
 		if(options->doChrom()){
 			if(!options->checkChrom(mark->getChrom())){
-//				mark->setFlag(true);
 				return false;
 			}
 			if(!options->checkBp(mark->getBPLOC())){
-//				mark->setFlag(true);
 				return false;
 			}
 		}
@@ -281,7 +279,6 @@ bool Helpers::isValidMarker(Methods::Marker* mark, StepOptions* options, int& pr
 			}
 			else{
 				if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options->getBpSpace())){
-//					mark->setFlag(true);
 					return false;
 				}
 				prev_base = mark->getBPLOC();
@@ -290,7 +287,6 @@ bool Helpers::isValidMarker(Methods::Marker* mark, StepOptions* options, int& pr
 		}
 		return true;
 	}
-//	mark->setFlag(true);
 	return false;
 }
 
@@ -475,7 +471,7 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 
 	int numused = 0;
 	int ssize = ds->num_inds();
-	int enabled_size = 0;//ds->num_enabled_inds();
+	int enabled_size = 0;
 	for(int i =0; i < (int)samples->size(); i++){
 		if((*samples)[i]->isEnabled()){
 			enabled_size++;
@@ -486,7 +482,7 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 		}
 	}
 
-	int enabled_cases = 0;//ds->num_enabled_affected();
+	int enabled_cases = 0;
 	for(int i = 0; i < (int)cases.size(); i++){
 		if(cases[i]->isEnabled()){
 			enabled_cases++;
@@ -496,7 +492,7 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 		}
 	}
 
-	int enabled_controls = 0;//ds->num_enabled_unaffected();
+	int enabled_controls = 0;
 	for(int i = 0; i < (int)controls.size(); i++){
 		if(controls[i]->isEnabled()){
 			enabled_controls++;
@@ -606,7 +602,6 @@ vector<vector<Sample*> > Helpers::generateSampleSets(DataSet* ds, StepOptions* o
 vector<Methods::Marker*> Helpers::findRandomMarkers(vector<Methods::Marker*> good_markers, vector<Methods::Marker*>* used_markers, StepOptions* options){
 	vector<Methods::Marker*> marks;
 	int num = options->getRandomMarkers();
-//	srand((unsigned) time(0));
 	int random;
 
 	while((int) marks.size() < num && used_markers->size() < good_markers.size()){
@@ -677,7 +672,6 @@ void Helpers::readCovariateFile(string file, DataSet* ds, StepOptions options, I
 				}
 				use_map.push_back(use);
 				if(use){
-					//cout << "Adding Covariate to Dataset: " << elems[i] << "\n";
 					ds->add_covariate(elems[i]);
 				}
 				opts::_COVS_FOUND_++;
@@ -717,8 +711,6 @@ void Helpers::readCovariateFile(string file, DataSet* ds, StepOptions options, I
 				}catch(...){
 					throw MethodException("Cannot convert " + elems[i] + " to number on line " + getString<int>(count) + " in file: " + file + "\n");
 				}
-
-				//cout << "Adding covariate to Sample: " << getString<double>(value) << "\n";
 				samp->addCovariate(value);
 
 			}
@@ -1044,7 +1036,6 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 		if(elems.size() <= 2){
 			opts::printLog("Line: " + getString<int>(count) + " has incorrect number of columns!");
 			in.close();
-			//exit(1);
 			throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
 		}
 		if(numcovs == 0){
@@ -1065,7 +1056,6 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 		else if((int) elems.size() != numcovs + 2){
 			opts::printLog("Line: " + getString<int>(count) + " has incorrect number of columns!");
 			in.close();
-			//exit(1);
 			throw MethodException("Line: " + getString<int>(count) + " has incorrect number of columns!");
 		}
 		string fam = elems[0];
@@ -1081,7 +1071,6 @@ void Helpers::readCovariates(string file, vector<Methods::Sample*>* samples, vec
 					samp->setCovariate(atof(elems[c].c_str()), (c - 2));
 				}catch(...){
 					opts::printLog("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
-					//exit(1);
 					throw MethodException("Column " + getString<int>(c) +" on line: " + getString<int>(count) + " is not a number!?\n");
 				}
 			}
@@ -1129,12 +1118,10 @@ bool Helpers::readString(FILE* fp, string* s){
 }
 
 void Helpers::readZeroGenoFile(string file){
-//	opts::printLog("Reading zero genotype file: " + opts::_ZEROGENOFILE_ + "\n");
 	ifstream PED;
 	PED.open(file.c_str());
 	if(!PED){
 		throw MethodException("Error opening zero genotype file: " + file + ".  Exiting!\n");
-//		exit(1);
 	}
 	PED.clear();
 		string fam = "";
@@ -1145,7 +1132,6 @@ void Helpers::readZeroGenoFile(string file){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 3){
 			throw MethodException("Zero genotype file column size != 3: " + line + " Exitting!!\n");
-//			exit(0);
 		}
 		fam = tokens[0];
 		ind = tokens[1];
@@ -1330,8 +1316,6 @@ void Helpers::reorderAlleles(vector<Methods::Sample*>* samples, vector<Methods::
 			}
 			if(a2 < a1 && (*markers)[m]->getAllele2() != "0"){
 				string temp = (*markers)[m]->getAllele1();
-				//(*markers)[m]->setAllele1((*markers)[m]->getAllele2());
-				//(*markers)[m]->setAllele2(temp);
 				(*markers)[m]->resetAllele1((*markers)[m]->getAllele2());
 				(*markers)[m]->resetAllele2(temp);
 				for(int s = 0; s < ssize; s++){
@@ -1425,12 +1409,10 @@ string Helpers::map_allele(Methods::Marker* mark, string a, StepOptions *options
  */
 map<string, string> Helpers::readCustomAlleles(string f){
 	map<string, string> mapping;
-	//opts::printLog("Reading custom allele mapping file: " + f + "\n");
 	ifstream PED;
 	PED.open(f.c_str());
 	if(!PED){
 		opts::printLog("Error opening custom allele mapping file: " + f + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening custom allele mapping file: " + f + ".  Exiting!\n");
 	}
 	PED.clear();
@@ -1441,7 +1423,6 @@ map<string, string> Helpers::readCustomAlleles(string f){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 2){
 			opts::printLog("Custom allele mapping file column size != 2: " + line + " Exiting!!\n");
-			//exit(0);
 			throw MethodException("Custom allele mapping file column size != 2: " + line + " Exiting!!\n");
 		}
 		from = tokens[0];
@@ -1464,7 +1445,6 @@ map<string, string> Helpers::readCustomAlleles(string f){
  */
 void Helpers::remapSamples(vector<Methods::Sample*>* samples, vector<Methods::Marker*>* markers, vector<int>* marker_map, int loc){
 
-	//Methods::Marker* m = (*markers)[(*marker_map)[loc]];
 	for(unsigned int i = 0; i < samples->size(); i++){
 		Methods::Sample* samp = (*samples)[i];
 		if(!samp->haveMicroSat(loc)){
@@ -1512,8 +1492,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 	if(!input){
 		throw MethodException("Error opening pedfile: " + options.getPedFile() + ".");
 		return;
-//	opts::printLog("Error opening pedfile: " + options.getPedFile() + ".  Exiting!\n");
-//		exit(1);
 	}
 	int onind = -1;
     while(!feof(input)){
@@ -1537,8 +1515,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			while(fgetc(input) != '\n' && !feof(input)){}
             continue;
         }
-//		opts::_SAMPLES_FOUND_++;
-        /*check for comments?*/
         string sex = "";
         string pheno = "";
         if(readString(input, &temp)){
@@ -1700,7 +1676,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
                     break;
                 }
 
-				//Methods::Marker* m = (*markers)[i];
 				if(i > (int)markers->size()){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
@@ -1710,7 +1685,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 					text += " columns but found ";
 					text += getString<int>(f + gn);
 					text += "\n";
-//					opts::printLog(text);
 					throw MethodException(text);
 				}
 				Methods::Marker* m = (*markers)[(*marker_map)[i]];
@@ -1766,7 +1740,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 					}
 					else if(m->getNumAlleles() > 2 && !opts::_MICROSATS_){
 						opts::printLog("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-						//exit(1);
 						throw MethodException("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
 					}
 				}
@@ -1784,7 +1757,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 					text += " columns but found ";
 					text += getString<int>(f + gn);
 					text += "\n";
-//					opts::printLog(text);
 					throw MethodException(text);
 				}
             }/*end !linedone*/
@@ -1799,8 +1771,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 					text += getString<int>((f + gn));
 					text += "\n";
 					throw MethodException(text);
-//					opts::printLog(text);
-//			exit(0);
 		}
 
         vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
@@ -1822,7 +1792,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		if(fexclude.size() > 0){
 			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
 			if(found != fexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
 				samp->setEnabled(false);
 				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
 				if(f_iter != (*families).end()){
@@ -1833,7 +1802,6 @@ void Helpers::readPedM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		if(finclude.size() > 0){
 			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
 			if(found == finclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
 				samp->setEnabled(false);
 				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
 				if(f_iter != (*families).end()){
@@ -2080,8 +2048,6 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
 
 	map<string, vector<string> > descinfo;
 	vector<string> descheaders;
-	//vector<string> exclude;
-	//vector<string> include;
 	map<string,int> exclude;
 	map<string,int> include;
 	map<string,float> frequencies = options.getFrequencies();
@@ -2094,8 +2060,6 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
         throw MethodException("Error opening map file: " + options.getMapFile() + "\n");
     }
 	int count = 0;
-	//int prev_chrom = -1;
-	//int prev_bploc = -1;
 	int num_cols = 3 + options.getMapContainsReferent();
 
     while(!input.eof()){
@@ -2118,7 +2082,6 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
         if(elems.size() == 0){
             continue;
         }
-//         else if(elems.size() > 3){
         else if((int)elems.size() > num_cols){
 			opts::printLog("Map file line has more than " + getString<int>(num_cols) + " elements on line: " + line + "\n");
 			throw MethodException("Map file has more than " + getString<int>(num_cols) + " elements on line: " + line + "\n");
@@ -2176,21 +2139,6 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
 		bool use = true;
 		opts::_MARKERS_FOUND_++;
 
-//		if(exclude.size() > 0){
-			//vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe_id);
-//			map<string, int>::iterator found = exclude.find(probe_id);
-//			if(found != exclude.end()){
-//				use = false;
-//			}
-//		}
-//		if(include.size() > 0){
-			//vector<string>::iterator found = find(include.begin(), include.end(), probe_id);
-//			map<string, int>::iterator found = include.find(probe_id);
-//			if(found == include.end()){
-//				use = false;
-//			}
-//		}
-
         Methods::Marker* m = new Marker(chr, probe_id, bploc);
 		if(opts::_AUTOONLY_ && ((m->getChrom() >= opts::_CHRX_) || (m->getChrom() < 1))){
 			use = false;
@@ -2199,14 +2147,6 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
 		m->setLoc(marker_count);
 		m->setRSID(probe_id);
 		m->setReferent(ref_allele);
-
-		//filter marker, set enabled to T/F based on filters.
-////		if(filters != NULL){
-////			for(int f = 0; f < filters->num_locus_filters(); f++){
-////				use = filters->run_locus_filter(f, m);
-////				m->setEnabled(use);
-////			}
-////		}
 
 		if(frequencies.size() > 0){
 			map<string,float>::iterator found = frequencies.find(probe_id);
@@ -2241,14 +2181,13 @@ void Helpers::readMapM(DataSet* ds, StepOptions options,  InputFilter* filters){
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;//(*markers)[i]->getLoc();
+		(*marker_map)[(*markers)[i]->getLoc()] = i;
 	}
 
 	//filter marker, set enabled to T/F based on filters.
 	if(filters != NULL){
 		for(int f = 0; f < filters->num_locus_filters(); f++){
 			filters->run_locus_filter(f, markers);
-//			m->setEnabled(use);
 		}
 	}
 
@@ -2285,12 +2224,8 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
 
     if(!input){
 		throw MethodException("Error opening map file: " + options.getMapFile() + ".\n");
-		//opts::printLog("Error opening map file: " + options.getMapFile() + "\n");
-        //exit(1);
     }
 	int count = 0;
-	//int prev_chrom = -1;
-	//int prev_bploc = -1;
     while(!input.eof()){
         char buf[256];
         input.getline(buf, 256, '\n');
@@ -2313,13 +2248,9 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
         }
         else if(elems.size() > 3){
 			throw MethodException("Map file line has more than 3 elements: " + line + "\n");
-			//opts::printLog("Map file line has more than 3 elements: " + line + "\n");
-            //exit(1);
         }
 		else if(elems.size() < 3 && elems.size() > 0){
 			throw MethodException("Map file line has fewer than 3 elements: " + line + "\n");
-			//opts::printLog("Map file line has fewer than 3 elements: " + line + "\n");
-			//exit(1);
 		}
 
 
@@ -2328,17 +2259,14 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
         int bploc = atoi(elems[2].c_str());
 
 		bool use = true;
-//		opts::_MARKERS_FOUND_++;
 
 		if(exclude.size() > 0){
-			//vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe_id);
 			map<string, int>::iterator found = exclude.find(probe_id);
 			if(found != exclude.end()){
 				use = false;
 			}
 		}
 		if(include.size() > 0){
-			//vector<string>::iterator found = find(include.begin(), include.end(), probe_id);
 			map<string, int>::iterator found = include.find(probe_id);
 			if(found == include.end()){
 				use = false;
@@ -2385,7 +2313,7 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;//(*markers)[i]->getLoc();
+		(*marker_map)[(*markers)[i]->getLoc()] = i;
 	}
 
 }
@@ -2394,15 +2322,12 @@ void Helpers::readMapM(vector<Methods::Marker*>* markers, vector<int>* marker_ma
 void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 	vector<Methods::Marker*>* markers = ds->get_markers();
 	vector<Methods::Sample*>* samples = ds->get_samples();
-	//vector<Methods::Family*>* families = ds->get_families();
 	vector<int>* marker_map = ds->get_marker_map();
 	vector<string>* covs = ds->get_covariates();
 	vector<string>* traits = ds->get_traits();
 
 	map<string, vector<string> > descinfo;
 	vector<string> descheaders;
-	//vector<string> exclude;
-	//vector<string> include;
 	map<string,int> exclude;
 	map<string,int> include;
 	map<string,float> frequencies = options.getFrequencies();
@@ -2416,8 +2341,6 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 		throw MethodException("Error opening ped file: " + options.getTPedFile() + "\n");
     }
 	int count = 0;
-	//int prev_chrom = -1;
-	//int prev_bploc = -1;
     while(!input.eof()){
 		string chr;
 		string probe_id;
@@ -2452,39 +2375,8 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 		}
 		opts::_MARKERS_FOUND_++;
 
-//		if(exclude.size() > 0){
-//			//vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe_id);
-//			map<string, int>::iterator found = exclude.find(probe_id);
-//			if(found != exclude.end()){
-//				use = false;
-//			}
-//		}
-//		if(include.size() > 0){
-//			//vector<string>::iterator found = find(include.begin(), include.end(), probe_id);
-//			map<string, int>::iterator found = include.find(probe_id);
-//			if(found == include.end()){
-//				use = false;
-//			}
-//		}
-
 		int bploc = atoi(bp.c_str());
         Methods::Marker* m = new Marker(chr, probe_id, bploc);
-////		if(filters != NULL){
-////			bool deleted = false;
-////			for(int f = 0; f < filters->num_locus_filters(); f++){
-////				use = filters->run_locus_filter(f, m);
-////				if(!use){
-////					deleted = true;
-////					delete(m);
-////					includeme.push_back(use);
-////					break;
-////				}
-////			}
-////			if(deleted){
-////				continue;
-////			}
-////		}
-
 		if(opts::_AUTOONLY_ && ((m->getChrom() >= opts::_CHRX_) || (m->getChrom() < 1))){
 			use = false;
 		}
@@ -2523,24 +2415,14 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
     input.close();
 
 	if(filters != NULL){
-//		bool deleted = false;
 		for(int f = 0; f < filters->num_locus_filters(); f++){
 			filters->run_locus_filter(f, markers);
-//			if(!use){
-//				deleted = true;
-//				delete(m);
-//				includeme.push_back(use);
-//				break;
-//			}
 		}
 		for(unsigned int i = 0; i < markers->size(); i++){
 			if(!(*markers)[i]->isEnabled()){
 				includeme[i] = false;
 			}
 		}
-//		if(deleted){
-//			continue;
-//		}
 	}
 
 	marker_map->resize(markers->size());
@@ -2549,7 +2431,7 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;//(*markers)[i]->getLoc();
+		(*marker_map)[(*markers)[i]->getLoc()] = i;
 	}
 
 	count = 0;
@@ -2596,7 +2478,6 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 		int cloc = 0;
 		int tloc = 0;
 		bool linedone = false;
-		//bool fatal = false;
 		string fmsg;
 		while(!linedone){
 			Methods::Sample* samp = (*samples)[c];
@@ -2634,7 +2515,6 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(i + 1) + " for covariate <" + (*covs)[cloc] + "> in file: " + options.getTPedFile() + "\n");
 				}
 				samp->setCovariate(value, cloc);
-				//overall++;
 				cloc++;
 				continue;
 			}
@@ -2651,7 +2531,6 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 					throw MethodException("Cannot convert " + one + " to number on line " + getString<int>(i + 1) + " for trait <" + (*traits)[tloc] + "> in file: " + options.getTPedFile() + "\n");
 				}
 				samp->setTrait(value, tloc);
-			//	overall++;
 				tloc++;
 				continue;
 			}
@@ -2731,8 +2610,6 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 					samp->addMicroSat(i);
 					int loc1 = mark->getAlleleLoc(one);
 					int loc2 = mark->getAlleleLoc(two);
-					//samp->addAbone(loc1);
-					//samp->addAbtwo(loc2);
 					samp->addAbone(i, loc1);
 					samp->addAbtwo(i, loc2);
 					if(oldallelecount <= 2){
@@ -2766,17 +2643,11 @@ void Helpers::readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
 	reorderAlleles(samples, markers);
 }
 
-//inline void readTPedM(DataSet* ds, StepOptions options, InputFilter* filters){
-//	readTPedM(ds->get_markers(), ds->get_samples(), ds->get_marker_map(), options, filters);
-//}
 
 void Helpers::readTPedM(DataSet* ds, StepOptions options){
 	readTPedM(ds, options, NULL);
 }
 
-//inline void readTPedM(vector<Methods::Marker*>* markers, vector<Methods::Sample*>* samples, vector<int>* marker_map, StepOptions options){
-//	readTPedM(markers, samples, marker_map, options, NULL);
-//}
 
 void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Family*>* families, StepOptions options, InputFilter* filters){
 	map<string, vector<string> > descinfo;
@@ -2793,7 +2664,6 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
 	PED.open(options.getTFamFile().c_str());
 	if(!PED){
 		opts::printLog("Error opening family information file: " + options.getTFamFile() + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening family information file: " + options.getTFamFile() + ".  Exiting!\n");
 	}
 	PED.clear();
@@ -2805,12 +2675,6 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
 		string aff = "";
 		string line = "";
 	while(getline(PED, line)){
-	   	//	>> fam
-		//	>> ind
-		//	>> dad
-		//	>> mom
-		//	>> sex
-		//	>> aff){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 6){
 			opts::printLog("Family information file column size != 6: " + line + "\n");
@@ -2840,26 +2704,6 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
 				}
 			}
 		}
-//		if(sexclude.size() > 0){
-//			vector<string>::iterator found = find(sexclude.begin(), sexclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found != sexclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				if(opts::_KEEP_EXC_SAMPLES_){
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
-//		if(sinclude.size() > 0){
-//			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found == sinclude.end()){
-//				samp->setEnabled(false);
-//				if(opts::_KEEP_EXC_SAMPLES_){
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
-
 		samp->setDadID(dad);
 		samp->setMomID(mom);
 		if(sex == "1"){
@@ -2911,7 +2755,6 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
         }
         else{
             Methods::Family* fam = new Family();
-/*          fam->Setcenter()*/
             fam->setFamID(samp->getFamID());
             fam->AddInd(samp);
 			fam->setCenter(center);
@@ -2935,29 +2778,6 @@ void Helpers::readTFamM(vector<Methods::Sample*>* samples, vector<Methods::Famil
 				}
 			}
 		}
-//		if(fexclude.size() > 0){
-//			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-//			if(found != fexclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
-//		if(finclude.size() > 0){
-//			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-//			if(found == finclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
-		//samp->resizeAlleles(markers->size());
         samples->push_back(samp);
 		samp->setLoc((samples->size() - 1));
 	}
@@ -2992,12 +2812,10 @@ void Helpers::readTFamM(DataSet* ds, StepOptions options){
  *
  */
 void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family*>* families, vector<Methods::Marker*>* markers, vector<int>* marker_map, StepOptions options, InputFilter* filters){
-	//vector<string> exclude;
 	map<string, vector<string> > mdescinfo;
 	map<string,int> exclude;
 	map<string,int> include;
 	vector<string> mdescheaders;
-	//vector<string> include;
 	map<string,float> frequencies = options.getFrequencies();
 
 	opts::printLog("Reading map from " + options.getBinInput() + ".bim\n");
@@ -3007,7 +2825,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		opts::printLog("Error opening map file: " + options.getBinInput() + ".bim.  Exiting!\n");
 		throw MethodException("Error opening map file: " + options.getBinInput() + ".bim.\n");
 	}
-	//MAP.clear();
 
 	int count = 0;
 
@@ -3021,17 +2838,8 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		string enzyme = "";
 		string line = "";
 		string referent = "";
-	//int prev_bploc = -1;
-	//int prev_chrom = -1;
 	int num_cols = 6 + options.getMapContainsReferent();
 	while(getline(MAP, line)){
-			//>> chrom
-			//>> probe
-			//>> bploc
-			//>> a1
-			//>> a2
-			//>> rsid
-			//>> enzyme){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if((int)tokens.size() != num_cols){
 			opts::printLog(".bim file column size != " + getString<int>(num_cols) + ": " + line + " stopping!!\n");
@@ -3046,9 +2854,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		if(options.getMapContainsReferent()){
 			referent = tokens[6];
 		}
-		//rsid = tokens[5];
-		//enzyme = tokens[6];
-		//opts::_ENZYMES_ = true;
 		if(rsid == "."){
 			rsid = "";
 		}
@@ -3057,44 +2862,11 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			opts::_ENZYMES_ = false;
 		}
 		bool use = true;
-  //      if(exclude.size() > 0){
-  //        //vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe);
-//            map<string,int>::iterator found = exclude.find(probe);
-//            if(found != exclude.end()){
-//                use = false;
-//            }
-//			else{
-//				found = exclude.find(rsid);
-//				if(found != exclude.end()){
-//					use = false;
-//				}
-//			}
-//        }
-//        if(include.size() > 0){
-//            //vector<string>::iterator found = find(include.begin(), include.end(), probe);
-//            map<string,int>::iterator found = include.find(probe);
-//            if(found == include.end()){
-//                use = false;
-//				found = include.find(rsid);
-//				if(found == include.end()){
-//					use = false;
-//				}
-//				else{
-//					use = true;
-//				}
-//           }
-//        }
 
 		Methods::Marker* m = new Marker(chrom, probe, bploc);
 		if(opts::_AUTOONLY_ && ((m->getChrom() >= opts::_CHRX_) || (m->getChrom() < 1))){
 			use = false;
 		}
-
-////		if(filters != NULL){
-////			for(int f = 0; f < filters->num_locus_filters(); f++){
-////				use = filters->run_locus_filter(f, m);
-////			}
-////		}
 
 		m->setEnabled(use);
 		m->setLoc(count);
@@ -3175,12 +2947,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 		string aff = "";
 		line = "";
 	while(getline(PED, line)){
-	   	//	>> fam
-		//	>> ind
-		//	>> dad
-		//	>> mom
-		//	>> sex
-		//	>> aff){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 6){
 			opts::printLog("Family information file column size != 6: " + line + " Exitting!!\n");
@@ -3207,27 +2973,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 				}
 			}
 		}
-//		opts::_SAMPLES_FOUND_++;
-//		if(sexclude.size() > 0){
-//			vector<string>::iterator found = find(sexclude.begin(), sexclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found != sexclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				if(opts::_KEEP_EXC_SAMPLES_){
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
-//		if(sinclude.size() > 0){
-//			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found == sinclude.end()){
-//				samp->setEnabled(false);
-//				if(opts::_KEEP_EXC_SAMPLES_){
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
-
 		samp->setDadID(dad);
 		samp->setMomID(mom);
 		if(sex == "1"){
@@ -3279,7 +3024,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
         }
         else{
             Methods::Family* fam = new Family();
-/*          fam->Setcenter()*/
             fam->setFamID(samp->getFamID());
             fam->AddInd(samp);
 			fam->setCenter(center);
@@ -3301,28 +3045,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			}
 		}
 
-//		if(fexclude.size() > 0){
-//			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-//			if(found != fexclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
-//		if(finclude.size() > 0){
-//			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-//			if(found == finclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
 		samp->resizeAlleles(markers->size());
         samples->push_back(samp);
 		samp->setLoc((samples->size() - 1));
@@ -3382,7 +3104,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 			Methods::Sample* samp = (*samples)[s];
 			for(int m = 0; m < msize;){
 				char ch[1];
-				//cout << samples->size() << "\t" << samp->getFamID() << "\t" << samp->getInd() << "\t" << s << "\t" << (*markers)[m]->getProbeID() << "\t" << m << endl;
 				BIT.read(ch, 1);
 				if(!BIT)
 				{
@@ -3474,7 +3195,6 @@ void Helpers::readPedInfo(){
 	PED.open(opts::_PEDINFO_.c_str());
 	if(!PED){
 		opts::printLog("Error opening pedigree information file: " + opts::_PEDINFO_ + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening pedigree information file: " + opts::_PEDINFO_ + ".  Exiting!\n");
 	}
 	PED.clear();
@@ -3486,12 +3206,6 @@ void Helpers::readPedInfo(){
 		string aff = "";
 		string line = "";
 	while(getline(PED, line)){
-	   	//	>> fam
-		//	>> ind
-		//	>> dad
-		//	>> mom
-		//	>> sex
-		//	>> aff){
 		vector<string> tokens = General::ParseDelimitedLine(line);
 		if(tokens.size() != 6){
 			opts::printLog("Pedigree information file column size != 6: " + line + " Exiting!!\n");
@@ -3552,8 +3266,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
     input = fopen(options.getPedFile().c_str(), "r");
 	if(!input){
 		throw MethodException("Error opening pedfile: " + options.getPedFile() + ".");
-	//opts::printLog("Error opening pedfile: " + options.getPedFile() + ".  Exiting!\n");
-	//	exit(1);
 	}
 	int onind = -1;
     while(!feof(input)){
@@ -3577,8 +3289,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 			while(fgetc(input) != '\n' && !feof(input)){}
             continue;
         }
-//		opts::_SAMPLES_FOUND_++;
-        /*check for comments?*/
         string sex = "";
         string pheno = "";
         if(readString(input, &temp)){
@@ -3675,7 +3385,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
         int gn = 0;
         int i = 0;
         bool linedone = false;
-        //bool fatal = false;
 
         string fmsg;
         while(!linedone){
@@ -3725,7 +3434,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
                     break;
                 }
 
-				//Methods::Marker* m = (*markers)[i];
 				if(i > (int)markers->size()){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
@@ -3736,8 +3444,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-					//exit(0);
 				}
 				Methods::Marker* m = (*markers)[(*marker_map)[i]];
 				if(m->isEnabled()){
@@ -3797,8 +3503,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 					}
 					else if(m->getNumAlleles() > 2 && !opts::_MICROSATS_){
 						throw MethodException("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-						//opts::printLog("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-						//exit(1);
 					}
 				}
 				else{
@@ -3817,9 +3521,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-
-					//exit(0);
 				}
             }/*end !linedone*/
         }/*end while(1)*/
@@ -3833,8 +3534,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 					text += getString<int>((f + gn));
 					text += "\n";
 					throw MethodException(text);
-			//		opts::printLog(text);
-			//exit(0);
 		}
 
         vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
@@ -3856,7 +3555,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 		if(fexclude.size() > 0){
 			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
 			if(found != fexclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
 				samp->setEnabled(false);
 				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
 				if(f_iter != (*families).end()){
@@ -3867,7 +3565,6 @@ void Helpers::readPedM_3vec(vector<Methods::Sample*>* samples, vector<Methods::F
 		if(finclude.size() > 0){
 			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
 			if(found == finclude.end()){
-				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
 				samp->setEnabled(false);
 				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
 				if(f_iter != (*families).end()){
@@ -3900,13 +3597,9 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 	vector<string>* traits = ds->get_traits();
 	map<int, string>* master_map = ds->get_master_map();
 	int marker_count = 0;
-	//int cov_count = 0;
-	//int trait_count = 0;
 
 	map<string, vector<string> > descinfo;
 	vector<string> descheaders;
-	//vector<string> exclude;
-	//vector<string> include;
 	map<string,int> exclude;
 	map<string,int> include;
 	map<string,float> frequencies = options.getFrequencies();
@@ -3919,8 +3612,6 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
         throw MethodException("Error opening map file: " + options.getMdrMapFile() + "\n");
     }
 	int count = 0;
-	//int prev_chrom = -1;
-	//int prev_bploc = -1;
 	int num_cols = 3 + options.getMapContainsReferent() + 2;  //+2 for alleles minor, then major
 
     while(!input.eof()){
@@ -3959,7 +3650,6 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
         if(elems.size() == 0){
             continue;
         }
-//         else if(elems.size() > 3){
         if((int)elems.size() > num_cols){
 			opts::printLog("Map file line has more than " + getString<int>(num_cols) + " elements on line: " + line + "\n");
 			throw MethodException("Map file has more than " + getString<int>(num_cols) + " elements on line: " + line + "\n");
@@ -4027,21 +3717,6 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 		bool use = true;
 		opts::_MARKERS_FOUND_++;
 
-//		if(exclude.size() > 0){
-			//vector<string>::iterator found = find(exclude.begin(), exclude.end(), probe_id);
-//			map<string, int>::iterator found = exclude.find(probe_id);
-//			if(found != exclude.end()){
-//				use = false;
-//			}
-//		}
-//		if(include.size() > 0){
-			//vector<string>::iterator found = find(include.begin(), include.end(), probe_id);
-//			map<string, int>::iterator found = include.find(probe_id);
-//			if(found == include.end()){
-//				use = false;
-//			}
-//		}
-
         Methods::Marker* m = new Marker(chr, probe_id, bploc);
 		if(opts::_AUTOONLY_ && ((m->getChrom() >= opts::_CHRX_) || (m->getChrom() < 1))){
 			use = false;
@@ -4054,14 +3729,6 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 			m->setAllele1(allele1);
 			m->setAllele2(allele2);
 		}
-
-		//filter marker, set enabled to T/F based on filters.
-////		if(filters != NULL){
-////			for(int f = 0; f < filters->num_locus_filters(); f++){
-////				use = filters->run_locus_filter(f, m);
-////				m->setEnabled(use);
-////			}
-////		}
 
 		if(frequencies.size() > 0){
 			map<string,float>::iterator found = frequencies.find(probe_id);
@@ -4096,14 +3763,13 @@ void Helpers::readMapMdr(DataSet* ds, StepOptions options,  InputFilter* filters
 	stable_sort(markers->begin(), markers->end(), less<Methods::Marker*>());
 
 	for(unsigned int i =0; i < markers->size(); i++){
-		(*marker_map)[(*markers)[i]->getLoc()] = i;//(*markers)[i]->getLoc();
+		(*marker_map)[(*markers)[i]->getLoc()] = i;
 	}
 
 	//filter marker, set enabled to T/F based on filters.
 	if(filters != NULL){
 		for(int f = 0; f < filters->num_locus_filters(); f++){
 			filters->run_locus_filter(f, markers);
-//			m->setEnabled(use);
 		}
 	}
 
@@ -4152,8 +3818,6 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
     input = fopen(options.getMdrPedFile().c_str(), "r");
 	if(!input){
 		throw MethodException("Error opening pedfile: " + options.getMdrPedFile() + ".");
-	//opts::printLog("Error opening pedfile: " + options.getPedFile() + ".  Exiting!\n");
-	//	exit(1);
 	}
 	int onind = -1;
     while(!feof(input)){
@@ -4208,35 +3872,6 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 			}
 		}
 
-
-//		if(exclude.size() > 0){
-//			vector<string>::iterator found = find(exclude.begin(), exclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found != exclude.end()){
-//				if(!opts::_KEEP_EXC_SAMPLES_){
-//					delete(samp);
-//					while(fgetc(input) != '\n' && !feof(input)){}
-//					continue;
-//				}
-//				else{
-//					samp->setEnabled(false);
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
-//		if(sinclude.size() > 0){
-//			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found == sinclude.end()){
-//				if(!opts::_KEEP_EXC_SAMPLES_){
-//					delete(samp);
-//					while(fgetc(input) != '\n' && !feof(input)){}
-//					continue;
-//				}
-//				else{
-//					samp->setEnabled(false);
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
         if(readString(input, &temp)){
             samp->setDadID(temp);
             f++;
@@ -4301,7 +3936,6 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 		int cloc = 0;
 		int tloc = 0;
         bool linedone = false;
-        //bool fatal = false;
 
         string fmsg;
         while(!linedone){
@@ -4385,32 +4019,7 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 				overall++;
 				continue;
 			}
- ////           if(!linedone){
- /*               while(1){
-                    char ch = fgetc(input);
-                    if(ch == '/' || ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(input)){
-                        if(ch == '\n' || ch == '\r' || feof(input)){
-                            linedone = true;
-                        }
-                        if(two.length() > 0){
-                            gn++;
-                            break;
-                        }
-                        if(ch == '\n' || ch == '\r' || feof(input)){
-                            break;
-                        }
-                    }
-                    else{
-                        two += ch;
-					}
-                }
-                */
-                //if(linedone && one.length() == 0){// && two.length() == 0){
-                //    break;
-                //}
-
-				//Methods::Marker* m = (*markers)[i];
-				if(i > columns){//(int)markers->size()){
+				if(i > columns){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
 					text += " in file: " + opts::_PEDFILE_ + "\n";
@@ -4420,78 +4029,41 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-					//exit(0);
 				}
 				Methods::Marker* m = (*markers)[(*marker_map)[i]];
 				if(m->isEnabled()){
-					//int oldallelecount = m->getNumAlleles();
 	                if(one != opts::_NOCALL_){
 	                	if(m->getAllele1() == "" && m->getAllele2() == ""){
 	                		m->setAllele1("A");
 	                		m->setAllele2("B");
 	                	}
 	                	//new
-//						if(m->getAlleleLoc(one) < 0){
-//							m->addAllele(one);
-//						}
-
         	        }
-
-  //          	    if(two != one){
-  //              	    if(two != opts::_NOCALL_){
-//							//new
-//							if(m->getAlleleLoc(two) < 0){
-//								m->addAllele(two);
-//							}//
-//
-//                    	}
-//	                }
-
           // smd -- changes here for reading in and keeping genotype
           // information as 3 bit vectors -- doesn't keep phased data yet
 					if(m->getNumAlleles() <= 2){
-//   		 	            if(one == m->getAllele1() && two == m->getAllele1()){
 						if(one == "0"){
    	    	     	        samp->addAone(i, false);
    	     		            samp->addAtwo(i, false);
    	     		            samp->addAmissing(i, false);
 		                }
-//	    	            else if(one != opts::_NOCALL_ && two != opts::_NOCALL_ && one != two){
 						else if(one == "1"){
 	        	            samp->addAone(i, false);
  		           	        samp->addAtwo(i, true);
  		           	        samp->addAmissing(i, false);
 	                	}
-//		                else if(one == m->getAllele2() && two == m->getAllele2()){
 						else if(one == "2"){
 	    	                samp->addAone(i, true);
 	        	            samp->addAtwo(i, true);
 	        	            samp->addAmissing(i, false);
 	            	    }
-	                	else if(one == opts::_NOCALLMDR_){// || two == opts::_NOCALL_){
+	                	else if(one == opts::_NOCALLMDR_){
 		                    samp->addAone(i, true);
 	    	                samp->addAtwo(i, true);
 	    	                samp->addAmissing(i, true);
 	    	                missingData = true;
 	        	        }
 					}
-//					else if(opts::_MICROSATS_){
-//						samp->addMicroSat(i);
-//						int loc1 = m->getAlleleLoc(one);
-//						int loc2 = m->getAlleleLoc(two);
-//
-//						samp->addAbone(i, loc1);
-//						samp->addAbtwo(i, loc2);
-//						if(oldallelecount <= 2){
-//							remapSamples(samples, markers, marker_map, i);
-//						}
-//					}
-//					else if(m->getNumAlleles() > 2 && !opts::_MICROSATS_){
-//						throw MethodException("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-//						//opts::printLog("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-//						//exit(1);
-//					}
 				}
 				else{
 					samp->addAone(i,true);
@@ -4510,38 +4082,29 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-
-					//exit(0);
 				}
-				if(overall > columns){//(int)(markers->size() + covariates->size() + traits->size())){
+				if(overall > columns){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
 					text += " in file: " + opts::_PEDFILE_ + "\n";
 					text += "Expecting ";
-					text += getString<int>(columns + 6);// + covariates->size() + traits->size());
+					text += getString<int>(columns + 6);
 					text += " columns but found ";
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-
-					//exit(0);
 				}
- ////           }/*end !linedone*/
         }/*end while(1)*/
-		if(gn != columns){//(int)(2* markers->size() + covariates->size() + traits->size())){
+		if(gn != columns){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
 					text += " in file: " + opts::_PEDFILE_ + "\n";
 					text += "Expecting ";
-					text += getString<int>(columns + 6);//((2 * markers->size()) + 6 + covariates->size() + traits->size()));
+					text += getString<int>(columns + 6);
 					text += " columns but found ";
 					text += getString<int>((f + gn));
 					text += "\n";
 					throw MethodException(text);
-					//		opts::printLog(text);
-			//exit(0);
 		}
 
         vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
@@ -4585,28 +4148,6 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 			}
 		}
 
-//		if(fexclude.size() > 0){
-//			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-//			if(found != fexclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
-//		if(finclude.size() > 0){
-//			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-//			if(found == finclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
         samples->push_back(samp);
 		samp->setLoc((samples->size() - 1));
     }/*end while(eof)*/
@@ -4631,7 +4172,6 @@ void Helpers::readMdr(DataSet* set, StepOptions options, InputFilter* filters){
 double Helpers::ltqnorm(double p){
   double q, r;
 
-//  errno = 0;
 
   if (p < 0 || p > 1){
 	return 0.0;
@@ -4671,7 +4211,6 @@ void Helpers::readLgenFile(DataSet* set, StepOptions options, InputFilter* filte
 {
 	//new 12-09-2010
 	//Need to create a hash of Markers
-	//map<string, unsigned int> markers_loc_map = new map();
 	map<string, Methods::Marker*> markers_map;
 	vector<Methods::Marker*>* markers = set->get_markers();
 	for(unsigned int i = 0; i < markers->size(); i++)
@@ -4972,8 +4511,6 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
     input = fopen(options.getPedFile().c_str(), "r");
 	if(!input){
 		throw MethodException("Error opening pedfile: " + options.getPedFile() + ".");
-	//opts::printLog("Error opening pedfile: " + options.getPedFile() + ".  Exiting!\n");
-	//	exit(1);
 	}
 	int onind = -1;
     while(!feof(input)){
@@ -5028,35 +4565,6 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 			}
 		}
 
-
-//		if(exclude.size() > 0){
-//			vector<string>::iterator found = find(exclude.begin(), exclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found != exclude.end()){
-//				if(!opts::_KEEP_EXC_SAMPLES_){
-//					delete(samp);
-//					while(fgetc(input) != '\n' && !feof(input)){}
-//					continue;
-//				}
-//				else{
-//					samp->setEnabled(false);
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
-//		if(sinclude.size() > 0){
-//			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-//			if(found == sinclude.end()){
-//				if(!opts::_KEEP_EXC_SAMPLES_){
-//					delete(samp);
-//					while(fgetc(input) != '\n' && !feof(input)){}
-//					continue;
-//				}
-//				else{
-//					samp->setEnabled(false);
-//					samp->setExcluded(true);
-//				}
-//			}
-//		}
         if(readString(input, &temp)){
             samp->setDadID(temp);
             f++;
@@ -5121,9 +4629,8 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 		int cloc = 0;
 		int tloc = 0;
         bool linedone = false;
-        //bool fatal = false;
 
-        //new 12-07-2010 if statement
+        //new 12-07-2010
         if(! opts::_LGENFILE_.length() > 0) //if there is an lgen file, there will not be any genotype data in the ped file
         {
 
@@ -5234,8 +4741,7 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
                     break;
                 }
 
-				//Methods::Marker* m = (*markers)[i];
-				if(i > columns){//(int)markers->size()){
+				if(i > columns){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
 					text += " in file: " + options.getPedFile() + "\n";
@@ -5245,8 +4751,6 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-					//exit(0);
 				}
 				Methods::Marker* m = (*markers)[(*marker_map)[i]];
 				if(m->isEnabled()){
@@ -5314,8 +4818,6 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 					else if(m->getNumAlleles() > 2 && !opts::_MICROSATS_)
 					{
 						throw MethodException("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-						//opts::printLog("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-						//exit(1);
 					}
 				}
 				else
@@ -5336,38 +4838,30 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-
-					//exit(0);
 				}
-				if(overall > columns){//(int)(markers->size() + covariates->size() + traits->size())){
+				if(overall > columns){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
 					text += " in file: " + options.getPedFile() + "\n";
 					text += "Expecting ";
-					text += getString<int>(columns + 6);// + covariates->size() + traits->size());
+					text += getString<int>(columns + 6);
 					text += " columns but found ";
 					text += getString<int>(f + gn);
 					text += "\n";
 					throw MethodException(text);
-					//opts::printLog(text);
-
-					//exit(0);
 				}
             }/*end !linedone*/
         }/*end while(1)*/
-		if(gn != columns){//(int)(2* markers->size() + covariates->size() + traits->size())){
+		if(gn != columns){
 					string text = "Problem with line: ";
 					text += getString<int>(onind + 1);
 					text += " in file: " + options.getPedFile() + "\n";
 					text += "Expecting ";
-					text += getString<int>(columns + 6);//((2 * markers->size()) + 6 + covariates->size() + traits->size()));
+					text += getString<int>(columns + 6);
 					text += " columns but found ";
 					text += getString<int>((f + gn));
 					text += "\n";
 					throw MethodException(text);
-					//		opts::printLog(text);
-			//exit(0);
 		}
 
 		//new 12-07-2010
@@ -5415,28 +4909,6 @@ void Helpers::readPedM_3vec_set(DataSet* set, StepOptions options, InputFilter* 
 			}
 		}
 
-//		if(fexclude.size() > 0){
-//			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-//			if(found != fexclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
-//		if(finclude.size() > 0){
-//			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-//			if(found == finclude.end()){
-//				//cout << "Disabling sample: " << samp->getFamID() << "\t" << samp->getInd() << endl;
-//				samp->setEnabled(false);
-//				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-//				if(f_iter != (*families).end()){
-//					(*f_iter)->setEnabled(false);
-//				}
-//			}
-//		}
         samples->push_back(samp);
 		samp->setLoc((samples->size() - 1));
     }/*end while(eof)*/
@@ -5549,7 +5021,6 @@ void Helpers::svdcmp(vector<vector<double> > & a,
   int m=a.size();
   if (m==0){
 	  cerr << "Internal problem in SVD function (no observations left?)\n";
-	  //exit(1);
 	  throw MethodException("Internal problem in SVD function (no observations left?)\n");
   }
   int n=a[0].size();
@@ -5678,7 +5149,6 @@ void Helpers::svdcmp(vector<vector<double> > & a,
 	  }
 	  if (its == 29){
 		  cerr << "SVD function cannot converge: multicollinearity issues?\n";
-		  //exit(1);
 		  throw MethodException("SVD function cannot converge: multicollinearity issues?\n");
 	  }
 	  x=w[l];
@@ -5742,12 +5212,10 @@ vector< vector<double> > Helpers::svd_inverse(vector< vector<double> > & u){
 
   if (u.size() == 0){
     cerr << "Internal problem: matrix with no rows (inverse function)\n";
-  	//exit(1);
     throw MethodException("Internal problem: matrix with no rows (inverse function)\n");
   }
   if (u.size() != u[0].size() ){
     cerr << "Internal problem: Cannot invert non-square matrix\n" << u.size() << " : " << u[0].size() << "\n";
-	//exit(1);
    ss << u.size();
    msga = ss.str();
    ss << u[0].size();
@@ -5772,16 +5240,8 @@ vector< vector<double> > Helpers::svd_inverse(vector< vector<double> > & u){
   double wmin = wmax * eps;
   for (int i=0; i<n; i++)
   {
-//       cout << w[i] << "\n";
-//       //       if ( w[i] < wmin ) cout << "FLAGGIN!\n";
-//
     w[i] = w[i] < wmin ? 0 : 1/w[i];
   }
-
-    // u w t(v)
-	//
-	//   // row U * 1/w
-	//
 
   vector<vector<double> > r(n);
   for (int i=0; i<n; i++)
@@ -5791,7 +5251,6 @@ vector< vector<double> > Helpers::svd_inverse(vector< vector<double> > & u){
       u[i][j] = u[i][j] * w[j];
   }
 
- // [nxn].[t(v)]
 
   for (int i=0; i<n; i++)
 	  for (int j=0; j<n; j++)
@@ -5809,21 +5268,11 @@ void Helpers::sizeMatrix(vector<vector<double> > &m, int r, int c){
 	}
 }
 
-///template<class T>
-///inline void SWAP(T &a, T &b){T dum=a; a = b; b = dum;}
 
 void Helpers::svbksb(vector<vector<double> > &u, vector<double> &w, vector<vector<double> > &v,
 		vector<double> &b, vector<double> &x){
 	  int jj,j,i;
 	  double s;
-
-	//   int us = u.size()>0 ? u[0].size() : 0;
-	//   int vs = v.size()>0 ? v[0].size() : 0;
-	//   cout << "U = " << u.size() << " " << us<< "\n";
-	//   cout << "V = " << v.size() << " " << vs << "\n";
-	//   cout << "w = " << w.size() << "\n";
-	//   cout << "b = " << b.size() << "\n";
-	//   cout << "x = " << x.size() << "\n";
 
 	  int m=u.size();
 	  int n=u[0].size();

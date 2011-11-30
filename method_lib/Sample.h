@@ -18,9 +18,7 @@
 #include "Family.h"
 #include "Trait.h"
 #include "Covariate.h"
-//#include "Helper.h"
 
-//using namespace boost;
 using namespace std;
 
 namespace Methods{
@@ -150,10 +148,10 @@ class Sample{
 	        }
 	    };
 
-		        int getGeneration(){return generation;}
-				        void setGeneration(int i){generation = i;}
-						        void incrGeneration(){generation++;}
-								        void decrGeneration(){generation--;}
+		int getGeneration(){return generation;}
+		void setGeneration(int i){generation = i;}
+		void incrGeneration(){generation++;}
+		void decrGeneration(){generation--;}
 
 		//For QFAM Model
 		double getT(){return T;}
@@ -173,7 +171,7 @@ class Sample{
 		string toString();
 		void setGrouping(string g){grouping = g;};
 		string getGrouping(){return grouping;};
-		string getFamID();//{return famid;};
+		string getFamID();
 		void setFamID(string f){famid = f;};
 
 		void assignDetail(string d, string v){
@@ -277,8 +275,8 @@ class Sample{
 				}
 			}
 			else{
-				int a1 = micro_sat_alleles[loc][0];//abone[loc];
-				int a2 = micro_sat_alleles[loc][1];//abtwo[loc];
+				int a1 = micro_sat_alleles[loc][0];
+				int a2 = micro_sat_alleles[loc][1];
 				if(a1 == -1 && a2 == -1){
 					return "0/0";
 				}
@@ -356,8 +354,6 @@ class Sample{
 				aboneposs.erase(aboneposs.begin() + loc);
 				abtwoposs.erase(abtwoposs.begin() + loc);
 			}
-			//aboneposs[loc] = -1;
-			//abtwoposs[loc] = -1;
 		};
 		void remPossible(int loc){
 			if(aoneposs.size() > 0){
@@ -365,8 +361,6 @@ class Sample{
 				atwoposs.erase(atwoposs.begin() + loc);
 				amissingposs.erase(amissingposs.begin() + loc);
 			}
-			//aoneposs[loc] = true;
-			//atwoposs[loc] = false;
 		};
 		void clearPossible(){
 			aoneposs.clear();
@@ -428,11 +422,6 @@ class Sample{
 			// added smd
 			missing.clear();
 			missing.resize(c, false);
-
-			//abone.clear();
-			//abone.resize(c);
-			//abtwo.clear();
-			//abtwo.resize(c);
 		};
 
 		bool haveMicroSat(int b){
@@ -455,7 +444,6 @@ class Sample{
 			vector<int> a;
 			a.resize(2);
 			micro_sat_alleles[b] = a;
-			//micro_sat_list.push_back(b);
 		};
 		void addAbone(int m, int b){
 			micro_sat_alleles[m][0] = b;
@@ -507,11 +495,9 @@ class Sample{
 
 		int getAbone(int i){
 			return micro_sat_alleles[i][0];
-//			return abone[i];
 		};
 		int getAbtwo(int i){
 			return micro_sat_alleles[i][1];
-//			return abtwo[i];
 		};
 
 		void initializeTempAlleles(int loc){
@@ -558,11 +544,6 @@ class Sample{
 		bool isFounder(){return founder;};
 		void setFounder(bool v){founder = v;};
 		string getInd();
-//			if(opts::_TODIGIT_){
-//				return(getString<int>(id_digit));
-//			}
-//			return id;
-//		};
 		void setInd(string v){id = v;};
 		bool getSex(){return sex;};
 		void setSex(bool v){sex = v;};
@@ -575,17 +556,7 @@ class Sample{
 			}
 		};
 		string getMomID();
-//			if(opts::_TODIGIT_){
-//				return getString<int>(mom_digit);
-//			}
-//			return mom;
-//		};
 		string getDadID();
-//			if(opts::_TODIGIT_){
-//				return getString<int>(dad_digit);
-//			}
-//			return dad;
-//		};
 		void setMomID(string v){mom = v;};
 		void setDadID(string v){dad = v;};
 		bool getAffected(){return affected;};
@@ -604,8 +575,6 @@ class Sample{
 		void setFamily(Family* f){pfam = f;};
 		vector<Sample*>* getChildren(){return &children;};
 		void addChild(Sample* s){children.push_back(s);};
-//		string getAllele1();
-//		string getAllele2();
 		string getPlate(){return plate;};
 		void setPlate(string s){plate = s;};
 		string getWell(){return well;};

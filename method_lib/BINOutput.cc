@@ -115,7 +115,6 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	ofstream BIT(fname.c_str(), ios::out);
 	if(!BIT){
 		opts::printLog("Error opening " + fname + " for family file creation.  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname + " for family file creation.  Exiting!\n");
 	}
 	filenames.push_back(fname);
@@ -225,7 +224,6 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	BIT.open(fname.c_str(), ios::out);
 	if(!BIT){
 		opts::printLog("Error opening " + fname + " for map file creation.  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname + " for map file creation.  Exiting!\n");
 	}
 	filenames.push_back(fname);
@@ -237,8 +235,8 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	int gsize = good_markers.size();
 
 	for(int m = 0; m < gsize; m++){
-		Marker* mark = good_markers[m];//(*markers)[m];
-		if(mark->isEnabled()){// && isValidMarker(mark, options, prev_base, prev_chrom) && !mark->isMicroSat()){
+		Marker* mark = good_markers[m];
+		if(mark->isEnabled()){
 
 			BIT << mark->getChrom() << "\t";
 			BIT << mark->getProbeID() << "\t"
@@ -256,18 +254,6 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 			else{
 				BIT << mark->getAllele2() << "\t";
 			}
-//		if(mark->getRSID() == ""){
-//			BIT << ".\t";
-//		}
-//		else{
-//			BIT << mark->getRSID() << "\t";
-//		}
-//		if(mark->getEnzyme() == ""){
-//			BIT << ".";
-//		}
-//		else{
-//			BIT << mark->getEnzyme();
-//		}
 			BIT << endl;
 		}
 	}
@@ -285,7 +271,6 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 	BIT.open(fname.c_str(), ios::out | ios::binary);
 	if(!BIT){
 		opts::printLog("Error opening " + fname + " for genotype file creation.  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname + " for genotype file creation.  Exiting!\n");
 	}
 	filenames.push_back(fname);
@@ -314,38 +299,37 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 		}
 		prev_base = 0;
 		prev_chrom = -1;
-		for(int m = 0; m < gsize;){//msize;){
-				bitset<8> b;
-				b.reset();
-				int c = 0;
-				while(c < 8 && m < gsize){//msize){
-					Marker* mark = good_markers[m];//(*markers)[m];
-					if(mark->isEnabled() && !mark->isMicroSat()){// && isValidMarker(mark, options, prev_base, prev_chrom) && !mark->isMicroSat()){
-						int loc = mark->getLoc();
+		for(int m = 0; m < gsize;){
+			bitset<8> b;
+			b.reset();
+			int c = 0;
+			while(c < 8 && m < gsize){
+				Marker* mark = good_markers[m];
+				if(mark->isEnabled() && !mark->isMicroSat()){
+					int loc = mark->getLoc();
 
-						if(samp->getAone(loc) && samp->getAtwo(loc) && samp->getAmissing(loc)){
+					if(samp->getAone(loc) && samp->getAtwo(loc) && samp->getAmissing(loc)){
+						b.set(c);
+						c++;
+						c++;
+					}else{
+
+						if(samp->getAone(loc))
 							b.set(c);
-							c++;
-							c++;
-						}else{
 
-							if(samp->getAone(loc))
-								b.set(c);
-
-							c++;
-							if(samp->getAtwo(loc))
-								b.set(c);
-							c++;
-						}
+						c++;
+						if(samp->getAtwo(loc))
+							b.set(c);
+						c++;
 					}
-					m++;
 				}
-
-				char ch[1];
-				ch[0] = (char)b.to_ulong();
-				BIT.write(ch, 1);
+				m++;
 			}
-//		} //endif
+
+			char ch[1];
+			ch[0] = (char)b.to_ulong();
+			BIT.write(ch, 1);
+		}
 	}
 	if(options->doDummyMissingParents() || options->doDummyIncompleteParentIds()){
 
@@ -354,30 +338,25 @@ void BINOutput::writeBit(vector<Sample*>* samples, vector<Family*>* families, ve
 			prev_base = 0;
 			prev_chrom = -1;
 			for(int m = 0; m < msize;){
-//				Marker* mark = (*markers)[m];
-//				if(mark->isEnabled() && isValidMarker(mark, options, prev_base, prev_chrom) && !mark->isMicroSat()){
-					bitset<8> b;
-					b.reset();
-					int c = 0;
-					while(c < 8 && m < gsize){//msize){
-						Marker* mark = good_markers[m];//(*markers)[m];
-						if(mark->isEnabled() && !mark->isMicroSat()){//&& isValidMarker(mark, options, prev_base, prev_chrom) && !mark->isMicroSat()){
-							//int loc = mark->getLoc();
+				bitset<8> b;
+				b.reset();
+				int c = 0;
+				while(c < 8 && m < gsize){
+					Marker* mark = good_markers[m];
+					if(mark->isEnabled() && !mark->isMicroSat()){
 
-							b.set(c);
+						b.set(c);
 
-							c++;
-//							b.set(c);
-							c++;
-						}
-						m++;
+						c++;
+						c++;
 					}
-
-					char ch[1];
-					ch[0] = (char)b.to_ulong();
-					BIT.write(ch, 1);
+					m++;
 				}
-//			}
+
+				char ch[1];
+				ch[0] = (char)b.to_ulong();
+				BIT.write(ch, 1);
+			}
 		}
 	}
 

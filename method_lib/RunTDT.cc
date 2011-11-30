@@ -15,9 +15,7 @@
 #include <fenv.h>
 #include <algorithm>
 #include "RunTDT.h"
-//#include "Chrom.h"
 #include "General.h"
-//#include "ChiSquare.h"
 #include "Helpers.h"
 #include "cdflib.h"
 
@@ -26,14 +24,13 @@ namespace Methods{
 string RunTDT::stepname = "tdt";
 
 void RunTDT::PrintSummary(){
-	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
 	ofstream output (fname1.c_str(), ios::out);
 	if(!output){
 		opts::printLog("Error opening " + fname1 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname1 + ". Exiting!\n");
 	}
 	opts::addFile("Marker", stepname, fname1);
@@ -68,11 +65,9 @@ void RunTDT::PrintSummary(){
                 }
             }
 			output << (*markers)[i]->toString() << "\t";
-				//<< ((float)(*markers)[i]->getBPLOC()/1000000.0f) << "\t"
 			output << chi[i] << "\t"
 				<< pval[i] << "\t"
 				<< (double)abs(log10(pval[i])) << "\t";
-			//output.precision(4);
 			output << fams_used[i] << "\t"
 				<< trans[i] << ":" << untrans[i] << "\t";
 			if(!(*markers)[i]->isMicroSat()){
@@ -88,7 +83,6 @@ void RunTDT::PrintSummary(){
 			output << "\t" << OR_lower << "\t" << OR_upper;
 
 				output << endl;
-			//output.precision(100);
 		}
 		(*markers)[i]->setFlag(false);
 	}
@@ -143,11 +137,6 @@ void RunTDT::FilterSummary(){
 
 void RunTDT::docalc(Sample* samp, Sample* dad, Sample* mom, Marker* mark, double& trans1, double &trans2, int &fams){
 	int mloc = mark->getLoc();
-
-	//Sample* samp = (*samples)[i];
-//	if(samp != NULL && samp->getDad() != NULL && samp->getMom() != NULL && samp->getDadID() != "0" && samp->getMomID() != "0" && samp->isEnabled() && samp->getDad()->isEnabled() && samp->getMom()->isEnabled()){
-//		Sample* dad = samp->getDad();
-//		Sample* mom = samp->getMom();
 
 		int trA = 0; //transmitted allele from first het parent
 		int unA = 0; //untransmitted allele from first het parent
@@ -255,8 +244,6 @@ void RunTDT::calculate(Marker* mark, vector<Sample*> gsamps){
 	ci_u_one = 0;
 
 	if(!mark->isMicroSat()){
-//		int mloc = mark->getLoc();
-
 		int ssize = gsamps.size();
 		double zt = Helpers::ltqnorm(1 - (1 - options.getCI()) / 2);
 		//start new
@@ -288,9 +275,7 @@ void RunTDT::calculate(Marker* mark, vector<Sample*> gsamps){
 		}
 		double pvalue, df = 1;
 		pvalue = -1;
-//		int code = 1, status;
 		if(tdt_chisq > -1){
-		//	cdfchi(&code, &p, &pvalue, &tdt_chisq, &df, &status, &bound);
 			pvalue = Helpers::p_from_chi(tdt_chisq, df);
 		}
 
@@ -316,7 +301,6 @@ void RunTDT::calculate(Marker* mark){
 	ci_u_one = 0;
 
 	if(!mark->isMicroSat()){
-//		int mloc = mark->getLoc();
 
 		int ssize = samples->size();
 		double zt = Helpers::ltqnorm(1 - (1 - options.getCI()) / 2);
@@ -331,120 +315,18 @@ void RunTDT::calculate(Marker* mark){
 				Sample* mom = samp->getMom();
 				docalc(samp, dad, mom, mark, trans1, trans2, fams);
 			}
-//			Sample* samp = (*samples)[i];
-//			if(samp != NULL && samp->getDad() != NULL && samp->getMom() != NULL && samp->getDadID() != "0" && samp->getMomID() != "0" && samp->isEnabled() && samp->getDad()->isEnabled() && samp->getMom()->isEnabled()){
-//				Sample* dad = samp->getDad();
-//				Sample* mom = samp->getMom();
-//
-//				int trA = 0; //transmitted allele from first het parent
-//				int unA = 0; //untransmitted allele from first het parent
-//				int trB = 0; //transmitted allele from second het parent
-//				int unB = 0; //untransmitted allele from second het parent
-//
-//				if(!mark->isMicroSat()){
-//					bool pat1 = dad->getAone(mloc);
-//					bool pat2 = dad->getAtwo(mloc);
-//					bool pat3 = dad->getAmissing(mloc);
-//					bool mat1 = mom->getAone(mloc);
-//					bool mat2 = mom->getAtwo(mloc);
-//					bool mat3 = mom->getAmissing(mloc);
-//
-//					if(pat1 == pat2 && mat1 == mat2){ //mono alleleic
-//						continue;
-//					}
-//					if((pat1 && pat2 && pat3) || (mat1 && mat2 && mat3)){ //no genotype
-//						continue;
-//					}
-//
-//					if(samp->getPheno() != 2){//make sure child is affected
-//						continue;
-//					}
-//
-//					bool kid1 = samp->getAone(mloc);
-//					bool kid2 = samp->getAtwo(mloc);
-//					bool kid3 = samp->getAmissing(mloc);
-//
-//					//kid is 0/0 call
-//					if(kid1 && kid2 && kid3){
-//						continue;
-//					}
-//
-//					//00 - homozygous allele 1
-//					if((!kid1) && (!kid2)){
-//						if(((!pat1) && pat2) && ((!mat1) && mat2)){
-//							trA = 1;
-//							unA = 2;
-//							trB = 1;
-//							unB = 2;
-//						}
-//						else{
-//							trA = 1;
-//							unA = 2;
-//						}
-//					}
-//					else if((!kid1) && kid2){ //01 - heterozygous
-//						//het dad
-//						if(pat1 != pat2){
-//							//het mom
-//							if(mat1 != mat2){
-//								trA = 1;
-//								trB = 2;
-//								unA = 2;
-//								unB = 1;
-//							}
-//							else if(!mat1){
-//								trA = 2;
-//								unA = 1;
-//							}
-//							else{
-//								trA = 1;
-//								unA = 2;
-//							}
-//						}
-//						else if(!pat1){
-//							trA = 2;
-//							unA = 1;
-//						}
-//						else{
-//							trA = 1;
-//							unA = 2;
-//						}
-//					}
-//					else{ //11 - homozygous allele 2
-//						if(((!pat1) && pat2) && ((!mat1) && mat2)){ //dad het & mom het
-//							trA = 2;
-//							unA = 1;
-//							trB = 2;
-//							unB = 1;
-//						}
-//						else{
-//							trA = 2;
-//							unA = 1;
-//						}
-//					}
-//					//increment transmission counts
-//					if(trA == 1) trans1++;
-//					if(trB == 1) trans1++;
-//					if(trA == 2) trans2++;
-//					if(trB == 2) trans2++;
-//					fams++;
-//				}//end !micro-sat
-//			}
 		}//end sample iteration
 
 		//skipped discordant parent
 
 		double tdt_chisq, par_chisq, com_chisq;
 		tdt_chisq = par_chisq = com_chisq = -1;
-//cout << trans1 << ":" << trans2 << ":" << fams << endl;
 		if(trans1 + trans2 > 0){
 			tdt_chisq = ((trans1 - trans2)*(trans1 - trans2))/(trans1 + trans2);
 		}
 		double pvalue, df = 1;
 		pvalue = -1;
-//		int code = 1, status;
 		if(tdt_chisq > -1){
-		//	cdfchi(&code, &p, &pvalue, &tdt_chisq, &df, &status, &bound);
 			pvalue = Helpers::p_from_chi(tdt_chisq, df);
 		}
 
@@ -641,9 +523,7 @@ void RunTDT::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m,
 				}
 				double pvalue, df = 1;
 				pvalue = -1;
-//				int code = 1, status;
 				if(tdt_chisq > -1){
-					//cdfchi(&code, &p, &pvalue, &tdt_chisq, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(tdt_chisq, df);
 				}
 

@@ -22,7 +22,6 @@
 
 using namespace boost::math;
 
-///#include "stats.h"
 namespace Methods {
 void LinearRegression::display(vector<vector<double> > & m) {
 	cout << "\n";
@@ -51,10 +50,8 @@ void LinearRegression::display(vector<int> & m) {
 	cout << "\n";
 }
 
-LinearRegression::LinearRegression()//Plink * p_)
+LinearRegression::LinearRegression()
 {
-	//  P = p_;
-
 	nc = 0;
 	cluster = false;
 	RSS = -1;
@@ -65,9 +62,7 @@ void LinearRegression::setDependent() {
 	Y.clear();
 
 	for (int i = 0; i < data_set->num_inds(); i++)
-		//P->n; i++)
 		if (!miss[i]) {
-			//    	if(options.getTraits().size() > 0){
 			if (options.getUsePheno())
 			{
 				int index = options.getPhenoLoc();
@@ -79,11 +74,11 @@ void LinearRegression::setDependent() {
 					throw MethodException(
 							"Internal Error: Trait/Phenotype index value < 0 in Linear Regression!");
 				}
-				Y.push_back(data_set->get_sample(i)->getPheno(index));//data_set->get_trait_index(options.getTraits().at(0))));//P->sample[i]->pperson->phenotype ) ;
+				Y.push_back(data_set->get_sample(i)->getPheno(index));
 			}
 			else
 			{
-				Y.push_back(data_set->get_sample(i)->getPheno());//P->sample[i]->pperson->phenotype ) ;
+				Y.push_back(data_set->get_sample(i)->getPheno());
 			}
 		}
 }
@@ -302,24 +297,11 @@ void LinearRegression::fitLM() {
 			cout << "\n";
 		}
 	}
-
-	//cout << "Made it here A\n";
-	//cout << "LM VIEW\n";
-	//    display(Y);
-	//    display(X);
-	//    cout << "---\n";
-
 	coef.resize(np);
 	Helpers::sizeMatrix(S, np, np);
-
-	//cout << "Made it here B\n";
-
-	//cout << "np: " << getString<int>(np) << ", nind: " << getString<int>(nind) << ", all_valid: " << getString<bool>(all_valid) << "\n";
 	if (np == 0 || nind == 0 || !all_valid) {
 		return;
 	}
-
-	//cout << "Made it here C\n";
 
 	setVariance();
 	sig.resize(nind, sqrt(1.0 / sqrt((double) nind)));
@@ -327,11 +309,6 @@ void LinearRegression::fitLM() {
 	w.resize(np);
 	Helpers::sizeMatrix(u, nind, np);
 	Helpers::sizeMatrix(v, np, np);
-
-	//cout << "Made it here D\n";
-
-	//  Perform "svdfit(C,Y,sig,b,u,v,w,chisq,function)"
-
 	int i, j;
 	const double TOL = 1.0e-13;
 	double wmax, tmp, thresh, sum;
@@ -367,45 +344,6 @@ void LinearRegression::fitLM() {
 		chisq += (tmp = (Y[i] - sum) / sig[i], tmp * tmp);
 	}
 
-	//cout << "Made it here E\n";
-
-	/////////////////////////////////////////
-	// Obtain covariance matrix of estimates
-
-	// OLS variance estimator = s^2 * ( X'X )^-1
-	// where s^2 = (1/(N-k)) \sum_i=1^N e_i^2
-
-	// Robust cluster variance estimator
-	// V_cluster = (X'X)^-1 * \sum_{j=1}^{n_C} u_{j}' * u_j * (X'X)^-1
-	// where u_j = \sum_j cluster e_i * x_i
-
-	// Above, e_i is the residual for the ith observation and x_i is a
-	// row vector of predictors including the constant.
-
-	// For simplicity, I omitted the multipliers (which are close to 1)
-	// from the formulas for Vrob and Vclusters.
-
-	// The formula for the clustered estimator is simply that of the
-	// robust (unclustered) estimator with the individual ei*s replaced
-	// by their sums over each cluster. xi
-
-	// Williams, R. L. 2000.  A note on robust variance estimation for
-	// cluster-correlated data. Biometrics 56: 64
-
-
-	//  t ( y - yhat X  ) %*%  ( y - yhat)  / nind - np
-
-	// = variance of residuals
-
-	// Variance of residuals
-
-	// j <- ( t( y- m %*% t(b) ) %*% ( y - m %*% t(b) ) ) / ( N - p )
-	// print( sqrt(kronecker( solve( t(m) %*% m ) , j )  ))
-
-
-	// Calcuate S = (XtX)^-1
-
-
 	vector<vector<double> > Xt;
 	Helpers::sizeMatrix(Xt, np, nind);
 	for (int i = 0; i < nind; i++)
@@ -415,27 +353,7 @@ void LinearRegression::fitLM() {
 	vector<vector<double> > S0;
 	Helpers::multMatrix(Xt, X, S0);
 
-	/// if (par::verbose)
-	///    {
-	//      cout << "beta...\n";
-	//      display(coef);
-	//      cout << "Sigma(S0a)\n";
-	//      display(S0);
-	//      cout << "\n";
-	///    }
-
-	//cout << "Made it here F\n";
-
 	S0 = Helpers::svd_inverse(S0);
-
-	///  if (par::verbose)
-	///    {
-//	      cout << "beta...\n";
-//	      display(coef);
-//	      cout << "Sigma(S0b)\n";
-//	      display(S0);
-//	      cout << "\n";
-	///    }
 
 
 	////////////////////
@@ -492,27 +410,9 @@ void LinearRegression::fitLM() {
 		Helpers::multMatrix(tmp1, S0, S);
 
 	}
-
-	///  if (par::verbose)
-	///    {
-//	      cout << "beta...\n";
-//	      display(coef);
-//	     cout << "Sigma\n";
-//	      display(S);
-//	      cout << "\n";
-	///    }
-
 }
 
 void LinearRegression::fitUnivariateLM() {
-
-	///  if (par::verbose)
-	///    {
-	//      cout << "LM VIEW\n";
-	//     display(Y);
-	//     display(X);
-	//     cout << "---\n";
-	///    }
 
 	// Speed-up version for univariate case Has set set coef and S
 
@@ -567,7 +467,6 @@ double LinearRegression::getFStat(){
 double LinearRegression::findF(){
 	double result = 0;
 
-	//TODO: TESTING 01-02-2011
 	if (! nind == 0)
 	{
 		double r2 = calculateRSquared();
@@ -684,7 +583,7 @@ void LinearRegression::calculate(vector<Marker*> model)
 		{
 			if(options.doCovarsName())
 			{
-			//only add covariates if name matches
+				//only add covariates if name matches
 				for(int i = 0; i < (int)covsToUse.size(); i++)
 				{
 					addCovariate(data_set->get_covariate_index(covsToUse.at(i)));
@@ -769,26 +668,15 @@ void LinearRegression::calculate(vector<Marker*> model)
 
 	// Build design matrix
 
-	//cout << "Builing Design Matrix " << "\n";
 	buildDesignMatrix();
 
-	// Prune out any remaining missing individuals
-	// No longer needed
-
-	//         pruneY();
-
-
 	// Fit linear model
-	//cout << "Fitting Linear Model" << "\n";
 	fitLM();
 
 	// Did model fit okay?
-
-	//cout << "Valid Parameters? " << "\n";
 	validParameters();
 
 	// Obtain estimates and statistic
-	//TODO:  should the following code be in here???
 	vector<double> var;
 	if (all_valid)
 	{
@@ -813,11 +701,10 @@ void LinearRegression::calculate(vector<Marker*> model)
 			se = sqrt(var[p]);
 			Z = coef[p] / se;
 			ZS.push_back(Z);
-			pvalue = Helpers::pT(Z, Y.size() - np);///pT(Z,Y.size()-np);
+			pvalue = Helpers::pT(Z, Y.size() - np);
 			pvalues.push_back(pvalue);
 		}
 	}
-	//end TODO...
 	testParameter = 3; // interaction
 }
 
@@ -906,7 +793,7 @@ void LinearRegression::calculate(Marker* l)
 		{
 			if(options.doCovarsName())
 			{
-			//only add covariates if name matches
+				//only add covariates if name matches
 				for(int i = 0; i < (int)covsToUse.size(); i++)
 				{
 					addCovariate(data_set->get_covariate_index(covsToUse.at(i)));
@@ -1002,7 +889,8 @@ void LinearRegression::calculate(Marker* l)
 			}
 		}
 		else
-		{ //user did not specify which covariates to use, so use all covariates contained in -covar-file
+		{
+			//user did not specify which covariates to use, so use all covariates contained in -covar-file
 			for (int c = 0; c < data_set->num_covariates(); c++)
 			{
 				addInteraction(1, cindex);
@@ -1029,9 +917,6 @@ void LinearRegression::calculate(Marker* l)
 		sindex += options.getLinRConditionList().size();
 		addInteraction(2, sindex);
 		label.push_back("XxSEX");
-
-		//xchr model3 : test ADD + XxSEX
-		//xchr model4 : test ADD + DOM + XxSEX
 	}
 
 	buildDesignMatrix();
@@ -1101,22 +986,13 @@ void LinearRegression::displayResults(ofstream & OUT, Marker * loc) {
 		if (okay) {
 			se = sqrt(var[p]);
 			Z = coef[p] / se;
-			pvalue = Helpers::chiprobP(Z, Y.size() - np);///pT(Z,Y.size()-np);
+			pvalue = Helpers::chiprobP(Z, Y.size() - np);
 		}
-
-		// If filtering p-values
-		///      if ( (!par::pfilter) || pvalue <= par::pfvalue )
-		///	{
-
 		OUT << loc->getChrom() << " " << loc->getRSID() << " "
 				<< loc->getBPLOC() << " " << loc->getAllele1() << " "
 				<< label[p] << " " << Y.size() << " ";
 
-		///	  if (okay)
-		///	    {
 		OUT << coef[p] << " ";
-
-		///	      if (par::display_ci)
 
 		double zt = Helpers::ltqnorm(1 - (1 - options.getCI()) / 2);
 
@@ -1124,23 +1000,8 @@ void LinearRegression::displayResults(ofstream & OUT, Marker * loc) {
 				<< " ";
 
 		OUT << Z << " " << pvalue;
-		///	    }
-		///	  else
-		///	    {
-		///	      OUT << setw(10) << "NA" << " ";
-
-		///	      if (par::display_ci)
-		///		OUT << setw(8) << "NA" << " "
-		///		    << setw(8) << "NA" << " "
-		///		    << setw(8) << "NA" << " ";
-
-		///	      OUT << setw(12) << "NA" << " "
-		///		  << setw(12) << "NA";
-		///	    }
 
 		OUT << "\n";
-		///	}
-
 	}
 
 }
@@ -1250,12 +1111,6 @@ double LinearRegression::getPValue() {
 	if (okay) {
 		double se = sqrt(var[testParameter]);
 		double Z = coef[testParameter] / se;
-		//cout << "coef: " << coef[testParameter] << endl;
-		//cout << "se: " << se << endl;
-		//cout << "z: " << Z << endl;
-		//cout << "testParameter: " << testParameter << endl;
-		//cout << "Y: " << Y.size() << endl;
-		//cout << "np: " << np << endl;
 		return Helpers::pT(Z, Y.size() - np);
 	} else
 		return 1;

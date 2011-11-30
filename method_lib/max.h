@@ -81,14 +81,7 @@ typedef struct {
 	int fam,id,rel[7],aff,st,alle1,alle2;
 	string idnum;//char idnum[8];
 	} Person;
-/* rel[0]=fa  1=ma  2=offs  3=nfa  4=nma  5=sex  6=pro */
 
-/*struct nlist {
-     char  *cind;
-     char  *cid;
-     struct nlist *next;
-     } *np;
-*/
 typedef struct {
      char  *cind;
      char  *cid;
@@ -98,9 +91,5 @@ typedef struct {
 typedef struct {
 	vector<string> ind;//char *ind[MAXINDFAM];
 	} Nuclear;
-
-//static char *SEXLIST[] = {"both parents","fathers only","mothers only"};
-
-//char lineno[256];
 };
 #include "proto.h"

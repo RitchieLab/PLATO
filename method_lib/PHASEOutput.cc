@@ -71,37 +71,9 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 
 	vector<int> chrom_counts;
 	chrom_counts.resize(26,0);
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	for(int i = 0; i < msize; i++){
-		Marker* mark = good_markers[i];//(*markers)[i];
+		Marker* mark = good_markers[i];
 		if(mark->isEnabled()){
-/*			if(options.doChrom()){
-				if(!options.checkChrom(mark->getChrom())){
-					mark->setFlag(true);
-				    continue;
-			    }
-			    if(!options.checkBp(mark->getBPLOC())){
-					mark->setFlag(true);
-				    continue;
-			    }
-			}
-            if(options.doBpSpace()){
-	            if(prev_base == 0){
-	                prev_base = mark->getBPLOC();
-                    prev_chrom = mark->getChrom();
-                }
-                else{
-	                if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-		    			mark->setFlag(true);
-						continue;
-	                }
-	                prev_base = mark->getBPLOC();
-	                prev_chrom = mark->getChrom();
-                }
-			}
-*/
-
 			chrom_counts[mark->getChrom() - 1]++;
 		}
 	}
@@ -112,19 +84,16 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 		Sample* samp = (*samples)[i];
 		int sloc = samp->getLoc();
 		if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) ||
-				(!samp->isEnabled() && options.doIncDisabledSamples())) && !samp_flags[sloc]){//!samp->isFlagged()){
+				(!samp->isEnabled() && options.doIncDisabledSamples())) && !samp_flags[sloc]){
 			if(samp->getDad() != NULL && samp->getMom() != NULL && (samp->getDad()->isEnabled() ||
 					(samp->getDad()->isExcluded() && options.doIncExcludedSamples()) ||
 					(!samp->getDad()->isEnabled() && options.doIncDisabledSamples())) &&
 					(samp->getMom()->isEnabled() || (samp->getMom()->isExcluded() && options.doIncExcludedSamples()) ||
 					(!samp->getMom()->isEnabled() && options.doIncDisabledSamples())) &&
 					!samp_flags[samp->getDad()->getLoc()] && !samp_flags[samp->getMom()->getLoc()] &&
-					//!samp->getDad()->isFlagged() && !samp->getMom()->isFlagged() &&
 					samp->getFamily()->getTotalInds() == 3){
 				samp_flags[samp->getDad()->getLoc()] = true;
 				samp_flags[samp->getMom()->getLoc()] = true;
-//				samp->getDad()->setFlag(true);
-//				samp->getMom()->setFlag(true);
 				parents += 2;
 			}
 		}
@@ -138,7 +107,7 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	for(int c = 0; c < (int)chrom_counts.size(); c++){
 		if(chrom_counts[c] > 0){
 			if(options.getChrom() == -1 || (options.getChrom() == (c + 1))){
-				string fname1 = opts::_OUTPREFIX_ + "input_phase_chr" + getString<int>(c + 1) + options.getOut() + ".txt";//"_" + getString<int>(order) + ".txt";
+				string fname1 = opts::_OUTPREFIX_ + "input_phase_chr" + getString<int>(c + 1) + options.getOut() + ".txt";
 				if(options.getOverrideOut().size() > 0){
 					fname1 = options.getOverrideOut() + "_chr" + getString<int>(c + 1) + ".txt";
 				}
@@ -149,10 +118,9 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 				ofstream str (fname1.c_str());
 				if(!str.is_open()){
 					opts::printLog("Unable to open " + fname1 + " for output!\n");
-					//exit(1);
 					throw MethodException("Unable to open " + fname1 + " for output!\n");
 				}
-				fname1 = opts::_OUTPREFIX_ + "input_phase_chr" + getString<int>(c+ 1) + "_map" + options.getOut() + ".txt";//+ getString<int>(order) + ".txt";
+				fname1 = opts::_OUTPREFIX_ + "input_phase_chr" + getString<int>(c+ 1) + "_map" + options.getOut() + ".txt";
 				if(options.getOverrideOut().size() > 0){
 					fname1 = options.getOverrideOut() + "_chr" + getString<int>(c + 1) + "_map.txt";
 				}
@@ -163,7 +131,6 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 				ofstream str_map (fname1.c_str());
 				if(!str_map.is_open()){
 					opts::printLog("Unable to open " + fname1 + " for output!\n");
-					//exit(1);
 					throw MethodException("Unable to open " + fname1 + " for output!\n");
 				}
 				if(options.doTriosOnly()){
@@ -176,17 +143,8 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 				str << "P";
 				marker_types = "";
 				for(int m = 0; m < msize; m++){
-					Marker* mark = good_markers[m];//(*markers)[m];
-					if(mark->getChrom() == (c + 1) && mark->isEnabled()){// && !mark->isFlagged()){
-/*            			if(options.doChrom()){
-				        	if(!options.checkChrom(mark->getChrom())){
-								continue;
-							}
-						    if(!options.checkBp(mark->getBPLOC())){
-						 	   continue;
-						    }
-						}
-*/
+					Marker* mark = good_markers[m];
+					if(mark->getChrom() == (c + 1) && mark->isEnabled()){
 						if(!mark->isMicroSat()){
 							marker_types += "S";
 						}
@@ -210,17 +168,8 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 						if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
 							str << samp->getFamID() << "_" << samp->getInd() << "\n";
 							for(int m = 0; m < msize; m++){
-								Marker* mark = good_markers[m];//(*markers)[m];
-								if(mark->getChrom() == (c + 1) && mark->isEnabled()){// && !mark->isFlagged()){
-/*							 		if(options.doChrom()){
-										if(!options.checkChrom(mark->getChrom())){
-										    continue;
-									    }
-									    if(!options.checkBp(mark->getBPLOC())){
-										    continue;
-									    }
-									}
-*/
+								Marker* mark = good_markers[m];
+								if(mark->getChrom() == (c + 1) && mark->isEnabled()){
 									int mloc = mark->getLoc();
 									if(!mark->isMicroSat()){
 										if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
@@ -270,13 +219,17 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 				else{
 					//reset flags
 					for(int s = 0; s < ssize; s++){
-						//(*samples)[s]->setFlag(false);
 						samp_flags[s] = false;
 					}
 					//parents first
 					for(int s = 0; s < ssize; s++){
 						Sample* samp = (*samples)[s];
-						if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())) && samp->getDad() != NULL && samp->getMom() != NULL && (samp->getDad()->isEnabled() || (samp->getDad()->isExcluded() && options.doIncExcludedSamples()) || (!samp->getDad()->isEnabled() && options.doIncDisabledSamples())) && (samp->getMom()->isEnabled() || (samp->getMom()->isExcluded() && options.doIncExcludedSamples()) || (!samp->getMom()->isEnabled() && options.doIncDisabledSamples())) && samp->getFamily()->getTotalInds() == 3){
+						if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) ||
+									(!samp->isEnabled() && options.doIncDisabledSamples())) && samp->getDad() != NULL && samp->getMom() != NULL && (samp->getDad()->isEnabled() ||
+									(samp->getDad()->isExcluded() && options.doIncExcludedSamples()) || (!samp->getDad()->isEnabled() && options.doIncDisabledSamples())) &&
+									(samp->getMom()->isEnabled() || (samp->getMom()->isExcluded() && options.doIncExcludedSamples()) ||
+									(!samp->getMom()->isEnabled() && options.doIncDisabledSamples())) && samp->getFamily()->getTotalInds() == 3)
+						{
 							Sample* dad = samp->getDad();
 							Sample* mom = samp->getMom();
 
@@ -286,17 +239,8 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 							string ma2 = "";
 
 							for(int m = 0; m < msize; m++){
-								Marker* mark = good_markers[m];//(*markers)[m];
-								if(mark->getChrom() == (c + 1) && mark->isEnabled()){// && !mark->isFlagged()){
-/*									if(options.doChrom()){
-										if(!options.checkChrom(mark->getChrom())){
-										    continue;
-									    }
-									    if(!options.checkBp(mark->getBPLOC())){
-										    continue;
-									    }
-									}
-*/
+								Marker* mark = good_markers[m];
+								if(mark->getChrom() == (c + 1) && mark->isEnabled()){
 									int mloc = mark->getLoc();
 									if(!mark->isMicroSat()){
 										if((dad->isExcluded() && options.doZeroExcluded()) || (!dad->isEnabled() && options.doIncDisabledSamples())){
@@ -378,7 +322,6 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 							str << ma1 << "\n" << ma2 << "\n";
 							str << dad->getFamID() << "_" << dad->getInd() << "\n";
 							str << da1 << "\n" << da2 << "\n";
-//							samp->setFlag(true);
 							samp_flags[samp->getLoc()] = true;
 						}
 					}
@@ -386,22 +329,13 @@ void PHASEOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 					//do children
 					for(int s = 0; s < ssize; s++){
 						Sample* samp = (*samples)[s];
-						if(samp_flags[samp->getLoc()]){//samp->isFlagged()){
+						if(samp_flags[samp->getLoc()]){
 							string a1 = "";
 							string a2 = "";
 							str << samp->getFamID() << "_" << samp->getInd() << "\n";
 							for(int m = 0; m < msize; m++){
-								Marker* mark = good_markers[m];//(*markers)[m];
-								if(mark->getChrom() == (c + 1) && mark->isEnabled()){// && !mark->isFlagged()){
-/*									if(options.doChrom()){
-										if(!options.checkChrom(mark->getChrom())){
-										    continue;
-									    }
-										if(!options.checkBp(mark->getBPLOC())){
-											continue;
-										}
-									}
-*/
+								Marker* mark = good_markers[m];
+								if(mark->getChrom() == (c + 1) && mark->isEnabled()){
 									int mloc = mark->getLoc();
 									if(!mark->isMicroSat()){
 										if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doIncDisabledSamples())){

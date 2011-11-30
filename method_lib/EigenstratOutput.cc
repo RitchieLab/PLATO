@@ -91,15 +91,15 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 
 	int ssize = samples->size();
 	int msize = markers->size();
-	string fname1 = opts::_OUTPREFIX_ + "eigenstrat" + options.getOut() + ".geno";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "eigenstrat" + options.getOut() + ".geno";
 	if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".geno";
 	}
-	string fname2 = opts::_OUTPREFIX_ + "eigenstrat" + options.getOut() + ".snp";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "eigenstrat" + options.getOut() + ".snp";
 	if(options.getOverrideOut().size() > 0){
 		fname2 = options.getOverrideOut() + ".snp";
 	}
-	string fname3 = opts::_OUTPREFIX_ + "eigenstrat" + options.getOut() + ".ind";//getString<int>(order) + ".description";
+	string fname3 = opts::_OUTPREFIX_ + "eigenstrat" + options.getOut() + ".ind";
 	if(options.getOverrideOut().size() > 0){
 		fname3 = options.getOverrideOut() + ".ind";
 	}
@@ -160,24 +160,20 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 			throw MethodException("Error opening " + fname5 + ". Exiting!\n");
 		}
 	}
-////	bool first = true;
 	map<string, string> dummy;
 
 	string male = "\t0\t0\t1\t0\t";
 	string female = "\t0\t0\t1\t0\t";
 
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 	bool inddone = false;
 	for(int i = 0; i < msize; i++){
-		//Marker* mark = (*markers)[mloc];
-		Marker* mark = good_markers[i];//data_set->get_locus(i);
+		Marker* mark = good_markers[i];
 		if(mark == NULL){
 			continue;
 		}
-		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		if(mark->isEnabled()){
 			double morgans = (double)mark->getBPLOC() / 1000000.0f;
 			snpout << mark->getProbeID() << "\t" << mark->getChrom() << "\t" << morgans << "\t" << mark->getBPLOC() << endl;
 			int mloc = mark->getLoc();
@@ -228,7 +224,6 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 								else{
 									phenoout << data_set->get_sample(s)->getPheno(index) << "\n";
 								}
-					//			Y.push_back(data_set->get_sample(i)->getPheno(index));//data_set->get_trait_index(options.getTraits().at(0))));//P->sample[i]->pperson->phenotype ) ;
 							} else {
 								if(data_set->get_sample(s)->getPheno() == options.getPhenoMissing()){
 									phenoout << "-100.0\n";
@@ -236,7 +231,6 @@ void EigenstratOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<M
 								else{
 									phenoout << data_set->get_sample(s)->getPheno() << endl;
 								}
-					//			Y.push_back(data_set->get_sample(i)->getPheno());//P->sample[i]->pperson->phenotype ) ;
 							}
 						}
 					}
@@ -340,29 +334,5 @@ int EigenstratOutput::map_sex(char c){
 	}
 	return 2;
 }
-
-/*string EigenstratOutput::map_allele(string a){
-	if(options.doAllele1234()){
-		if(a == "A"){
-			return "1";
-		}
-		else if(a == "C"){
-			return "2";
-		}
-		else if(a == "G"){
-			return "3";
-		}
-		else if(a == "T"){
-			return "4";
-		}
-		else if(a == opts::_NOCALL_){
-			return "0";
-		}
-		else{
-			return "0";
-		}
-	}
-	return a;
-}*/
 
 }

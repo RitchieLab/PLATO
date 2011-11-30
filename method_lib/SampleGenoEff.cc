@@ -15,7 +15,6 @@
 #include "SampleGenoEff.h"
 #include "Sample.h"
 #include "Family.h"
-//#include "Chrom.h"
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
@@ -58,24 +57,14 @@ void SampleGenoEff::calculate(Sample* samp){
 					if(!(*markers)[k]->isMicroSat()){
 						if(samp->getAone(loc) && samp->getAtwo(loc) && samp->getAmissing(loc)){
 							zeros_one++;
-//							if(opts::_ENZYMES_){
-//								enzyme_zeros[i][(*markers)[k]->getEnzyme()]++;
-//							}
 						}
 					}
 					else{
-						//int marrloc = (*samples)[i]->getMicroSat(loc);
 						if(samp->getAbone(loc) == -1){
 							zeros_one++;
-//							if(opts::_ENZYMES_){
-//								enzyme_zeros[i][(*markers)[k]->getEnzyme()]++;
-//							}
 						}
 					}
 					total_one++;
-//					if(opts::_ENZYMES_){
-//						enzyme_total[i][(*markers)[k]->getEnzyme()]++;
-//					}
 				}
 			}
 		}
@@ -97,11 +86,6 @@ void SampleGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 		enzyme_total.resize(ssize);
 	}
 	orig_num_samples = 0;
-	//for(int j = 0; j < ssize; j++){
-	//	if((*samples)[j]->isEnabled()){
-	//		orig_num_samples++;
-	//	}
-	//}
 
 	for(int i = 0; i < ssize; i++){
 		if((*samples)[i]->isEnabled()){
@@ -142,7 +126,6 @@ void SampleGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 						}
 					}
 					else{
-						//int marrloc = (*samples)[i]->getMicroSat(loc);
 						if((*samples)[i]->getAbone(loc) == -1){
 							zeros[i]++;
 							if(opts::_ENZYMES_){
@@ -163,14 +146,13 @@ void SampleGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 
 void SampleGenoEff::PrintSummary(){
 
-	string fname1 = opts::_OUTPREFIX_ + "sample_geno_eff" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "sample_geno_eff" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
 	ofstream indeff (fname1.c_str());
 	if(!indeff.is_open()){
 		opts::printLog("Unable to open " + fname1 + "\n");
-		//exit(1);
 		throw MethodException("Unable to open " + fname1 + "\n");
 	}
 	opts::addFile("Sample",stepname, fname1);
@@ -238,12 +220,6 @@ void SampleGenoEff::PrintSummary(){
 				indeff << "F\t";
 			}
 			indeff << (*samples)[i]->getPheno() << "\t";
-			//if((*samples)[i]->getAffected()){
-			//	indeff << "Y\t";
-			//}
-			//else{
-			//	indeff << "N\t";
-			//}
 			indeff << (*samples)[i]->getPlate() << "\t"
 				   << (*samples)[i]->getWell() << "\t"
 				   << percent;
@@ -303,8 +279,6 @@ void SampleGenoEff::filter(){
 }
 
 void SampleGenoEff::FilterSummary(){
-////	int cutsamps = 0;
-
 	opts::printLog("Threshold:\t" + options.toString() + "\n");
 	opts::printLog("Samples Passed:\t" + getString<int>(opts::_SAMPLES_WORKING_ - orig_num_samples) + " (" +
 		getString<float>(((float) (opts::_SAMPLES_WORKING_ - orig_num_samples) / (float) opts::_SAMPLES_WORKING_) * 100.0) +

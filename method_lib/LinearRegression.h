@@ -15,7 +15,6 @@
 #define __LINEAR_H__
 
 #include<vector>
-//#include "plink.h"
 #include "Marker.h"
 #include "DataSet.h"
 #include "MethodException.h"
@@ -28,7 +27,7 @@ class LinearRegression : public Model {
 
  public:
 
-  LinearRegression();//Plink *);
+  LinearRegression();
   ~LinearRegression() { };
 
   void resetDataSet(DataSet* ds){data_set = ds;}
@@ -89,8 +88,6 @@ class LinearRegression : public Model {
   int nc;
 
   double RSS;
-
-  //DataSet* data_set;
 
   bool cluster;
   void function(const int i, vector<double> & p );

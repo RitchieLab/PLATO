@@ -15,9 +15,7 @@
 #include "Marker.h"
 #include "Family.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "Sample.h"
-//#include "TDTProcess.h"
 #include "Options.h"
 #include "DataSet.h"
 #include "StepOptions.h"
@@ -25,7 +23,7 @@
 using namespace std;
 
 namespace Methods{
-class MQLS{// : public Process{
+class MQLS{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -35,9 +33,6 @@ class MQLS{// : public Process{
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
 		StepOptions options;
-//		Markers* markers;
-//		Families* families;
-//		TDTProcess* TDT;
 		int rank;
 		float threshold;
 		bool _DBOUTPUT_;
@@ -71,7 +66,6 @@ class MQLS{// : public Process{
 			markers = NULL;
 			samples = NULL;
 			marker_map = NULL;
-			//TDT = NULL;
 			rank = 0;
 			threshold = 0;
 			orig_num_markers = 0;
@@ -91,7 +85,6 @@ class MQLS{// : public Process{
 		};
 
 		~MQLS(){};
-//		void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
@@ -103,27 +96,7 @@ class MQLS{// : public Process{
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//			families = f;
-//			markers = m;
-//		};
 		void setDBOUT(){_DBOUTPUT_ = true;};
-		//void GetNewTDTProcess(){
-			//if(TDT == NULL){
-		//	TDT = new TDTProcess();
-			//}
-//			else{
-//				TDT->reset();
-//			}
-		//};
-		//void GetNewTDTProcess(string type){
-		//	if(TDT == NULL){
-		//	TDT = new TDTProcess(type);
-		//	}
-//			else{
-//				TDT->reset();
-//			}
-		//};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};

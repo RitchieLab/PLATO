@@ -7,8 +7,6 @@
 #include <vector>
 #include "Globals.h"
 #include "CovTrait.h"
-//#include "Families.h"
-//#include "Markers.h"
 using namespace std;
 
 namespace Methods{

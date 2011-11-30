@@ -91,17 +91,6 @@ void LogisticRegression::initialize_interactions(){
 /// @return none
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci){
-  // determine included indexes to use in running this dataset
-//   int numGenosPerLocus = set->get_max_locus()+1;
-//   missingValue = numGenosPerLocus;
-//   if(set->missing_data_present())
-//     numGenosPerLocus++;
-//
-//   indexConverter.set_genos_per_locus(numGenosPerLocus);
-//   indexConverter.set_included_indexes(LociComboMin, LociComboLimit,
-//     !set->missing_data_present(), missingValue);
-//   includedIndexes = indexConverter.get_included_indexes();
-
   // when model is too large for current interaction list
   // update interactions
   if(loci.size() > LociComboLimit){
@@ -109,27 +98,15 @@ void LogisticRegression::calculate(vector<unsigned int>& loci){
     initialize_interactions();
   }
 
-//  cout << "Point 1\n";
   vector<int> includedCells = includedIndexes[loci.size()];
-//  cout << "Point 2\n";
   vector<unsigned int> converted_loci = convert_loc_order(loci);
-//  cout << "Point 3\n";
 
-  summarize_data(loci);//converted_loci);
-//  cout << "Point 4\n";
-
+  summarize_data(loci);
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
-//   vector<unsigned int>::iterator iter;
-//
-//   for(iter=loci.begin(); iter!=loci.end(); iter++){
-//     *iter = (*markers)[*iter]->getLoc();
-//   }
 
   // run routine that calculates LR values
   calculateLR(summary_data, true, includedCells);
- // cout << "Point 5\n";
-
 }
 
 
@@ -194,7 +171,6 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
   vector<unsigned int> Y1(nRows,0);
   vector<double> xM(nColumns+1,0.0);
   vector<double> xSD(nColumns+1, 0.0);
-  //vector<double> coefficients(nP);
   vector<double> Par(nP);
   coefficients.clear();
   standard_errors.clear();
@@ -434,9 +410,6 @@ void LogisticRegression::set_model(){
   // set up 2-D array
   geno_convert.assign(2, vector<unsigned int>(4,0));
 
-//   geno_convert_zero.assign(4,0);
-//   geno_convert_one.assign(4,0);
-
   switch(modType){
     case Dominant:
       geno_convert[0][0] = 1;
@@ -448,7 +421,6 @@ void LogisticRegression::set_model(){
       maxLocusValue = 1;
       break;
     case Recessive:
-//geno_convert[0] = 1;
       geno_convert[0][0] = 1;
       geno_convert[0][3] = 2;
       geno_convert[1][2] = 1;
@@ -522,13 +494,10 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos)
 		continue;
     for(currLoc=0; currLoc < combSize; currLoc++)
     {
-      // genotype[currLoc] = geno_convert[dataset[currInd][genos[currLoc]]];
-      // genotype[currLoc] = geno_convert[(*set)[currInd]->get_genotype(genos[currLoc])];
       genotype[currLoc] = geno_convert[ref_alleles[currLoc]][(*set)[currInd]->get_genotype(set->get_locus(genos[currLoc])->getLoc())];
     }
 
     // increment count based on status of individual
-    // summary_data[indexConverter.flatten_indexes(genotype)][unaffIndex+dataset[currInd].status]++;
     summary_data[indexConverter.flatten_indexes(genotype)][unaffIndex+(*set)[currInd]->getAffected()]++;
   }
 
@@ -662,7 +631,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
     for(i=0; i < numCovars; i++)
     {
-      //cout << "Adding " << getString<int>(numCovars) << " Covariates for Logistic Regression";
       if((*set)[currInd]->getCovariate(covars[i]) != missingCoValue)
         row[currValue++] = (*set)[currInd]->getCovariate(covars[i]);
       else

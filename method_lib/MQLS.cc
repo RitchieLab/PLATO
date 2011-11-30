@@ -15,9 +15,7 @@
 #include <fenv.h>
 #include <algorithm>
 #include "MQLS.h"
-//#include "Chrom.h"
 #include "General.h"
-//#include "ChiSquare.h"
 #include "Helper.h"
 #include "cdflib.h"
 
@@ -26,7 +24,7 @@ namespace Methods{
 string MQLS::stepname = "mqls";
 
 void MQLS::PrintSummary(){
-	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
@@ -68,11 +66,9 @@ void MQLS::PrintSummary(){
                 }
             }
 			output << (*markers)[i]->toString() << "\t";
-				//<< ((float)(*markers)[i]->getBPLOC()/1000000.0f) << "\t"
 			output << chi[i] << "\t"
 				<< pval[i] << "\t"
 				<< (double)abs(log10(pval[i])) << "\t";
-			//output.precision(4);
 			output << fams_used[i] << "\t"
 				<< trans[i] << ":" << untrans[i] << "\t";
 			if(!(*markers)[i]->isMicroSat()){
@@ -88,7 +84,6 @@ void MQLS::PrintSummary(){
 			output << "\t" << OR_lower << "\t" << OR_upper;
 
 				output << endl;
-			//output.precision(100);
 		}
 		(*markers)[i]->setFlag(false);
 	}
@@ -281,7 +276,6 @@ void MQLS::calculate(Marker* mark){
 		pvalue = -1;
 		int code = 1, status;
 		if(tdt_chisq > -1){
-		//	cdfchi(&code, &p, &pvalue, &tdt_chisq, &df, &status, &bound);
 			pvalue = p_from_chi(tdt_chisq, df);
 		}
 
@@ -480,7 +474,6 @@ void MQLS::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, v
 				pvalue = -1;
 				int code = 1, status;
 				if(tdt_chisq > -1){
-				//	cdfchi(&code, &p, &pvalue, &tdt_chisq, &df, &status, &bound);
 					pvalue = p_from_chi(tdt_chisq, df);
 				}
 

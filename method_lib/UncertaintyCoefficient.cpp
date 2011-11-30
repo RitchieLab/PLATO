@@ -24,8 +24,6 @@ UncertaintyCoefficient::UncertaintyCoefficient(DataSet* ds){
 /// Initialize starting variables
 ///
 void UncertaintyCoefficient::initialize(){
-
-//   maxLocusValue = 2;
   uncertainty_coeff = 0.0;
   
   total_type = ContingencyTable::Allele;
@@ -35,13 +33,6 @@ void UncertaintyCoefficient::initialize(){
   TotalTypeMap["DOMINANT"] = ContingencyTable::Dominant;
   TotalTypeMap["ALLELE"] = ContingencyTable::Allele;
   TotalTypeMap["GENOTYPE"] = ContingencyTable::Genotype;
-  
-//   missingValue = maxLocusValue+1;
-//   LociComboLimit = 10;
-//   LociComboMin = 1;
-//   
-//   set_threshold = 1.0;
-  
 }
 
 
@@ -51,10 +42,7 @@ void UncertaintyCoefficient::initialize(){
 ///
 void UncertaintyCoefficient::resetDataSet(DataSet* ds){
   dataset = ds;
-//   calculate_set_threshold();
-//   missingValue = dataset->get_missing_value();
   markers = dataset->get_markers();
-//   setIndexConverter();
 }
 
 
@@ -66,9 +54,7 @@ void UncertaintyCoefficient::calculate(int locus){
   // assume loci are in marker_map order so need to alter to order contained
   // in samples
   locus = (*markers)[locus]->getLoc();
-  
   ContingencyTable table;
-  
   table.get_counts(locus, dataset);
   uncertainty_coeff = calculate_uc(&table);
 }
@@ -89,8 +75,6 @@ float UncertaintyCoefficient::calculate_uc(ContingencyTable* orig_table){
   ContingencyTable table = orig_table->transpose();
   
   table.set_current_totals(total_type);
-
-// table.output_current_grid();
 
   // calculate H(A) and H(B) (entropies of status and alleles)
   // then calculate T which is H(B)-H(B|a)
@@ -147,9 +131,6 @@ float UncertaintyCoefficient::calculate_uc(ContingencyTable* orig_table){
     uc = 0;
   }
   return uc;
-  
-//   return 2 * (H_B - H_B_A) / (H_B + H_A);  
-//   uncertainty_coeff = 2 * (H_B - H_B_A) / (H_B + H_A);
 }
 
 ///

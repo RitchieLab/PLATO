@@ -57,7 +57,7 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 
    	int ssize = samples->size();
 	int msize = markers->size();
-	string fname1 = opts::_OUTPREFIX_ + "input_fbat" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "input_fbat" + options.getOut() + ".txt";
     if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".txt";
 	}
@@ -69,10 +69,9 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	ofstream fbat (fname1.c_str());
 	if(!fbat.is_open()){
 		opts::printLog("Unable to open " + fname1 + " for output!\n");
-	   	//exit(1);
 		throw MethodException("Unable to open " + fname1 + " for output!\n");
 	}
-	string fname2 = opts::_OUTPREFIX_ + "input_fbat" + options.getOut() + ".map";//+ getString<int>(order) + ".map";
+	string fname2 = opts::_OUTPREFIX_ + "input_fbat" + options.getOut() + ".map";
     if(options.getOverrideOut().size() > 0){
 		fname2 = options.getOverrideOut() + ".map";
 	}
@@ -83,53 +82,19 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	ofstream fbat_map (fname2.c_str());
 	if(!fbat_map.is_open()){
 		opts::printLog("Unable to open " + fname2 +" for output!\n");
-		//exit(1);
 		throw MethodException("Unable to open " + fname2 +" for output!\n");
 	}
 	bool map_done = false;
 
 	int prev_base = 0;
 	int prev_chrom = -1;
-/*
-	for(int m = 0; m < msize; m++){
-		Marker* mark = (*markers)[m];
-		if(mark->isEnabled()){
-			if(options.doChrom()){
-				if(!options.checkChrom(mark->getChrom())){
-				    continue;
-			    }
-			    if(!options.checkBp(mark->getBPLOC())){
-				    continue;
-			    }
-			}
-
-			if(options.doBpSpace()){
-				if(prev_base == 0){
-					prev_base = mark->getBPLOC();
-					prev_chrom = mark->getChrom();
-				}
-				else{
-					if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-						mark->setFlag(true);
-						continue;
-					}
-					prev_base = mark->getBPLOC();
-					prev_chrom = mark->getChrom();
-				}
-			}
-			int m_loc = mark->getLoc();
-			fbat << mark->getProbeID() << " ";
-		}
-	}
-	fbat << endl;
-	*/
 	prev_base = 0;
 	prev_chrom = -1;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];//(*markers)[m];
-		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		Marker* mark = good_markers[m];
+		if(mark->isEnabled()){
 			fbat << mark->getRSID() << " ";
 		}
 	}
@@ -139,8 +104,6 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	for(int i = 0; i < ssize; i++){
 		Sample* samp = (*samples)[i];
 		if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
-//			int prev_base = 0;
-//			int prev_chrom = -1;
 			fbat << samp->getFamID() << "\t" << samp->getInd() << "\t" << samp->getDadID() << "\t" << samp->getMomID() << "\t";
 			if(samp->getSex()){
 				fbat << "1";
@@ -155,8 +118,8 @@ void FBATOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 				fbat << " " << samp->getPheno();
 			}
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];//(*markers)[m];
-				if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+				Marker* mark = good_markers[m];
+				if(mark->isEnabled()){
 					int m_loc = mark->getLoc();
 					if(!map_done){
 						double cm = (double)mark->getBPLOC() / (double)1000000;

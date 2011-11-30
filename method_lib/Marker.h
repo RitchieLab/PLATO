@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-//#include <occi.h>
 #include <string>
 #include <list>
 #include <algorithm>
@@ -20,8 +19,7 @@
 #include "Globals.h"
 #include "General.h"
 #include "Options.h"
-//#include "Helper.h"
-//using namespace oracle::occi;
+
 using namespace std;
 
 
@@ -54,7 +52,6 @@ class Marker{
 		int bploc;
 		string rsid;
 		Marker(string chr, string probe, int bp){
-			//sysprobe = s;
 			probe_id = probe;
 			if(chr == "X" || chr == "x"){
 				chrom = opts::_CHRX_;
@@ -134,8 +131,7 @@ class Marker{
             } else {
                alleles.at(0) = v;
             }
-	  //  alleles.push_back(v);
-		};//allele1 = v;};
+		};
 
 		void setAllele2(string v){
        if (alleles.size() < 2) {
@@ -143,8 +139,7 @@ class Marker{
             } else {
                alleles.at(1) = v;
             }
-      //alleles.push_back(v);
-		};//allele2 = v;};
+		};
 
     void setReferent(string ref){referent_allele = ref;}
     string getReferent(){return referent_allele;}
@@ -153,17 +148,10 @@ class Marker{
 
 		void addAllele(string v){
 			alleles.push_back(v);
-      // if(alleles.size() > 2){
-      //  micro_sat.set(0);
-      // }
 		};
 
 		bool isMicroSat(){
       return (alleles.size() > 2) ? true : false;
-      // if(micro_sat[0]){
-      //  return true;
-      // }
-      // return false;
 		};
 
 		int getAlleleLoc(string v){
@@ -185,25 +173,17 @@ class Marker{
 		bool isEnabled(){return enabled;};
 		bool isFlagged(){return flag;};
 		string getAllele1(){
-      // if(alleles.empty()) {
-      //  this->setAllele1("");
-      // }
-      // return alleles.at(0);
 			if(alleles.size() == 0) {
         return "";
 			}
       return alleles[0];
-		};//return allele1;};
+		};
 		string getAllele2() {
-      // if(alleles.size() < 2){
-      //  this->setAllele2("");
-      // }
-      // return alleles.at(1);
 			if(alleles.size() < 2){
         return "";
 			}
       return alleles[1];
-		};//return allele2;};
+		};
 
 		int getNumAlleles(){
 			return alleles.size();
@@ -215,9 +195,7 @@ class Marker{
 			if(l >= (int)alleles.size()){
 				cerr << l << " is > " << alleles.size() << endl;
 			}
-      // Possible solution for segfault.
-      // return alleles.at(l);
-      return alleles[l];
+		return alleles[l];
 		};
 		void resetAllele1(string a1){
 			alleles[0] = a1;

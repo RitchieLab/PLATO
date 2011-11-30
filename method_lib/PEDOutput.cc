@@ -92,15 +92,15 @@ void PEDOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 
-	string fname1 = opts::_OUTPREFIX_ + "input_ped" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "input_ped" + options.getOut() + ".txt";
 	if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".txt";
 	}
-	string fname2 = opts::_OUTPREFIX_ + "input_ped_map" + options.getOut() + ".map";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "input_ped_map" + options.getOut() + ".map";
 	if(options.getOverrideOut().size() > 0){
 		fname2 = options.getOverrideOut() + ".map";
 	}
-	string fname3 = opts::_OUTPREFIX_ + "input_ped_map" + options.getOut() + ".description";//getString<int>(order) + ".description";
+	string fname3 = opts::_OUTPREFIX_ + "input_ped_map" + options.getOut() + ".description";
 	if(options.getOverrideOut().size() > 0){
 		fname3 = options.getOverrideOut() + ".description";
 	}
@@ -117,17 +117,14 @@ void PEDOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	ofstream mdout (fname3.c_str());
 	if(!pout){
 		opts::printLog("Error opening " + fname1 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname1 + ". Exiting!\n");
 	}
 	if(!mout){
 		opts::printLog("Error opening " + fname2 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname2 + ". Exiting!\n");
 	}
 	if(!mdout){
 		opts::printLog("Error opening " + fname3 + ". Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname3 + ". Exiting!\n");
 	}
 	bool first = true;
@@ -208,48 +205,15 @@ void PEDOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		else{
 			pout << samp->getPheno() << "\t";
 		}
-		//if(samp->getAffected()){
-		//	pout << "2\t";
-		//}
-		//else{
-		//	pout << "1\t";
-		//}
-//		int prev_base = 0;
-//		int prev_chrom = -1;
 		bool first_marker = true;
 		for(int i = 0; i < msize; i++){
-			//Marker* mark = (*markers)[mloc];
-			Marker* mark = good_markers[i];//(*markers)[i];
+			Marker* mark = good_markers[i];
 			if(mark == NULL){
-				//cout << "Marker not found: " << i << endl;
 				continue;
 			}
 			if(!mark->isEnabled()){
 				continue;
 			}
-/*			if(options.doChrom()){
-				if(!options.checkChrom(mark->getChrom())){
-					continue;
-				}
-				if(!options.checkBp(mark->getBPLOC())){
-					continue;
-				}
-			}
-            if(options.doBpSpace()){
-	            if(prev_base == 0){
-		            prev_base = mark->getBPLOC();
-		            prev_chrom = mark->getChrom();
-		        }
-            	else{
-            		if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-            			mark->setFlag(true);
-						continue;
-            		}
-            		prev_base = mark->getBPLOC();
-            		prev_chrom = mark->getChrom();
-            	}
-            }
-*/
 
 			if(first){
 				mout << mark->getChrom() << "\t" << mark->getProbeID() << "\t" << mark->getBPLOC() << endl;
@@ -352,42 +316,14 @@ void PEDOutput::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		for(iter = dummy.begin(); iter != dummy.end(); iter++){
 			pout << iter->first << iter->second;
 
-//			int prev_base = 0;
-//			int prev_chrom = -1;
 			for(int i = 0; i < msize; i++){
-			//Marker* mark = (*markers)[mloc];
-				Marker* mark = good_markers[i];//(*markers)[i];
+				Marker* mark = good_markers[i];
 				if(mark == NULL){
-				//cout << "Marker not found: " << i << endl;
 					continue;
 				}
 				if(!mark->isEnabled()){
 					continue;
 				}
-/*				if(options.doChrom()){
-					if(!options.checkChrom(mark->getChrom())){
-						continue;
-					}
-					if(!options.checkBp(mark->getBPLOC())){
-						continue;
-					}
-				}
-            	if(options.doBpSpace()){
-	           		if(prev_base == 0){
-		            	prev_base = mark->getBPLOC();
-		            	prev_chrom = mark->getChrom();
-		        	}
-            		else{
-            			if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-            				mark->setFlag(true);
-							continue;
-            			}
-            			prev_base = mark->getBPLOC();
-            			prev_chrom = mark->getChrom();
-            		}
-
-            	}
-*/
 				pout << "0 0 ";
 			}
 			pout << "\n";
@@ -407,29 +343,5 @@ int PEDOutput::map_sex(char c){
 	}
 	return 2;
 }
-
-/*string PEDOutput::map_allele(string a){
-	if(options.doAllele1234()){
-		if(a == "A"){
-			return "1";
-		}
-		else if(a == "C"){
-			return "2";
-		}
-		else if(a == "G"){
-			return "3";
-		}
-		else if(a == "T"){
-			return "4";
-		}
-		else if(a == opts::_NOCALL_){
-			return "0";
-		}
-		else{
-			return "0";
-		}
-	}
-	return a;
-}*/
 
 }

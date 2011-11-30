@@ -56,44 +56,11 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	samples = s;
 	marker_map = mm;
 
-  //// 	int ssize = samples->size();
 	int msize = markers->size();
 	int fsize = families->size();
 
-////	int prev_base = 0;
-////	int prev_chrom = -1;
 	int numgoodmarkers = 0;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
-//	for(int i = 0; i < msize; i++){
-//		Marker* mark = (*markers)[i];
-//		if(mark->isEnabled()){
-//			if(options.doChrom()){
-//				if(!options.checkChrom(mark->getChrom())){
-//					mark->setFlag(true);
-//				    continue;
-//			    }
-//			    if(!options.checkBp(mark->getBPLOC())){
-//					mark->setFlag(true);
-//				    continue;
-//			    }
-//			}
-//            if(options.doBpSpace()){
-//	            if(prev_base == 0){
-//	                prev_base = mark->getBPLOC();
-  //                  prev_chrom = mark->getChrom();
-//                }
-//                else{
-//	                if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-//		    			mark->setFlag(true);
-//						continue;
-//	                }
-//	                prev_base = mark->getBPLOC();
-//	                prev_chrom = mark->getChrom();
- //               }
-//			}
-//			numgoodmarkers++;
-//		}
-//	}
 	numgoodmarkers = good_markers.size();
 	msize = good_markers.size();
 	int numfams = 0;
@@ -123,10 +90,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 		Helpers::printFamsToDigit(families, "input_lapis", options);
 	}
 
-////	int parents = 0;
-////	int stotal = 0;
-
-	string fname1 = opts::_OUTPREFIX_ + "input_lapis" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "input_lapis" + options.getOut() + ".txt";
     if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".txt";
 	}
@@ -137,7 +101,6 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	ofstream str (fname1.c_str());
 	if(!str.is_open()){
 		opts::printLog("Unable to open " + fname1 + " for output!\n");
-		//exit(1);
 		throw MethodException("Unable to open " + fname1 + " for output!\n");
 	}
     time_t rawtime;
@@ -158,8 +121,8 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 	af->setOptions(options);
 	af->flagSamples();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];//(*markers)[m];
-		if(mark->isEnabled()){// && !mark->isFlagged()){
+		Marker* mark = good_markers[m];
+		if(mark->isEnabled()){
 			str << "3 " << mark->getNumAlleles() << " " << mark->getChrom() << " " << mark->getProbeID() << endl;
 			af->calcOne(mark);
 			if(mark->getNumAlleles() < 3){
@@ -217,7 +180,7 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 			else{
 				str << "CEN";
 			}
-			str << endl;//fam->getCenter() << endl;
+			str << endl;
 			for(int s = 0; s < fssize; s++){
 				Sample* samp = (*fsamps)[s];
 				if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
@@ -237,11 +200,10 @@ void LAPISOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
 					else{
 						str << " " << "U";
 					}
-//					str << " " << "U";
 
 					for(int m = 0; m < msize; m++){
-						Marker* mark = good_markers[m];//(*markers)[m];
-						if(mark->isEnabled()){// && !mark->isFlagged()){
+						Marker* mark = good_markers[m];
+						if(mark->isEnabled()){
 							int mloc = mark->getLoc();
 							if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doZeroDisabled())){
 								str << " 0 0";

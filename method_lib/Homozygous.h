@@ -13,10 +13,7 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "Options.h"
 #include "General.h"
 #include "StepOptions.h"
@@ -26,7 +23,7 @@
 using namespace std;
 
 namespace Methods{
-class Homozygous {//: public Process{
+class Homozygous {
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -35,8 +32,6 @@ class Homozygous {//: public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -107,14 +102,11 @@ class Homozygous {//: public Process{
 		};
 		~Homozygous(){
 		};
-		//void process(Connection*, Families*, Markers*);
-		//
 		vector<string> get_filenames(){return filenames;}
 		void PrintSummary();
 		void filter();
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void setOptions(StepOptions o){
 			options = o;
@@ -132,18 +124,12 @@ class Homozygous {//: public Process{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		//void process(Families*, Markers*);
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
         void setOrder(int o){order = o;};
 		double checkSequence(int, int, int&, int&, double&);
-//		vector<int> findCommonRoh(Sample*, vector<Marker*>*, vector<int>*);
 		void process_wgha();
 		vector<Marker*> enabledMarkers();
 		void setOverwrite(bool v){overwrite = v;};

@@ -30,7 +30,6 @@ static const int SR_FAMILYDATA = 40;
 #define ENZ_IGHET 70
 #define ENZ_IGTOT 80
 
-//#define _MYTMP_ "/tmp";
 	typedef struct{
 		int famid;
 		int ind;
@@ -96,7 +95,6 @@ static const int SR_FAMILYDATA = 40;
 			float quality_score;
 			int qual_score_total;
 			int ge_male_genos;
-		//	int qs_total_all[50];
 			int qs_total_het[50];
 			int qs_total_maj[50];
 			int qs_total_min[50];
@@ -216,7 +214,6 @@ static const int SR_FAMILYDATA = 40;
 			int controls_used_f;
 			int controls_used_m;
 
-//			char major[2];
 		} allele_struct_data;
 };												
 #endif

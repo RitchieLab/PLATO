@@ -13,47 +13,12 @@
 
 #include "MultComparison.h"
 namespace Methods{
-// ## QQ plots: concentration bands
-
-// > n <- 5000
-// > j <- 1:n
-// > x <- (j-0.5)/n
-// > d <- sort( runif(n) )
-// > plot( -log10(x) , -log10(d) , ylim = range(0,8) , xlim=range(0,8) )
-// > lines(-log10(x),-log10(qbeta( 0.05 , j , ( n - j + 1 ) , ncp = d ) ),col="blue")
-// > lines(-log10(x),-log10(qbeta( 0.95 , j , ( n - j + 1 ) , ncp = d ) ),col="blue")
-
-
-
-/*void pprint(ofstream & MT, double p)
-{
-  MT << setw(10);
-
-  if ( p == 0 )
-    MT << "INF";
-  else if( p < 0 )
-    MT << "NA";
-  else
-    {
-      if ( par::logscale )
-	{
-	  double lp = -log10(p);
-	  if ( lp <= 0 ) lp = 0;
-	  MT << lp;
-	}
-      else
-	MT << p;
-    }
-  MT << " ";
-}*/
 
 void MultComparison::calculate(vector<double> & chi, vector<int> & tcnt)
 {
 
   if (tcnt.size() > 0 && tcnt.size() != chi.size() )
      throw MethodException("Internal problem in multiple comparison routine");
-
-  //printLOG("Computing corrected significance values (FDR, Sidak, etc)\n");
 
   bool altern_pval = tcnt.size() > 0;
 
@@ -150,12 +115,6 @@ void MultComparison::calculate(vector<double> & chi, vector<int> & tcnt)
     }
 
   // Base adjust values on GC p-values?
- /// if (par::use_GC)
- ///   {
- ///     printLOG("Using genomic-controlled p-values for adjusted p-values\n");
- ///     for (int i=0; i<ti; i++)
-///	sp[i].p = pv_GC[i];
-///    }
 
   // Holm
   pv_holm[0] = sp[0].p*t > 1 ? 1 : sp[0].p*t;

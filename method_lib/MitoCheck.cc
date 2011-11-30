@@ -27,27 +27,13 @@
 #include <fstream>
 #include <math.h>
 #include "MitoCheck.h"
-//#include "Chrom.h"
 #include "General.h"
 #include "Helpers.h"
 namespace Methods{
 string MitoCheck::stepname = "mito-check";
 
 void MitoCheck::calcThreshold(){
-/*	int nummarkers = markers->getNumOfType("X");
-	int numfams = families->getSize();
-	int nummales = families->getNumMales();
-
-	if(marker_thresh == -1.0){
-		marker_thresh = (int)((float)nummales * error_rate) + 1;
-	}
-	if(ind_thresh == -1.0){
-		ind_thresh = (int)((float)nummarkers * error_rate) + 1;
-	}
-*/
 }
-
-
 
 void MitoCheck::Tokenize(const string& str, vector<string>& tokens, const string& delimiter){
     string::size_type lastPos = str.find_first_not_of(delimiter, 0);
@@ -68,7 +54,7 @@ void MitoCheck::PrintSummary(){
 	int msize = markers->size();
 	int ssize = samples->size();
 
-	string fname1 = opts::_OUTPREFIX_ + "mito_check_marker" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "mito_check_marker" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
@@ -102,7 +88,7 @@ void MitoCheck::PrintSummary(){
 				<< merrors[i] << endl;
 		}
 	}
-	string fname2 = opts::_OUTPREFIX_ + "mito_check_ind" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "mito_check_ind" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname2 += "." + getString<int>(order);
 	}
@@ -170,7 +156,7 @@ void MitoCheck::PrintSummary(){
 		Sample* child = (*samples)[i];
 		Sample* mom = child->getMom();
 		for(int j = 0; j < (int)error_map[i].size(); j++){
-			Marker* mark = error_map[i][j];//(*markers)[error_map[i][j]];
+			Marker* mark = error_map[i][j];
 			int loc = mark->getLoc();
 			string ma1;
 			string ma2;
@@ -311,23 +297,6 @@ void MitoCheck::filter(){
 }
 
 void MitoCheck::filter_markers(){
-
-
-/*	MKR* mymarkers = markers->getList();
-	MKR::iterator m_iter;
-
-ofstream myoutput ("gender_errors_markers.txt", ios::out | ios::app);
-	for(m_iter = mymarkers->begin(); m_iter != mymarkers->end();){
-		myoutput << m_iter->second.getChrom() << "\t" <<  m_iter->second.getRSID() << "\t" << m_iter->second.getBPLOC() << "\t" << m_iter->second.getMitoErrors() << endl;
-		if(m_iter->second.getMitoErrors() > marker_thresh){
-			mymarkers->erase(m_iter++);
-		}
-		else{
-			++m_iter;
-		}
-	}
-	myoutput.close();
-*/
 }
 
 
@@ -343,15 +312,12 @@ void MitoCheck::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 }
 void MitoCheck::perform_evaluation(bool dofams){
 	int msize = markers->size();
-//	int fsize = families->size();
 	int ssize = samples->size();
 
 	merrors.resize(msize);
 	serrors.resize(ssize);
 	error_map.resize(ssize);
 
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 	msize = good_markers.size();
 
@@ -360,29 +326,6 @@ void MitoCheck::perform_evaluation(bool dofams){
 			if(good_markers[m]->getChrom() != opts::_MITO_){
 				continue;
 			}
-/*			if(options.doChrom()){
-				if(!options.checkChrom((*markers)[m]->getChrom())){
-				    continue;
-			    }
-		        if(!options.checkBp((*markers)[m]->getBPLOC())){
-			        continue;
-		        }
-		    }
-			if(options.doBpSpace()){
-				if(prev_base == 0){
-            		prev_base = (*markers)[m]->getBPLOC();
-            		prev_chrom = (*markers)[m]->getChrom();
-            	}
-            	else{
-            		if((*markers)[m]->getChrom() == prev_chrom && (((*markers)[m]->getBPLOC() - prev_base) < options.getBpSpace())){
-						(*markers)[m]->setFlag(true);
-						continue;
-					}
-					prev_base = (*markers)[m]->getBPLOC();
-					prev_chrom = (*markers)[m]->getChrom();
-				}
-			}
-*/
 
 			int mloc = good_markers[m]->getLoc();
 			bool micro = good_markers[m]->isMicroSat();

@@ -11,11 +11,9 @@
 #include <string.h>
 #include <string>
 #include <list>
-//#include "Process.h"
 #include "Family.h"
 #include "Marker.h"
 #include "Sample.h"
-//#include "Chrom.h"
 #include "Globals.h"
 #include "Options.h"
 #include "DataSet.h"
@@ -24,7 +22,7 @@
 using namespace std;
 namespace Methods{
 
-class Deletions{// : public Process{
+class Deletions{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -35,8 +33,6 @@ class Deletions{// : public Process{
 		vector<int>* marker_map;
 		StepOptions* options;
 
-//		Markers* markers;
-//		Families* families;
 		int fam_thresh;
 		int marker_thresh;
 		int orig_num_markers;
@@ -63,7 +59,7 @@ class Deletions{// : public Process{
 		vector<int> good_markers;
 
 	public:
-		Deletions(){// : Process(){
+		Deletions(){
 			markers = NULL;
 			samples = NULL;
 			families = NULL;
@@ -112,15 +108,10 @@ class Deletions{// : public Process{
 			density_filename = "";
 		};
 		~Deletions(){data_set = NULL; markers = NULL; families = NULL; marker_map = NULL; samples = NULL; options = NULL;};
-//		virtual ~Deletions(){};
 		string get_default_filename(){return default_filename;}
 		string get_density_filename(){return density_filename;}
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
-		//void PrintSummary();
 		void setOptions(StepOptions* o){
 			options = o;
-			//good_markers = thisfindValidMarkersIndexes(data_set->get_markers(), options);
 
 		};
 		void filter();
@@ -129,16 +120,11 @@ class Deletions{// : public Process{
 		void setThreshold(string thresh);
 		void filter_markers();
 		void perform_evaluation(bool);
-//		void perform_evaluation(Connection*, bool);
 		void FilterSummary();
 		void calcThreshold();
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
         void setDBOUT(){_DBOUTPUT_ = true;};
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};

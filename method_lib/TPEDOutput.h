@@ -25,7 +25,7 @@ using namespace std;
 
 
 namespace Methods{
-class TPEDOutput{// : public Process{
+class TPEDOutput{
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -33,11 +33,7 @@ class TPEDOutput{// : public Process{
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
 		StepOptions options;
-
-//		Markers* markers;
-//		Families* families;
-		int threshold;	
-//		PERCENT per_cutoff;
+		int threshold;
 		int orig_num_markers;
 		int orig_num_families;
 		int orig_num_individuals;
@@ -51,17 +47,6 @@ class TPEDOutput{// : public Process{
 
 	public:
 		TPEDOutput(){
-//			per_cutoff.push_back(100);
-//			per_cutoff.push_back(95);
-//			per_cutoff.push_back(90);
-//			per_cutoff.push_back(85);
-//			per_cutoff.push_back(80);
-//			per_cutoff.push_back(75);
-//			per_cutoff.push_back(70);
-//			per_cutoff.push_back(65);
-//			per_cutoff.push_back(60);
-//			per_cutoff.push_back(55);
-//			per_cutoff.push_back(50);
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -73,17 +58,6 @@ class TPEDOutput{// : public Process{
 			order = 0;
 		};
 		TPEDOutput(int thresh) : threshold(thresh){
-//			per_cutoff.push_back(100);
-//			per_cutoff.push_back(95);
-//			per_cutoff.push_back(90);
-//			per_cutoff.push_back(85);
-//			per_cutoff.push_back(80);
-//			per_cutoff.push_back(75);
-//			per_cutoff.push_back(70);
-//			per_cutoff.push_back(65);
-//			per_cutoff.push_back(60);
-//			per_cutoff.push_back(55);
-//			per_cutoff.push_back(50);
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -95,8 +69,6 @@ class TPEDOutput{// : public Process{
 			order = 0;
 		};
 		~TPEDOutput(){};
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
 		void process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vector<int>* mm);
 		vector<string> get_filenames(){return filenames;}
 		void setOptions(StepOptions o){
@@ -106,7 +78,6 @@ class TPEDOutput{// : public Process{
 			data_set = ds;
 			process(ds->get_samples(), ds->get_families(), ds->get_markers(), ds->get_marker_map());
 		};
-//		PERCENT* getPerCutoff(){return &per_cutoff;};
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};
 		int getOrigNumIndividuals(){return orig_num_individuals;};
@@ -115,12 +86,7 @@ class TPEDOutput{// : public Process{
 		Sample* find_sample(string, string);
 		bool find_marker(string);
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//			families = f;
-//			markers = m;
-//		};
 		int map_sex(char);
-		//string map_allele(string);
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
 		int get_marker_loc(int);

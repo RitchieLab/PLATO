@@ -123,7 +123,6 @@ vector<vector<double> > ChiSquareAllelic::expecteds(vector<vector<int> > & chiTo
   }
 
   float totalinds = float(unaffected) + affected;
-  //double chiscore=0.0; //not used
   // calculate expected for each cell
   vector<vector<double> > expected;
   expected.resize(2);

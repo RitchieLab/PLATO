@@ -30,7 +30,6 @@
 #include <algorithm>
 #include <bitset>
 #include "Deletions.h"
-//#include "Chrom.h"
 #include "General.h"
 #include "Helpers.h"
 
@@ -68,12 +67,6 @@ void Deletions::calcThreshold(){
  * Description:
  * Resets marker flags
  */
-//void Deletions::PrintSummary(){
-//	int msize = markers->size();
-//	for(int i = 0; i < msize; i++){
-//		(*markers)[i]->setFlag(false);
-//	}
-//}
 
 /*
  * Function: process
@@ -89,8 +82,6 @@ void Deletions::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 	calcThreshold();
 cout << "HERE!!!\n";
 	perform_evaluation(false);
-	//resetCounts();
-	//perform_evaluation(false);
 }
 
 void Deletions::zeroErrors(){
@@ -154,107 +145,51 @@ vector<int> Deletions::thisfindValidMarkersIndexes(vector<Methods::Marker*>* mar
  * Does the main processing of deletion detection
  */
 void Deletions::perform_evaluation(bool output){
-//	cout << "Beginning of perfrom_evaluation\n";
 	ofstream myoutput;
 	ofstream myoutputd;
-	string filename = opts::_OUTPREFIX_ + "deletion" + options->getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename = opts::_OUTPREFIX_ + "deletion" + options->getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 	}
 
 	default_filename = filename;
-//cout << "Default filename\n";
 	myoutput.open(filename.c_str(), ios::out);
 	if(!myoutput){
 		opts::printLog("Error opening " + filename + "\n");
-		//exit(1);
 		throw MethodException("Error opening " + filename + "\n");
 	}
 	myoutput << "FamID\tIndID\tChrom\tStart_rsID\tEnd_rsID\tStart_bploc\tEnd_bploc\tBploc_range\tNum_snps\tType\n";
-	string filename2 = opts::_OUTPREFIX_ + "deletion_density" + options->getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename2 = opts::_OUTPREFIX_ + "deletion_density" + options->getOut() + ".txt";
 	if(!overwrite){
 		filename2 += "." + getString<int>(order);
 	}
 	density_filename = filename2;
-//cout << "Density filename\n";
 	myoutputd.open(filename2.c_str(), ios::out);
-//cout << "Density filename2 " << stepname << " : " << filename2 << endl;
 	opts::addFile("Marker", stepname, filename2);
-//cout << "Density filename3\n";
 	if(!myoutputd){
 		opts::printLog("Error opening " + filename2 + "\n");
-		//exit(1);
 		throw MethodException("Error opening " + filename2 + "\n");
 	}
-//cout << "Density filename4\n";
 	myoutputd << "Chrom\trsID\tProbeID\tbploc\t";
-//cout << "Density filename5\n";
 	if(data_set->get_locus(0)->getDetailHeaders().size() > 0){
 		myoutputd << (*markers)[0]->getDetailHeaders() << "\t";
 	}
-//cout << "Detail headers?\n";
 	myoutputd << "Ind_Count" << endl;
 	opts::addHeader(filename2, "Ind_Count");
 
-////	int fsize = families->size();
-	int msize = data_set->num_loci();//markers->size();
-	int ssize = data_set->num_inds();//samples->size();
+	int msize = data_set->num_loci();
+	int ssize = data_set->num_inds();
 	vector<int> marker_counts;
 	marker_counts.resize(0,0);
 	good_markers.resize(0,0);
-//cout << "resize to 0,0\n";
-//	for(int i =0; i < msize; i++){
-//		good_markers.push_back(i);
-//	}
-/*
-	int prev_base = 0;
-	int prev_chrom = -1;
-	msize = markers->size();
-	for(int m = 0; m < msize; m++){
-		Methods::Marker* mark = (*markers)[m];
-		if(mark->isEnabled()){
-			if(options->doChrom()){
-				if(!options->checkChrom(mark->getChrom())){
-					continue;
-				}
-				if(!options->checkBp(mark->getBPLOC())){
-					continue;
-				}
-			}
-			if(options->doBpSpace()){
-				if(prev_base == 0){
-					prev_base = mark->getBPLOC();
-					prev_chrom = mark->getChrom();
-				}
-				else{
-					if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options->getBpSpace())){
-						continue;
-					}
-					prev_base = mark->getBPLOC();
-					prev_chrom = mark->getChrom();
-				}
-			}
-			good_markers.push_back(m);
-		}
-	}
 
-
-
-*/
-//	cout << "Before get good markers\n";
-
-//	good_markers = findValidMarkersIndexes(data_set->get_markers(), options);
-
-//	cout << "After get good markers\n";
-//	msize = good_markers.size();
-//vector<Marker*> good_markers = *markers;
 	marker_counts.resize(msize, 0);
 
 	vector<bool> marker_flags;
 	marker_flags.resize(msize, false);
 
 	for(int s = 0; s < ssize; s++){
-		Sample* samp = data_set->get_sample(s);//(*samples)[s];
+		Sample* samp = data_set->get_sample(s);
 		if(samp->isEnabled() && samp->getDad() != NULL && samp->getMom() != NULL){
 			Sample* mom = samp->getMom();
 			Sample* dad = samp->getDad();
@@ -264,10 +199,7 @@ void Deletions::perform_evaluation(bool output){
 			int prev_base = 0;
 			int prev_chrom = -1;
 
-			//int prev_base = 0;
-			//int prev_chrom = -1;
 			for(int m = 0; m < msize; m++){
-				////Marker* mark = (*markers)[m];
 					Methods::Marker* mark = (*markers)[m];
 					if(mark->isEnabled()){
 						if(options->doChrom()){
@@ -296,12 +228,12 @@ void Deletions::perform_evaluation(bool output){
 						}
 					}
 
-				if(data_set->get_locus(m)->isEnabled()){//good_markers[m])->isEnabled()){//(*markers)[m]->isEnabled() && isValidMarker((*markers)[m], &options, prev_base, prev_chrom)){
+				if(data_set->get_locus(m)->isEnabled()){
 
-					int loc = data_set->get_locus(m)->getLoc();//good_markers[m])->getLoc();//(*markers)[m]->getLoc();
+					int loc = data_set->get_locus(m)->getLoc();
 
 					if(mom && dad && mom->isEnabled() && dad->isEnabled()){
-						Marker* mark = data_set->get_locus(m);//good_markers[m]);//(*markers)[m];
+						Marker* mark = data_set->get_locus(m);
 						if(!mark->isMicroSat()){
 							if(dad->getAone(loc) == dad->getAtwo(loc) && !dad->getAmissing(loc) && dad->getAone(loc) == child->getAone(loc) && child->getAone(loc) == child->getAtwo(loc) && !child->getAmissing(loc) && mom->getAone(loc) == mom->getAtwo(loc) && !mom->getAmissing(loc) && mom->getAone(loc) != child->getAone(loc)){
 								cats[loc] =  'A';
@@ -391,8 +323,8 @@ void Deletions::perform_evaluation(bool output){
 			int currchrom = -1;
 
 			for(int m = 0; m < msize; m++){
-				Marker* mark = data_set->get_locus(m);//good_markers[m]);//(*markers)[m];
-				if(mark->isEnabled() && !marker_flags[m]){// && !mark->isFlagged()){
+				Marker* mark = data_set->get_locus(m);
+				if(mark->isEnabled() && !marker_flags[m]){
 					int loc = mark->getLoc();
 					if(currchrom == -1){
 						currchrom = mark->getChrom();
@@ -402,8 +334,8 @@ void Deletions::perform_evaluation(bool output){
 						//output span
 						if(matspan >= options->getDeletionSpan()){
 							for(int l = markstartmat_loc; l <= markendmat_loc; l++){
-								Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-								if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+								Marker* temp = data_set->get_locus(l);
+								if(temp->isEnabled() && !marker_flags[l]){
 									marker_counts[l]++;
 								}
 							}
@@ -411,8 +343,8 @@ void Deletions::perform_evaluation(bool output){
 						}
 						if(patspan >= options->getDeletionSpan()){
 							for(int l = markstartpat_loc; l <= markendpat_loc; l++){
-								Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-								if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+								Marker* temp = data_set->get_locus(l);
+								if(temp->isEnabled() && !marker_flags[l]){
 									marker_counts[l]++;
 								}
 							}
@@ -442,8 +374,8 @@ void Deletions::perform_evaluation(bool output){
 
 						if(patspan >= options->getDeletionSpan()){
 							for(int l = markstartpat_loc; l <= markendpat_loc; l++){
-								Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-								if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+								Marker* temp = data_set->get_locus(l);
+								if(temp->isEnabled() && !marker_flags[l]){
 									marker_counts[l]++;
 								}
 							}
@@ -466,8 +398,8 @@ void Deletions::perform_evaluation(bool output){
 
 						if(matspan >= options->getDeletionSpan()){
 							for(int l = markstartmat_loc; l <= markendmat_loc; l++){
-								Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-								if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+								Marker* temp = data_set->get_locus(l);
+								if(temp->isEnabled() && !marker_flags[l]){
 									marker_counts[l]++;
 								}
 							}
@@ -482,8 +414,8 @@ void Deletions::perform_evaluation(bool output){
 					else{
 						if(matspan >= options->getDeletionSpan()){
 							for(int l = markstartmat_loc; l <= markendmat_loc; l++){
-								Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-								if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+								Marker* temp = data_set->get_locus(l);
+								if(temp->isEnabled() && !marker_flags[l]){
 									marker_counts[l]++;
 								}
 							}
@@ -491,8 +423,8 @@ void Deletions::perform_evaluation(bool output){
 						}
 						if(patspan >= options->getDeletionSpan()){
 							for(int l = markstartpat_loc; l <= markendpat_loc; l++){
-								Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-								if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+								Marker* temp = data_set->get_locus(l);
+								if(temp->isEnabled() && !marker_flags[l]){
 									marker_counts[l]++;
 								}
 							}
@@ -515,8 +447,8 @@ void Deletions::perform_evaluation(bool output){
 
 			if(patspan >= options->getDeletionSpan()){
 				for(int l = markstartpat_loc; l <= markendpat_loc; l++){
-					Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-					if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+					Marker* temp = data_set->get_locus(l);
+					if(temp->isEnabled() && !marker_flags[l]){
 						marker_counts[l]++;
 					}
 				}
@@ -524,8 +456,8 @@ void Deletions::perform_evaluation(bool output){
 			}
 			if(matspan >= options->getDeletionSpan()){
 				for(int l = markstartmat_loc; l <= markendmat_loc; l++){
-					Marker* temp = data_set->get_locus(l);//good_markers[l]);//(*markers)[l];
-					if(temp->isEnabled() && !marker_flags[l]){// && !temp->isFlagged()){
+					Marker* temp = data_set->get_locus(l);
+					if(temp->isEnabled() && !marker_flags[l]){
 						marker_counts[l]++;
 					}
 				}
@@ -533,11 +465,10 @@ void Deletions::perform_evaluation(bool output){
 			}
 		}
 	}
-//cout << marker_counts.size() << " : " << good_markers.size() << endl;
 	for(int i = 0; i < (int)marker_counts.size(); i++){
-		Marker* mark = data_set->get_locus(i);//good_markers[i]);//(*markers)[good_markers[i]];//(*markers)[i];
+		Marker* mark = data_set->get_locus(i);
 		if(mark != NULL){
-		if(mark->isEnabled() && !marker_flags[i]){// && !mark->isFlagged()){
+		if(mark->isEnabled() && !marker_flags[i]){
 			myoutputd << mark->toString() << "\t" << marker_counts[i] << endl;
 		}
 		}

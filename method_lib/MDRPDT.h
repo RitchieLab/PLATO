@@ -9,7 +9,6 @@
 
 #include "mdrpdt/tstatistic.h"
 #include "mdrpdt/ptestdistribution.h"
-// #include "familyrepository.h"
 #include "mdrpdt/genotyperepository.h"
 #include "mdrpdt/MDRPDTRepository.h"
 #include "mdrpdt/evaluationmethod.h"
@@ -27,8 +26,7 @@ class MDRPDT{
     ~MDRPDT();
 
     /// runs MDR-PDT on the locus index passed
-    void calculate(unsigned int locus);//{calculate(dataset->get_locus(locus));};
-//    void calculate(Marker*);
+    void calculate(unsigned int locus);
 
     /// runs MDR-PDT on the loci passed in the vector
     void  calculate(vector<unsigned int>& loci);

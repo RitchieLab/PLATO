@@ -32,13 +32,6 @@ bool ComboGenerator::GenerateCombinations(){
   // Clear the ComboList!!! Very important, or Memory will overflow
   ComboList.clear();
 
-//   if(NumLoci == ComboStart and ComboStart == ComboEnd){
-//     ComboList.push_back(std::vector <unsigned int>());
-//     for(int i=0; i<NumLoci; i++){
-//       ComboList[0].push_back(i);
-//     }
-//     return true;
-//   }
   counter = 0;  // counter for the number of combinations created
 
   if(AlreadyStarted)   // If combination generator has already been started
@@ -48,21 +41,9 @@ bool ComboGenerator::GenerateCombinations(){
   }
   else{
     kdec = ComboEnd;
-//     x = 0;
-//     j = kdec;
-//     
-//     if(NumLoci == ComboEnd){
-//       j=0;
-//     }
     
     c = new int[ComboEnd+3];
 
-//     for(int i=1; i <= kdec; i++)
-//     {
-//       c[i] = i;
-//     }
-//     c[kdec+1] = NumLoci+1;
-//     c[kdec+2] = 0;
   }
 
   AlreadyStarted = true;  // If it wasn't already started, it is now
@@ -202,7 +183,6 @@ bool ComboGenerator::AdvanceParameters(){
 
   resume:
             // Add a new combination to the ComboList
-//       ComboList.push_back(std::vector <unsigned int>());
 
       counter++;
       if (j > 0) {x = j+1; goto incr;}
@@ -225,7 +205,6 @@ bool ComboGenerator::AdvanceParameters(){
           kdec--;
 
     // Remove the last empty combination before quitting
-//           ComboList.pop_back();
           goto init;
       }
 
@@ -288,7 +267,6 @@ void ComboGenerator::SetComboInterval(int cmbInterval){
 void ComboGenerator::ComboEnds(int combStart, int combEnd){
   ComboStart = combStart;
   ComboEnd = combEnd;
-//  initialize();
 }
 
 ///

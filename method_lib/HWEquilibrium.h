@@ -18,7 +18,6 @@
 #include "Family.h"
 #include "Sample.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "Options.h"
 #include "StepOptions.h"
 
@@ -34,8 +33,6 @@ class HWEquilibrium{
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
 		StepOptions options;
-//		Markers* markers;
-//		Families* families;
 		float threshold;	
 		int orig_num_markers;
 		int orig_num_families;
@@ -95,7 +92,6 @@ class HWEquilibrium{
 			markers = NULL;
 			samples = NULL;
 			marker_map = NULL;
-			//af = new AlleleFrequency();
 			rank = 0;
 			_MARKERLIST_ = false;
 			_DBOUTPUT_ = false;
@@ -110,7 +106,7 @@ class HWEquilibrium{
 			samples = ds->get_samples();
 			markers = ds->get_markers();
 			marker_map = ds->get_marker_map();
-			af = new AlleleFrequency(ds);//samples, families);
+			af = new AlleleFrequency(ds);
 			order = 0;
 			rank = 0;
 			orig_num_markers = 0;
@@ -121,7 +117,6 @@ class HWEquilibrium{
 			markers = NULL;
 			samples = NULL;
 			marker_map = NULL;
-			//af = new AlleleFrequency();
 			rank = 0;
 			_MARKERLIST_ = false;
 			_DBOUTPUT_ = false;
@@ -131,19 +126,14 @@ class HWEquilibrium{
 			useoverall = false;
 		};
 		~HWEquilibrium(){
-			//if(af){
-			//delete(af);
-		//	}
 		};
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
 		void resetDataSet(DataSet* ds){
 			data_set = ds;
 			families = ds->get_families();
 			samples = ds->get_samples();
 			markers = ds->get_markers();
 			marker_map = ds->get_marker_map();
-			af = new AlleleFrequency(ds);//samples, families);
+			af = new AlleleFrequency(ds);
 			af->setOptions(options);
 			orig_num_markers = 0;
 		};
@@ -152,16 +142,12 @@ class HWEquilibrium{
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void setOptions(StepOptions o){
 			options = o;
 			if(options.doRandomChild() || options.doAll() || options.doAllChildren()){
 				useoverall = true;
 			}
-			//else{
-			//    options.setFoundersOnly();
-		    //}
 			af->setOptions(options);
 		};
 		void FilterSummary();
@@ -170,10 +156,6 @@ class HWEquilibrium{
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
         void setDBOUT(){_DBOUTPUT_ = true;};
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};

@@ -36,9 +36,6 @@
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 namespace Methods{
 string ClusterMissing::stepname = "cluster-missing";
 
@@ -84,8 +81,6 @@ int ClusterMissing::calcPairLocus(int s1, int s2, int m){
 
 double ClusterMissing::calcPairAverage(int s1, int s2){
 	comparisons = 0;
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	Sample* samp1 = data_set->get_sample(s1);
 	Sample* samp2 = data_set->get_sample(s2);
 
@@ -93,10 +88,10 @@ double ClusterMissing::calcPairAverage(int s1, int s2){
 	int num_loci = 0;
 
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
-	int msize = good_markers.size();//data_set->num_loci();
+	int msize = good_markers.size();
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];//data_set->get_locus(m);
-		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+		Marker* mark = good_markers[m];
+		if(mark->isEnabled()){
 			int mloc = mark->getLoc();
 			if((samp1->getAone(mloc) && samp1->getAtwo(mloc) && samp1->getAmissing(mloc))
 					|| (samp2->getAone(mloc) && samp2->getAtwo(mloc) && samp2->getAmissing(mloc))){
@@ -121,10 +116,6 @@ double ClusterMissing::calcPairAverage(int s1, int s2){
 }
 
 void ClusterMissing::calcOne(int m){
-//	Marker* mark = data_set->get_locus(m);
-//	int mloc = mark->getLoc();
-
-
 }
 
 void ClusterMissing::calculate(string file_prefix, string file_suffix){
@@ -176,7 +167,6 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 
 				double dst = calcGenomeIBM(data_set->get_sample(i1), data_set->get_sample(i2));
 				mdist[i2][i1] = dst;
-//				cout << i2 << ":" << i1 << ":" << dst << endl;
 				if(pv < merge_p && Helpers::realnum(pv)){
 					pairable[i1][i2] = pairable[i2][i1] = false;
 					prop_sig_diff[i1]++;
@@ -224,7 +214,6 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 	vector<double> hist(1);
 
 	// Build solution
-//cl?????
 	for(int i = 0; i < (int)cl.size(); i++){
 		for(int j = 0; j < (int)cl[i].size(); j++){
 			sol[cl[i][j]][0] = i;
@@ -251,13 +240,13 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 				// Are these individuals/clusters more similar AND pairable?
 				if(d > dmin && pairable_cluster(pairable, cl[i], cl[j])){
 					//And will the max cluster size requirement be fulfilled?
-					if(options.getMaxClusterSize() == 0 || ((int)(cl[i].size()+cl[j].size()) <= options.getMaxClusterSize())){ //0
+					if(options.getMaxClusterSize() == 0 || ((int)(cl[i].size()+cl[j].size()) <= options.getMaxClusterSize())){
 						//And will the basic phenotypic matching requirement be fulfilled?
-						if(!options.getClusterOnPheno()){// || (!homogeneous_clusters((*this), cl[i], cl[j])))
+						if(!options.getClusterOnPheno()){
 							//What about the --mcc clustering
-							if(!options.getClusterOnMcc()){// || spec_clusters((*this), cl[i], cl[j])) //true/false
+							if(!options.getClusterOnMcc()){
 								//And what about pick1 constraints? (this must be final constraint)
-								if(!options.getClusterSelcon()){ //||selcon_inds((*this), cl[i], cl[j], selcon)){ //true/false
+								if(!options.getClusterSelcon()){
 									imin = i;
 									jmin = j;
 									dmin = d;
@@ -324,7 +313,6 @@ void ClusterMissing::calculate(string file_prefix, string file_suffix){
 
 	CLST.close();
 	//Best solution is final solution
-////	int best = hist.size() - 1;
 
 	opts::printLog("Writing cluster solution (3)\n");
 	f = file_prefix + "cluster3.missing" + file_suffix;

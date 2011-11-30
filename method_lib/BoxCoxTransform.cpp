@@ -327,8 +327,6 @@ double BoxCoxTransform::Transform(double val, double lambda){
 /// @throws MethodException when value is negative
 ///
 double BoxCoxTransform::Undo(double val, double lambda){
-//   if(val < 0)
-//     throw MethodException("Negative value passed to BoxCox Undo");
   
   if(fabs(lambda) > 0.000001)
     return pow((val * lambda)+1, 1/lambda);

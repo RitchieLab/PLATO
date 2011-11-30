@@ -34,9 +34,6 @@
 #include "AlleleFrequency.h"
 #include "ChiSquareAllelic.h"
 #include "cdflib.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 namespace Methods{
 string Homozygous::stepname = "homozygous";
 
@@ -54,14 +51,13 @@ void Homozygous::PrintSummary(){
 		return;
 	}
 	if(!options.doHomozygWGHA()){
-		string filename = opts::_OUTPREFIX_ + "homozygous_marker" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		string filename = opts::_OUTPREFIX_ + "homozygous_marker" + options.getOut() + ".txt";
 		if(!overwrite){
 			filename += "." + getString<int>(order);
 		}
 		ofstream homo (filename.c_str());
 		if(!homo.is_open()){
 			opts::printLog("Unable to open " + filename + "\n");
-			//exit(1);
 			throw MethodException("Unable to open " + filename + "\n");
 		}
 		opts::addFile("Marker", stepname, filename);
@@ -92,11 +88,10 @@ void Homozygous::filter(){
 double Homozygous::checkSequence(int begin, int end, int &numfounders, int &numchildren, double &perinseq){
 	double prob = -1.0f;
 
-	////int count = 0;
 	vector<double> freq1;
 	vector<double> freq2;
 	for(int m = begin; m <= end; m++){
-		Marker* mark = good_markers[m];//(*markers)[m];
+		Marker* mark = good_markers[m];
 		if(mark->isEnabled()){
 			int mloc = mark->getLoc();
 			int a1 = 0;
@@ -155,7 +150,7 @@ double Homozygous::checkSequence(int begin, int end, int &numfounders, int &numc
 			int hcount = 0;
 			bool bad = false;
 			for(int m = begin; m <= end; m++){
-				Marker* mark = good_markers[m];//(*markers)[m];
+				Marker* mark = good_markers[m];
 				if(mark->isEnabled()){
 					int mloc = mark->getLoc();
 					if(samp->getAone(mloc)){
@@ -197,18 +192,17 @@ double Homozygous::checkSequence(int begin, int end, int &numfounders, int &numc
 
 vector<Marker*> Homozygous::enabledMarkers(){
 	vector<Marker*> enabled;
-	for(int i = 0; i < (int)good_markers.size(); i++){//(int)markers->size(); i++){
+	for(int i = 0; i < (int)good_markers.size(); i++){
 		if(good_markers[i]->isEnabled()){
-			enabled.push_back(good_markers[i]);//(*markers)[i]);
+			enabled.push_back(good_markers[i]);
 		}
 	}
 	return enabled;
 }
 
 void Homozygous::process_wgha(){
-	int msize = good_markers.size();//markers->size();
+	int msize = good_markers.size();
 	int ssize = samples->size();
-////	int fsize = families->size();
 	homoallcount.resize(msize, 0);
 
 	vector<Marker*> enabledmarkers = enabledMarkers();
@@ -224,23 +218,20 @@ void Homozygous::process_wgha(){
 			Marker* endmark = NULL;
 			samp->resizeRoh(enabledmarkers.size());
 			for(int i = 0; i < msize; i++){
-				//int loc = (*marker_map)[i];
-//				int prev_base = 0;
-//				int prev_chrom = -1;
-				int loc = good_markers[i]->getLoc();//(*markers)[i]->getLoc();
-				if(good_markers[i]->getLoc()){//(*markers)[i]->isEnabled() && isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
+				int loc = good_markers[i]->getLoc();
+				if(good_markers[i]->getLoc()){
 					if(currchrom == -1){
-						currchrom = good_markers[i]->getChrom();//(*markers)[i]->getChrom();
+						currchrom = good_markers[i]->getChrom();
 					}
 
-					if(currchrom != good_markers[i]->getChrom()){//(*markers)[i]->getChrom()){
+					if(currchrom != good_markers[i]->getChrom()){
 						//output data
 						if(spancount >= options.getHomozygSpan()){
 							for(int r = startloc; r <= endloc; r++){
 								samp->setRoh(r, true);
 							}
 						}
-						currchrom = good_markers[i]->getChrom();//(*markers)[i]->getChrom();
+						currchrom = good_markers[i]->getChrom();
 						startmark = NULL;
 						endmark = NULL;
 						startloc = -1;
@@ -319,7 +310,6 @@ void Homozygous::process_wgha(){
 
 	//remove < 10
 	for(int m = 0; m < (int)enabledmarkers.size(); m++){
-////		Marker* mark = enabledmarkers[m];
 		int count = 0;
 		for(int s = 0; s < ssize; s++){
 			Sample* samp = (*samples)[s];
@@ -395,7 +385,7 @@ void Homozygous::process_wgha(){
 	}
 
 
-	string filename = opts::_OUTPREFIX_ + "homozygous_wgha" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename = opts::_OUTPREFIX_ + "homozygous_wgha" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 	}
@@ -405,11 +395,10 @@ void Homozygous::process_wgha(){
 	ofstream output (filename.c_str());
 	if(!output.is_open()){
 		opts::printLog("Unable to open " + filename + "\n");
-		//exit(1);
 		throw MethodException("Unable to open " + filename + "\n");
 	}
 	output << "Chrom\tStart_rsID\tStart_bploc\tEnd_rsID\tEnd_bploc\tbploc_span\tNum_snps\tCaseFound:CaseNotFound (expected)\tControlFound:ControlNotFound (expected)\tCase_Minor_Count\tCase_Major_Count\tControl_Minor_Count\tControl_Major_Count\tCase_Strict_Hom\tControl_Strict_Hom\tChisq\tPval\n";
-	string cfilename = opts::_OUTPREFIX_ + "homozygous_wgha_counts" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string cfilename = opts::_OUTPREFIX_ + "homozygous_wgha_counts" + options.getOut() + ".txt";
 	if(!overwrite){
 		cfilename += "." + getString<int>(order);
 	}
@@ -419,7 +408,6 @@ void Homozygous::process_wgha(){
 	ofstream coutput (cfilename.c_str());
 	if(!coutput.is_open()){
 		opts::printLog("Unable to open " + cfilename + "\n");
-		//exit(1);
 		throw MethodException("Unable to open " + cfilename + "\n");
 	}
 	opts::addFile("Marker",stepname, cfilename);
@@ -432,7 +420,7 @@ void Homozygous::process_wgha(){
 			coutput << mark->toString() << "\t" << homoallcount[m] << endl;
 		}
 	}
-	string sfilename = opts::_OUTPREFIX_ + "homozygous_wgha_cases" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string sfilename = opts::_OUTPREFIX_ + "homozygous_wgha_cases" + options.getOut() + ".txt";
 	if(!overwrite){
 		sfilename += "." + getString<int>(order);
 	}
@@ -442,7 +430,6 @@ void Homozygous::process_wgha(){
 	ofstream soutput (sfilename.c_str());
 	if(!soutput.is_open()){
 		opts::printLog("Unable to open " + sfilename + "\n");
-		//exit(1);
 		throw MethodException("Unable to open " + sfilename + "\n");
 	}
 	soutput << "Chrom\tStartProbe\tStartBPLOC\tEndProbe\tEndBPLOC\tLength\tNumSnps\n";
@@ -536,14 +523,10 @@ void Homozygous::process_wgha(){
 		vector<vector<double> > expected = csa.expecteds(chitotals);
 
 		double results, df = 1;
-//		int code = 1, status;
-		//cdfchi(&code, &p, &results, &chi1, &df, &status, &bound);
 		results = Helpers::p_from_chi(chi1, df);
 
-		//output << startmark->getChrom() << "\t" << startmark->getProbeID() << "\t" << startmark->getBPLOC() << "\t" << endmark->getProbeID() << "\t" << endmark->getBPLOC() << "\t" << difference << "\t" << nummarks << "\t" << casecount << " (" << case_exp << ")" << "\t" << controlcount << " (" << control_exp << ")\t" << chi1 << "\t" << results << endl;
 		output << startmark->getChrom() << "\t" << startmark->getProbeID() << "\t" << startmark->getBPLOC() << "\t" << endmark->getProbeID() << "\t" << endmark->getBPLOC() << "\t" << difference << "\t" << nummarks << "\t" << casecount << ":" << (casetotal - casecount) << " (" << expected[1][1] << ":" << expected[1][0] << ")\t" << controlcount << ":" << (controltotal - controlcount) << " (" << expected[0][1] << ":" << expected[0][0] << ")\t" << casemincount << "\t" << casemajcount << "\t" << controlmincount << "\t" << controlmajcount << "\t" << casestrict << "\t" << controlstrict << "\t" << chi1 << "\t" << results << endl;
 		soutput << startmark->getChrom() << "\t" << startmark->getProbeID() << "\t" << startmark->getBPLOC() << "\t" << endmark->getProbeID() << "\t" << endmark->getBPLOC() << "\t" << difference << "\t" << nummarks << "\t" << casecount << ":" << (casetotal - casecount) << " (" << expected[1][1] << ":" << expected[1][0] << ")\t" << controlcount << ":" << (controltotal - controlcount) << " (" << expected[0][1] << ":" << expected[0][0] << ")\t" << casemincount << "\t" << casemajcount << "\t" << controlmincount << "\t" << controlmajcount << "\t" << casestrict << "\t" << controlstrict << "\t" << chi1 << "\t" << results << endl;
-		//soutput << startmark->getChrom() << "\t" << startmark->getProbeID() << "\t" << startmark->getBPLOC() << "\t" << endmark->getProbeID() << "\t" << endmark->getBPLOC() << "\t" << difference << "\t" << nummarks << "\t" << casecount << ":" << (casetotal - casecount) << " (" << expected[1][1] << ":" << expected[1][0] << ")\t" << controlcount << ":" << (controltotal - controlcount) << " (" << expected[0][1] << ":" << expected[0][0] << ")\t" << chi1 << "\t" << results << endl;
 		soutput << "-------------------------------------------------------------------------\n";
 		soutput << "FamID\tIndID\tGender\n";
 		for(int l = 0; l < (int)caselist.size(); l++){
@@ -567,7 +550,7 @@ void Homozygous::process_wgha(){
 
 
 	//exploratory analysis
-	string filename2 = opts::_OUTPREFIX_ + "homozygous_wgha_exploratory" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename2 = opts::_OUTPREFIX_ + "homozygous_wgha_exploratory" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename2 += "." + getString<int>(order);
 	}
@@ -589,7 +572,6 @@ void Homozygous::process_wgha(){
 	mpvals.resize(enabledmarkers.size());
 	for(int m = 0; m < (int)enabledmarkers.size(); m++){
 		Marker* mark = enabledmarkers[m];
-		////int indcount = 0;
 		if(prev_chrom == -1){
 			prev_chrom = mark->getChrom();
 		}
@@ -644,8 +626,6 @@ void Homozygous::process_wgha(){
 		vector<vector<double> > expected = csa.expecteds(chitotals);
 
 		double results, df = 1;
-//		int code = 1, status;
-		//cdfchi(&code, &p, &results, &chi1, &df, &status, &bound);
 		results = Helpers::p_from_chi(chi1, df);
 		mpvals[m] = results;
 		if(results < 0.01){
@@ -683,24 +663,13 @@ void Homozygous::process_wgha(){
 
 }
 
-/*
-vector<int> Homozygous::findCommonRoh(Sample* samp, vector<Marker*>* enabledmarkers, vector<int>* common){
-	for(int s = 0; s < (int)samples->size(); s++){
-		Sample* test = (*samples)[s];
-		if(samp == test){
-			continue;
-		}
-
-	}
-}
-*/
 
 Sample* Homozygous::findRandomSample(map<Sample*, bool> rsamps){
 	Sample* samp = NULL;
 
 	while(samp == NULL){
 		int random;
-		random = rand() % samples->size();//int(samples->size() * rand() / (RAND_MAX + 1.0));
+		random = rand() % samples->size();
 		samp = (*samples)[random];
 		if(!samp->isEnabled()){
 			samp = NULL;
@@ -716,11 +685,10 @@ Sample* Homozygous::findRandomSample(map<Sample*, bool> rsamps){
 }
 
 void Homozygous::perform_homozyg_permutations(){
-	int msize = good_markers.size();//markers->size();
+	int msize = good_markers.size();
 	map<Sample*, bool> change_samples;
-//	srand((unsigned) time(0));
 
-	string filename = opts::_OUTPREFIX_ + "homozygous_permute" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename = opts::_OUTPREFIX_ + "homozygous_permute" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 	}
@@ -745,8 +713,6 @@ void Homozygous::perform_homozyg_permutations(){
 	opts::addHeader(filename, "Observed_non-chisq");
 	opts::addHeader(filename, "Percentile_in_permuted");
 
-//		int prev_base = 0;
-//		int prev_chrom = -1;
 	vector<int> orig_samp_pheno(samples->size());
 	for(int s = 0; s < (int)samples->size(); s++){
 		orig_samp_pheno[s] = (*samples)[s]->getPheno();
@@ -755,11 +721,10 @@ void Homozygous::perform_homozyg_permutations(){
 	af->setRank(rank);
 
 	for (int m = 0; m < msize; m++) {
-		Marker* hmark = good_markers[m];//(*markers)[m];
-		if (hmark->isEnabled()){// && isValidMarker(hmark, &options, prev_chrom,prev_base)) {
+		Marker* hmark = good_markers[m];
+		if (hmark->isEnabled()){
 			int mloc = hmark->getLoc();
 			af->calcOne(hmark);
-			//calc observed snp data
 			double obsaone = af->getAoneCon_freq();
 			int obstotalcases = af->getAonehomoCa() + af->getAtwohomoCa() + af->getHetCa();
 			double obsnq2 = ((double)obstotalcases * (obsaone * obsaone));
@@ -779,8 +744,6 @@ void Homozygous::perform_homozyg_permutations(){
 			}
 			for (int i = 0; i < options.getHomozygPermutationCount(); i++) {
 				change_samples.clear();
-////				int num_aff = 0;
-////				int num_unaff = 0;
 				for (int s = 0; s < (int)samples->size(); s++) {
 					Sample* samp = (*samples)[s];
 					if (samp->isEnabled()) {
@@ -804,34 +767,8 @@ void Homozygous::perform_homozyg_permutations(){
 						else{
 							cout << "ACK!!!\n";
 						}
-/////used for phenotype permutation
-//						if (samp->getPheno() == 2) {
-//							num_aff++;
-//						} else {
-//							num_unaff++;
-//						}
-//						change_samples[samp] = false;
 					}
 				}
-/* used for phenotype permutation
-				int temp_aff = 0;
-				while (temp_aff != num_aff) {
-					Sample* samp = findRandomSample(change_samples);
-					change_samples[samp] = true;
-					temp_aff++;
-				}
-				for(int s = 0; s < samples->size(); s++){
-					Sample* samp = (*samples)[s];
-					if(samp->isEnabled()){
-						if(change_samples[samp]){
-							samp->setPheno(2);
-						}
-						else{
-							samp->setPheno(1);
-						}
-					}
-				}
-*/
 				AlleleFrequency* paf = new AlleleFrequency(samples, families);
 				paf->setRank(0);
 				paf->calcOne(hmark);
@@ -844,13 +781,6 @@ void Homozygous::perform_homozyg_permutations(){
 
 				perm << "\t" << result;
 
-				//reset samples to orig phenos
-//				for(int s = 0; s < samples->size(); s++){
-//					Sample* samp = (*samples)[s];
-//					if(samp->isEnabled()){
-//						samp->setPheno(orig_samp_pheno[s]);
-//					}
-//				}
 				delete(paf);
 			}
 
@@ -906,7 +836,6 @@ void Homozygous::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	}
 	if(options.doHomozygRaw()){
 		int msize = markers->size();
-		//vector<Marker*> good_markers = findValidMarkers(markers, options);
 		msize = good_markers.size();
 
 		homoaffcount.resize(msize,0);
@@ -915,11 +844,9 @@ void Homozygous::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		homominallcount.resize(msize, 0);
 		homomajallcount.resize(msize, 0);
 
-//		int prev_base = 0;
-//		int prev_chrom = -1;
 		for(int m = 0; m < msize; m++){
-			Marker* hmark = good_markers[m];//(*markers)[m];
-			if(hmark->isEnabled()){// && isValidMarker(hmark, &options, prev_chrom, prev_base)){
+			Marker* hmark = good_markers[m];
+			if(hmark->isEnabled()){
 				int mloc = hmark->getLoc();
 				for(int s = 0; s < (int)samples->size(); s++){
 					Sample* samp = (*samples)[s];
@@ -963,14 +890,14 @@ void Homozygous::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	}
 	vector<Sample*>::iterator s_iter;
 
-	int msize = good_markers.size();//markers->size();
+	int msize = good_markers.size();
 	homoaffcount.resize(msize,0);
 	homounaffcount.resize(msize,0);
 	homoallcount.resize(msize,0);
 	homominallcount.resize(msize, 0);
 	homomajallcount.resize(msize, 0);
 
-	string filename = opts::_OUTPREFIX_ + "homozygous_plot" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename = opts::_OUTPREFIX_ + "homozygous_plot" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 	}
@@ -984,7 +911,7 @@ void Homozygous::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		throw MethodException("Unable to open " + filename + "\n");
 	}
 	plot << "ID1\tID\tFamID\tIndID\tChrom\tbploc\n";
-	filename = opts::_OUTPREFIX_ + "homozygous" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	filename = opts::_OUTPREFIX_ + "homozygous" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 	}
@@ -996,7 +923,7 @@ void Homozygous::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		throw MethodException("Unable to open " + filename + "\n");
 	}
 	homo << "FamID\tIndID\tChrom\tStart_ProbeID\tEnd_ProbeID\tStart_bploc\tEnd_bploc\tBP_range\tNum_markers\tNum_founders\tNum_children\tPercent_Children\tProbability\n";
-	filename = opts::_OUTPREFIX_ + "homozygous_zero" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	filename = opts::_OUTPREFIX_ + "homozygous_zero" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
 	}
@@ -1026,12 +953,9 @@ void Homozygous::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			int zerocount = 0;
 			int currchrom = -1;
 			vector<int> zerolocs;
-//			int prev_base = 0;
-//			int prev_chrom = -1;
 			for(int i = 0; i < msize; i++){
-				//int loc = (*marker_map)[i];
 				int loc = good_markers[i]->getLoc();
-				if(good_markers[i]->isEnabled()){//(*markers)[i]->isEnabled() && isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
+				if(good_markers[i]->isEnabled()){
 					if(currchrom == -1){
 						currchrom = good_markers[i]->getChrom();
 					}

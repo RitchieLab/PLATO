@@ -15,9 +15,7 @@
 #include "Marker.h"
 #include "Family.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "Sample.h"
-//#include "TDTProcess.h"
 #include "Options.h"
 #include "DataSet.h"
 #include "StepOptions.h"
@@ -37,7 +35,7 @@ struct info{
 	int Nsize;
 };
 
-class Kinship{// : public Process{
+class Kinship{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -47,9 +45,6 @@ class Kinship{// : public Process{
 		vector<Marker*>* markers;
 		vector<int>* marker_map;
 		StepOptions options;
-//		Markers* markers;
-//		Families* families;
-//		TDTProcess* TDT;
 		int rank;
 		float threshold;
 		bool _DBOUTPUT_;
@@ -110,7 +105,6 @@ class Kinship{// : public Process{
 		};
 
 		~Kinship(){};
-//		void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
@@ -122,27 +116,7 @@ class Kinship{// : public Process{
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//			families = f;
-//			markers = m;
-//		};
 		void setDBOUT(){_DBOUTPUT_ = true;};
-		//void GetNewTDTProcess(){
-			//if(TDT == NULL){
-		//	TDT = new TDTProcess();
-			//}
-//			else{
-//				TDT->reset();
-//			}
-		//};
-		//void GetNewTDTProcess(string type){
-		//	if(TDT == NULL){
-		//	TDT = new TDTProcess(type);
-		//	}
-//			else{
-//				TDT->reset();
-//			}
-		//};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};

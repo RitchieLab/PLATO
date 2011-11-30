@@ -15,9 +15,7 @@
 #include <fenv.h>
 #include <algorithm>
 #include "Kinship.h"
-//#include "Chrom.h"
 #include "General.h"
-//#include "ChiSquare.h"
 #include "Helpers.h"
 #include "cdflib.h"
 
@@ -48,7 +46,7 @@ void Kinship::FilterSummary(){
 
 
 
-void Kinship::check(Sample* dad, Sample* mom, Family* fam){//int *x, int *y, int fam){
+void Kinship::check(Sample* dad, Sample* mom, Family* fam){
 	if(dad->getGeneration() >= mom->getGeneration()){
 		return;
 	}
@@ -56,19 +54,9 @@ void Kinship::check(Sample* dad, Sample* mom, Family* fam){//int *x, int *y, int
 
 	}
 
-//	int z;
-
-//    if (Global[fam].ped[*x].generation>=Global[fam].ped[*y].generation)
-//    	return;
-//    else{
-//        z = *x;
-//        *x = *y;
-//        *y = z;
-//    }
-
 }
 
-double Kinship::phi2(Sample* dad, Sample* mom, Family* fam){//int i, int j, int fam){
+double Kinship::phi2(Sample* dad, Sample* mom, Family* fam){
 	if((dad == NULL || dad->getInd() == "0") || (mom == NULL || mom->getInd() == "0")){
 		return 0.0;
 	}
@@ -79,32 +67,11 @@ double Kinship::phi2(Sample* dad, Sample* mom, Family* fam){//int i, int j, int 
 		check(dad, mom, fam);
 		return (((phi2(dad->getDad(), mom, fam)) + phi2(dad->getMom(), mom, fam)) / (double) 2);
 	}
-
-//	if (i * j == 0)
-//	  {         return 0.0;
-//	  }
-//	  else if (i == j)
-//	  {    return ((1 + phi2(Global[fam].ped[i].father, Global[fam].ped[i].mother,fam)) / 2);
-
-//	  }
-//	  else {
-//	      check(&i, &j,fam);
-//	    return ((phi2(Global[fam].ped[i].father, j,fam) + phi2(Global[fam].ped[i].mother, j,fam)) / 2);
-
-//	  }
-
 }
 
-void Kinship::create_generation(Family* fam){//int fam, struct info *Global){
-//    int i=0,per=0,mer=0,generation=0,pas=0,ind=0;
-//    map<int,parents>::iterator iter,iterend;
-
+void Kinship::create_generation(Family* fam){
     vector<Sample*>* samples = fam->getSamples();
 
-//    iter=Global[fam].ped.begin();
-//    iterend=Global[fam].ped.end();
-
-//    while (iter!=iterend)
     for(unsigned int i = 0; i < samples->size(); i++){
     	Sample* samp = (*samples)[i];
     	Sample* dad = samp->getDad();
@@ -113,21 +80,11 @@ void Kinship::create_generation(Family* fam){//int fam, struct info *Global){
     	if(samp->getGeneration() == 0){
     		samp->setGeneration(make_generation(samp, dad, mom, fam));
     	}
-
-//    ind=iter->first;
- //   per=iter->second.father;
- //   mer=iter->second.mother;
-
-//    if (iter->second.generation==0)
-//    {
-//        iter->second.generation=make_generation(ind,per,mer,Global[fam]);
-//    }
-//    ++iter;
     }
 
 }
 
-int Kinship::make_generation(Sample* samp, Sample* dad, Sample* mom, Family* fam){//int ind, int per, int mer, struct info G){
+int Kinship::make_generation(Sample* samp, Sample* dad, Sample* mom, Family* fam){
 	if(dad != NULL && dad->getInd() != "0" && dad->getGeneration() == 0){
 		dad->setGeneration(make_generation(dad, dad->getDad(), dad->getMom(), fam));
 	}
@@ -152,24 +109,6 @@ int Kinship::make_generation(Sample* samp, Sample* dad, Sample* mom, Family* fam
 			return (mom->getGeneration() + 1);
 		}
 	}
-
-
-	////////////
-//	if (per!=0 && G.ped[per].generation==0)
-//    G.ped[per].generation=make_generation(per,G.ped[per].father,G.ped[per].mother,G);
-//    if (mer!=0 && G.ped[mer].generation==0)
-//    G.ped[mer].generation=make_generation(mer,G.ped[mer].father,G.ped[mer].mother,G);
-
-//    if (per==0 && mer==0)
-//        return(1);
-
-//    else {
-//    if (G.ped[per].generation>=G.ped[mer].generation)
-//        return(G.ped[per].generation+1);
-
-//    else return(G.ped[mer].generation+1);
-//    }
-
 }
 
 void Kinship::calculate(Family* family){
@@ -346,9 +285,7 @@ void Kinship::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m
 				}
 				double pvalue, df = 1;
 				pvalue = -1;
-//				int code = 1, status;
 				if(tdt_chisq > -1){
-				//	cdfchi(&code, &p, &pvalue, &tdt_chisq, &df, &status, &bound);
 					pvalue = Helpers::p_from_chi(tdt_chisq, df);
 				}
 

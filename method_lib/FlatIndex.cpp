@@ -3,8 +3,6 @@
 #include "FlatIndex.h"
 namespace Methods{
 
-//unsigned int FlatIndex::num_genos_per_locus=0;
-//vector<vector<int> > FlatIndex::includedIndexes;
 FlatIndex::FlatIndex(){
   num_genos_per_locus=0;
 }
@@ -104,7 +102,6 @@ void FlatIndex::set_included_indexes(int startCombSize, int endCombSize,
 
 
 void FlatIndex::set_non_missing_indexes(int comboSize, int missingValue){
-// cout << "start set_non_missing_indexes" << endl;
   int * lower_index = new int[comboSize];
   int * upper_index = new int[comboSize];
 

@@ -13,8 +13,6 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Globals.h"
 #include "Options.h"
 #include "General.h"
@@ -24,7 +22,7 @@
 using namespace std;
 
 namespace Methods{
-class CMH{// : public Process{
+class CMH{
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -32,8 +30,6 @@ class CMH{// : public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -106,12 +102,10 @@ class CMH{// : public Process{
 		};
 		~CMH(){
 		};
-		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void setOptions(StepOptions o){
 			options = o;
@@ -125,14 +119,9 @@ class CMH{// : public Process{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		//void process(Families*, Markers*);
         void calculate(Marker*);
         void calculate(int i){calculate(data_set->get_locus(i));};
         void resetDataSet(DataSet* ds);

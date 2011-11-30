@@ -21,7 +21,6 @@
 #include <fstream>
 #include <math.h>
 #include "GenderCheck.h"
-//#include "Chrom.h"
 #include "General.h"
 #include "Helpers.h"
 namespace Methods{
@@ -43,7 +42,7 @@ void GenderCheck::PrintSummary(){
 	int msize = markers->size();
 	int ssize = samples->size();
 
-	string fname1 = opts::_OUTPREFIX_ + "gender_check_marker" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "gender_check_marker" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
@@ -66,7 +65,7 @@ void GenderCheck::PrintSummary(){
 
 	msize = good_markers.size();
 	for(int i = 0; i < msize; i++){
-		if(good_markers[i]->isEnabled() && (good_markers[i]->getChrom() == opts::_CHRX_ || options.doAll())){// && !(*markers)[i]->isFlagged()){
+		if(good_markers[i]->isEnabled() && (good_markers[i]->getChrom() == opts::_CHRX_ || options.doAll())){
 
 			myoutput << good_markers[i]->toString() << "\t"
 				<< mtotal[i] << "\t"
@@ -80,7 +79,7 @@ void GenderCheck::PrintSummary(){
 			myoutput << endl;
 		}
 	}
-	string fname2 = opts::_OUTPREFIX_ + "gender_check_ind" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "gender_check_ind" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname2 += "." + getString<int>(order);
 	}
@@ -102,9 +101,9 @@ void GenderCheck::PrintSummary(){
 
 	vector<string> enzymes;
     if(opts::_ENZYMES_){
-        int msize = good_markers.size();//markers->size();
+        int msize = good_markers.size();
         for(int i = 0; i < msize; i++){
-            if(good_markers[i]->isEnabled()){// && !(*markers)[i]->isFlagged()){
+            if(good_markers[i]->isEnabled()){
 				vector<string>::iterator e_iter = find(enzymes.begin(), enzymes.end(), good_markers[i]->getEnzyme());
                 if(e_iter == enzymes.end()){
                     enzymes.push_back(good_markers[i]->getEnzyme());
@@ -282,7 +281,6 @@ void GenderCheck::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*
  */
 void GenderCheck::perform_evaluation(bool dofams){
 	int msize = markers->size();
-////	int fsize = families->size();
 	int ssize = samples->size();
 
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, options);
@@ -295,10 +293,8 @@ void GenderCheck::perform_evaluation(bool dofams){
 	senzyme_hets.resize(ssize);
 	senzyme_tot.resize(ssize);
 
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	for(int m = 0; m < msize; m++){
-		if(good_markers[m]->isEnabled()){//(*markers)[m]->isEnabled() && isValidMarker((*markers)[m], &options, prev_base, prev_chrom)){
+		if(good_markers[m]->isEnabled()){
 			if(good_markers[m]->getChrom() != opts::_CHRX_ && !options.doAll()){
 				continue;
 			}

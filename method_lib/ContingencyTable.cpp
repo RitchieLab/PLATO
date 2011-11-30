@@ -13,8 +13,6 @@ ContingencyTable::ContingencyTable(){
 /// @return
 ///
 void ContingencyTable::initialize(){
-//   current_status = &genotype_totals;
-//   current_type = Genotype;
   set_current_totals(Genotype);
   total_inds = 0;
 }
@@ -69,7 +67,6 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   if(data->missing_data_present())
     ++num_cells;
 
-  //  counts.assign(2, vector<unsigned int>(num_cells,0));
   vector<vector<unsigned int> > counts(2, vector<unsigned int>(num_cells,0));
   
   genotype_totals.totals.assign(2, vector<float>(num_cells,0));
@@ -82,11 +79,6 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   
   // count genotypes
   for(int curr_ind = 0; curr_ind < num_inds; ++curr_ind){
-//     ++counts[data[curr_ind].status][data[curr_ind][curr_loc]];
-// if(curr_loc==999){
-//   cout << "ind=" << curr_ind << " status = " << data->get_sample(curr_ind)->getAffected() << 
-//     " genotype = " << data->get_sample(curr_ind)->get_genotype(curr_loc) << endl;
-// }
     ++counts[data->get_sample(curr_ind)->getAffected()][data->get_sample(curr_ind)->get_genotype(curr_loc)];
   }
   
@@ -123,12 +115,6 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   dominant_totals.totals[1][1] = genotype_totals.totals[1][2-2*ref_allele_index];
   
 //   //calculate dominant model totals
-//   dominant_totals.totals[0][0] = genotype_totals.totals[0][0] + genotype_totals.totals[0][1];
-//   dominant_totals.totals[0][1] = genotype_totals.totals[0][2];
-//   
-//   dominant_totals.totals[1][0] = genotype_totals.totals[1][0] + genotype_totals.totals[1][1];
-//   dominant_totals.totals[1][1] = genotype_totals.totals[1][2];
- 
   dominant_totals.total_count = genotype_totals.total_count;
  
   // calculate recessive model totals
@@ -137,28 +123,10 @@ void ContingencyTable::get_counts(unsigned int curr_loc, DataSet* data){
   
   recessive_totals.totals[1][0] = genotype_totals.totals[1][2*ref_allele_index];
   recessive_totals.totals[1][1] = genotype_totals.totals[1][2-2*ref_allele_index] + genotype_totals.totals[1][1];  
-  
-  
-//   recessive_totals.totals[0][0] = genotype_totals.totals[0][0]; 
-//   recessive_totals.totals[0][1] = genotype_totals.totals[0][2] + genotype_totals.totals[0][1];
-//   
-//   recessive_totals.totals[1][0] = genotype_totals.totals[1][0];
-//   recessive_totals.totals[1][1] = genotype_totals.totals[1][2] + genotype_totals.totals[1][1];
-
   recessive_totals.total_count = genotype_totals.total_count;
 
-/*
-allele_totals.totals[0][0] = 189;
-allele_totals.totals[0][1] = 10845;
-allele_totals.totals[1][0] = 104;
-allele_totals.totals[1][1] = 10933;
-allele_totals.total_count = 22071;
-*/
 
   current_totals = &allele_totals;
-
-
-// exit(1);
 
 
   // Do correction for all totals by adding 0.5 to each cell
@@ -179,69 +147,6 @@ allele_totals.total_count = 22071;
     additive_totals.totals[1][2] = genotype_totals.totals[1][0];
     additive_totals.total_count = genotype_totals.total_count;    
   }
-  
-// cout << "curr_loc=" << curr_loc << endl;
-// cout << "referent_index = " <<  (*data->get_markers())[curr_loc]->getReferentIndex() << endl;
-// output_grid(allele_totals, "allele");
-// output_grid(dominant_totals, "dominant");
-// output_grid(recessive_totals, "recessive");
-// output_grid(genotype_totals, "genotype");  
-// output_grid(additive_totals, "additive");
-// cout << "-----------------------------" << endl;
-  
-  
-/*  
-// output all grid totals
-cout << "allele_totals" << endl;
-for(uint i=0; i<allele_totals.totals.size(); i++){
-  for(uint j=0; j<allele_totals.totals[i].size(); j++){
-    cout << allele_totals.totals[i][j] << " ";
-  }
-  cout << endl;
-}
-cout << endl;
-  
-cout << "genotype_totals" << endl;
-for(uint i=0; i<genotype_totals.totals.size(); i++){
-  for(uint j=0; j<genotype_totals.totals[i].size(); j++){
-    cout << genotype_totals.totals[i][j] << " ";
-  }
-  cout << endl;
-}
-cout << endl;
-
-
-cout << "additive_totals" << endl;
-for(uint i=0; i<additive_totals.totals.size(); i++){
-  for(uint j=0; j<additive_totals.totals[i].size(); j++){
-    cout << additive_totals.totals[i][j] << " ";
-  }
-  cout << endl;
-}
-cout << endl;
-
-
-cout << "dominant_totals" << endl;
-for(uint i=0; i<dominant_totals.totals.size(); i++){
-  for(uint j=0; j<dominant_totals.totals[i].size(); j++){
-    cout << dominant_totals.totals[i][j] << " ";
-  }
-  cout << endl;
-}
-cout << endl;
-
-
-cout << "recessive_totals" << endl;
-for(uint i=0; i<recessive_totals.totals.size(); i++){
-  for(uint j=0; j<recessive_totals.totals[i].size(); j++){
-    cout << recessive_totals.totals[i][j] << " ";
-  }
-  cout << endl;
-}
-cout << endl;
-cout << "---------------------------------------------" << endl;
-*/
-// exit(1);
   
 }
 
@@ -283,8 +188,6 @@ void ContingencyTable::correction(table_totals& tot){
 ContingencyTable ContingencyTable::transpose(){
   
   ContingencyTable new_table;
-
-// output_grid(*current_totals, "original");
   
   // convert columns into rows
   transpose_vector(genotype_totals.totals, new_table.genotype_totals.totals);
@@ -299,9 +202,7 @@ ContingencyTable ContingencyTable::transpose(){
   new_table.additive_totals = new_table.genotype_totals;
 
   new_table.set_current_totals(current_type);
- 
-//  output_grid(*(new_table.current_totals), "transposed");
- 
+
   return new_table;
 }
 

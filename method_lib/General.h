@@ -6,9 +6,7 @@
 #include <fstream>
 #include <bitset>
 #include <vector>
-//#include <boost/dynamic_bitset.hpp>
 
-//using namespace boost;
 using namespace std;
 namespace Methods{
 class General{
@@ -19,10 +17,6 @@ class General{
 
 		static string getStringInt(int);
 		static string getStringFloat(float);
-//		static string getString(int);
-//		static string getString(float);
-//		static string getString(double);
-//		static string getString(unsigned int);
 };
 };
 #endif

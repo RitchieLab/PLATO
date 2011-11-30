@@ -33,7 +33,6 @@
 #include <algorithm>
 #include <bitset>
 #include "MendelianErrors.h"
-//#include "Chrom.h"
 #include "General.h"
 #include "Helpers.h"
 
@@ -70,28 +69,18 @@ void MendelianErrors::FilterSummary(){
 }
 
 void MendelianErrors::calcThreshold(){
-	/*int nummarkers = markers->getSize();
-	int numfams = families->getSize();
-
-	if(marker_thresh == -1){
-		marker_thresh = (int)((float)nummarkers * error_rate * 0.33) + 1;
-	}
-	if(fam_thresh == -1){
-		fam_thresh = (int)((float) numfams * error_rate * 0.33) + 1;
-	}
-	*/
 }
 
 void MendelianErrors::PrintSummary(){
-	string fname1 = opts::_OUTPREFIX_ + "mendelian_error_family" + options.getOut() + ".txt";//+ getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "mendelian_error_family" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname1 += "." + getString<int>(order);
 	}
-	string fname2 = opts::_OUTPREFIX_ + "mendelian_error_individual" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "mendelian_error_individual" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname2 += "." + getString<int>(order);
 	}
-	string fname3 = opts::_OUTPREFIX_ + "mendelian_error_marker" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname3 = opts::_OUTPREFIX_ + "mendelian_error_marker" + options.getOut() + ".txt";
 	if(!overwrite){
 		fname3 += "." + getString<int>(order);
 	}
@@ -100,19 +89,16 @@ void MendelianErrors::PrintSummary(){
 	ofstream myoutputm (fname3.c_str());
 	if(!myoutputf){
 		opts::printLog("Error opening " + fname1 + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname1 + ".  Exiting!\n");
 	}
 	opts::addFile("Family",stepname, fname1);
 	if(!myoutputi){
 		opts::printLog("Error opening " + fname2 + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname2 + ".  Exiting!\n");
 	}
 	opts::addFile("Sample",stepname,fname2);
 	if(!myoutputm){
 		opts::printLog("Error opening " + fname3 + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname3 + ".  Exiting!\n");
 	}
 	opts::addFile("Marker",stepname,fname3);
@@ -212,7 +198,7 @@ void MendelianErrors::PrintSummary(){
 			else{
 				myoutputi << "F\t";
 			}
-			if((*samples)[i]->getPheno() == 2){//getAffected()){
+			if((*samples)[i]->getPheno() == 2){
 				myoutputi << "Y\t";
 			}
 			else if((*samples)[i]->getPheno() == 1){
@@ -267,8 +253,6 @@ void MendelianErrors::process(vector<Sample*>* s, vector<Family*>* f, vector<Mar
 		zeroErrors();
 	}
 	filter_markers();
-	//resetCounts();
-	//perform_evaluation(false);
 }
 
 void MendelianErrors::zeroErrors(){
@@ -278,10 +262,10 @@ void MendelianErrors::zeroErrors(){
 		if(error_map[s].size() > 0){
 			for(int m = 0; m < (int)error_map[s].size(); m++){
 				Marker* aloc = error_map[s][m];
-				int mloc = aloc->getLoc();//(*markers)[aloc]->getLoc();
+				int mloc = aloc->getLoc();
 				(*samples)[s]->addAone(mloc, true);
 				(*samples)[s]->addAtwo(mloc, false);
-				if(aloc->isMicroSat()){//(*markers)[aloc]->isMicroSat()){
+				if(aloc->isMicroSat()){
 					(*samples)[s]->addAbone(mloc, -1);
 					(*samples)[s]->addAbtwo(mloc, -1);
 				}
@@ -292,7 +276,6 @@ void MendelianErrors::zeroErrors(){
 
 void MendelianErrors::perform_evaluation(bool output){
 	ofstream myoutput;
-	//ofstream qsoutput;
 	ofstream erroroutput;
 	ofstream level2output;
 	if(output){
@@ -302,14 +285,11 @@ void MendelianErrors::perform_evaluation(bool output){
 		myoutput.open(filename.c_str(), ios::out | ios::app);
 		if(!myoutput){
 			opts::printLog("Error opening ME_mid_possible_deletion.txt.  Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening ME_mid_possible_deletion.txt.  Exiting!\n");
 		}
 		myoutput << "Chrom\trsID\tProbeID\tbploc\tFamID\tFather_Geno\tMother_Geno\tChild_Geno\tPossible_Deletion?" << endl;
-		//qsoutput.open("ME_quality_scores.txt", ios::out | ios::app);
-		//qsoutput << "Chrom\trsID\tProbeID\tbploc\tEnzyme\tFamID\tIndID\tSex\tPlate\tWell\tGenotype\tQuality_Score" << endl;
 	}
-	string fname = opts::_OUTPREFIX_ + "mendelian_error_errors" + options.getOut() + ".txt";// + getString<int>(order) + ".txt";
+	string fname = opts::_OUTPREFIX_ + "mendelian_error_errors" + options.getOut() + ".txt";
 	while(!overwrite && Helpers::fileExists(fname)){
 		fname += "." + getString<int>(order);
 	}
@@ -317,11 +297,10 @@ void MendelianErrors::perform_evaluation(bool output){
 	erroroutput.open(fname.c_str(), ios::out);
 	if(!erroroutput){
 		opts::printLog("Error opening " + fname + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname + ".  Exiting!\n");
 
 	}
-	string fname2 = opts::_OUTPREFIX_ + "mendelian_error_level2" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname2 = opts::_OUTPREFIX_ + "mendelian_error_level2" + options.getOut() + ".txt";
 	while(!overwrite && Helpers::fileExists(fname2)){
 		fname2 += "." + getString<int>(order);
 	}
@@ -329,7 +308,6 @@ void MendelianErrors::perform_evaluation(bool output){
 	level2_file_name = fname2;
 	if(!level2output){
 		opts::printLog("Error opening " + fname2 + ".  Exiting!\n");
-		//exit(1);
 		throw MethodException("Error opening " + fname2 + ".  Exiting!\n");
 	}
 	level2output << "(*** denotes probable location of error)\n";
@@ -346,15 +324,6 @@ void MendelianErrors::perform_evaluation(bool output){
 		senzyme.resize(ssize);
 		fenzyme.resize(fsize);
 	}
-	//for(int s = 0; s < ssize; s++){
-	//	Sample* samp = (*samples)[s];
-	//	if(samp->isEnabled()){
-	//		samp->resizeDeletionCat(msize, '0');
-	//	}
-	//}
-
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 
 	if(good_markers.size() == 0){
 		good_markers = Helpers::findValidMarkers(markers, &options);
@@ -367,29 +336,6 @@ void MendelianErrors::perform_evaluation(bool output){
 
 		Marker* mark = good_markers[m];//(*markers)[m];
 		if(mark->isEnabled() && mark->getChrom() <= opts::_CHRX_){
-/*			if(options.doChrom()){
-				if(!options.checkChrom((*markers)[m]->getChrom())){
-				    continue;
-			    }
-			    if(!options.checkBp((*markers)[m]->getBPLOC())){
-				    continue;
-			    }
-			}
-            if(options.doBpSpace()){
-	            if(prev_base == 0){
-		            prev_base = (*markers)[m]->getBPLOC();
-		            prev_chrom = (*markers)[m]->getChrom();
-		        }
-            	else{
-            		if((*markers)[m]->getChrom() == prev_chrom && (((*markers)[m]->getBPLOC() - prev_base) < options.getBpSpace())){
-						(*markers)[m]->setFlag(true);
-            			continue;
-            		}
-            		prev_base = (*markers)[m]->getBPLOC();
-            		prev_chrom = (*markers)[m]->getChrom();
-            	}
-            }
-*/
 			int mloc = mark->getLoc();
 
 			for(int s = 0; s < ssize; s++){
@@ -405,7 +351,6 @@ void MendelianErrors::perform_evaluation(bool output){
 							 !mark->isMicroSat()) ||
 							(mark->isMicroSat() && (*samples)[s]->getAbone(mloc) == -1) ||
 							(mark->isMicroSat() && (*samples)[s]->getDad()->getAbone(mloc) == -1)){
-							//continue;
 						}
 						else{
 							if(mark->getChrom() != opts::_CHRX_ || (!(*samples)[s]->getSex() && mark->getChrom() == opts::_CHRX_)){
@@ -443,7 +388,6 @@ void MendelianErrors::perform_evaluation(bool output){
 										}
 										dadinc = true;
 									}
-									//cout << "we1\n";
 									write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getDad(), mloc);
 								}
 							}
@@ -455,7 +399,6 @@ void MendelianErrors::perform_evaluation(bool output){
 							(((*samples)[s]->getAone(mloc) && (*samples)[s]->getAtwo(mloc) && (*samples)[s]->getAmissing(mloc)) ||
 							((*samples)[s]->getMom()->getAone(mloc) && (*samples)[s]->getMom()->getAtwo(mloc) && (*samples)[s]->getMom()->getAmissing(mloc)))) ||
 							((mark->isMicroSat()) && (((*samples)[s]->getAbone(mloc) == -1 || (*samples)[s]->getAbone(mloc) == -1))) || ((mark->isMicroSat()) && (((*samples)[s]->getMom()->getAbone(mloc) == -1)))){
-							//continue;
 						}
 						else{
 							if((!mark->isMicroSat() &&
@@ -492,7 +435,6 @@ void MendelianErrors::perform_evaluation(bool output){
 									}
 									mominc = true;
 								}
-								//cout << "we2:" << (*markers)[m]->toString() << "\t" << (*samples)[s]->toString() << "\t" << (*markers)[m]->getLoc() << ":" << mloc << "\n";
 								write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getMom(), mloc);
 							}
 						}//end else
@@ -504,7 +446,6 @@ void MendelianErrors::perform_evaluation(bool output){
 							((*samples)[s]->getMom()->getAone(mloc) && (*samples)[s]->getMom()->getAtwo(mloc) && (*samples)[s]->getMom()->getAmissing(mloc)))) ||
 						   ((mark->isMicroSat()) &&
 							(((*samples)[s]->getAbone(mloc) == -1 || (*samples)[s]->getDad()->getAbone(mloc) == -1 || (*samples)[s]->getMom()->getAbone(mloc) == -1)))){
-							//continue;
 						}
 						else{
 							if(mark->getChrom() != opts::_CHRX_ || (!(*samples)[s]->getSex() && mark->getChrom() == opts::_CHRX_)){
@@ -533,7 +474,6 @@ void MendelianErrors::perform_evaluation(bool output){
 										  )))){
 
 									vector<Family*>::iterator found = find(family_inc.begin(), family_inc.end(), (*samples)[s]->getFamily());
-							//	cout << "Possible increase at " << (*markers)[m]->getChrom() << "\t" << (*markers)[m]->getProbeID() << endl;
 									if(!inc && found == family_inc.end()){
 										ferrors[(*samples)[s]->getFamily()->getLoc()]++;
 										if(opts::_ENZYMES_){
@@ -564,9 +504,7 @@ void MendelianErrors::perform_evaluation(bool output){
 										}
 										dadinc = true;
 									}
-									//cout << "we3\n";
 									write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getDad(), mloc);
-									//cout << "we4\n";
 									write_error(erroroutput, mark, (*samples)[s], (*samples)[s]->getMom(), mloc);
 
 								}
@@ -588,15 +526,6 @@ void MendelianErrors::perform_evaluation(bool output){
 				}
 			}// end level 1
 
-			//check sibships
-		//	for(int f = 0; f < fsize; f++){
-		//		Family* fam = (*families)[f];
-		//		if(fam->isEnabled()){
-		//			vector<Sample*>* founders = fam->getFounders();
-		//		}
-		//	}
-			//end sibships
-
 			//level 2
 			for(int f = 0; f < fsize; f++){
 				Family* fam = (*families)[f];
@@ -605,20 +534,11 @@ void MendelianErrors::perform_evaluation(bool output){
 					if(!realgeno){
 						continue;
 					}
-//					vector<Family*>* nuclears = generateNuclearFams(fam);
-//					for(int n = 0; n < nuclears->size(); n++){
-//					}
 					int removed = 0;
 					do{
 						removed = 0;
 						removed += checkTypes(fam, mark);
-					//	level2output << "After checkTypes: " << removed << endl; //
-					//	printError(level2output, fam, mark); //
 						genotypeElimination2(fam, mark, removed);
-					//	level2output << "removed: " << removed << endl; //
-					//	printError(level2output, fam, mark); //
-					//	level2output << removed << "\t" << fam->toString() << "\t" << mark->toString() << endl; //
-						//printError(level2output, fam, mark); //
 					}while(removed > 0);
 					if(checkErrors(fam, mark)){
 						printError(level2output, fam, mark);
@@ -719,13 +639,6 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 								if(found == zygotes.end()){
 									zygotes.push_back(geno4);
 								}
-							//	cout << dad->toString() << "(" << alleles[da1[dg]] << "/" << alleles[da2[dg]] << ")\t" << mom->toString() << "(" << alleles[ma1[mg]] << "/" << alleles[ma2[mg]] << ")" << endl;
-							//	cout << "ZYGOTES:\n";
-							//	for(int z = 0; z < zygotes.size(); z++){
-							//		cout << alleles[zygotes[z][0]] << "/" << alleles[zygotes[z][1]] << " ";
-							//	}
-							//	cout << endl;
-							//	cout << child->toString() << " genos found: ";
 
 								for(int c = 0; c < (int)ca1.size(); c++){
 									vector<bool> cgeno(3,false);
@@ -736,18 +649,6 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 										child->addMEsaved(c);
 										mom->addMEsaved(mg);
 										dad->addMEsaved(dg);
-							//			if(!cgeno[0]){
-							//				cout << alleles[0];
-							//			}
-							//			else{
-							//				cout << alleles[1];
-							//			}
-							//			if(!cgeno[1]){
-							//				cout << "/" << alleles[0] << " ";
-							//			}
-							//			else{
-							//				cout << "/" << alleles[1] << " ";
-							//			}
 									}
 								}//end foreach childgeno
 							//	cout << endl << endl;
@@ -794,24 +695,15 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 								if(found == zygotes.end()){
 									zygotes.push_back(geno4);
 								}
-						//		cout << dad->toString() << "(" << alleles[da1[dg]] << "/" << alleles[da2[dg]] << ")\t" << mom->toString() << "(" << alleles[ma1[mg]] << "/" << alleles[ma2[mg]] << ")" << endl;
-						//		cout << "ZYGOTES:\n";
-						//		for(int z = 0; z < zygotes.size(); z++){
-						//			cout << alleles[zygotes[z][0]] << "/" << alleles[zygotes[z][1]] << " ";
-						//		}
-						//		cout << endl;
-						//		cout << child->toString() << " genos found: ";
 								for(int c = 0; c < (int)ca1.size(); c++){
 									vector<int> cgeno(2,-1);
 									cgeno[0] = ca1[c];
 									cgeno[1] = ca2[c];
-									//if(find_match(zygotes, cgeno)){
 									found = find(zygotes.begin(), zygotes.end(), cgeno);
 									if(found != zygotes.end()){
 										child->addMEsaved(c);
 										mom->addMEsaved(mg);
 										dad->addMEsaved(dg);
-										//cout << alleles[cgeno[0]] << "/" << alleles[cgeno[1]] << " ";
 									}
 									else{
 									}
@@ -881,7 +773,6 @@ void MendelianErrors::genotypeElimination2(Family* fam, Marker* mark, int &remov
 					temp1.clear();
 					temp2.clear();
 					temp3.clear();
-					//cout << "Dad ME saved count: " << dad->getMEsavedCount() << endl;
 					for(int i = 0; i < dad->getMEsavedCount(); i++){
 						temp1.push_back(ca1[dad->getMEsaved(i)]);
 						temp2.push_back(ca2[dad->getMEsaved(i)]);
@@ -983,7 +874,7 @@ bool MendelianErrors::checkErrors(Family* fam, Marker* mark){
 		Sample* samp = (*samps)[i];
 		samp->setME2error(false);
 		for(int m = 0; m < (int)error_map[samp->getLoc()].size(); m++){
-			if(error_map[samp->getLoc()][m] == mark){//(*markers)[error_map[samp->getLoc()][m]] == mark){
+			if(error_map[samp->getLoc()][m] == mark){
 				return false;
 			}
 		}
@@ -1089,7 +980,6 @@ bool MendelianErrors::checkErrors(Family* fam, Marker* mark){
 
 //performs checks if any parent or child is untyped for the original genotype
 int MendelianErrors::checkTypes(Family* fam, Marker* mark){
-	//cout << "Starting checkTypes\n";
 	int removed = 0;
 	int mloc = mark->getLoc();
 	if(mark->isMicroSat()){
@@ -1278,7 +1168,6 @@ int MendelianErrors::checkTypes(Family* fam, Marker* mark){
 
 
 void MendelianErrors::determineZygotes(Family* fam, Marker* mark){
-////	int mloc = mark->getLoc();
 
 	vector<Sample*>* samps = fam->getSamples();
 
@@ -1517,7 +1406,6 @@ bool MendelianErrors::getPossibleGenos(Family* fam, Marker* mark){
 						samp->addPossible(false,false, false);
 						samp->addPossible(false, true, false);
 						samp->addPossible(true, false, false);
-					//	samp->addPossible(true, true, true);
 					}
 				}
 			}
@@ -1550,19 +1438,10 @@ bool MendelianErrors::getPossibleGenos(Family* fam, Marker* mark){
 
 void MendelianErrors::filter_markers(){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
-		int msize = good_markers.size();//markers->size();
+		int msize = good_markers.size();
 
 		for(int i = 0; i < msize; i++){
-			if(good_markers[i]->isEnabled()){// && !(*markers)[i]->isFlagged()){
-/*				if(options.doChrom()){
-					if(!options.checkChrom((*markers)[i]->getChrom())){
-				    	continue;
-			    	}
-			    	if(!options.checkBp((*markers)[i]->getBPLOC())){
-				    	continue;
-			    	}
-				}
-*/
+			if(good_markers[i]->isEnabled()){
 				bool inc = false;
 				if(options.doThreshMarkersHigh() && merrors[i] > options.getThreshMarkersHigh()){
 					(*markers)[i]->setEnabled(false);
@@ -1613,24 +1492,15 @@ void MendelianErrors::filter(){
 void MendelianErrors::write_error(ofstream &erroroutput, Marker* m, Sample* s, Sample* p, int mloc){
 	if(!erroroutput){
 		opts::printLog("File handle for Mendelian error output is corrupted.  Exiting!\n");
-		//exit(1);
 		throw MethodException("File handle for Mendelian error output is corrupted.  Exiting!\n");
 	}
-	//cout << m->getChrom() << "\t"
-	//	<< m->getRSID() << "\t"
-	//	<< m->getProbeID() << "\t"
-	//	<< m->getEnzyme() << "\t"
-	//	<< s->getFamID() << "\t"
-	//	<< s->getInd() << "\t";
 	erroroutput << m->toString() << "\t"
 		<< s->getFamID() << "\t"
 		<< s->getInd() << "\t";
 	if(s->getSex()){
-	//	cout << "M\t";
 		erroroutput << "M\t";
 	}
 	else{
-	//	cout << "F\t";
 		erroroutput << "F\t";
 	}
 	if(!m->isMicroSat()){
@@ -1646,33 +1516,16 @@ void MendelianErrors::write_error(ofstream &erroroutput, Marker* m, Sample* s, S
 		else if(s->getAone(mloc) && !s->getAtwo(mloc)){
 			erroroutput << "0/0";
 		}
-//		if(s->getAone(mloc)){
-//			erroroutput << m->getAllele2() << "/";
-//		}
-//		else{
-//			erroroutput << m->getAllele1() << "/";
-//		}
-//		if(s->getAtwo(mloc)){
-//			erroroutput << m->getAllele2() << "\t";
-//		}
-//		else{
-//			erroroutput << m->getAllele1() << "\t";
-//		}
 	}
 	else{
-	//	cout << m->getAllele(s->getAbone(mloc)) << "/";
-	//	cout << m->getAllele(s->getAbtwo(mloc)) << "\t";
 		erroroutput << m->getAllele(s->getAbone(mloc)) << "/";
 		erroroutput << m->getAllele(s->getAbtwo(mloc)) << "\t";
 	}
-	//cout << p->getInd() << "\t";
 	erroroutput << "\t" << p->getInd() << "\t";
 	if(p->getSex()){
-	//	cout << "M\t";
 		erroroutput << "M\t";
 	}
 	else{
-	//	cout << "F\t";
 		erroroutput << "F\t";
 	}
 	if(!m->isMicroSat()){
@@ -1688,16 +1541,8 @@ void MendelianErrors::write_error(ofstream &erroroutput, Marker* m, Sample* s, S
 		else if(p->getAone(mloc) && !p->getAtwo(mloc)){
 			erroroutput << "0/0";
 		}
-		//if(p->getAtwo(mloc)){
-		//	erroroutput << m->getAllele2() << "";
-		//}
-		//else{
-		//	erroroutput << m->getAllele1() << "";
-		//}
 	}
 	else{
-	//	cout << m->getAllele(p->getAbone(mloc)) << "/";
-	//	cout << m->getAllele(p->getAbtwo(mloc)) << "";
 		erroroutput << m->getAllele(p->getAbone(mloc)) << "/";
 		erroroutput << m->getAllele(p->getAbtwo(mloc)) << "";
 	}

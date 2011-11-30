@@ -17,13 +17,12 @@
 #include "Sample.h"
 #include "Options.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "StepOptions.h"
 #include "DataSet.h"
 using namespace std;
 
 namespace Methods{
-class GenderCheck {//: public Process{
+class GenderCheck {
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -33,8 +32,6 @@ class GenderCheck {//: public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-//		Markers* markers;
-//		Families* families;
 		float ind_thresh;
 		float marker_thresh;
 		int orig_num_markers;
@@ -103,8 +100,6 @@ class GenderCheck {//: public Process{
 			order =0;
 		};
 		~GenderCheck(){};
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
 		void setOptions(StepOptions o){
 			options = o;
 		};
@@ -112,7 +107,6 @@ class GenderCheck {//: public Process{
 		void filter();
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
 		void calculate(){perform_evaluation(false);};
-//		void perform_evaluation(Connection*, bool);
 		void perform_evaluation(bool);
 		void filter_markers();
 		void setThreshold(string s);
@@ -123,10 +117,6 @@ class GenderCheck {//: public Process{
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
 		void setOrder(int o){order = o;};
-//        void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-//		};
 
         void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};

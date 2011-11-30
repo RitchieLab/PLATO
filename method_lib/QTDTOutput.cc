@@ -68,15 +68,15 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
    	int ssize = samples->size();
 	int msize = markers->size();
 	msize = good_markers.size();
-	string fname1 = opts::_OUTPREFIX_ + "input_qtdt" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string fname1 = opts::_OUTPREFIX_ + "input_qtdt" + options.getOut() + ".txt";
 	if(options.getOverrideOut().size() > 0){
 		fname1 = options.getOverrideOut() + ".txt";
 	}
-	string fname2 = opts::_OUTPREFIX_ + "input_qtdt" + options.getOut() + ".map";//getString<int>(order) + ".map";
+	string fname2 = opts::_OUTPREFIX_ + "input_qtdt" + options.getOut() + ".map";
 	if(options.getOverrideOut().size() > 0){
 		fname2 = options.getOverrideOut() + ".map";
 	}
-	string fname3 = opts::_OUTPREFIX_ + "input_qtdt" + options.getOut() + ".dat";//getString<int>(order) + ".dat";
+	string fname3 = opts::_OUTPREFIX_ + "input_qtdt" + options.getOut() + ".dat";
 	if(options.getOverrideOut().size() > 0){
 		fname3 = options.getOverrideOut() + ".dat";
 	}
@@ -91,25 +91,19 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 	ofstream qtdt (fname1.c_str());
 	if(!qtdt.is_open()){
 		opts::printLog("Unable to open "+fname1+" for output!\n");
-	   	//exit(1);
 		throw MethodException("Unable to open "+fname1+" for output!\n");
 	}
 	ofstream qtdt_map (fname2.c_str());
 	if(!qtdt_map.is_open()){
 		opts::printLog("Unable to open "+fname2+" for output!\n");
-		//exit(1);
 		throw MethodException("Unable to open "+fname2+" for output!\n");
 	}
 	ofstream qtdt_dat (fname3.c_str());
 	if(!qtdt_dat.is_open()){
 		opts::printLog("Unable to open "+fname3+" for output!\n");
-		//exit(1);
 		throw MethodException("Unable to open "+fname3+" for output!\n");
 	}
-////	bool map_done = false;
 
-//	int prev_base = 0;
-//	int prev_chrom = -1;
 	qtdt_dat << "A AFF" << endl;
 	//if file specified do that
 	if(options.doCovarsFile()){
@@ -138,9 +132,8 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 		}
 	}
 	for(int m = 0; m < msize; m++){
-		Marker* mark = good_markers[m];//(*markers)[m];
-		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
-////			int m_loc = mark->getLoc();
+		Marker* mark = good_markers[m];
+		if(mark->isEnabled()){
 			qtdt_dat << "M" << " " << mark->getProbeID() << endl;
 			qtdt_map << mark->getChrom() << "\t" << mark->getProbeID() << "\t" << mark->getBPLOC() << endl;
 		}
@@ -160,9 +153,6 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			int prev_base = 0;
 			int prev_chrom = -1;
 			qtdt << samp->getFamID() << "\t" << samp->getInd() << "\t";
-			//<< samp->getDadID() << "\t" << samp->getMomID() << "\t";
-
-
 
 			if((samp->getDad() == NULL || !samp->getDad()->isEnabled()) && samp->getDadID() != "0" && options.doRemMissingParents()){
 				qtdt << "0\t";
@@ -271,8 +261,8 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 			prev_base = 0;
 			prev_chrom = -1;
 			for(int m = 0; m < msize; m++){
-				Marker* mark = good_markers[m];//(*markers)[m];
-				if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+				Marker* mark = good_markers[m];
+				if(mark->isEnabled()){
 					int m_loc = mark->getLoc();
 					if((samp->isExcluded() && options.doZeroExcluded()) || (!samp->isEnabled() && options.doZeroDisabled())){
 						qtdt << "\t0/0";
@@ -333,12 +323,9 @@ void QTDTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>
 					}
 			}
 
-//			int prev_base = 0;
-//			int prev_chrom = -1;
 			for(int i = 0; i < msize; i++){
-			//Marker* mark = (*markers)[mloc];
-				Marker* mark = good_markers[i];//(*markers)[i];
-				if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
+				Marker* mark = good_markers[i];
+				if(mark->isEnabled()){
 					qtdt << "\t0/0";
 				}
 			}

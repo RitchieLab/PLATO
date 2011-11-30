@@ -31,9 +31,6 @@
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 namespace Methods{
 string MarkerGenoEff::stepname = "marker-geno-eff";
 
@@ -49,8 +46,8 @@ void MarkerGenoEff::FilterSummary(){
 
 //DEPRECATED
 void MarkerGenoEff::PrintSummary(){
-	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";
+	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";
 	string filenamegm = opts::_OUTPREFIX_ + "marker_geno_eff_groups_missing" + options.getOut() + ".txt";
 	if(!overwrite){
 		filename += "." + getString<int>(order);
@@ -60,7 +57,6 @@ void MarkerGenoEff::PrintSummary(){
 	ofstream bymarker (filename.c_str());
 	if(!bymarker.is_open()){
 		opts::printLog("Unable to open " + filename + "\n");
-		//exit(1);
 		throw MethodException("Unable to open " + filename + "\n");
 	}
 
@@ -130,16 +126,12 @@ void MarkerGenoEff::PrintSummary(){
 			float percent = 0.0f;
 			float caseper = 0.0f;
 			float contper = 0.0f;
-	//		int contzero = 0;
-	//		int conttot = 0;
 			if(total[i] > 0){
 				percent = (1.0f - ((float)zeros[i]/(float)total[i])) * 100.0f;
 			}
 			if(casetotal[i] > 0){
 				caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
 			}
-	//		contzero = zeros[i] - casezeros[i];
-	//		conttot = total[i] - casetotal[i];
 			if(controltotal[i] > 0){
 				contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
 			}
@@ -200,18 +192,14 @@ void MarkerGenoEff::filterOne(int m){
 				double caseper = 0.0f;
 				double contper = 0.0f;
 				bool inc = false;
-//		int contzero = 0;
-//		int conttot = 0;
 				if(total_one > 0){
-					percent = getPercent();//(double)((1.0f - ((double)zeros[i]/(double)total[i])) * 100.0f);
+					percent = getPercent();
 				}
 				if(casetotal_one > 0){
-					caseper = getCasePercent();//(1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
+					caseper = getCasePercent();
 				}
-//		contzero = zeros[i] - casezeros[i];
-//			//		conttot = total[i] - casetotal[i];
 				if(controltotal_one > 0){
-					contper = getControlPercent();//(1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
+					contper = getControlPercent();
 				}
 
 				if(options.doThreshMarkersLow() && Helpers::dLess(percent, options.getThreshMarkersLow())){
@@ -249,16 +237,12 @@ void MarkerGenoEff::filter(){
 				float caseper = 0.0f;
 				float contper = 0.0f;
 				bool inc = false;
-//		int contzero = 0;
-//		int conttot = 0;
 				if(total[i] > 0){
 					percent = (double)((1.0f - ((double)zeros[i]/(double)total[i])) * 100.0f);
 				}
 				if(casetotal[i] > 0){
 					caseper = (1.0f - ((float)casezeros[i]/(float)casetotal[i])) * 100.0f;
 				}
-//		contzero = zeros[i] - casezeros[i];
-//			//		conttot = total[i] - casetotal[i];
 				if(controltotal[i] > 0){
 					contper = (1.0f - ((float)controlzeros[i]/(float)controltotal[i])) * 100.0f;
 				}
@@ -302,10 +286,7 @@ void MarkerGenoEff::calcOne(Marker* mark){
 			for(int s = 0; s < (int)mysamps.size(); s++){
 				Sample* samp = mysamps[s];
 				if(samp->isEnabled()){
-//					int prev_base = 0;
-//					int prev_chrom = -1;
-//					Marker* mark = (*markers)[m];
-					if(mark->isEnabled()){//isValidMarker(mark, &options, prev_base, prev_chrom)){
+					if(mark->isEnabled()){
 						int loc = mark->getLoc();
 						if(!mark->isMicroSat()){
 							if(samp->getAone(loc) && samp->getAtwo(loc) && samp->getAmissing(loc)){
@@ -327,15 +308,12 @@ void MarkerGenoEff::calcOne(Marker* mark){
 
 	for(s_iter = samples->begin(); s_iter != samples->end(); s_iter++){
 		if((*s_iter)->isEnabled()){
-//			int prev_base = 0;
-//			int prev_chrom = -1;
-				//int loc = (*marker_map)[i];
-				int loc = mark->getLoc();//(*markers)[m]->getLoc();
-				if(mark->isEnabled()){//isValidMarker((*markers)[m], &options, prev_base, prev_chrom)){
-					if(!mark->isMicroSat()){//(*markers)[m]->isMicroSat()){
+				int loc = mark->getLoc();
+				if(mark->isEnabled()){
+					if(!mark->isMicroSat()){
 						if((*s_iter)->getAone(loc) && (*s_iter)->getAtwo(loc) && (*s_iter)->getAmissing(loc)){
 							zeros_one++;
-							if((*s_iter)->getPheno() == 2){//getAffected()){
+							if((*s_iter)->getPheno() == 2){
 								casezeros_one++;
 							}
 							else if((*s_iter)->getPheno() == 1){
@@ -344,7 +322,6 @@ void MarkerGenoEff::calcOne(Marker* mark){
 						}
 					}
 					else{
-		//				int marrloc = (*s_iter)->getMicroSat(loc);
 						if((*s_iter)->getAbone(loc) == -1){
 							zeros_one++;
 							if((*s_iter)->getPheno() == 2){
@@ -356,7 +333,7 @@ void MarkerGenoEff::calcOne(Marker* mark){
 						}
 					}
 					total_one++;
-					if((*s_iter)->getPheno() == 2){//getAffected()){
+					if((*s_iter)->getPheno() == 2){
 						casetotal_one++;
 					}
 					else if((*s_iter)->getPheno() == 1){
@@ -427,37 +404,13 @@ void MarkerGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 			int prev_base = 0;
 			int prev_chrom = -1;
 			for(int i = 0; i < end; i++){
-				//int loc = (*marker_map)[i];
 				int loc = (*markers)[i]->getLoc();
 				if(Helpers::isValidMarker((*markers)[i], &options, prev_base, prev_chrom)){
-//				if((*markers)[i]->isEnabled()){
-//					if(options.doChrom()){
-//						if(!options.checkChrom((*markers)[i]->getChrom())){
-//							continue;
-//						}
-//						if(!options.checkBp((*markers)[i]->getBPLOC())){
-//							continue;
-//						}
-//					}
- //                   if(options.doBpSpace()){
-//						if(prev_base == 0){
-//							prev_base = (*markers)[i]->getBPLOC();
-//							prev_chrom = (*markers)[i]->getChrom();
-//						}
-//						else{
-//							if((*markers)[i]->getChrom() == prev_chrom && (((*markers)[i]->getBPLOC() - prev_base) < options.getBpSpace())){
-//								(*markers)[i]->setFlag(true);
-//								continue;
-//							}
-//							prev_base = (*markers)[i]->getBPLOC();
-//							prev_chrom = (*markers)[i]->getChrom();
-//						}
-//					}
 
 					if(!(*markers)[i]->isMicroSat()){
 						if((*s_iter)->getAone(loc) && !(*s_iter)->getAtwo(loc)){
 							zeros[i]++;
-							if((*s_iter)->getPheno() == 2){//getAffected()){
+							if((*s_iter)->getPheno() == 2)
 								casezeros[i]++;
 							}
 							else if((*s_iter)->getPheno() == 1){
@@ -466,7 +419,6 @@ void MarkerGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 						}
 					}
 					else{
-		//				int marrloc = (*s_iter)->getMicroSat(loc);
 						if((*s_iter)->getAbone(loc) == -1){
 							zeros[i]++;
 							if((*s_iter)->getPheno() == 2){
@@ -478,7 +430,7 @@ void MarkerGenoEff::process(vector<Sample*>* s, vector<Family*>* f, vector<Marke
 						}
 					}
 					total[i]++;
-					if((*s_iter)->getPheno() == 2){//getAffected()){
+					if((*s_iter)->getPheno() == 2){
 						casetotal[i]++;
 					}
 					else if((*s_iter)->getPheno() == 1){

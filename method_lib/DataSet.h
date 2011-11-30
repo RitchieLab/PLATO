@@ -22,7 +22,6 @@ class DataSet{
     DataSet(vector<Sample*>* samps, vector<Family*>* fams, vector<Marker*>* marks,
       vector<int>* mark_map);
     ~DataSet(){};
-//    virtual ~DataSet(){};
     /// Add data information to dataset
     void add_info(vector<Sample*>* samps, vector<Family*>* fams, vector<Marker*>* marks,
       vector<int>* mark_map);

@@ -26,7 +26,6 @@ NMI::NMI(DataSet* ds){
 ///
 void NMI::initialize(){
 
-//   maxLocusValue = 2;
   nmi_score = 0.0;
   transpose_on = false;
   
@@ -42,13 +41,6 @@ void NMI::initialize(){
   TransposeMap["ON"] = true;
   TransposeMap["FALSE"] = false;
   TransposeMap["OFF"] = false;
-  
-//   missingValue = maxLocusValue+1;
-//   LociComboLimit = 10;
-//   LociComboMin = 1;
-//   
-//   set_threshold = 1.0;
-  
 }
 
 
@@ -58,10 +50,7 @@ void NMI::initialize(){
 ///
 void NMI::resetDataSet(DataSet* ds){
   dataset = ds;
-//   calculate_set_threshold();
-//   missingValue = dataset->get_missing_value();
   markers = dataset->get_markers();
-//   setIndexConverter();
 }
 
 

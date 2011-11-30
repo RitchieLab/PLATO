@@ -13,8 +13,6 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Globals.h"
 #include "Options.h"
 #include "General.h"
@@ -25,7 +23,7 @@ using namespace std;
 
 
 namespace Methods{
-class LD{// : public Process{
+class LD{
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -33,8 +31,6 @@ class LD{// : public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -88,12 +84,10 @@ class LD{// : public Process{
 		};
 		~LD(){
 		};
-		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = std::atof(s.c_str());
 		};
 		void setOptions(StepOptions o){
 			options = o;
@@ -104,14 +98,9 @@ class LD{// : public Process{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		//void process(Families*, Markers*);
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
         void calculate(DataSet* ds){
 			data_set = ds;
@@ -119,10 +108,6 @@ class LD{// : public Process{
 		};
 		void setOrder(int o){order = o;};
 		void calcSetMeanVariance(vector<Marker*>, vector<double>&, vector<vector<double> > &);
-		//vector< vector<double> > svd_inverse(vector<vector<double> > &);
-		//void svdcmp(vector<vector<double> > &, vector<double> &, vector<vector<double> > &);
-		//double pythag(const double, const double);
-		//double SQR(double);
 		vector<bool> vif_prune(vector<vector<double> >, double);
 		vector<int> getChromosomeMarkerRange(vector<Marker*>*, int);
 		void setMarkerRange();

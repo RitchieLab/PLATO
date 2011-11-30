@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <math.h>
-//#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
@@ -65,8 +64,6 @@ class Family{
 		~Family(){
 		};
 		
-//		fam_data getFamStruct();
-
 		string toString();
 
 		//For QFAM model
@@ -117,7 +114,6 @@ class Family{
 		int getTotalInds(){return samples.size();};
 		int getTotalEnabledInds();
 		vector<Sample*>* getSamples(){return &samples;};
-//		void resetGenderErrors();
 };
 };
 

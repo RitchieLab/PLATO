@@ -35,9 +35,6 @@
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 
 namespace Methods{
 void LD::FilterSummary(){
@@ -83,7 +80,6 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	//
 	int msize = pSNP.size();
 	int fsize = families->size();
-////	int j = 0;
 	for(int m = 0; m < msize; m++){
 		Marker* mark = pSNP[m];
 		if(mark->isEnabled() && !mark->isFlagged()){
@@ -234,264 +230,6 @@ void LD::calcSetMeanVariance(vector<Marker*> pSNP, vector<double> & mean, vector
 	return;
 }
 
-/*vector< vector<double> > LD::svd_inverse(vector< vector<double> > & u){
-  const double eps = 1e-12;
-
-  if (u.size() == 0){
-    cerr << "Internal problem: matrix with no rows (inverse function)\n";
-  	exit(1);
-  }
-  if (u.size() != u[0].size() ){
-    cerr << "Internal problem: Cannot invert non-square matrix\n";
-	exit(1);
-  }
-  int n = u.size();
-
-  vector<double> w(n,0);
-
-  vector<vector<double> > v(n);
-  for (int i=0; i<n; i++)
-    v[i].resize(n,0);
-
-  svdcmp(u,w,v);//////!!!!!!!!!!!!!!!!!!!!!!!
-
-  // Look for singular values
-  double wmax = 0;
-  for (int i=0; i<n; i++)
-    wmax = w[i] > wmax ? w[i] : wmax;
-  double wmin = wmax * eps;
-  for (int i=0; i<n; i++)
-  {
-//       cout << w[i] << "\n";
-//       //       if ( w[i] < wmin ) cout << "FLAGGIN!\n";
-//
-    w[i] = w[i] < wmin ? 0 : 1/w[i];
-  }
-
-    // u w t(v)
-	//
-	//   // row U * 1/w
-	//
-
-  vector<vector<double> > r(n);
-  for (int i=0; i<n; i++)
-  {
-	r[i].resize(n,0);
-    for (int j=0; j<n; j++)
-      u[i][j] = u[i][j] * w[j];
-  }
-
- // [nxn].[t(v)]
-
-  for (int i=0; i<n; i++)
-	  for (int j=0; j<n; j++)
-		  for (int k=0; k<n; k++)
-			  r[i][j] += u[i][k] * v[j][k];
-
-  return r;
-}
-
-void LD::svdcmp(vector<vector<double> > & a,
-		        vector<double> & w,
-				        vector<vector<double> > &v){
-  bool flag;
-  int i,its,j,jj,k,l,nm;
-  double anorm,c,f,g,h,s,scale,x,y,z;
-  double volatile temp;
-
-  int m=a.size();
-  if (m==0){ cerr << "Internal problem in SVD function (no observations left?)\n"; exit(1);}
-  int n=a[0].size();
-
-  vector<double> rv1(n);
-  g=scale=anorm=0.0;
-  for (i=0;i<n;i++) {
-    l=i+2;
-    rv1[i]=scale*g;
-    g=s=scale=0.0;
-    if (i < m) {
-      for (k=i;k<m;k++) scale += fabs(a[k][i]);
-      if (scale != 0.0) {
-        for (k=i;k<m;k++) {
-	      a[k][i] /= scale;
-	      s += a[k][i]*a[k][i];
-    	}
-		f=a[i][i];
-		g = -SIGN(sqrt(s),f);
-		h=f*g-s;
-		a[i][i]=f-g;
-		for (j=l-1;j<n;j++) {
-		  for (s=0.0,k=i;k<m;k++) s += a[k][i]*a[k][j];
-		  f=s/h;
-		  for (k=i;k<m;k++) a[k][j] += f*a[k][i];
-		}
-		for (k=i;k<m;k++) a[k][i] *= scale;
-	  }
-	}
-	w[i]=scale *g;
-	g=s=scale=0.0;
-	if (i+1 <= m && i+1 != n) {
-	  for (k=l-1;k<n;k++) scale += fabs(a[i][k]);
-	  if (scale != 0.0) {
-	    for (k=l-1;k<n;k++) {
-	      a[i][k] /= scale;
-	      s += a[i][k]*a[i][k];
-	    }
-	    f=a[i][l-1];
-	    g = -SIGN(sqrt(s),f);////////////!!!!!!!!!!!!!
-		h=f*g-s;
-		a[i][l-1]=f-g;
-		for (k=l-1;k<n;k++) rv1[k]=a[i][k]/h;
-    	for (j=l-1;j<m;j++) {
-		  for (s=0.0,k=l-1;k<n;k++) s += a[j][k]*a[i][k];
-		  for (k=l-1;k<n;k++) a[j][k] += s*rv1[k];
-		}
-	    for (k=l-1;k<n;k++) a[i][k] *= scale;
-	  }
-	}
-	anorm=MAX(anorm,(fabs(w[i])+fabs(rv1[i])));///////!!!!!!!!!!!!!
-  }
-  for (i=n-1;i>=0;i--) {
-    if (i < n-1) {
-      if (g != 0.0) {
-        for (j=l;j<n;j++)
-          v[j][i]=(a[i][j]/a[i][l])/g;
-        for (j=l;j<n;j++) {
-          for (s=0.0,k=l;k<n;k++) s += a[i][k]*v[k][j];
-	      for (k=l;k<n;k++) v[k][j] += s*v[k][i];
-        }
-      }
-      for (j=l;j<n;j++) v[i][j]=v[j][i]=0.0;
-    }
-    v[i][i]=1.0;
-    g=rv1[i];
-    l=i;
-  }
-  for (i=MIN(m,n)-1;i>=0;i--) {
-    l=i+1;
-    g=w[i];
-    for (j=l;j<n;j++) a[i][j]=0.0;
-    if (g != 0.0) {
-      g=1.0/g;
-      for (j=l;j<n;j++) {
-        for (s=0.0,k=l;k<m;k++) s += a[k][i]*a[k][j];
-        f=(s/a[i][i])*g;
-	    for (k=i;k<m;k++) a[k][j] += f*a[k][i];
-	  }
-	  for (j=i;j<m;j++) a[j][i] *= g;
-	} else for (j=i;j<m;j++) a[j][i]=0.0;
-	++a[i][i];
-  }
-  for (k=n-1;k>=0;k--) {
-    for (its=0;its<30;its++) {
-      flag=true;
-      for (l=k;l>=0;l--) {
-        nm=l-1;
-	    temp=fabs(rv1[l])+anorm;
-	    if (temp == anorm) {
-	      flag=false;
-	      break;
-	    }
-	    temp=fabs(w[nm])+anorm;
-	    if (temp == anorm) break;
-	  }
-	  if (flag) {
-    	c=0.0;
-	    s=1.0;
-		for (i=l;i<k+1;i++) {
-		  f=s*rv1[i];
-		  rv1[i]=c*rv1[i];
-		  temp = fabs(f)+anorm;
-		  if (temp == anorm) break;
-		  g=w[i];
-		  h=pythag(f,g);
-		  w[i]=h;
-		  h=1.0/h;
-		  c=g*h;
-		  s = -f*h;
-		  for (j=0;j<m;j++) {
-		    y=a[j][nm];
-		    z=a[j][i];
-		    a[j][nm]=y*c+z*s;
-		    a[j][i]=z*c-y*s;
-		  }
-		}
-	  }
-	  z=w[k];
-	  if (l == k) {
-	    if (z < 0.0) {
-	      w[k] = -z;
-	      for (j=0;j<n;j++) v[j][k] = -v[j][k];
-	    }
-        break;
-	  }
-	  if (its == 29){ cerr << "SVD function cannot converge: multicollinearity issues?\n"; exit(1);}
-	  x=w[l];
-	  nm=k-1;
-      y=w[nm];
-      g=rv1[nm];
-      h=rv1[k];
-      f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0*h*y);
-      g=pythag(f,1.0);
-      f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
-      c=s=1.0;
-      for (j=l;j<=nm;j++) {
-        i=j+1;
-        g=rv1[i];
-	    y=w[i];
-	    h=s*g;
-	    g=c*g;
-	    z=pythag(f,h);/////////!!!!!!!!!!!!!!!!!
-        rv1[j]=z;
-	    c=f/z;
-	    s=h/z;
-	    f=x*c+g*s;
-	    g=g*c-x*s;
-	    h=y*s;
-	    y *= c;
-	    for (jj=0;jj<n;jj++) {
-	      x=v[jj][j];
-	      z=v[jj][i];
-	      v[jj][j]=x*c+z*s;
-	      v[jj][i]=z*c-x*s;
-	    }
-	    z=pythag(f,h);
-	    w[j]=z;
-	    if (z) {
-	      z=1.0/z;
-	      c=f*z;
-	      s=h*z;
-	    }
-	    f=c*g+s*y;
-	    x=c*y-s*g;
-	    for (jj=0;jj<m;jj++) {
-	      y=a[jj][j];
-	      z=a[jj][i];
-	      a[jj][j]=y*c+z*s;
-	      a[jj][i]=z*c-y*s;
-	    }
-	  }
-	  rv1[l]=0.0;
-	  rv1[k]=f;
-	  w[k]=x;
-	}
-  }
-}
-
-double LD::pythag(const double a, const double b){
-  double absa,absb;
-
-  absa=fabs(a);
-  absb=fabs(b);
-  if (absa > absb) return absa*sqrt(1.0+SQR(absb/absa));
-  else return (absb == 0.0 ? 0.0 : absb*sqrt(1.0+SQR(absa/absb)));
-}
-
-double LD::SQR(double a){
-	return a*a;
-}
-*/
-
 vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 	//number of variables
 	int p = m.size();
@@ -517,7 +255,6 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 	for (int i=0; i<p; i++)
 	    if ( r[i][i] == 0 || !Helpers::realnum(r[i][i]) )
 	    {
-			//cout << r[i][i] << " : setting " << i << " false\n";
 	      cur[i] = false;
 	      it++;
 	    }
@@ -535,7 +272,6 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 			        if (cur[j]) {
 				        if ( fabs(r[i][j]) > options.getLDPWthreshold() )
 				        {
-							//cout << fabs(r[i][j]) << " > " << options.getLDPWthreshold() << " at " << i << endl;
 					        cur[i] = false;
 				            it++;
 				            done = false;
@@ -573,18 +309,8 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
 			}
 		}
 
-//cout << "p = " << p << " u = " << u.size() << endl;
 		// Check enough markers left
 		if (u.size()<2) break;
-//      cout <<  " about to invert\n";
-//      cout.precision(12);
-//      for (int i=0; i<u.size(); i++)
-//      {
-//	      for (int j=0; j<u[i].size(); j++)
-//		      cout << u[i][j] << " ";
-//		      cout << "\n";
-//	  }
-
 
 		// Get inverse
 		u = Helpers::svd_inverse(u);//////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -597,10 +323,6 @@ vector<bool> LD::vif_prune(vector<vector<double> > m, double threshold){
         for (int i=0;i<p;i++)
 		    if ( cur[i] )
 		    {
-        // r^2 = 1 - 1/x where x is diagonal element of inverted
-		//         // correlation matrix
-		//                 // As VIF = 1 / ( 1 - r^2 ) , implies VIF = x
-		//
 		        double vif = u[cnt][cnt];
 		        if ( Helpers::dLess(maxVIF, vif) )
                 {
@@ -644,16 +366,13 @@ vector<int> LD::getChromosomeMarkerRange(vector<Marker*>* marks, int chrom){
 }
 
 void LD::setMarkerRange(){
-	//if(run_chr > 0){
 		vector<int> m = getChromosomeMarkerRange(markers, run_chr);
 		if(m[0] == -1 || m[1] == -1){
 			cerr << "blah blah blha error getchrommarkrange\n";
-			//exit(1);
 			throw MethodException("blah blah blha error getchrommarkrange\n");
 		}
 		run_start = m[0];
 		run_end = m[1];
-	//}
 }
 
 void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vector<int>* mm){
@@ -679,11 +398,11 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 	}
 
 	if(options.doLDpairwise() || options.doLDvif()){
-		string filename = opts::_OUTPREFIX_ + "ld_keep" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		string filename = opts::_OUTPREFIX_ + "ld_keep" + options.getOut() + ".txt";
 		if(!overwrite){
 			filename += "." + getString<int>(order);
 		}
-		string filename2 = opts::_OUTPREFIX_ + "ld_removed_" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		string filename2 = opts::_OUTPREFIX_ + "ld_removed_" + options.getOut() + ".txt";
 		if(!overwrite){
 			filename2 += "." + getString<int>(order);
 		}
@@ -691,16 +410,12 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 		ofstream LDOUT(filename2.c_str(), ios::out);
 		if(!LDIN){
 			opts::printLog("Error opening " + filename + ". Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening " + filename + ". Exiting!\n");
 		}
 		if(!LDOUT){
 			opts::printLog("Error opening " + filename2 + ".  Exiting!\n");
-			//exit(1);
 			throw MethodException("Error opening " + filename2 + ". Exiting!\n");
 		}
-////		int win_start = 0;
-////		int win_end = win_start + options.getLDWin();
 
 		vector<bool> include(markers->size(), true);
 		map<int, int>::iterator chrom;
@@ -712,16 +427,12 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 			setMarkerRange();
 			int s1 = run_start;
 			int s2 = run_start + options.getLDWin() - 1;
-//cout << s1 << " " << (*markers)[s1]->getRSID() << " " << (*markers)[s1]->getBPLOC() << " - " << s2 << " " << (*markers)[s2]->getRSID() << " " << (*markers)[s2]->getBPLOC() << endl;
 			while(s2 <= run_end){
 				vector<Marker*> pSNP(0);
 				for(int l = s1; l <= s2; l++){
 					if(include[l] && (*markers)[l]->isEnabled() && !(*markers)[l]->isFlagged()){
 						pSNP.push_back((*markers)[l]);
 					}
-		//			if(!(*markers)[l]->isEnabled()){
-		//				include[l] = false;
-		//			}
 				}
 
 				if(pSNP.size() < 2){
@@ -751,7 +462,6 @@ void LD::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vec
 				calcSetMeanVariance(pSNP,mean,variance);
 
 				vector<bool> cur = vif_prune(variance, options.getLDthreshold());
-				//exit(1);
 
 				int k=0;
 				for(int l=s1; l<=s2; l++){

@@ -59,7 +59,6 @@ void STRUCTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
  	orig_num_individuals = samples->size();
 
    	int ssize = samples->size();
-//	int msize = markers->size();
 	options.setDoAllele1234(true);
 	vector<Marker*> good_markers = Helpers::findValidMarkers(markers, &options);
 
@@ -79,33 +78,6 @@ void STRUCTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 	}
 
 	map<string, int> pop;
-	/*if(options.getStratFile().length() > 0){
-		ifstream pop_f;
-		pop_f.open(options.getStratFile().c_str(), ios::in);
-		if(!pop_f){
-			opts::printLog("Error opening structure statification file: " + options.getStratFile() + "\n");
-			throw MethodException("Error opening structure stratification file: " + options.getStratFile() + "\n");
-		}
-		int line_num = 0;
-		while(!pop_f.eof()){
-			char buf[256];
-			pop_f.getline(buf, 256, '\n');
-			line_num++;
-			string line = buf;
-			if(line == ""){
-				continue;
-			}
-
-			vector<string> tokens = General::ParseDelimitedLine(line);
-
-			if(tokens.size() != 3){
-				opts::printLog("Line " + getString<int>(line_num) + " has incorrect number of elements.  Required number is 3 (ie: Family Individual 1)\n");
-				throw MethodException("Line " + getString<int>(line_num) + " has incorrect number of elements.  Required number is 3 (ie: Family Individual 1)\n");
-			}
-			pop[tokens[0] + " " + tokens[1]] = atoi(tokens[2].c_str());
-		}
-	}
-	*/
 	pop = options.getStratificationMap();
 	if(options.getStratFile().length() == 0 || pop.size() == 0){
 		opts::printLog("Stratification file is required for Structure output creation.  Use option -strat-file <filename>.\n");
@@ -119,11 +91,11 @@ void STRUCTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 		vector<Marker*> marks = marker_sets[k];
 		int msize = marks.size();
 
-		string fname1 = opts::_OUTPREFIX_ + "input_struct_" + getString<int>(k + 1) + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		string fname1 = opts::_OUTPREFIX_ + "input_struct_" + getString<int>(k + 1) + options.getOut() + ".txt";
 		if(options.getOverrideOut().size() > 0){
 			fname1 = options.getOverrideOut() + "_" + getString<int>(k + 1) + ".txt";
 		}
-		string fname2 = opts::_OUTPREFIX_ + "input_struct_" + getString<int>(k + 1) + options.getOut() + ".map";//getString<int>(order) + ".map";
+		string fname2 = opts::_OUTPREFIX_ + "input_struct_" + getString<int>(k + 1) + options.getOut() + ".map";
 		if(options.getOverrideOut().size() > 0){
 			fname2 = options.getOverrideOut() + "_" + getString<int>(k + 1) + ".map";
 		}
@@ -149,33 +121,9 @@ void STRUCTOutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker
 			Sample* samp = (*samples)[i];
 			if((samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())) && ((samp->getDadID() == "0" && samp->getMomID() == "0" && options.doParentsOnly()) || (!options.doParentsOnly()))){
 				str << samp->getFamID() << "_" << samp->getInd() << "\t" << pop[samp->getFamID() + " " + samp->getInd()];
-//				int prev_base = 0;
-//				int prev_chrom = -1;
 				for(int m = 0; m < msize; m++){
 					Marker* mark = (marks)[m];
 					if(mark->isEnabled()){
-//			            if(options.doChrom()){
-//			                if(!options.checkChrom(mark->getChrom())){
-//			                    continue;
-//			                }
- //			                if(!options.checkBp(mark->getBPLOC())){
-//			                    continue;
-//			                }
-//			            }
-//						if(options.doBpSpace()){
-//							if(prev_base == 0){
-//								prev_base = mark->getBPLOC();
-//								prev_chrom = mark->getChrom();
-//							}
-//							else{
-//								if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-//									mark->setFlag(true);
-//									continue;
-//								}
-//								prev_base = mark->getBPLOC();
-//								prev_chrom = mark->getChrom();
-//							}
-//						}
 						int m_loc = mark->getLoc();
 						if(!map_done){
 							str_map << mark->getChrom() << "\t" << mark->getBPLOC() << "\t" << mark->getRSID() << "\t" << Helpers::map_allele(mark, mark->getAllele1(), &options) << "/" << Helpers::map_allele(mark, mark->getAllele2(), &options) << endl;

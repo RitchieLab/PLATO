@@ -32,9 +32,6 @@
 #include "Options.h"
 #include "General.h"
 #include "Helpers.h"
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
 namespace Methods{
 string Concordance::stepname = "concordance";
 
@@ -54,37 +51,6 @@ void Concordance::FilterSummary(){
  *
  */
 void Concordance::PrintSummary(){
-//	string filename = opts::_OUTPREFIX_ + "marker_geno_eff" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
-//	string filenameg = opts::_OUTPREFIX_ + "marker_geno_eff_groups" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
-//	if(!overwrite){
-//		filename += "." + getString<int>(order);
-//		filenameg += "." + getString<int>(order);
-//	}
-
-//	ofstream bymarker (filename.c_str());
-//	if(!bymarker.is_open()){
-//		opts::printLog("Unable to open " + filename + "\n");
-//		exit(1);
-//	}
-
-//	opts::addFile("Marker", stepname, filename);
-//	bymarker.precision(4);
-//	if((*markers)[0]->getDetailHeaders().size() > 0){
-//		bymarker << "Chrom\trsid\tProbeID\tbploc\t" << (*markers)[0]->getDetailHeaders() << "\t%GenoEff_Ind_All\tInd_Zero_Count\tTotal_Individuals_Used\t%GenoEff_Ind_Cases\tInd_Zero_Count_Cases\tTotal_Individuals_Used_Cases\t%GenoEff_Ind_Controls\tInd_Zero_Count_Controls\tTotal_Individuals_Used_Controls";
-//	}
-//	else{
-//		bymarker << "Chrom\trsid\tProbeID\tbploc\t%GenoEff_Ind_All\tInd_Zero_Count\tTotal_Individuals_Used\t%GenoEff_Ind_Cases\tInd_Zero_Count_Cases\tTotal_Individuals_Used_Cases\t%GenoEff_Ind_Controls\tInd_Zero_Count_Controls\tTotal_Individuals_Used_Controls";
-//	}
-//	opts::addHeader(filename, "%GenoEff_Ind_All");
-//	opts::addHeader(filename, "Ind_Zero_Count");
-//	opts::addHeader(filename, "Total_Individuals_Used");
-//	opts::addHeader(filename, "%GenoEff_Ind_Cases");
-//	opts::addHeader(filename, "Ind_Zero_Count_Cases");
-//	opts::addHeader(filename, "Total_Individuals_Used_Cases");
-//	opts::addHeader(filename, "%GenoEff_Ind_Controls");
-//	opts::addHeader(filename, "Ind_Zero_Count_Controls");
-//	opts::addHeader(filename, "Total_Individuals_Used_Controls");
-//	bymarker << endl;
 
 }
 
@@ -137,7 +103,6 @@ void Concordance::calculate(){
 	}
 	else{
 		opts::printLog("No input specified for " + stepname + "\n");
-		//exit(1);
 		throw MethodException("No input specified for " + stepname + "\n");
 	}
 
@@ -255,7 +220,7 @@ void Concordance::calculate(){
 		if (!mark->isEnabled() || !orig_mark->isEnabled())
 		{
 			cout << "mark: " << mark->toString() << " is not enabled.  Skipping..." << endl;
-			orig_count++;//?????
+			orig_count++;
 			continue;
 		}
 
@@ -279,13 +244,9 @@ void Concordance::calculate(){
 			orig_mark = (*markers)[++orig_count];
 		}
 
-//		vector<Marker*>::iterator itermark = find_if(markers->begin(), markers->end(), FindMarker(mark->getProbeID()));
-//		if(itermark != markers->end()){
 		if(mark->getChrom() == orig_mark->getChrom() && mark->getBPLOC() == orig_mark->getBPLOC())
 		{
-		//int mloc = itermark - markers->begin();
-			Marker* omark = orig_mark;//(*markers)[mloc];
-//			int mloc = omark->getLoc();
+			Marker* omark = orig_mark;
 			map<string, int> genomap;
 			genomap[omark->getAllele1() + omark->getAllele2()] = 1;
 			genomap[omark->getAllele2() + omark->getAllele1()] = 1;
@@ -310,13 +271,6 @@ void Concordance::calculate(){
 				if(mark->isMicroSat() || omark->isMicroSat())
 				{
 					bad = false;
-//					cout << endl << endl;
-//					cout << "ORIGINAL MARK Alleles: " ;
-//					for (unsigned int a = 0; a < omark->getAlleles().size(); a++)
-//					{
-//						cout << omark->getAlleles()[a] << " ";
-//					}
-//					cout << endl << endl;
 				}
 				if(bad)
 				{
@@ -326,10 +280,10 @@ void Concordance::calculate(){
 					throw MethodException("No input specified for " + stepname + "\n" + "Original alleles found: " + omark->getAllele1() + "/" + omark->getAllele2() + "\n" + "Checked alleles found: " + mark->getAllele1() + "/" + mark->getAllele2() + "\n");
 				}
 			}
-			morig_conc_map[orig_count] = i;//mloc] = i;
-			snp_error_count[orig_count] = 0;//mloc] = 0;
-			snp_zero_count[orig_count] = 0;//mloc] = 0;
-			snp_total_count[orig_count] = 0;//mloc] = 0;
+			morig_conc_map[orig_count] = i;
+			snp_error_count[orig_count] = 0;
+			snp_zero_count[orig_count] = 0;
+			snp_total_count[orig_count] = 0;
 			commonsnps++;
 		}
 		else
@@ -351,13 +305,11 @@ void Concordance::calculate(){
 	map<int, int>::iterator miter;
 
 	//perform concordance check
-	for(int i = 0; i < check_data_set->num_inds(); i++){//siter = sorig_conc_map.begin(); siter != sorig_conc_map.end(); siter++){
-//		int orig = siter->first;
-//		int second = siter->second;
-		Sample* sconc = check_data_set->get_sample(i);//second);
+	for(int i = 0; i < check_data_set->num_inds(); i++){
+		Sample* sconc = check_data_set->get_sample(i);
 		for(unsigned int j = 0; j < samples->size(); j++){
-		Sample* sorig = (*samples)[j];//(*samples)[orig];
-		if(sorig->toString() != sconc->toString()){//sorig->getFamID() != sconc->getFamID() && sorig->getInd() != sconc->getInd()){
+		Sample* sorig = (*samples)[j];
+		if(sorig->toString() != sconc->toString()){
 			continue;
 		}
 		int sample_error_count = 0;
@@ -401,7 +353,7 @@ void Concordance::calculate(){
 			bool bca2 = sconc->getAtwo(cloc);
 			bool bca3 = sconc->getAmissing(cloc);
 
-//			//new 12-14-2010  changed to allow for checking of microsatellites.
+			//new 12-14-2010  changed to allow for checking of microsatellites.
 			//take care of the original allele
 			if(opts::_MICROSATS_ && (mmorig->isMicroSat() || mconc->isMicroSat()))
 			{
@@ -623,11 +575,6 @@ void Concordance::calculate(){
 			if(!both_zero)
 				totalchecked++;
 		}
-//		//new 12-30-2010 ... do not print sample comparison results if uniqueIDs are the same...
-//		if (options.getUniqueId() && (sorig->getDadID() == sconc->getDadID()))
-//		{
-//			continue;
-//		}
 		float percent = (1 - (float)((float)sample_error_count/(float)sample_total_count)) * 100.0f;
 		samp_data << sorig->toString() << "\t";
 		if(options.getUniqueId()){
@@ -656,13 +603,12 @@ void Concordance::calculate(){
 	//output some results
 	for(miter = morig_conc_map.begin(); miter != morig_conc_map.end(); miter++){
 		int morig = miter->first;
-		////int msecond = miter->second;
 		Marker* mmorig = (*markers)[morig];
 		int total = snp_total_count[morig];
 		int err = snp_error_count[morig];
 		int zero = snp_zero_count[morig];
 
-		float percent = (1 - ((float)err/(float)total));//*100.0f;
+		float percent = (1 - ((float)err/(float)total));
 		snp_data << mmorig->toString() << "\t" << err << "\t" << total << "\t";
 		if(options.getIncMissing()){
 			snp_data << zero << "\t";
@@ -679,7 +625,7 @@ void Concordance::calculate(){
 	    snp_data << endl;
 	}
 
-	float percent = (1 - ((float)numbad / (float)totalchecked));// * 100.0f;
+	float percent = (1 - ((float)numbad / (float)totalchecked));
 
 	opts::printLog("Total genotypes checked: " + getString<int>(totalchecked) + "\n");
 	opts::printLog("Total mis-matched genotypes: " + getString<int>(numbad) + "\n");

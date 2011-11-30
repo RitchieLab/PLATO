@@ -70,13 +70,12 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 	}
 
    	int ssize = samples->size();
-//	int msize = good_markers.size();
 
 	for(int k = 0; k < (int)marker_sets.size(); k++){
 		vector<Marker*> marks = marker_sets[k];
 		int msize = marks.size();
 
-		string fname1 = opts::_OUTPREFIX_ + "input_grr_" + getString<int>(k + 1) + options.getOut() + ".txt";//getString<int>(order) + ".txt";
+		string fname1 = opts::_OUTPREFIX_ + "input_grr_" + getString<int>(k + 1) + options.getOut() + ".txt";
         if(options.getOverrideOut().size() > 0){
 			fname1 = options.getOverrideOut() + "_" + getString<int>(k + 1) + ".txt";
 		}
@@ -91,7 +90,7 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 	   		//exit(1);
 			throw MethodException("Unable to open " +fname1+" for output!\n");
 		}
-		string fname2 = opts::_OUTPREFIX_ + "input_grr_" + getString<int>(k + 1) + options.getOut() + ".map";//getString<int>(order) + ".map";
+		string fname2 = opts::_OUTPREFIX_ + "input_grr_" + getString<int>(k + 1) + options.getOut() + ".map";
         if(options.getOverrideOut().size() > 0){
 			fname2 = options.getOverrideOut() + "_" + getString<int>(k + 1) + ".map";
 		}
@@ -111,8 +110,6 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 		for(int i = 0; i < ssize; i++){
 			Sample* samp = (*samples)[i];
 			if(samp->isEnabled() || (samp->isExcluded() && options.doIncExcludedSamples()) || (!samp->isEnabled() && options.doIncDisabledSamples())){
-////				int prev_base = 0;
-////				int prev_chrom = -1;
 				grr << samp->getFamID() << "\t" << samp->getInd() << "\t" << samp->getDadID() << "\t" << samp->getMomID() << "\t";
 				if(samp->getSex()){
 					grr << "1";
@@ -123,29 +120,6 @@ void GRROutput::process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>*
 				for(int m = 0; m < msize; m++){
 					Marker* mark = (marks)[m];
 					if(mark->isEnabled()){
-//						if(options.doChrom()){
-//							if(!options.checkChrom(mark->getChrom())){
-//							    continue;
-//						    }
-//						    if(!options.checkBp(mark->getBPLOC())){
-//							    continue;
-//						    }
-//						}
-
-//						if(options.doBpSpace()){
-//							if(prev_base == 0){
-//								prev_base = mark->getBPLOC();
-//								prev_chrom = mark->getChrom();
-//							}
-//							else{
-//								if(mark->getChrom() == prev_chrom && ((mark->getBPLOC() - prev_base) < options.getBpSpace())){
-//									mark->setFlag(true);
-//									continue;
-//								}
-//								prev_base = mark->getBPLOC();
-//								prev_chrom = mark->getChrom();
-//							}
-//						}
 						int m_loc = mark->getLoc();
 						if(!map_done){
 							grr_map << mark->getChrom() << "\t" << mark->getBPLOC() << "\t" << mark->getRSID() << "\t" << Helpers::map_allele(mark, mark->getAllele1(), &options) << "/" << Helpers::map_allele(mark, mark->getAllele2(), &options) << endl;

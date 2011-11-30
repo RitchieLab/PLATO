@@ -103,8 +103,7 @@ private:
 	double rsq;
 	string best_model;
 
-//#if !defined(EARTH_H)
-//#define EARTH_H
+
 public:
 	earth();
 	earth(DataSet*);
@@ -117,66 +116,7 @@ public:
 	void resetDataSet(DataSet* ds){data_set = ds;}
 	void resetData(DataSet* ds){data_set = ds;}
 	int runMe(void);
-/*
-#if USING_R
 
-void FreeR(void);
-
-void ForwardPassR(              // for use by R
-    int    FullSet[],           // out: 1 x nMaxTerms, bool vec of lin indep cols of bx
-    double bx[],                // out: MARS basis matrix, nCases x nMaxTerms
-    double Dirs[],              // out: nMaxTerms x nPreds, elements are 1,0,-1
-    double Cuts[],              // out: nMaxTerms x nPreds, cut for iTerm,iPred
-    const double x[],           // in: nCases x nPreds
-    const double y[],           // in: nCases x nResp
-    const double weightsArg[],  // in: nCases x 1, can be R_NilValue
-    const int *pnCases,         // in: number of rows in x and elements in y
-    const int *pnResp,          // in: number of cols in y
-    const int *pnPreds,         // in: number of cols in x
-    const int *pnMaxDegree,     // in:
-    const int *pnMaxTerms,      // in:
-    const double *pPenalty,     // in:
-    double *pThresh,            // in: forward step threshold
-    const int *pnMinSpan,       // in:
-    const int *pnFastK,           // in: Fast MARS K
-    const double *pFastBeta,      // in: Fast MARS ageing coef
-    const double *pNewVarPenalty, // in: penalty for adding a new variable
-    const int LinPreds[],         // in: 1 x nPreds, 1 if predictor must enter linearly
-    const SEXP Allowed,           // in: constraints function
-    const int *pnAllowedFuncArgs, // in: number of arguments to Allowed function, 3 or 4
-    const SEXP Env,               // in: environment for Allowed function
-    const int *pnUseBetaCache,    // in: 1 to use the beta cache, for speed
-    const int *pnTrace,           // in: 0 none 1 overview 2 forward 3 pruning 4 more pruning
-    const char *sPredNames[]);    // in: predictor names in trace printfs, can be NULL
-
-void EvalSubsetsUsingXtxR(     // for use by R
-    double       PruneTerms[], // out: specifies which cols in bx are in best set
-    double       RssVec[],     // out: nTerms x 1
-    const int    *pnCases,     // in
-    const int    *pnResp,      // in: number of cols in y
-    const int    *pnMaxTerms,  // in
-    const double bx[],         // in: MARS basis matrix, all cols must be independent
-    const double y[],          // in: nCases * nResp
-    const double weights[]);   // in: nCases x 1, can be R_NilValue
-
-void RegressR(          // for testing earth routine Regress from R
-    double       Betas[],       // out: nUsedCols * nResp
-    double       Residuals[],   // out: nCases * nResp
-    double       Rss[],         // out: RSS, summed over all nResp
-    double       Diags[],       // out: diags of inv(transpose(bx) * bx)
-    int          *pnRank,       // out: nbr of indep cols in x
-    int          iPivots[],     // out: nCols, can be NULL
-    const double x[],           // in: nCases x nCols
-    const double y[],           // in: nCases x nResp
-    const double weightss[],    // in: nCases x 1, sqrt of weights
-    const int    *pnCases,      // in: number of rows in x and in y
-    const int    *pnResp,       // in: number of cols in y
-    int          *pnCols,       // in: number of columns in x, some may not be used
-    const bool   UsedCols[]);   // in: specifies used columns in x
-
-#endif // USING_R
-*/
-//#if STANDALONE
 	void* malloc1(size_t size);
 
 	void* calloc1(size_t num, size_t size);
@@ -249,8 +189,6 @@ void RegressR(          // for testing earth routine Regress from R
 	int GetMinSpan(int nCases, int nPreds, const double *bx,
 	                             const int iTerm);
 
-//	int GetMinSpan(int nCases, int nPreds, const double *bx,
-//		                             const int iTerm);
 
 	int GetEndSpan(const int nCases, const int nPreds);
 
@@ -343,34 +281,6 @@ void RegressR(          // for testing earth routine Regress from R
 	    const int nMinSpan,
 	    const int nEndSpan,
 	    const double NewVarAdjust);  // in: 1 if not a new var, 1+NewVarPenalty if new var
-	/*old
-	void FindKnot(
-	    int    *piBestCase,             // out: possibly updated, index into the ORDERED x's
-	    double *pRssDeltaForThisTerm,   // io:  possibly updated
-	    double CovCol[],                // scratch buffer, overwritten, nTerms x 1
-	    double CovSy[],                 // scratch buffer, overwritten, nMaxTerms x nResp
-	    double CovSx[],                 // scratch buffer, overwritten, nTerms x 1
-	    double *ybxSum,                 // scratch buffer, overwritten, nResp x 1
-	    const int nTerms,               // in
-	    const int iParent,              // in: parent term
-	    const int iPred,                // in: predictor index
-	    const int nCases,               // in
-	    const int nResp,                // in: number of cols in y
-	    const int nMaxTerms,            // in
-	    const double RssExistingModel,  // in: RSS before adding this new candidate term
-	    const double RssDeltaBase,      // in: change in RSS if predictor iPred enters linearly
-	    const double RssDeltaPrev,      // in: change in RSS when previous term was added
-	    const double bx[],              // in: MARS basis matrix
-	    const double bxOrth[],          // in
-	    const double bxOrthCenteredT[], // in
-	    const double bxOrthMean[],      // in
-	    const double x[],               // in: nCases x nPreds
-	    const double y[],               // in: nCases x nResp
-	    const double weights[],         // in: nCases x 1, must not be NULL
-	    const int xOrder[],             // in
-	    const double yMean[],           // in: vector nResp x 1
-	    const double NewVarAdjust);      // in: 1 if not a new var, 1+NewVarPenalty if new var
-  */
 
 	void AddCandidateLinearTerm(
 	    double *pRssDeltaLin,       // out: change to RSS caused by adding new term
@@ -394,38 +304,7 @@ void RegressR(          // for testing earth routine Regress from R
 	    const double bx[],          // in: MARS basis matrix
 	    const bool FullSet[],       // in
 	    const double NewVarAdjust);  // in
-	/*old
-	void AddCandidateLinearTerm(
-	    int    *piBestCase,             // out: return -1 if no new term available
-	                                    //      else return an index into the ORDERED x's
-	    int    *piBestPred,             // out
-	    int    *piBestParent,           // out: existing term on which we are basing the new term
-	    double *pRssDeltaBase,          // out:
-	    double *pBestRssDelta,          // out: adding new term reduces RSS this much
-	    double *pBestRssDeltaForThisTerm, // out:
-	    bool   *pIsNewForm,             // io:
-	    bool   *pIsLinPred,             // out: true if knot is at min x val so x enters linearly
-	    bool   *pUpdatedBestRssDelta,   // io:
-	    double xbx[],                   // out: nCases x 1
-	    double CovCol[],                // out: nMaxTerms x 1
-	    double CovSy[],                 // io: nMaxTerms x nResp
-	    double bxOrth[],                // io
-	    double bxOrthCenteredT[],       // io
-	    double bxOrthMean[],            // io
-	    const int iPred,                // in
-	    const int iParent,              // in
-	    const double x[],               // in: nCases x nPreds
-	    const double y[],               // in: nCases x nResp
-	    const double weights[],         // in: nCases x 1, must not be NULL
-	    const int nCases,               // in
-	    const int nResp,                // in: number of cols in y
-	    const int nTerms,               // in
-	    const int nMaxTerms,            // in
-	    const double yMean[],           // in: vector nResp x 1
-	    const double bx[],              // in: MARS basis matrix
-	    const bool FullSet[],           // in
-	    const double NewVarAdjust);      // in
-*/
+
 	void FindPred(
 	    int    *piBestCase,         // out: return -1 if no new term available
 	                                //      else return an index into the ORDERED x's
@@ -462,43 +341,6 @@ void RegressR(          // for testing earth routine Regress from R
 	    const int Dirs[],           // in
 	    const double NewVarPenalty, // in: penalty for adding a new variable (default is 0)
 	    const int LinPreds[]);       // in: nPreds x 1, 1 if predictor must enter linearly
-	/*old
-	void FindPred(
-	    int    *piBestCase,             // out: return -1 if no new term available
-	                                    //      else return an index into the ORDERED x's
-	    int    *piBestPred,             // out
-	    int    *piBestParent,           // out: existing term on which we are basing the new term
-	    double *pBestRssDelta,          // out: adding new term reduces RSS this much
-	    double *pBestRssDeltaForThisTerm, // out:
-	    bool   *pIsNewForm,             // out
-	    bool   *pIsLinPred,             // out: true if knot is at min x val so x enters linearly
-	    double xbx[],                   // io: nCases x 1
-	    double CovSx[],                 // io
-	    double CovCol[],                // io
-	    double CovSy[],                 // io: nMaxTerms x nResp
-	    double bxOrth[],                // io
-	    double bxOrthCenteredT[],       // io
-	    double bxOrthMean[],            // io
-	    const int iParent,              // in
-	    const double x[],               // in: nCases x nPreds
-	    const double y[],               // in: nCases x nResp
-	    const double weights[],         // in: nCases x 1
-	    const int nCases,               // in
-	    const int nResp,                // in: number of cols in y
-	    const int nPreds,               // in
-	    const int nTerms,               // in
-	    const int nMaxTerms,            // in
-	    const double yMean[],           // in: vector nResp x 1
-	    const double RssExistingModel,  // in: RSS before adding this new candidate term
-	    const double RssDeltaPrev,      // in: change in RSS caused by adding previous term
-	    const double bx[],              // in: MARS basis matrix
-	    const bool FullSet[],           // in
-	    const int xOrder[],             // in
-	    const int nUses[],              // in: nbr of times each predictor is used in the model
-	    const int Dirs[],               // in
-	    const double NewVarPenalty,     // in: penalty for adding a new variable
-	    const int LinPreds[]);           // in: 1 x nPreds, 1 if predictor must enter linearly
-*/
 
 	void FindTerm(
 	    int    *piBestCase,         // out: return -1 if no new term available
@@ -534,41 +376,6 @@ void RegressR(          // for testing earth routine Regress from R
 	    const int nFastK,           // in: Fast MARS K
 	    const double NewVarPenalty, // in: penalty for adding a new variable (default is 0)
 	    const int LinPreds[]);       // in: nPreds x 1, 1 if predictor must enter linearly
-/*old
-	void FindTerm(
-	    int    *piBestCase,             // out: return -1 if no new term available
-	                                    //      else return an index into the ORDERED x's
-	    int    *piBestPred,             // out:
-	    int    *piBestParent,           // out: existing term on which we are basing the new term
-	    double *pBestRssDelta,          // out: adding new term reduces RSS this much
-	                                    //      will be set to 0 if no possible new term
-	    bool   *pIsNewForm,             // out
-	    bool   *pIsLinPred,             // out: true if knot is at min x val so x enters linearly
-	    double bxOrth[],                // io: column nTerms overwritten
-	    double bxOrthCenteredT[],       // io: kept in sync with bxOrth
-	    double bxOrthMean[],            // io: element nTerms overwritten
-	    const double x[],               // in: nCases x nPreds
-	    const double y[],               // in: nCases x nResp
-	    const double weights[],         // in: nCases x 1
-	    const int nCases,               // in:
-	    const int nResp,                // in: number of cols in y
-	    const int nPreds,               // in:
-	    const int nTerms,               // in:
-	    const int nMaxDegree,           // in:
-	    const int nMaxTerms,            // in:
-	    const double yMean[],           // in: vector nResp x 1
-	    const double RssExistingModel,  // in: RSS before adding this new candidate term
-	    const double RssDeltaPrev,      // in: change in RSS caused by adding previous term
-	    const double bx[],              // in: MARS basis matrix
-	    const bool FullSet[],           // in:
-	    const int xOrder[],             // in:
-	    const int nFactorsInTerm[],     // in:
-	    const int nUses[],              // in: nbr of times each predictor is used in the model
-	    const int Dirs[],               // in:
-	    const int nFastK,               // in: Fast MARS K
-	    const double NewVarPenalty,     // in: penalty for adding a new variable
-	    const int LinPreds[]);           // in: 1 x nPreds, 1 if predictor must enter linearly
-*/
 
 	void PrintForwardProlog(const int nCases, const int nPreds,
 	        const char *sPredNames[]);   // in: predictor names, can be NULL
@@ -747,14 +554,12 @@ void PredictEarth(
     const int    nTerms,
     const int    nMaxTerms);
 
-//#endif // STANDALONE
 
     void error(const char *args, ...);
 
     void calculate(vector<int>, vector<int>);
     void calculate(vector<int> v){vector<int> temp; calculate(v, temp);}
 
-//#if FAST_MARS
 void FreeQ(void);
 void InitQ(const int nMaxTerms);
 void PrintSortedQ(int nFastK);     // for debugging
@@ -773,8 +578,6 @@ void UpdateRssDeltaInQ(const int iParent, const int nTermsForRssDelta,
 int GetNextParent(   // returns -1 if no more parents
     const bool InitFlag,    // use true to init, thereafter false
     const int  nFastK);
-
-//#endif
 
 };
 };

@@ -22,8 +22,6 @@ class FlatIndex{
   
     unsigned int flatten_indexes(vector<int> & indexes);
 
-//     vector<unsigned int> decode_index(int index, int numloci);
-
     vector<unsigned int> decode_index(int index,  int numloci);
     vector<double> decode_index_double(int index,  int numloci);
 

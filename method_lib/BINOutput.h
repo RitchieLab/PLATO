@@ -24,7 +24,7 @@ using namespace std;
 
 
 namespace Methods{
-class BINOutput{// : public Process{
+class BINOutput{
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -33,10 +33,7 @@ class BINOutput{// : public Process{
 		vector<int>* marker_map;
 		StepOptions options;
 
-//		Markers* markers;
-//		Families* families;
 		int threshold;
-//		PERCENT per_cutoff;
 		int orig_num_markers;
 		int orig_num_families;
 		int orig_num_individuals;
@@ -50,17 +47,6 @@ class BINOutput{// : public Process{
 
 	public:
 		BINOutput(){
-//			per_cutoff.push_back(100);
-//			per_cutoff.push_back(95);
-//			per_cutoff.push_back(90);
-//			per_cutoff.push_back(85);
-//			per_cutoff.push_back(80);
-//			per_cutoff.push_back(75);
-//			per_cutoff.push_back(70);
-//			per_cutoff.push_back(65);
-//			per_cutoff.push_back(60);
-//			per_cutoff.push_back(55);
-//			per_cutoff.push_back(50);
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -72,17 +58,6 @@ class BINOutput{// : public Process{
 			order = 0;
 		};
 		BINOutput(int thresh) : threshold(thresh){
-//			per_cutoff.push_back(100);
-//			per_cutoff.push_back(95);
-//			per_cutoff.push_back(90);
-//			per_cutoff.push_back(85);
-//			per_cutoff.push_back(80);
-//			per_cutoff.push_back(75);
-//			per_cutoff.push_back(70);
-//			per_cutoff.push_back(65);
-//			per_cutoff.push_back(60);
-//			per_cutoff.push_back(55);
-//			per_cutoff.push_back(50);
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -94,15 +69,12 @@ class BINOutput{// : public Process{
 			order = 0;
 		};
 		~BINOutput(){};
-//		void process(Connection*, Families*, Markers*);
-//		void process(Families*, Markers*);
 		void PrintSummary();
 		vector<string> get_filenames(){return filenames;}
 		void filter();
 		void process(vector<Sample*>* s, vector<Family*>* f, vector<Marker*>* m, vector<int>* mm);
 		void setThreshold(string s){
 			options.setUp(s);
-			//	threshold = 0;
 		};
 		void setOptions(StepOptions o){
 			options = o;
@@ -111,7 +83,6 @@ class BINOutput{// : public Process{
 			data_set = ds;
 			process(ds->get_samples(), ds->get_families(), ds->get_markers(), ds->get_marker_map());
 		};
-//		PERCENT* getPerCutoff(){return &per_cutoff;};
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};
@@ -121,13 +92,8 @@ class BINOutput{// : public Process{
 		Sample* find_sample(string, string);
 		bool find_marker(string);
         void setOrder(int o){order = o;};
-//		void updateFamsMarks(Families* f, Markers* m){
-//			families = f;
-//			markers = m;
-//		};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		int map_sex(char);
-		//string map_allele(string);
         void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
 		int get_marker_loc(int);

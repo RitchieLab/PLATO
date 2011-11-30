@@ -174,7 +174,6 @@ class StepOptions {
 		bool do_mdrfile;
 		bool do_mdrpedfile;
 		bool do_mdrmapfile;
-		//new 12-07-2010
 		bool do_lgenfile;
 		bool do_referencefile;
 		string ped_file;
@@ -185,7 +184,6 @@ class StepOptions {
 		string mdr_map_file;
 		string mdr_ped_file;
 		string bin_prefix;
-		//new 12-07-2010
 		string lgen_file;
 		string reference_file;
 		double confidence_interval;
@@ -349,7 +347,6 @@ class StepOptions {
 			s_tped_file,
 			s_tfam_file,
 			s_mdr_file,
-			//new 12-07-2010
 			s_lgen_file,
 			s_mdr_ped_file,
 			s_mdr_map_file,
@@ -575,7 +572,6 @@ class StepOptions {
 			do_mdrfile = false;
 			do_mdrpedfile = false;
 			do_mdrmapfile = false;
-			//new 12-07-2010
 			do_lgenfile = false;
 			mdr_gui_output = false;
 			allele1234 = false;
@@ -672,53 +668,51 @@ class StepOptions {
 			//MARS
 			mars_maxterms = 21;
 			mars_degree = 1;
-			//added 09-28-2010 mcc
 			mars_nprune = 2147483647;	//initialize to max int value to simulate infinity
-//			mars_k =
 
 			//concordance
 			unique_id = false;
 			inc_missing = false;
 
 			//samp bprange filter
-		    sampbprange_file = "";
-		    sampbprange_samples.clear();
-		    sampbprange_markers.clear();
+			sampbprange_file = "";
+			sampbprange_samples.clear();
+			sampbprange_markers.clear();
 
-		    //epistasis
-		    epi_quickscan = false;
-		    epi_fast = false;
-		    epi_caseonly = false;
-		    epi_alpha1 = 0.0001;
-		    epi_alpha2 = 0.01;
-		    epi_caseonly_kb_gap = 0;
-		    epi_set_by_set = false;
-		    do_epi_sets = false;
-		    epi_sets_filename = "";
-		    epi_filter = true;
+			//epistasis
+			epi_quickscan = false;
+			epi_fast = false;
+			epi_caseonly = false;
+			epi_alpha1 = 0.0001;
+			epi_alpha2 = 0.01;
+			epi_caseonly_kb_gap = 0;
+			epi_set_by_set = false;
+			do_epi_sets = false;
+			epi_sets_filename = "";
+			epi_filter = true;
 
-		    //biofilter input
-		    bio_comparison_file = "";
-		    bio_offset_begin = -1;
-		    bio_offset_end = -1;
-		    bio_file_binary = false;
+			//biofilter input
+			bio_comparison_file = "";
+			bio_offset_begin = -1;
+			bio_offset_end = -1;
+			bio_file_binary = false;
 
-		    //autosome_only
-		    autosome_only = false;
+			//autosome_only
+			autosome_only = false;
 
-		    //eigenstrat
-		    qtl = false;
-		    ancestry = false;
+			//eigenstrat
+			qtl = false;
+			ancestry = false;
 
-		    //output synthesis view
-		    output_synthview = false;
+			//output synthesis view
+			output_synthview = false;
 
-		    //output synthesis view
-		    s_ArgVals["-output-synthview"] = s_output_synthview;
+			//output synthesis view
+			s_ArgVals["-output-synthview"] = s_output_synthview;
 
-		    //eigenstrat
-		    s_ArgVals["-qtl"] = s_qtl;
-		    s_ArgVals["-ancestry"] = s_ancestry;
+			//eigenstrat
+			s_ArgVals["-qtl"] = s_qtl;
+			s_ArgVals["-ancestry"] = s_ancestry;
 
 			s_ArgVals["-thresh-markers-max"] = s_thresh_markers_max;
 			s_ArgVals["-thresh-markers-min"] = s_thresh_markers_min;
@@ -847,22 +841,22 @@ class StepOptions {
 			s_ArgVals["-mdr-pedigree"] = s_mdr_pedigree_output;
 			//outputped
 			s_ArgVals["-allele-as-snp"] = s_allele_as_snp;     //undocumented
-      // Logistic regression options
-      s_ArgVals["-lr-full-interact"] = s_lr_full_interaction;
-      s_ArgVals["-lr-inc-interact"] = s_lr_include_interaction;
-      s_ArgVals["-lr-model-type"] = s_lr_mod_type;
-      s_ArgVals["-lr-max-iter"] = s_lr_max_iter;
-      s_ArgVals["-lr-no-interact"] = s_lr_no_interaction;
-      s_ArgVals["-lr-reduced-interact"] = s_lr_reduced_interaction;
-      // Conditional logistic regression options
-      s_ArgVals["-cond-lr-full-interact"] = s_cond_lr_full_interaction;
-      s_ArgVals["-cond-lr-inc-interact"] = s_cond_lr_include_interaction;
-      s_ArgVals["-cond-lr-model-type"] = s_cond_lr_mod_type;
-      s_ArgVals["-cond-lr-max-iter"] = s_cond_lr_max_iter;
-      // MARS
-      s_ArgVals["-mars-maxterms"] = s_mars_maxterms;
-      s_ArgVals["-mars-degree"] = s_mars_degree;
-      s_ArgVals["-mars-nprune"] = s_mars_nprune;
+			// Logistic regression options
+			s_ArgVals["-lr-full-interact"] = s_lr_full_interaction;
+			s_ArgVals["-lr-inc-interact"] = s_lr_include_interaction;
+			s_ArgVals["-lr-model-type"] = s_lr_mod_type;
+			s_ArgVals["-lr-max-iter"] = s_lr_max_iter;
+			s_ArgVals["-lr-no-interact"] = s_lr_no_interaction;
+			s_ArgVals["-lr-reduced-interact"] = s_lr_reduced_interaction;
+			// Conditional logistic regression options
+			s_ArgVals["-cond-lr-full-interact"] = s_cond_lr_full_interaction;
+			s_ArgVals["-cond-lr-inc-interact"] = s_cond_lr_include_interaction;
+			s_ArgVals["-cond-lr-model-type"] = s_cond_lr_mod_type;
+			s_ArgVals["-cond-lr-max-iter"] = s_cond_lr_max_iter;
+			// MARS
+			s_ArgVals["-mars-maxterms"] = s_mars_maxterms;
+			s_ArgVals["-mars-degree"] = s_mars_degree;
+			s_ArgVals["-mars-nprune"] = s_mars_nprune;
 
 			// MDR option
 			s_ArgVals["-mdr-set-only-thresh"] = s_mdr_only_set_thresh;
@@ -897,12 +891,12 @@ class StepOptions {
 			s_ArgVals["-boxcox-transform"] = s_boxcox_transform;
 			s_ArgVals["-log-transform"] = s_log_transform;
 
-      // MDRPDT
-      s_ArgVals["-mdrpdt-ptests"] = s_mdrpdt_ptests;            //undocumented
-      s_ArgVals["-mdrpdt-randseed"] = s_mdrpdt_randseed;        //undocumented
-      s_ArgVals["-mdrpdt-xvcount"] = s_mdrpdt_xvcount;          //undocumented
-      s_ArgVals["-mdrpdt-mincombo"] = s_mdrpdt_mincombo;        //undocumented
-      s_ArgVals["-mdrpdt-maxcombo"] = s_mdrpdt_maxcombo;        //undocumented
+			// MDRPDT
+			s_ArgVals["-mdrpdt-ptests"] = s_mdrpdt_ptests;            //undocumented
+			s_ArgVals["-mdrpdt-randseed"] = s_mdrpdt_randseed;        //undocumented
+			s_ArgVals["-mdrpdt-xvcount"] = s_mdrpdt_xvcount;          //undocumented
+			s_ArgVals["-mdrpdt-mincombo"] = s_mdrpdt_mincombo;        //undocumented
+			s_ArgVals["-mdrpdt-maxcombo"] = s_mdrpdt_maxcombo;        //undocumented
 
 			//MULT COMPARISON
 			s_ArgVals["-lambda"] = s_lambda;
@@ -1010,56 +1004,54 @@ class StepOptions {
 			perms = 1000;
 
 			//linear regression default values
-		linr_modType = "";
-		linr_condition = false;
-		linr_interaction = false;
-		linr_no_main_snp = false;
-		linr_condition_string = "";
-		linr_condition_file = "";
+			linr_modType = "";
+			linr_condition = false;
+			linr_interaction = false;
+			linr_no_main_snp = false;
+			linr_condition_string = "";
+			linr_condition_file = "";
 
 			// Logistic Regression default values
-      lr_fullInteraction = true;
-      lr_includeInteractions = true;
-      lr_modType = "ADDITIVE";
-      lr_maxIterations = 20;
-      // Conditional logistic regression default values
-	  cond_lr = false;
-      cond_lr_fullInteraction = true;
-      cond_lr_includeInteractions = true;
-      cond_lr_modType = "ADDITIVE";
-      cond_lr_maxIterations = 20;
-      // MDR default options
-      mdr_set_only_threshold = false;
-      // Uncertainty Coefficient default values
-      uncert_coeff_total_type = "ALLELE";
-      // Odds Ratio default value
-      oddsratio_total_type = "ALLELE";
-      // NMI
-      nmi_total_type = "ALLELE";
-      nmi_transposed = false;
-      // MDRPDT
-      mdrpdt_ptests = 0;
-      mdrpdt_seed = 7;
-      mdrpdt_xv = 1;
-      mdrpdt_maxcombo = 2;
-      mdrpdt_mincombo = 1;
+			lr_fullInteraction = true;
+			lr_includeInteractions = true;
+			lr_modType = "ADDITIVE";
+			lr_maxIterations = 20;
+			// Conditional logistic regression default values
+			cond_lr = false;
+			cond_lr_fullInteraction = true;
+			cond_lr_includeInteractions = true;
+			cond_lr_modType = "ADDITIVE";
+			cond_lr_maxIterations = 20;
+			// MDR default options
+			mdr_set_only_threshold = false;
+			// Uncertainty Coefficient default values
+			uncert_coeff_total_type = "ALLELE";
+			// Odds Ratio default value
+			oddsratio_total_type = "ALLELE";
+			// NMI
+			nmi_total_type = "ALLELE";
+			nmi_transposed = false;
+			// MDRPDT
+			mdrpdt_ptests = 0;
+			mdrpdt_seed = 7;
+			mdrpdt_xv = 1;
+			mdrpdt_maxcombo = 2;
+			mdrpdt_mincombo = 1;
 
-      //MODEL REQS (PLINK)
-      xchr_model = 1;
-	  sex_effect = false;
-	  auto_sex_effect = false;
-      qfam_total = false;
-      qfam_between = false;
-      qfam_within1 = false;
-      qfam_within2 = false;
-      qfam_adaptive = false;
-      vif_threshold = 50;
+			//MODEL REQS (PLINK)
+			xchr_model = 1;
+			sex_effect = false;
+			auto_sex_effect = false;
+			qfam_total = false;
+			qfam_between = false;
+			qfam_within1 = false;
+			qfam_within2 = false;
+			qfam_adaptive = false;
+			vif_threshold = 50;
 
-      map_includes_ref_allele = false;
+			map_includes_ref_allele = false;
 		};
 		~StepOptions(){};
-//		virtual ~StepOptions(){
-//		};
 
 		void printOptions();
 
@@ -1183,7 +1175,7 @@ class StepOptions {
 
 		///get/set xchr model var (model req plink)
 		int get_xchr_model(){return xchr_model;} //if dominant or recessive, set to 0.  Default = 1
-		void set_xchr_model(int v){xchr_model = v;};//setSexEffect(true);}
+		void set_xchr_model(int v){xchr_model = v;};
 		bool getSexEffect(){return sex_effect;}
 		void setSexEffect(bool b){sex_effect = b;}
 		bool getAutoSexEffect(){return auto_sex_effect;}
@@ -1703,149 +1695,149 @@ class StepOptions {
 		void setPrevalance(double d){prevalence = d;};
 
 		//get/set Linear Regression options
-    string getLinRModelType(){return linr_modType;}
-    void setLinRModelType(string modelType){linr_modType = modelType;}
-	bool getLinRInteraction(){return linr_interaction;}
-	void setLinRInteraction(bool b){linr_interaction = b;}
-	bool getLinRNoMainSnp(){return linr_no_main_snp;}
-	void setLinRNoMainSnp(bool b){linr_no_main_snp = b;}
-	bool getLinRCondition(){return linr_condition;}
-	void setLinRCondition(bool v){linr_condition = v;}
-	void setLinRConditionString(string v){linr_condition_string = v;}
-	string getLinRConditionString(){return linr_condition_string;}
-	void setLinRConditionFile(string v){linr_condition_file = v;}
-	string getLinRConditionFile(){return linr_condition_file;}
-	void addLinRConditionList(int l){linr_condition_list.push_back(l); setLinRCondition(true);}
-	vector<int> getLinRConditionList(){return linr_condition_list;}
-	void parseLinRConditionList(vector<Marker*>*);
-	void readLinRConditionFile(vector<Marker*>*);
+		string getLinRModelType(){return linr_modType;}
+		void setLinRModelType(string modelType){linr_modType = modelType;}
+		bool getLinRInteraction(){return linr_interaction;}
+		void setLinRInteraction(bool b){linr_interaction = b;}
+		bool getLinRNoMainSnp(){return linr_no_main_snp;}
+		void setLinRNoMainSnp(bool b){linr_no_main_snp = b;}
+		bool getLinRCondition(){return linr_condition;}
+		void setLinRCondition(bool v){linr_condition = v;}
+		void setLinRConditionString(string v){linr_condition_string = v;}
+		string getLinRConditionString(){return linr_condition_string;}
+		void setLinRConditionFile(string v){linr_condition_file = v;}
+		string getLinRConditionFile(){return linr_condition_file;}
+		void addLinRConditionList(int l){linr_condition_list.push_back(l); setLinRCondition(true);}
+		vector<int> getLinRConditionList(){return linr_condition_list;}
+		void parseLinRConditionList(vector<Marker*>*);
+		void readLinRConditionFile(vector<Marker*>*);
 
 
 		//get/set Logistic Regression options
-    void setLRFullInteraction(bool interact){lr_fullInteraction = interact;}
-    void setLRIncludeInteractions(bool interact){lr_includeInteractions = interact;}
-    void setLRModelType(string modelType){lr_modType = modelType;}
-    void setLRMaximumIterations(unsigned int maxIter){lr_maxIterations = maxIter;}
-    unsigned int getLRMaximumIterations(){return lr_maxIterations;}
-    bool getLRFullInteraction(){return lr_fullInteraction;}
-    bool getLRIncludeInteractions(){return lr_includeInteractions;}
-    string getLRModelType(){return lr_modType;}
+		void setLRFullInteraction(bool interact){lr_fullInteraction = interact;}
+		void setLRIncludeInteractions(bool interact){lr_includeInteractions = interact;}
+		void setLRModelType(string modelType){lr_modType = modelType;}
+		void setLRMaximumIterations(unsigned int maxIter){lr_maxIterations = maxIter;}
+		unsigned int getLRMaximumIterations(){return lr_maxIterations;}
+		bool getLRFullInteraction(){return lr_fullInteraction;}
+		bool getLRIncludeInteractions(){return lr_includeInteractions;}
+		string getLRModelType(){return lr_modType;}
 
-    // get/set Conditional Logistic Regression options
-	void setDoCondLR(bool b){cond_lr = b;}
-	bool doCondLR(){return cond_lr;}
-    void setCondLRFullInteraction(bool interact){cond_lr_fullInteraction = interact;}
-    void setCondLRIncludeInteractions(bool interact){cond_lr_includeInteractions = interact;}
-    void setCondLRModelType(string modelType){cond_lr_modType = modelType;}
-    void setCondLRMaximumIterations(unsigned int maxIter){cond_lr_maxIterations = maxIter;}
-    unsigned int getCondLRMaximumIterations(){return cond_lr_maxIterations;}
-    bool getCondLRFullInteraction(){return cond_lr_fullInteraction;}
-    bool getCondLRIncludeInteractions(){return cond_lr_includeInteractions;}
-    string getCondLRModelType(){return cond_lr_modType;}
+		// get/set Conditional Logistic Regression options
+		void setDoCondLR(bool b){cond_lr = b;}
+		bool doCondLR(){return cond_lr;}
+		void setCondLRFullInteraction(bool interact){cond_lr_fullInteraction = interact;}
+		void setCondLRIncludeInteractions(bool interact){cond_lr_includeInteractions = interact;}
+		void setCondLRModelType(string modelType){cond_lr_modType = modelType;}
+		void setCondLRMaximumIterations(unsigned int maxIter){cond_lr_maxIterations = maxIter;}
+		unsigned int getCondLRMaximumIterations(){return cond_lr_maxIterations;}
+		bool getCondLRFullInteraction(){return cond_lr_fullInteraction;}
+		bool getCondLRIncludeInteractions(){return cond_lr_includeInteractions;}
+		string getCondLRModelType(){return cond_lr_modType;}
 
-    // get/set MDR options
-    void setOnlySetThreshold(bool option){mdr_set_only_threshold = option;}
-    bool getOnlySetThreshold(){return mdr_set_only_threshold;}
+		// get/set MDR options
+		void setOnlySetThreshold(bool option){mdr_set_only_threshold = option;}
+		bool getOnlySetThreshold(){return mdr_set_only_threshold;}
 
-    // UncertaintyCoefficient options
-    void setUncertaintyCoeffTotalType(string tot_type){uncert_coeff_total_type = tot_type;}
-    string getUncertaintyCoeffTotalType(){return uncert_coeff_total_type;}
+		// UncertaintyCoefficient options
+		void setUncertaintyCoeffTotalType(string tot_type){uncert_coeff_total_type = tot_type;}
+		string getUncertaintyCoeffTotalType(){return uncert_coeff_total_type;}
 
-    // LikelihoodRatio options
-    void setLikelihoodRatioTotalType(string tot_type){llr_total_type = tot_type;}
-    string getLikelihoodRatioTotalType(){return llr_total_type;}
+		// LikelihoodRatio options
+		void setLikelihoodRatioTotalType(string tot_type){llr_total_type = tot_type;}
+		string getLikelihoodRatioTotalType(){return llr_total_type;}
 
-	//get/set remove missing parents
-	bool doRemMissingParents(){return rem_missing_parents;};
-	void setRemMissingParents(bool b){rem_missing_parents = b;};
-    bool getRemMissingParents(){return rem_missing_parents;};
+		//get/set remove missing parents
+		bool doRemMissingParents(){return rem_missing_parents;};
+		void setRemMissingParents(bool b){rem_missing_parents = b;};
+		bool getRemMissingParents(){return rem_missing_parents;};
 
-	//get/set dummy missing parents
-	bool doDummyMissingParents(){return dummy_missing_parents;};
-	void setDummyMissingParents(bool b){dummy_missing_parents = b;};
-	bool getDummyMissingParents(){return dummy_missing_parents;};
+		//get/set dummy missing parents
+		bool doDummyMissingParents(){return dummy_missing_parents;};
+		void setDummyMissingParents(bool b){dummy_missing_parents = b;};
+		bool getDummyMissingParents(){return dummy_missing_parents;};
 
-	//get/set zero incomplete trio ids
-	bool doZeroIncompleteTrioIds(){return zero_incomplete_trio_ids;};
-	void setZeroIncompleteTrioIds(bool b){zero_incomplete_trio_ids = b;};
-	bool getZeroIncompleteTrioIds(){return zero_incomplete_trio_ids;};
+		//get/set zero incomplete trio ids
+		bool doZeroIncompleteTrioIds(){return zero_incomplete_trio_ids;};
+		void setZeroIncompleteTrioIds(bool b){zero_incomplete_trio_ids = b;};
+		bool getZeroIncompleteTrioIds(){return zero_incomplete_trio_ids;};
 
-	//get/set dummy incomplete parent ids
-	bool doDummyIncompleteParentIds(){return dummy_incomplete_parent_ids;};
-	void setDummyIncompleteParentIds(bool b){dummy_incomplete_parent_ids = b;};
-	bool getDummyIncompleteParentIds(){return dummy_incomplete_parent_ids;};
+		//get/set dummy incomplete parent ids
+		bool doDummyIncompleteParentIds(){return dummy_incomplete_parent_ids;};
+		void setDummyIncompleteParentIds(bool b){dummy_incomplete_parent_ids = b;};
+		bool getDummyIncompleteParentIds(){return dummy_incomplete_parent_ids;};
 
-	// OddsRatio options
-    void setOddsRatioTotalType(string tot_type){oddsratio_total_type = tot_type;}
-    string getOddsRatioTotalType(){return oddsratio_total_type;}
+		// OddsRatio options
+		void setOddsRatioTotalType(string tot_type){oddsratio_total_type = tot_type;}
+		string getOddsRatioTotalType(){return oddsratio_total_type;}
 
-    // NMI options
-    void setNMITotalType(string tot_type){nmi_total_type = tot_type;}
-    string getNMITotalType(){return nmi_total_type;}
-    void setNMITransposed(bool trans){nmi_transposed = trans;}
-    bool getNMITransposed(){return nmi_transposed;}
+		// NMI options
+		void setNMITotalType(string tot_type){nmi_total_type = tot_type;}
+		string getNMITotalType(){return nmi_total_type;}
+		void setNMITransposed(bool trans){nmi_transposed = trans;}
+		bool getNMITransposed(){return nmi_transposed;}
 
-  // Referent allele in map file
-  bool getMapContainsReferent(){return map_includes_ref_allele;}
-  void setMapContainsReferent(bool b){map_includes_ref_allele = b;}
+		// Referent allele in map file
+		bool getMapContainsReferent(){return map_includes_ref_allele;}
+		void setMapContainsReferent(bool b){map_includes_ref_allele = b;}
 
-  // MDRPDT options
-  void setMDRPDTNumPTests(int p){mdrpdt_ptests = p;}
-  int getMDRPDTNumPTests(){return mdrpdt_ptests;}
-  void setMDRPDTRandSeed(int rs){mdrpdt_seed = rs;}
-  int getMDRPDTRandSeed(){return mdrpdt_seed;}
-  void setMDRPDTNumCrossVals(int xv){mdrpdt_xv = xv;}
-  int getMDRDPTNumCrossvals(){return mdrpdt_xv;}
-  void setMDRPDTMaxCombo(int max){mdrpdt_maxcombo=max;}
-  int getMDRPDTMaxCombo(){return mdrpdt_maxcombo;}
-  void setMDRPDTMinCombo(int min){mdrpdt_mincombo=min;}
-  int getMDRPDTMinCombo(){return mdrpdt_mincombo;}
+		// MDRPDT options
+		void setMDRPDTNumPTests(int p){mdrpdt_ptests = p;}
+		int getMDRPDTNumPTests(){return mdrpdt_ptests;}
+		void setMDRPDTRandSeed(int rs){mdrpdt_seed = rs;}
+		int getMDRPDTRandSeed(){return mdrpdt_seed;}
+		void setMDRPDTNumCrossVals(int xv){mdrpdt_xv = xv;}
+		int getMDRDPTNumCrossvals(){return mdrpdt_xv;}
+		void setMDRPDTMaxCombo(int max){mdrpdt_maxcombo=max;}
+		int getMDRPDTMaxCombo(){return mdrpdt_maxcombo;}
+		void setMDRPDTMinCombo(int min){mdrpdt_mincombo=min;}
+		int getMDRPDTMinCombo(){return mdrpdt_mincombo;}
 
-  /// get/set multiple comparisons
-  bool getMultCompare(){return mult_compare;}
-  bool doMultCompare(){return mult_compare;}
-  void setMultCompare(bool v){mult_compare = v;}
+		/// get/set multiple comparisons
+		bool getMultCompare(){return mult_compare;}
+		bool doMultCompare(){return mult_compare;}
+		void setMultCompare(bool v){mult_compare = v;}
 
-  /// get/set ibs options
-  map<string, vector<string> > get_ibs_pairs(){return ibs_pairs;}
-  map<string, vector<string> > get_ibs_trio_pairs(){return ibs_trio_pairs;}
-  bool getDoIBSPairs(){return do_ibs_pairs;}
-  bool getDoIBSTrioPairs(){return do_ibs_trio_pairs;}
-  bool getDoIBSAllPairs(){return do_ibs_all_pairs;}
-  bool getDoIBSAllTrioPairs(){return do_ibs_all_trio_pairs;}
-  bool getDoIBSTrioTransmissions(){return do_ibs_trio_transmissions;}
-  void setDoIBSTrioTransmissions(bool b){do_ibs_trio_transmissions = b;}
-  void setDoIBSPairs(bool b){do_ibs_pairs = b;}
-  void setDoIBSTrioPairs(bool b){do_ibs_trio_pairs = b;}
-  void setDoIBSAllPairs(bool b){do_ibs_all_pairs = b;}
-  void setDoIBSAllTrioPairs(bool b){do_ibs_all_trio_pairs = b;}
-  void setIBSPairsFile(string s){ibs_file = s;}
-  void setIBSTrioPairsFile(string s){ibs_trios_file = s;}
-  void setIbsTriosRaw(bool b){do_ibs_trios_raw = b;}
-  bool getIbsTriosRaw(){return do_ibs_trios_raw;}
-  string getIBSPairsFile(){return ibs_file;}
-  string getIBSTrioPairsFile(){return ibs_trios_file;}
-  void set_ibs_pairs(map<string, vector<string> > v){ibs_pairs = v;}
-  void set_ibs_trio_pairs(map<string, vector<string> > v){ibs_trio_pairs = v;}
-  void readIBSPairsFile(string);
-  void readIBSTrioPairsFile(string);
+		/// get/set ibs options
+		map<string, vector<string> > get_ibs_pairs(){return ibs_pairs;}
+		map<string, vector<string> > get_ibs_trio_pairs(){return ibs_trio_pairs;}
+		bool getDoIBSPairs(){return do_ibs_pairs;}
+		bool getDoIBSTrioPairs(){return do_ibs_trio_pairs;}
+		bool getDoIBSAllPairs(){return do_ibs_all_pairs;}
+		bool getDoIBSAllTrioPairs(){return do_ibs_all_trio_pairs;}
+		bool getDoIBSTrioTransmissions(){return do_ibs_trio_transmissions;}
+		void setDoIBSTrioTransmissions(bool b){do_ibs_trio_transmissions = b;}
+		void setDoIBSPairs(bool b){do_ibs_pairs = b;}
+		void setDoIBSTrioPairs(bool b){do_ibs_trio_pairs = b;}
+		void setDoIBSAllPairs(bool b){do_ibs_all_pairs = b;}
+		void setDoIBSAllTrioPairs(bool b){do_ibs_all_trio_pairs = b;}
+		void setIBSPairsFile(string s){ibs_file = s;}
+		void setIBSTrioPairsFile(string s){ibs_trios_file = s;}
+		void setIbsTriosRaw(bool b){do_ibs_trios_raw = b;}
+		bool getIbsTriosRaw(){return do_ibs_trios_raw;}
+		string getIBSPairsFile(){return ibs_file;}
+		string getIBSTrioPairsFile(){return ibs_trios_file;}
+		void set_ibs_pairs(map<string, vector<string> > v){ibs_pairs = v;}
+		void set_ibs_trio_pairs(map<string, vector<string> > v){ibs_trio_pairs = v;}
+		void readIBSPairsFile(string);
+		void readIBSTrioPairsFile(string);
 
-  /// cluster missing options
-  int getMaxClusterSize(){return max_cluster_size;}
-  int getMaxClusterN(){return max_cluster_N;}
-  bool getClusterOnPheno(){return cluster_on_pheno;}
-  bool getClusterSelcon(){return cluster_selcon;}
-  bool getClusterOnMcc(){return cluster_on_mcc;}
+		/// cluster missing options
+		int getMaxClusterSize(){return max_cluster_size;}
+		int getMaxClusterN(){return max_cluster_N;}
+		bool getClusterOnPheno(){return cluster_on_pheno;}
+		bool getClusterSelcon(){return cluster_selcon;}
+		bool getClusterOnMcc(){return cluster_on_mcc;}
 
-  /// frequency file info
-  map<string, float> getFrequencies(){return frequencies;}
-  void setFrequencies(map<string, float> v){frequencies = v;}
+		/// frequency file info
+		map<string, float> getFrequencies(){return frequencies;}
+		void setFrequencies(map<string, float> v){frequencies = v;}
 
-  /// sample/bprange filtering
-  void readSampleBprangeFile();
-  void setSampleBprangeFile(string s){sampbprange_file = s;}
-  vector<Sample*> getSampleBprangeSamples(){return sampbprange_samples;}
-  vector<vector<Marker*> > getSampleBprangeMarkers(){return sampbprange_markers;}
-};
+		/// sample/bprange filtering
+		void readSampleBprangeFile();
+		void setSampleBprangeFile(string s){sampbprange_file = s;}
+		vector<Sample*> getSampleBprangeSamples(){return sampbprange_samples;}
+		vector<vector<Marker*> > getSampleBprangeMarkers(){return sampbprange_markers;}
+	};
 };
 #endif

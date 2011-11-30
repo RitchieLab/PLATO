@@ -13,10 +13,7 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Globals.h"
-//#include "Process.h"
 #include "Options.h"
 #include "General.h"
 #include "DataSet.h"
@@ -24,7 +21,7 @@
 
 using namespace std;
 namespace Methods{
-class Concordance{// : public Process{
+class Concordance{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -34,8 +31,6 @@ class Concordance{// : public Process{
 		vector<Family*>* families;
 		vector<int>* marker_map;
 		StepOptions options;
-		//Markers* markers;
-		//Families* families;
 		float threshold;	
 		int orig_num_markers;
 		int orig_num_families;
@@ -115,7 +110,6 @@ class Concordance{// : public Process{
 			check_marker_map.clear();
 			delete(check_data_set);
 		};
-		//void process(Connection*, Families*, Markers*);
 		string get_sample_error_file(){return sample_error_file;}
 		string get_main_file(){return main_file;}
 		string get_error_file(){return error_file;}
@@ -124,8 +118,6 @@ class Concordance{// : public Process{
 		void filter();
 		void setThreshold(string s){
 			options.setUp(s);
-			
-			//	threshold = std::atof(s.c_str());
 		};
 		void FilterSummary();
 		void setOptions(StepOptions o){
@@ -136,14 +128,9 @@ class Concordance{// : public Process{
 		int getOrigNumIndividuals(){return orig_num_individuals;};
 		void setRank(int r){rank = r;};
 		int getRank(){return rank;};
-		//void updateFamsMarks(Families* f, Markers* m){
-		//	families = f;
-		//	markers = m;
-		//};
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		//void process(Families*, Markers*);
 		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
 		void calculate();
         void setOrder(int o){order = o;};
