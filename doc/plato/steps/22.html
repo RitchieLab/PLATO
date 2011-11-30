@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>PLATO: PLatform for the Analysis, Translation, and Organization of large-scale data</title>
-<link rel="icon" href="http://localhost:3000/steps/favicon.ico" type="image/icon" />
-<link rel="shortcut icon" href="http://localhost:3000/steps/favicon.ico" type="image/icon" />
-<link href="../stylesheets/cake.generic.css%3F1248722767.css" media="screen" rel="stylesheet" type="text/css" />
-<link href="../stylesheets/wasp.css%3F1243441516.css" media="screen" rel="stylesheet" type="text/css" />
+<link rel="icon" href="https://chgr.mc.vanderbilt.edu/plato/steps/favicon.ico" type="image/icon" />
+<link rel="shortcut icon" href="https://chgr.mc.vanderbilt.edu/plato/steps/favicon.ico" type="image/icon" />
+<link href="../stylesheets/cake.generic.css%3F1262635684.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="../stylesheets/wasp.css%3F1262635684.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
 	<a name="top"></a>
 	<div id="container">
 		<div id="header">
 			<h1>
-<!--				<a href="/"><img alt="Wasp_icon32x32" src="/images/WASP_icon32x32.PNG?1243448767" /></a> -->
+<!--				<a href="/plato/"><img alt="Wasp_icon32x32" src="/plato/images/WASP_icon32x32.PNG?1262635684" /></a> -->
 				<a href="../index.html">PLATO:</a> PLatform for the Analysis, Translation, and Organization of large-scale data
 			</h1>
 		</div>
@@ -25,8 +25,9 @@
 		       	<br/>
 				<ul>
 					<li><a href="../index.html">Home</a></li>
-					<li><a href="../downloads.html">Download</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu/ritchielab/subscriptions">Download</a></li>
 					<li><a href="../main/aboutus.html">About Us</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu/ritchielab/index.php">Ritchie Lab</a></li>
 					<li><a href="http://chgr.mc.vanderbilt.edu">CHGR</a></li>
 				</ul>
 <br/>
@@ -435,11 +436,49 @@ Step specific options:
 				</b>
 		</td>
 		<td>
-				Specifies a specific chromosome to process. Only this one chromosome will be processed for the step specified. (Note: X = 23, Y = 24, Mitochondrial = 25, XY = 26)
+				Specifies a specific chromosome to process. Only this one chromosome will be processed for the step specified. (Note: X = 23, Y = 24, XY = 25, Mitochondrial = 26)
 				<br/>
 				<br/>
 				<b>Ex:</b>
 				-chrom 3
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-dummy-incomplete-parent-ids 			
+				</b>
+		</td>
+		<td>
+				This option will do one of two things when formatting output:<br/>
+<br/>
+In the case of a Sample having two parent ids in the PED file and one of those parent ids has no genotypes listed in the file, the resulting formatted output will add that missing sample to the file and fill in with 0/0 genotypes.<br/>
+<br/>
+In the case of a Sample having one parent id and the other one listed as missing (0), then the resulting output will fill in the 0 with DUM999999 for fathers and DUM999998 for mothers and add these dummy samples to the output filled in with 0/0 genotypes.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				output-ped -dummy-incomplete-parent-ids
+		</td>
+			
+	</tr>
+
+	<tr>
+		<td>
+			
+				<b>
+				-dummy-missing-parents 			
+				</b>
+		</td>
+		<td>
+				Inserts pedigree info and 0/0 genotypes for parents that are in the childs Dad/Mom column but don't exist in the pedfile.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				-dummy-missing-parents
 		</td>
 			
 	</tr>
