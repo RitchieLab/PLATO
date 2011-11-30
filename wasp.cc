@@ -128,7 +128,8 @@ enum cmdArgs{
 	a_map_includes_ref,
 	a_samplebprangefilter,
 	a_threads,
-	a_numthreads
+	a_numthreads,
+	a_autoonly
 
 };
 static map<string, StepValue> s_mapStepValues;
@@ -243,6 +244,7 @@ void Initialize(){
 	s_mapcmdArgs["-sample-bprange-filter"] = a_samplebprangefilter;
 	s_mapcmdArgs["-threads"] = a_threads;
 	s_mapcmdArgs["-numthreads"] = a_numthreads;
+	s_mapcmdArgs["-auto-only"] = a_autoonly;
 }
 
 int
@@ -312,6 +314,9 @@ main (int argc, char* argv[])
 					break;
 				}
 				case a_noweb:
+					break;
+				case a_autoonly:
+					opts::_AUTOONLY_ = true;
 					break;
 				case a_missing_geno:
 				{
@@ -1869,48 +1874,6 @@ vector<ORDER> optimize(ORDER* order){
 				options->doZeroDisabled() ||
 				thresh
 		){
-			if(thresh){
-				cout << "thresh\n";
-			}
-			if(options->doTransform()){
-				cout << "do transform\n";
-			}
-			if(options->doThreshMarkersLow()){
-				cout << "do threshmarkerslow\n";
-			}
-			if(options->doThreshMarkersHigh()){
-				cout << "do threshmarkershigh\n";
-			}
-			if(options->doThreshSamplesLow()){
-				cout << "do ThreshSamplesLow\n";
-			}
-			if(options->doThreshSamplesHigh()){
-				cout << "do threshsampleshigh\n";
-			}
-			if(options->doThreshFamiliesHigh()){
-				cout << "do threshfamilieshigh\n";
-			}
-			if(options->doThreshFamiliesLow()){
-				cout << "do threshfamilieslow\n";
-			}
-			if(options->doBpSpace()){
-				cout << "do bpspace\n";
-			}
-			if(options->doLDChop()){
-				cout << "do ldchop\n";
-			}
-			if(options->doRmMono()){
-				cout << "do rmmono\n";
-			}
-			if(options->doRmHetOnly())){
-				cout << "do rmhetonly\n";
-			}
-			if(options->doIncDisabledSamples()){
-				cout << "do incdisabledsamples\n";
-			}
-			if(options->doZeroDisabled()){
-				cout << "do zerodisabled\n";
-			}
 			nothread.push_back(order->at(o));
 			thresh = true;
 		}
@@ -1921,6 +1884,7 @@ vector<ORDER> optimize(ORDER* order){
 
 	results.push_back(yesthread);
 	results.push_back(nothread);
+
 
 	cout << "Threadable: \n";
 	for(int i = 0; i < yesthread.size(); i++){
