@@ -28,7 +28,6 @@ static const int SR_FAMILYDATA = 40;
 #define ENZ_IGHET 70
 #define ENZ_IGTOT 80
 
-//#define _MYTMP_ "/tmp";
 	typedef struct{
 		int famid;
 		int ind;
@@ -213,8 +212,6 @@ static const int SR_FAMILYDATA = 40;
 			int cases_used_m;
 			int controls_used_f;
 			int controls_used_m;
-
-//			char major[2];
 		} allele_struct_data;
 												
 #endif
