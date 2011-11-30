@@ -9,8 +9,8 @@ LIBDIR=-Llib -L/opt/local/lib -L/home/cozartc/boost/stage/lib -L/home/cozartc/sq
 LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadline -lintl -lglib-2.0
 INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
 SYS=WIN
-DB=USE_DB
-COMPASLIB=PLATOLIB
+#DB=USE_DB
+#COMPASLIB=PLATOLIB
 #R=USE_R
 
 #

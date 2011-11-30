@@ -58,17 +58,12 @@ void ProcessEigenstratOutput::FilterSummary(){}
 
 void ProcessEigenstratOutput::filter(){}
 
-void ProcessEigenstratOutput::dump2db(){}
-
-void ProcessEigenstratOutput::create_tables(){}
-
 void ProcessEigenstratOutput::PrintSummary(){
 	int msize = data_set->num_loci();
 
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-
 }
 
 void ProcessEigenstratOutput::process(DataSet* ds){
@@ -116,6 +111,10 @@ void ProcessEigenstratOutput::process(DataSet* ds){
 }//end method process(DataSet*)
 
 #ifdef PLATOLIB
+void ProcessEigenstratOutput::dump2db(){}
+
+void ProcessEigenstratOutput::create_tables(){}
+
 void ProcessEigenstratOutput::run(DataSetObject* ds)
 {
 	process(ds);
@@ -123,15 +122,13 @@ void ProcessEigenstratOutput::run(DataSetObject* ds)
 
 void ProcessEigenstratOutput::FixOutputName(int i, string tempout)
 {
-
-#ifdef WIN
-		//use windows version of project path + batchname
-		options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
-#else
-		//use non-windows version of project path + batchname
-		options.setOverrideOut(projectPath + "/" + "_random_set_" + getString<int>(i + 1) + tempout);
-#endif
-
+	#ifdef WIN
+	//use windows version of project path + batchname
+	options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
+	#else
+	//use non-windows version of project path + batchname
+	options.setOverrideOut(projectPath + "/" + "_random_set_" + getString<int>(i + 1) + tempout);
+	#endif
 }
 #endif
 

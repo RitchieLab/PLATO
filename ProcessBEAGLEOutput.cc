@@ -81,12 +81,6 @@ void ProcessBEAGLEOutput::filter(){
 }
 
 /*
- * Function: create_tables
- * Description: create db tables for use in process
- * not used
- */
-void ProcessBEAGLEOutput::create_tables(){};
-/*
  * Function: process
  * Description:
  * Main function for producing output files.
@@ -128,6 +122,13 @@ void ProcessBEAGLEOutput::process(DataSet* ds){
 }
 
 #ifdef PLATOLIB
+void ProcessBEAGLEOutput::dump2db(){};
+/*
+ * Function: create_tables
+ * Description: create db tables for use in process
+ * not used
+ */
+void ProcessBEAGLEOutput::create_tables(){};
 /*
  * Method: ProcessBEAGLEOutput::run
  * used by Plato-viewer

@@ -102,6 +102,8 @@ void ProcessHomozygous::PrintSummary(){
 
 }
 
+void ProcessHomozygous::resize(int i){}
+
 void ProcessHomozygous::filter(){}
 
 void ProcessHomozygous::process(DataSet* ds){
@@ -222,8 +224,6 @@ void ProcessHomozygous::dump2db()
     }
 }//end method dump2db
 
-void ProcessHomozygous::resize(int i){}
-
 void ProcessHomozygous::run(DataSetObject* ds)
 {
 	FixOutputName();
@@ -232,11 +232,11 @@ void ProcessHomozygous::run(DataSetObject* ds)
 
 void ProcessHomozygous::FixOutputName()
 {
-#ifdef WIN
-	options.setOverrideOut(projectPath);
-#else
-	options.setOverrideOut(projectPath);
-#endif
+	#ifdef WIN
+		options.setOverrideOut(projectPath);
+	#else
+		options.setOverrideOut(projectPath);
+	#endif
 }
 
 #endif

@@ -107,12 +107,10 @@ void ProcessLogReg::process(DataSet* ds)
 {
 	data_set = ds;
 	vector<int> good_markers = Helpers::findValidMarkersIndexes(data_set->get_markers(), &options);
-	cout << "good_markers contains " << getString<int>(good_markers.size()) << " items \n";
 
 	#ifdef PLATOLIB
 		Query myQuery(*db);
 		create_tables();
-		cout << "finished creating tables" << "\n";
 	#else
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
@@ -154,8 +152,8 @@ void ProcessLogReg::process(DataSet* ds)
 	lr.setModelType(options.getLRModelType());
 
 	double zt = Helpers::ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
-//	int prev_base = 0;
-//	int prev_chrom = -1;
+	int prev_base = 0;
+	int prev_chrom = -1;
 	InputFilter ct_filter;
 	vector<string> use_covs = options.getCovars();
 	vector<string> use_traits = options.getTraits();
@@ -231,7 +229,6 @@ void ProcessLogReg::process(DataSet* ds)
 				lr.calculate(model);
 			}
 			else{
-				cout << "Right here 8\n";
 				lr.calculate(model, covs, traits);
 			}
 			vector<double> coefs = lr.getCoefficients();
@@ -239,18 +236,12 @@ void ProcessLogReg::process(DataSet* ds)
 			vector<double> ses = lr.getCoeffStandardErr();
 			//cout << "stderr\n";
 			for(unsigned int c = 0; c < model.size(); c++){
-				cout << "Loop iteration # " << getString<int>(c + 1) << "\n";
 				#ifdef PLATOLIB
 				string sql = defaultinsert;
-				cout << "A\n";
 				sql += "," + getString<int>(mark->getSysprobe());
-				cout << "B\n";
 				sql += ",'" + mark->getReferent() + "'";
-				cout << "C\n";
 				sql += ",'" + options.getLRModelType() + "',";
-				cout << "D\n";
 				sql += (isnan(exp(coefs[c])) || isinf(exp(coefs[c]))) ? "NULL," : (getString<double>(exp(coefs[c])) + ",");
-				cout << "E\n";
 				#else
 				lrout << mark->toString() << "\t" << mark->getReferent() << "\t" << options.getLRModelType();
 				lrout << "\t" << nmiss;
@@ -258,21 +249,14 @@ void ProcessLogReg::process(DataSet* ds)
 				lrout << "\t" << exp(coefs[c]);
 				#endif
 				double se = ses[c];
-				cout << "F\n";
-				cout << "coefs[c]: " << getString<double>(coefs[c]) << "\n";
-				cout << "se: " << getString<double>(se) << "\n";
+
 				double Z = coefs[c] / se;
-				cout << "Z: " << getString<double>(Z) << "\n";
-				cout << "G\n";
+
 				#ifdef PLATOLIB
 				sql += (isnan(se) || isinf(se)) ? "NULL," : (getString<double>(se) + ",");
-				cout << "H\n";
 				sql += (isnan(exp(coefs[c] - zt * se)) || isinf(exp(coefs[c] - zt * se))) ? "NULL," : (getString<double>(exp(coefs[c] - zt * se)) + ",");
-				cout << "I\n";
 				sql += (isnan(exp(coefs[c] + zt * se)) || isinf(exp(coefs[c] + zt * se))) ? "NULL," : (getString<double>(exp(coefs[c] + zt * se)) + ",");
-				cout << "J\n";
 				sql += (isnan(Z) || isinf(Z)) ? "NULL," : (getString<double>(Z) + ",");
-				cout << "K\n";
 				#else
 				lrout << "\t" << se
 					<< "\t" << exp(coefs[c] - zt * se)
@@ -285,9 +269,6 @@ void ProcessLogReg::process(DataSet* ds)
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				//cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
 				#ifdef PLATOLIB
-				cout << "About to call Helpers::p_from_chi(): \n";
-				cout << "zz: " << getString<double>(zz) << "\n";
-				cout << "df: " << getString<double>(df) << "\n";
 				//having problems with zz being nan (must be > 0)
 				if ((!isnan(zz)) && (zz > 0))
 				{
@@ -299,9 +280,7 @@ void ProcessLogReg::process(DataSet* ds)
 					//TODO:  pvalue is null or < 0...
 					pvalue = 0;
 				}
-                cout << "L\n";
                 sql += (isnan(pvalue) || isinf(pvalue)) ? "NULL" : getString<double>(pvalue);
-                cout << "M\n";
 				#else
 				if(se > 0)
 				{
@@ -322,7 +301,6 @@ void ProcessLogReg::process(DataSet* ds)
 //				}
 				#ifdef PLATOLIB
 				sql += ")";
-				cout << "The first SQL Statement is: " << sql << "\n";
 				Controller::execute_sql(myQuery, sql);
 				#else
 				lrout << endl;
@@ -330,10 +308,8 @@ void ProcessLogReg::process(DataSet* ds)
 				//cout << "calc done " << c << endl;
 			}
 			int buffer = model.size();
-			cout << "Right here 1\n";
 			for(int c = 0; c < (int)covs.size(); c++)
 			{
-				cout<< "In this for loop" << "\n";
 				#ifdef PLATOLIB
 				string sql = defaultinsert;
 				sql += "," + getString<int>(mark->getSysprobe());
@@ -358,9 +334,6 @@ void ProcessLogReg::process(DataSet* ds)
 //				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				#ifdef PLATOLIB
-				cout << "About to call Helpers::p_from_chi\n";
-				cout << "zz is: " << getString<double>(zz) << "\n";
-				cout << "df is: " << getString<double>(df) << "\n";
 				pvalue = Helpers::p_from_chi(zz, df);
 				sql += (isnan(pvalue) || isinf(pvalue)) ? "NULL" : getString<double>(pvalue);
 				#else
@@ -380,14 +353,12 @@ void ProcessLogReg::process(DataSet* ds)
 //				}
 				#ifdef PLATOLIB
 				sql += ")";
-				cout << "The Second SQL Satement is: " << sql;
 				Controller::execute_sql(myQuery, sql);
 				#else
 				lrout << endl;
 				#endif
 			}
 			#ifdef PLATOLIB
-			cout << "Right here 2\n";
 			buffer += covs.size();
 			for(int c = 0; c < (int)traits.size(); c++)
 			{
@@ -415,15 +386,11 @@ void ProcessLogReg::process(DataSet* ds)
 				//}
 				//lrout << endl;
 				sql += ")";
-				cout << "The Third SQL Statement is: " << sql << "\n";
 				Controller::execute_sql(myQuery, sql);
 			}
 			#endif
-			cout << "Right here 3\n";
 		}
-		cout << "Right here 4\n";
 	}
-	cout << "Right here 5\n";
 	#ifndef PLATOLIB
 	if(options.doMultCompare())
 	{
@@ -507,10 +474,8 @@ void ProcessLogReg::process(DataSet* ds)
 		}
 	}
 #endif
-cout << "Right here 6\n";
 #ifdef PLATOLIB
 	myQuery.commit();
-	cout << "Right here 7\n";
 	hasresults = true;
 #else
 	lrout.close();

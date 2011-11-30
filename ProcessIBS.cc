@@ -64,6 +64,8 @@ void ProcessIBS::PrintSummary(){
 
 }
 
+void ProcessIBS::resize(int i){}
+
 void ProcessIBS::filter(){}
 
 void ProcessIBS::process(DataSet* ds){
@@ -338,7 +340,6 @@ void ProcessIBS::process(DataSet* ds){
 #ifdef PLATOLIB
 void ProcessIBS::create_tables(){}
 void ProcessIBS::dump2db(){}
-void ProcessIBS::resize(int i){}
 void ProcessIBS::run(DataSetObject* ds)
 {
 #ifdef PLATOLIB

@@ -105,9 +105,6 @@ class ProcessCaConChisq : public Process{
 		void process(DataSet*);
 		void FilterSummary();
 		void resize(int);
-		void run(DataSetObject*);
-		void dump2db();
-		void create_tables();
 		void setRank(int r){rank = r;};
 		void setOrder(int o){order = o;};
         void setDBOUT(){_DBOUTPUT_ = true;};
@@ -116,7 +113,11 @@ class ProcessCaConChisq : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void setThreshold(string s){options.setUp(s);};
-
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

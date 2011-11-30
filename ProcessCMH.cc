@@ -78,8 +78,6 @@ void ProcessCMH::PrintSummary(){
 
 void ProcessCMH::filter(){}
 
-void ProcessCMH::dump2db(){}
-
 void ProcessCMH::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		if(mark->isEnabled()){// && !mark->isFlagged()){
@@ -102,22 +100,24 @@ void ProcessCMH::doFilter(Methods::Marker* mark, double value){
 
 void ProcessCMH::process(DataSet* ds){
 	data_set = ds;
+	int msize = data_set->num_loci();
+
 	CMH cmh;
 
-#ifdef PLATOLIB
+	#ifdef PLATOLIB
 	options.readClustersFromString(data_set->get_samples());
 	cmh.setOverwrite(true);
-#else
+	#else
 	options.readClusters(data_set->get_samples());
 	cmh.setOverwrite(overwrite);
-#endif
+	#endif
 
 
 	cmh.setOptions(options);
 	cmh.setRank(rank);
 	cmh.resetDataSet(data_set);
 
-#ifndef PLATOLIB
+	#ifndef PLATOLIB
 	string f = opts::_OUTPREFIX_ + "cmh" + options.getOut() + ".txt";
 	if (!overwrite) {
 		f += "." + getString<int>(order);
@@ -152,155 +152,158 @@ void ProcessCMH::process(DataSet* ds){
 	vector<double> pvals;
 	chis.resize(msize, 0);
 	pvals.resize(msize, 0);
-#else
+	#else
 	create_tables();
 	Query myQuery(*db);
 	myQuery.transaction();
 
-#endif
+	#endif
 	int prev_base = 0;
 	int prev_chrom = -1;
 	vector<Marker*> good_markers = Helpers::findValidMarkers(ds->get_markers(), &options);
-	int msize = good_markers.size();
+	msize = good_markers.size();
 
-	for(int m = 0; m < (int)msize; m++){
+	for(int m = 0; m < (int)msize; m++)
+	{
 		Marker* mark = good_markers[m];//data_set->get_locus(m);
 
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
 			cmh.calculate(mark);
-#ifdef PLATOLIB
+			#ifdef PLATOLIB
 			string sql = defaultinsert;
 			sql += "," + getString<int>(mark->getSysprobe());
-#else
+			#else
 			MHOUT << mark->getChrom() << "\t" << mark->getRSID();
-#endif
+			#endif
 			if(options.getCMH2x2xK()){
-#ifdef PLATOLIB
+				#ifdef PLATOLIB
 
-#else
+				#else
 				MHOUT << "\t" << mark->getAllele1()
 						<< "\t" << mark->getAllele2() << "\t"
 						<< mark->getBPLOC() << "\t";
 
 				chis[m] = cmh.get_chisq();
 				pvals[m] = cmh.get_pval();
-#endif
+				#endif
 
 				if (Helpers::realnum(cmh.get_chisq()))
 				{
-#ifdef PLATOLIB
+				#ifdef PLATOLIB
 					sql += "," + getString<double>(cmh.get_chisq());
 					sql += "," + getString<double>(cmh.get_pval());
-#else
+					#else
 					MHOUT << cmh.get_chisq() << "\t" << cmh.get_pval()
 							<< "\t";
-#endif
+					#endif
 				}
 				else{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += ", NULL, NULL";
 
-#else
+					#else
 					MHOUT << "NA" << "\t" << "NA" << "\t";
 
-#endif
+					#endif
 				}
 				if (Helpers::realnum(cmh.getOR()))
 				{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += "," + getString<double>(cmh.getOR());
 
-#else
+					#else
 					MHOUT << cmh.getOR() << "\t";
 
-#endif
+					#endif
 				}
 				else{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += ",NULL";
 
-#else
+					#else
 					MHOUT << "NA" << "\t";
 
-#endif
+					#endif
 				}
 				if (Helpers::realnum(cmh.getOR_lower()))
 				{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += "," + getString<double>(cmh.getOR_lower());
-#else
+					#else
 					MHOUT << cmh.getOR_lower() << "\t";
-#endif
+					#endif
 				}
 				else
 				{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += ",NULL";
-#else
+					#else
 					MHOUT << "NA" << "\t ";
-#endif
+					#endif
 				}
 				if (Helpers::realnum(cmh.getOR_upper()))
 				{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += "," + getString<double>(cmh.getOR_upper());
-#else
+					#else
 					MHOUT << cmh.getOR_upper();
-#endif
+					#endif
 				}
 				else
 				{
-#ifdef PLATOLIB
+					#ifdef PLATOLIB
 					sql += ",NULL";
-#else
+					#else
 					MHOUT << "NA";
-#endif
+					#endif
 				}
 
 				if(options.doBreslowDay()){
 					if (cmh.get_pvalbd() > -1)
 					{
-#ifdef PLATOLIB
+						#ifdef PLATOLIB
 						sql += "," + getString<double>(cmh.get_chisqbd());
 						sql += "," + getString<double>(cmh.get_pvalbd());
-#else
+						#else
 						MHOUT << "\t" << cmh.get_chisqbd() << "\t" << cmh.get_pvalbd();
-#endif
+						#endif
 					}
 					else
 					{
-#ifdef PLATOLIB
+						#ifdef PLATOLIB
 						sql += ",NULL,NULL";
-#else
+						#else
 						MHOUT << "\t" << "NA" << "\t" << "NA";
-#endif
+						#endif
 					}
 				}
 			}
 			else
 			{
-#ifdef PLATOLIB
+				#ifdef PLATOLIB
 				sql += "," + getString<double>(cmh.get_chisq());
 				sql += "," + getString<double>(cmh.get_pval());
-#else
+				#else
 				MHOUT << "\t" << cmh.get_chisq() << "\t" << cmh.get_pval();
 				chis[m] = cmh.get_chisq();
 				pvals[m] = cmh.get_pval();
-#endif
+				#endif
 			}
-#ifdef PLATOLIB
+			#ifdef PLATOLIB
 			sql += ")";
 			Controller::execute_sql(myQuery, sql);
-#else
+			#else
 			MHOUT << endl;
-#endif
+			#endif
 
 //			doFilter(mark, cmh.get_pval());
 		}
 	}
+	#ifdef PLATOLIB
 	myQuery.commit();
+	#endif
 
-#ifndef PLATOLIB
+	#ifndef PLATOLIB
 	if(options.doMultCompare()){
 		string fcomp = opts::_OUTPREFIX_ + "cmh_comparisons" + options.getOut() + ".txt";
 		if (!overwrite) {
@@ -386,14 +389,16 @@ void ProcessCMH::process(DataSet* ds){
 	if(MHOUT.is_open()){
 		MHOUT.close();
 	}
-#endif
+	#endif
 
-#ifdef PLATOLIB
+	#ifdef PLATOLIB
 	hasresults = true;
-#endif
+	#endif
 }//end method process()
 
 #ifdef PLATOLIB
+void ProcessCMH::dump2db(){}
+
 void ProcessCMH::create_tables()
 {
 	Query myQuery(*db);

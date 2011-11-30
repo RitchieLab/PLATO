@@ -138,8 +138,8 @@ void ProcessLinearReg::process(DataSet* ds){
 	vector<double> chis(ds->num_loci(), 0);
 	vector<double> main_pvals(ds->num_loci(), 0);
 
-	//int prev_base = 0;
-	//int prev_chrom = -1;
+	int prev_base = 0;
+	int prev_chrom = -1;
 	int msize = good_markers.size();
 	#ifdef PLATOLIB
 		Query myQuery(*db);

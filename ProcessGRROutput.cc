@@ -56,10 +56,6 @@ void ProcessGRROutput::PrintSummary(){
 	}
 }
 
-void ProcessGRROutput::dump2db(){}
-
-void ProcessGRROutput::create_tables(){}
-
 void ProcessGRROutput::filter(){
 }
 
@@ -102,12 +98,18 @@ void ProcessGRROutput::process(DataSet* ds){
 	}
 	else
 	{
-	FixOutputName(1, options.getOut());
-	grr.setOptions(options);
-	grr.calculate(data_set);
+#ifdef PLATOLIB
+		FixOutputName(1, options.getOut());
+#endif
+		grr.setOptions(options);
+		grr.calculate(data_set);
 	}
 }//end method process(DataSet*)
 #ifdef PLATOLIB
+void ProcessGRROutput::dump2db(){}
+
+void ProcessGRROutput::create_tables(){}
+
 void ProcessGRROutput::run(DataSetObject* ds)
 {
 	process(ds);
@@ -115,11 +117,11 @@ void ProcessGRROutput::run(DataSetObject* ds)
 
 void ProcessGRROutput::FixOutputName(int i, string tempout)
 {
-#ifdef WIN
-	options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
-#else
-	options.setOverrideOut(projectPath + "/" + "_random-set_" + getString<int>(i + 1) + tempout);
-#endif
+	#ifdef WIN
+		options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
+	#else
+		options.setOverrideOut(projectPath + "/" + "_random-set_" + getString<int>(i + 1) + tempout);
+	#endif
 }
 #endif
 

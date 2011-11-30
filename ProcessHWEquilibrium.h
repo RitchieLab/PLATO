@@ -155,9 +155,11 @@ class ProcessHWEquilibrium : public Process{
 		void doFilter(Marker*, HWEquilibrium*);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*);
-		void dump2db();
-		void create_tables();
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

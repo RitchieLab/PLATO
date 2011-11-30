@@ -214,10 +214,12 @@ class ProcessAlleleFrequency : public Process{
 		void initializeCounts(int);
 		void doFilter(Marker*, AlleleFrequency*);
 		void setOverwrite(bool v){overwrite = v;};
-		void create_tables();
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*);
-		void dump2db(){};
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

@@ -132,10 +132,12 @@ class ProcessFBATOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*);
-		void dump2db();
-		void create_tables();
-		void FixOutputName();
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+			void FixOutputName();
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

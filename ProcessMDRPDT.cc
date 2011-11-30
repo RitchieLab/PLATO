@@ -153,5 +153,11 @@ void ProcessMDRPDT::process(DataSet* ds){
     }
 }
 #ifdef PLATOLIB
+void ProcessMDRPDT::create_tables(){}
+void ProcessMDRPDT::dump2db(){}
+void ProcessMDRPDT::run(DataSetObject* ds){}
+#endif
+
+#ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

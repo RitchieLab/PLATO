@@ -79,5 +79,11 @@ void ProcessLD::process(DataSet* ds){
 	orig_num_markers = ld.getOrigNumMarkers();
 }
 #ifdef PLATOLIB
+void ProcessLD::create_tables(){}
+void ProcessLD::dump2db(){}
+void ProcessLD::run(DataSetObject* ds){}
+#endif
+
+#ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

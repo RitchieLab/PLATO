@@ -2368,7 +2368,7 @@ Step initializeSteps(string i){
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
-				tempproc = new PlatoLib::ProcessAlleleFrequency();
+				tempproc = new ProcessAlleleFrequency();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -3217,7 +3217,7 @@ STEPS initializeSteps(){
 				if(tempproc != NULL){
 					delete(tempproc);
 				}
-				tempproc = new PlatoLib::ProcessAlleleFrequency();
+				tempproc = new ProcessAlleleFrequency();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}

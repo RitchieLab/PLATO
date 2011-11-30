@@ -66,12 +66,6 @@ void ProcessConcordance::PrintSummary(){}
 
 void ProcessConcordance::filter(){}
 
-void ProcessConcordance::create_tables(){}
-
-void ProcessConcordance::dump2db(){}
-
-void ProcessConcordance::resize(int i){}
-
 void ProcessConcordance::process(DataSet* ds){
 	data_set = ds;
 	Concordance con(data_set);
@@ -93,6 +87,12 @@ void ProcessConcordance::process(DataSet* ds){
 }//end method process(DataSet* ds)
 
 #ifdef PLATOLIB
+void ProcessConcordance::create_tables(){}
+
+void ProcessConcordance::dump2db(){}
+
+void ProcessConcordance::resize(int i){}
+
 void ProcessConcordance::run(DataSetObject* ds)
 {
 	process(ds);

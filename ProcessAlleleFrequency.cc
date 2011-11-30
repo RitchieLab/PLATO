@@ -2767,12 +2767,17 @@ void ProcessAlleleFrequency::process(DataSet* ds)
 		options.readGroups(data_set->get_samples());
 	}
 
+	cout << "Calling processtest()\n";
 	processtest();
 	return;
 
 }
 
-void ProcessAlleleFrequency::create_tables(){
+#ifdef PLATOLIB
+void ProcessAlleleFrequency::dump2db(){}
+
+void ProcessAlleleFrequency::create_tables()
+{
     Query myQuery(*db);
     int msize = data_set->num_loci();
 
@@ -3346,7 +3351,6 @@ void ProcessAlleleFrequency::create_tables(){
     }
 }
 
-#ifdef PLATOLIB
     void ProcessAlleleFrequency::run(DataSetObject* ds)
     {
     	data_set = ds;

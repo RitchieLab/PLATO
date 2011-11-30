@@ -101,27 +101,28 @@ void ProcessFBATOutput::process(DataSet* ds){
 	}
 }
 
+#ifdef PLATOLIB
 void ProcessFBATOutput::dump2db(){}
+
 void ProcessFBATOutput::create_tables(){}
 
-#ifdef PLATOLIB
-	void ProcessFBATOutput::run(DataSetObject* ds)
-	{
-		process(ds);
-	}
+void ProcessFBATOutput::run(DataSetObject* ds)
+{
+	process(ds);
+}
 
-	void ProcessFBATOutput::FixOutputName()
-	{
+void ProcessFBATOutput::FixOutputName()
+{
 
-		#ifdef WIN
-				//use windows version of project path + batchname
-				options.setOverrideOut(projectPath + "\\" + batchname + "_" + name +  "_" + getString<int>(position));
-		#else
-				//use non-windows version of project path + batchname
-				options.setOverrideOut(projectPath + "/" + batchname + "_" + name +  "_" + getString<int>(position));
-		#endif
+	#ifdef WIN
+			//use windows version of project path + batchname
+			options.setOverrideOut(projectPath + "\\" + batchname + "_" + name +  "_" + getString<int>(position));
+	#else
+			//use non-windows version of project path + batchname
+			options.setOverrideOut(projectPath + "/" + batchname + "_" + name +  "_" + getString<int>(position));
+	#endif
 
-	}
+}
 #endif
 #ifdef PLATOLIB
 }//end namespace PlatoLib

@@ -58,8 +58,10 @@ class Process{
             string get_name(){return name;}
             int get_position(){return position;}
             vector<string> get_filenames(){return filenames;}
-            virtual void run(DataSetObject*) = 0;
-            virtual void dump2db() = 0;
+			#ifdef PLATOLIB
+				virtual void run(DataSetObject*) = 0;
+				virtual void dump2db() = 0;
+			#endif
 
 	protected:
             Database* db;

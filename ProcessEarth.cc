@@ -352,5 +352,15 @@ void ProcessEarth::process(DataSet* ds) {
 	eout.close();
 }
 #ifdef PLATOLIB
+void ProcessDeletions::create_tables(){}
+
+void ProcessDeletions::dump2db(){}
+
+void ProcessDeletions::resize(int i){}
+
+void ProcessDeletions::run(DataSetObject* ds){}
+#endif
+
+#ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

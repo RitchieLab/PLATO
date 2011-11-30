@@ -53,9 +53,7 @@ void ProcessEpistasis::PrintSummary(){
 
 }
 
-void ProcessEpistasis::filter(){
-}
-
+void ProcessEpistasis::filter(){}
 
 void ProcessEpistasis::process(DataSet* ds){
 	data_set = ds;
@@ -66,6 +64,14 @@ void ProcessEpistasis::process(DataSet* ds){
 	epi.setOptions(options);
 	epi.calculate(data_set);
 }
+#ifdef PLATOLIB
+void ProcessEpistasis::dump2db(){}
+
+void ProcessEpistasis::create_tables(){}
+
+void ProcessEpistasis::run(DataSetObject* ds){}
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

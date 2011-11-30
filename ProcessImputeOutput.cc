@@ -87,8 +87,15 @@ void ProcessImputeOutput::process(DataSet* ds){
 	Impute.setOptions(options);
 	Impute.calculate(data_set);
 	}
-
 }
+#ifdef PLATOLIB
+void ProcessImputeOutput::create_tables(){}
+
+void ProcessImputeOutput::dump2db(){}
+
+void ProcessImputeOutput::run(DataSetObject* ds){}
+#endif
+
 #ifdef PLATOLIB
 }//end namespace PlatoLib
 #endif

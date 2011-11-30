@@ -132,10 +132,12 @@ class ProcessEigenstratOutput : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*);
-		void dump2db();
-		void create_tables();
-		void FixOutputName(int, string);
+		#ifdef PLATOLIB
+			void run(DataSetObject*);
+			void dump2db();
+			void create_tables();
+			void FixOutputName(int, string);
+		#endif
 };
 #ifdef PLATOLIB
 };//end namespace PlatoLib

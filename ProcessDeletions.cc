@@ -125,11 +125,15 @@ void ProcessDeletions::filter_markers(){
 void ProcessDeletions::filter(){
 	return;
 }
-void ProcessDeletions::create_tables(){}
-void ProcessDeletions::dump2db(){}
-void ProcessDeletions::resize(int i){}
+
 
 #ifdef PLATOLIB
+void ProcessDeletions::create_tables(){}
+
+void ProcessDeletions::dump2db(){}
+
+void ProcessDeletions::resize(int i){}
+
 void ProcessDeletions::run(DataSetObject* ds)
 {
 	process(ds);

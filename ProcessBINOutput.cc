@@ -55,8 +55,6 @@ ProcessBINOutput::ProcessBINOutput(string bn, int pos, Database* pdb, string pro
 ProcessBINOutput::~ProcessBINOutput(){}
 void ProcessBINOutput::filter(){}
 void ProcessBINOutput::FilterSummary(){}
-void ProcessBINOutput::dump2db(){}
-void ProcessBINOutput::create_tables(){}
 
 void ProcessBINOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -64,7 +62,6 @@ void ProcessBINOutput::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-
 }
 
 void ProcessBINOutput::process(DataSet* ds){
@@ -99,6 +96,10 @@ void ProcessBINOutput::process(DataSet* ds){
 	}
 }
 #ifdef PLATOLIB
+void ProcessBINOutput::dump2db(){}
+
+void ProcessBINOutput::create_tables(){}
+
 void ProcessBINOutput::run(DataSetObject* ds)
 {
 	data_set = ds;
