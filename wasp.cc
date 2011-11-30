@@ -274,6 +274,15 @@ main (int argc, char* argv[])
 			print_steps(steps);
 			exit(1);
 		}
+		if(arg == "-O"){
+			printOptions();
+			exit(1);
+		}
+		if(arg == "-SO"){
+			StepOptions printopts;
+			printopts.printOptions();
+			exit(1);
+		}
 		vector<string> arguments;
 
 		for(int i = 2; i < argc; i++){
@@ -1340,6 +1349,21 @@ void print_help(){
 	cout << "allele-freq -thresh-markers-min 0.1" << endl;
 	cout << endl;
 */
+}
+
+/*
+ * printOptions
+ *
+ * outputs command line options
+ *
+ */
+void printOptions(){
+	map<string, cmdArgs>::iterator iter;
+
+	cout << "Command line arguments:\n-------------------\n";
+	for(iter = s_mapcmdArgs.begin(); iter != s_mapcmdArgs.end(); iter++){
+		cout << iter->first << endl;
+	}
 }
 
 /*

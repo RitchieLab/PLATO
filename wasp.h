@@ -120,6 +120,7 @@ void runStep(Step, DataSet*);
 //void remapSamples(vector<Sample*>*, vector<Marker*>*, vector<int>*, int);
 void flipStrand(vector<Marker*>*);
 void printFamilies(vector<Family*>*);
+void printOptions();
 string descendTree(Sample*, int);
 map<int, vector<Sample*> > descendTree3(Sample*, int);
 void compileOutputs(vector<Marker*>*, vector<Family*>*, vector<Sample*>*);
