@@ -7,6 +7,8 @@
 #include "Controller.h"
 #include "libsqlitewrapped.h"
 
+using namespace Methods;
+
 Controller::Controller()
 {
 }
@@ -33,7 +35,7 @@ void Controller::drop_table(Database* db, string table)
 	if(tableName == table)
 	{
 		sql = "DROP TABLE " + table;
-		execute_sql(db, sql);
+		execute_sql(query, sql);
 	}
 	else
 	{

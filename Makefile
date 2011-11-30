@@ -6,8 +6,8 @@ LIBPLATO=$(LIBPLATODIR)libplato.a
 PLATO_AS_LIB=methods $(LIBPLATO)
 METHODDIR=method_lib
 LIBDIR=-Llib -L/opt/local/lib -L/home/cozartc/boost/stage/lib -L/home/cozartc/sqlitewrapped/lib
-LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43#-lreadline -lintl -lglib-2.0
-INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/cozartc/boost#-I/usr/local/include
+LIB=-lm -lmethods -lboost_thread-mgw44-mt-1_43 -lsqlite3 -lsqlitewrapped#-lreadline -lintl -lglib-2.0
+INCLUDEDIR=-I. -I$(METHODDIR) -I/opt/local/include -I/home/cozartc/boost -I/home/cozartc/sqlitewrapped/lib#-I/usr/local/include
 SYS=WIN
 DB=USE_DB
 #R=USE_R
@@ -50,7 +50,7 @@ OBJECTS = ProcessKinship.o ProcessFst.o Step.o Process.o Percent.o Chrom.o Proce
 		  ProcessBEAGLEOutput.o ProcessLAPISOutput.o ProcessMDROutput.o ProcessHomozygous.o ProcessLD.o Finalize.o ProcessPowerMarkerOutput.o \
 		  ExampleModule.o ProcessDeletions.o ProcessMitoCheck.o ProcessFBATOutput.o ProcessQTDTOutput.o ProcessPDT2Output.o ProcessConcordance.o \
 		  sockets.o ProcessSuperlinkOutput.o ProcessTPEDOutput.o ProcessLogReg.o ProcessCMH.o ProcessLinearReg.o ProcessIBS.o ProcessFilterProcess.o \
-		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o
+		  ProcessMDR.o ProcessClusterMissing.o ProcessMDRPDT.o ProcessEpistasis.o ProcessImputeOutput.o Controller.o
 
 INTERFACES = ProcessKinship.h ProcessFst.h Step.h Process.h Percent.h Chrom.h ProcessMarkerGenoEff.h ProcessSampleGenoEff.h PercentByFamily.h ProcessAlleleFrequency.h \
 		  ProcessMendelianErrors.h ProcessHWEquilibrium.h ProcessGenderCheck.h ProcessRunTDT.h ProcessGRROutput.h dcdflib.h ProcessPEDOutput.h ProcessBINOutput.h \
@@ -58,7 +58,7 @@ INTERFACES = ProcessKinship.h ProcessFst.h Step.h Process.h Percent.h Chrom.h Pr
 		  ProcessBEAGLEOutput.h ProcessLAPISOutput.h ProcessMDROutput.h ProcessHomozygous.h ProcessLD.h Finalize.h ProcessPowerMarkerOutput.h \
 		  ExampleModule.h ProcessDeletions.h ProcessMitoCheck.h ProcessFBATOutput.h ProcessQTDTOutput.h ProcessPDT2Output.h ProcessConcordance.h \
 		  sockets.h ProcessSuperlinkOutput.h ProcessTPEDOutput.h ProcessLogReg.h ProcessCMH.h ProcessLinearReg.h ProcessIBS.h ProcessFilterProcess.h \
-		  ProcessMDR.h ProcessClusterMissing.h ProcessMDRPDT.h ProcessEpistasis.h ProcessImputeOutput.h
+		  ProcessMDR.h ProcessClusterMissing.h ProcessMDRPDT.h ProcessEpistasis.h ProcessImputeOutput.h Controller.h
 
 LIB_OBJECTS = $(OBJECTS)
 
@@ -262,4 +262,5 @@ ProcessSuperlinkOutput.o: ProcessSuperlinkOutput.cc ProcessSuperlinkOutput.h
 	$(CC) ProcessSuperlinkOutput.cc -c $(CFLAGSCC) $(LIBDIR)
 ProcessConcordance.o: ProcessConcordance.cc ProcessConcordance.h
 	$(CC) ProcessConcordance.cc -c $(CFLAGSCC) $(LIBDIR)
-	
+Controller.o: Controller.cpp Controller.h
+	$(CC) Controller.cpp -c $(CFLAGSCC) $(LIBDIR)

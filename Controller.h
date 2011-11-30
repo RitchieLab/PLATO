@@ -8,9 +8,12 @@
 #ifndef CONTROLLER_H_
 #define CONTROLLER_H_
 
-#include "Process.h"
+//#include "Process.h"
 //#include "PlatoProject.h"
-#include "libsqlitewrapped.h"
+#include <iostream>
+#include <sqlite3.h>
+#include <libsqlitewrapped.h>
+#include "MethodException.h"
 
 using namespace std;
 

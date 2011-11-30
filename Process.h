@@ -13,6 +13,9 @@
 #include <Marker.h>
 #include <DataSet.h>
 #include <StepOptions.h>
+#include <sqlite3.h>
+#include <libsqlitewrapped.h>
+
 using namespace std;
 using namespace Methods;
 class Process{
@@ -36,7 +39,24 @@ class Process{
 		virtual void setOverwrite(bool) = 0;
 		virtual bool hasIncExc() = 0;
 		StepOptions* getOptions(){return &options;}
+		void set_db(Database* pdb){db = pdb;}
+		bool has_results(){return hasresults;}
+		vector<string> get_tablename(){return tablename;}
+        map<string, vector<string> > get_headers(){return headers;}
+        vector<string> get_headers(string table){return headers[table];}
+        vector<string> get_primary_table(string table){return primary_table[table];}
+        string get_table_nickname(int i){return tablenicknames[i];}
 
+	protected:
+		Database* db;
+		string name;
+		string batchname;
+		int position;
+		bool hasresults;
+		vector<string> tablename;
+		map<string, vector<string> > headers;
+		map<string, vector<string> > primary_table;
+        vector<string> tablenicknames;
 };
 
 #endif

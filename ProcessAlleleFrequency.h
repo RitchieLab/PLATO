@@ -44,6 +44,16 @@ class ProcessAlleleFrequency : public Process{
 		bool useoverall;
 		bool overwrite;
 		int order;
+	    string defaultinsert;
+	    string defaultgenoinsert;
+	    string casecontrolinsert;
+	    string casecontrolgenoinsert;
+	    string parentalinsert;
+	    string parentalgenoinsert;
+	    string groupinsert;
+	    string groupgenoinsert;
+	    string genderinsert;
+	    string gendergenoinsert;
 
 		//overall groups
 		map<string, int> ga1_count, ga2_count, ga1_homo_count, ga2_homo_count, ga12_count;
@@ -103,9 +113,9 @@ class ProcessAlleleFrequency : public Process{
 			threshold = 0.0;
 			rank =0;
 			order = 0;
-		 orig_num_markers = 0;
-		 orig_num_families = 0;
-		 orig_num_individuals = 0;
+			 orig_num_markers = 0;
+			 orig_num_families = 0;
+			 orig_num_individuals = 0;
 		};
 		ProcessAlleleFrequency(vector<Sample*>* samps){
 			data_set = NULL;
@@ -151,6 +161,18 @@ class ProcessAlleleFrequency : public Process{
 		 orig_num_families = 0;
 		 orig_num_individuals = 0;
 		};
+
+		ProcessAlleleFrequency(string bn, int pos, Database* pdb)
+		{
+			db = pdb;
+			useoverall = false;
+			hasresults = false;
+			name = "Allele Frequency";
+			batchname = bn;
+			position = pos;
+
+		}
+
 		~ProcessAlleleFrequency(){};
 //		void process(Connection *, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -183,6 +205,7 @@ class ProcessAlleleFrequency : public Process{
 		void initializeCounts(int);
 		void doFilter(Marker*, AlleleFrequency*);
 		void setOverwrite(bool v){overwrite = v;};
+		void create_tables();
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 };
 

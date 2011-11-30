@@ -33,6 +33,12 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
+#include <sqlite3.h>
+#include <libsqlitewrapped.h>
+#include "Controller.h"
+
+//TODO:  did not import the Vars.h or Vars.cpp, instead replaced
+//			Vars::LOCUS_TABLE with "LOCI" in 10 places
 
 using namespace Methods;
 
@@ -334,77 +340,94 @@ void ProcessAlleleFrequency::initializeCounts(int v) {
  *Main function to perform allele frequency test
  *
  */
-void ProcessAlleleFrequency::processtest() {
+void ProcessAlleleFrequency::processtest()
+{
+	int total_snps = 0;
+	map<string, double> group_avg;
+	string afname;
+
 #ifdef USE_DB
 	//create a Query object if set to use a database
 	Query myQuery(*db);
 	//TODO:  create the following method...
 	create_tables();
+	string insert, pinsert, pgeninsert, gendinsert, ginsert;
+	string ccgeninsert, gendgeninsert, ccinsert, ggeninsert;
+
 #else
 	//this section sets up the output files, headers and filestreams
 	//and is not included if USE_DB is defined
-	map<string, double> group_avg;
-	int total_snps = 0;
-
-	string afname = opts::_OUTPREFIX_ + "allele_freq" + options.getOut()
+	afname = opts::_OUTPREFIX_ + "allele_freq" + options.getOut()
 			+ ".txt";//+ getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		afname += "." + getString<int> (order);
 	}
 	string gfname = opts::_OUTPREFIX_ + "allele_freq_genotype"
 			+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		gfname += "." + getString<int> (order);
 	}
 	string gafname;
 	string ggfname;
 	string gafnameavg;
-	if (options.doGroupFile()) {
+	if (options.doGroupFile())
+	{
 		gafname = opts::_OUTPREFIX_ + "allele_freq_group" + options.getOut()
 				+ ".txt";//+ getString<int>(order) + ".txt";
-		if (!overwrite) {
+		if (!overwrite)
+		{
 			gafname += "." + getString<int> (order);
 		}
 		ggfname = opts::_OUTPREFIX_ + "allele_freq_genotype_group"
 				+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-		if (!overwrite) {
+		if (!overwrite)
+		{
 			ggfname += "." + getString<int> (order);
 		}
 		gafnameavg = opts::_OUTPREFIX_ + "allele_freq_group_avg"
 				+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-		if (!overwrite) {
+		if (!overwrite)
+		{
 			gafnameavg += "." + getString<int> (order);
 		}
 	}
 
 	string pfname = opts::_OUTPREFIX_ + "allele_freq_parental"
 			+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		pfname += "." + getString<int> (order);
 	}
 	string pgfname = opts::_OUTPREFIX_ + "allele_freq_parental_genotype"
 			+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		pgfname += "." + getString<int> (order);
 	}
 	string gendfname = opts::_OUTPREFIX_ + "allele_freq_gender"
 			+ options.getOut() + ".txt"; //getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		gendfname += "." + getString<int> (order);
 	}
 	string gendgfname = opts::_OUTPREFIX_ + "allele_freq_gender_genotype"
 			+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		gendgfname += "." + getString<int> (order);
 	}
 	string ccfname = opts::_OUTPREFIX_ + "allele_freq_casecontrol"
 			+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		ccfname += "." + getString<int> (order);
 	}
 	string ccgfname = opts::_OUTPREFIX_ + "allele_freq_casecontrol_genotype"
 			+ options.getOut() + ".txt";//getString<int>(order) + ".txt";
-	if (!overwrite) {
+	if (!overwrite)
+	{
 		ccgfname += "." + getString<int> (order);
 	}
 	ofstream paren;
@@ -418,11 +441,13 @@ void ProcessAlleleFrequency::processtest() {
 	ofstream mygeno(gfname.c_str());
 	opts::addFile("Marker", stepname, afname);
 	opts::addFile("Marker", stepname, gfname);
-	if (!myoutput) {
+	if (!myoutput)
+	{
 		opts::printLog("Error opening: " + afname + ".  Exiting!\n");
 		throw MethodException("");
 	}
-	if (!mygeno) {
+	if (!mygeno)
+	{
 		opts::printLog("Error opening: " + gfname + ".  Exiting!\n");
 		throw MethodException("");
 	}
@@ -430,16 +455,19 @@ void ProcessAlleleFrequency::processtest() {
 	ofstream gmyoutput; //group file output
 	ofstream gmygeno; //group file output
 	ofstream gmyoutputavg; //avg groups
-	if (options.doGroupFile()) {
+	if (options.doGroupFile())
+	{
 		gmyoutput.open(gafname.c_str());
 		gmygeno.open(ggfname.c_str());
 		opts::addFile("Marker", stepname, gafname);
 		opts::addFile("Marker", stepname, ggfname);
-		if (!gmyoutput) {
+		if (!gmyoutput)
+		{
 			opts::printLog("Error opening: " + gafname + ".  Exiting!\n");
 			throw MethodException("");
 		}
-		if (!gmygeno) {
+		if (!gmygeno)
+		{
 			opts::printLog("Error opening: " + ggfname + ".  Exiting!\n");
 			throw MethodException("");
 		}
@@ -448,7 +476,8 @@ void ProcessAlleleFrequency::processtest() {
 
 		gmyoutputavg.open(gafnameavg.c_str());
 		opts::addFile("Batch", stepname, gafnameavg);
-		if(!gmyoutputavg){
+		if(!gmyoutputavg)
+		{
 			throw MethodException("Error opening: " + gafnameavg + ".\n");
 		}
 		gmyoutputavg << "Batch\tMAF\tN\n";
@@ -461,9 +490,12 @@ void ProcessAlleleFrequency::processtest() {
 	int msize = data_set->num_loci();
 
 	int maxalleles = 0;
-	for (int i = 0; i < msize; i++) {
-		if (data_set->get_locus(i)->isEnabled()) {
-			if (data_set->get_locus(i)->getNumAlleles() > maxalleles) {
+	for (int i = 0; i < msize; i++)
+	{
+		if (data_set->get_locus(i)->isEnabled())
+		{
+			if (data_set->get_locus(i)->getNumAlleles() > maxalleles)
+			{
 				maxalleles = data_set->get_locus(i)->getNumAlleles();
 			}
 		}
@@ -473,30 +505,36 @@ void ProcessAlleleFrequency::processtest() {
 	//the following code is needed only for the file output
 	myoutput.precision(4);
 	mygeno.precision(4);
-	if (data_set->get_locus(0)->getDetailHeaders().size() > 0) {
+	if (data_set->get_locus(0)->getDetailHeaders().size() > 0)
+	{
 		myoutput << "Chrom\trsID\tProbeID\tbploc\t"
 				<< data_set->get_locus(0)->getDetailHeaders();
 		mygeno << "Chrom\trsID\tProbeID\tbploc\t"
 				<< data_set->get_locus(0)->getDetailHeaders()
 				<< "\tGenotype11\tGenotype12\tGenotype22\tOverall_Freq_Genotype11\tOverall_Freq_Genotype12\tOverall_Freq_Genotype22\tOverall_Count_Genotype11\tOverall_Count_Genotype12\tOverall_Count_Genotype22\tCase_Freq_Genotype11\tCase_Freq_Genotype12\tCase_Freq_Genotype22\tCase_Count_Genotype11\tCase_Count_Genotype12\tCase_Count_Genotype22\tControl_Freq_Genotype11\tControl_Freq_Genotype12\tControl_Freq_Genotype22\tControl_Count_Genotype11\tControl_Count_Genotype12\tControl_Count_Genotype22";
-		if (options.doGroupFile()) {
+		if (options.doGroupFile())
+		{
 			gmyoutput << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders();
 			gmygeno << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders()
 					<< "\tGenotype11\tGenotype12\tGenotype22";
 		}
-	} else {
+	}
+	else
+	{
 		myoutput << "Chrom\trsID\tProbeID\tbploc";
 		mygeno
 				<< "Chrom\trsID\tProbeID\tbploc\tGenotype11\tGenotype12\tGenotype22\tOverall_Freq_Genotype11\tOverall_Freq_Genotype12\tOverall_Freq_Genotype22\tOverall_Count_Genotype11\tOverall_Count_Genotype12\tOverall_Count_Genotype22\tCase_Freq_Genotype11\tCase_Freq_Genotype12\tCase_Freq_Genotype22\tCase_Count_Genotype11\tCase_Count_Genotype12\tCase_Count_Genotype22\tControl_Freq_Genotype11\tControl_Freq_Genotype12\tControl_Freq_Genotype22\tControl_Count_Genotype11\tControl_Count_Genotype12\tControl_Count_Genotype22";
-		if (options.doGroupFile()) {
+		if (options.doGroupFile())
+		{
 			gmyoutput << "Chrom\trsID\tProbeID\tbploc";
 			gmygeno
 					<< "Chrom\trsID\tProbeID\tbploc\tGenotype11\tGenotype12\tGenotype22";
 		}
 	}
-	if (options.doGroupFile()) {
+	if (options.doGroupFile())
+	{
 		opts::addHeader(ggfname, "Genotype11");
 		opts::addHeader(ggfname, "Genotype12");
 		opts::addHeader(ggfname, "Genotype22");
@@ -524,56 +562,68 @@ void ProcessAlleleFrequency::processtest() {
 	opts::addHeader(gfname, "Control_Count_Genotype12");
 	opts::addHeader(gfname, "Control_Count_Genotype22");
 
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\tAllele" << (i + 1);
 		opts::addHeader(afname, "Allele" + getString<int> (i + 1));
-		if (options.doGroupFile()) {
+		if (options.doGroupFile())
+		{
 			gmyoutput << "\tAllele" << (i + 1);
 			opts::addHeader(gafname, "Allele" + getString<int> (i + 1));
 		}
 	}
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\t" << "Overall_Allele" << (i + 1) << "_freq";
 		opts::addHeader(afname, "Overall_Allele" + getString<int> (i + 1)
 				+ "_freq");
 	}
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\t" << "Overall_Allele" << (i + 1) << "_count";
 		opts::addHeader(afname, "Overall_Allele" + getString<int> (i + 1)
 				+ "_count");
 	}
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\t" << "Case_Allele" << (i + 1) << "_freq";
 		opts::addHeader(afname, "Case_Allele" + getString<int> (i + 1)
 				+ "_freq");
 	}
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\t" << "Case_Allele" << (i + 1) << "_count";
 		opts::addHeader(afname, "Case_Allele" + getString<int> (i + 1)
 				+ "_count");
 	}
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\t" << "Control_Allele" << (i + 1) << "_freq";
 		opts::addHeader(afname, "Control_Allele" + getString<int> (i + 1)
 				+ "_freq");
 	}
-	for (int i = 0; i < maxalleles; i++) {
+	for (int i = 0; i < maxalleles; i++)
+	{
 		myoutput << "\t" << "Control_Allele" << (i + 1) << "_count";
 		opts::addHeader(afname, "Control_Allele" + getString<int> (i + 1)
 				+ "_count");
 	}
 
-	if (options.doGroupFile()) {
+	if (options.doGroupFile())
+	{
 		map<string, vector<Sample*> >::iterator giter;
 		map<string, vector<Sample*> > groups = options.getGroups();
-		for (giter = groups.begin(); giter != groups.end(); giter++) {
+		for (giter = groups.begin(); giter != groups.end(); giter++)
+		{
 			string mygroup = giter->first;
-			for (int i = 0; i < maxalleles; i++) {
+			for (int i = 0; i < maxalleles; i++)
+			{
 				gmyoutput << "\t" << mygroup << "_Allele" << (i + 1) << "_freq";
 				opts::addHeader(gafname, mygroup + "_Allele" + getString<int> (
 						i + 1) + "_freq");
 			}
-			for (int i = 0; i < maxalleles; i++) {
+			for (int i = 0; i < maxalleles; i++)
+			{
 				gmyoutput << "\t" << mygroup << "_Allele" << (i + 1)
 						<< "_count";
 				opts::addHeader(gafname, mygroup + "_Allele" + getString<int> (
@@ -596,14 +646,17 @@ void ProcessAlleleFrequency::processtest() {
 	mygeno << endl;
 	myoutput << endl;
 
-	if (options.doParental()) {
+	if (options.doParental())
+	{
 		paren.open(pfname.c_str(), ios::out);
 		pareng.open(pgfname.c_str(), ios::out);
-		if (!paren) {
+		if (!paren)
+		{
 			opts::printLog("Error opening: " + pfname + ". Exiting!\n");
 			throw MethodException("");
 		}
-		if (!pareng) {
+		if (!pareng)
+		{
 			opts::printLog("Error opening: " + pgfname + ". Exiting!\n");
 			throw MethodException("");
 		}
@@ -611,13 +664,16 @@ void ProcessAlleleFrequency::processtest() {
 		opts::addFile("Marker", stepname, pgfname);
 		paren.precision(4);
 		pareng.precision(4);
-		if (data_set->get_locus(0)->getDetailHeaders().size() > 0) {
+		if (data_set->get_locus(0)->getDetailHeaders().size() > 0)
+		{
 			paren << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders();
 			pareng << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders()
 					<< "\tGenotype11\tGenotype12\tGenotype22\tParent_Male_Freq_Genotype11\tParent_Male_Freq_Genotype12\tParent_Male_Freq_Genotype22\tParent_Male_Count_Genotype11\tParent_Male_Count_Genotype12\tParent_Male_Count_Genotype22\tParent_Female_Freq_Genotype11\tParent_Female_Freq_Genotype12\tParent_Female_Freq_Genotype22\tParent_Female_Count_Genotype11\tParent_Female_Count_Genotype12\tParent_Female_Count_Genotype22\n";
-		} else {
+		}
+		else
+		{
 			paren << "Chrom\trsID\tProbeID\tbploc";
 			pareng << "Chrom\trsID\tProbeID\tbploc\tGenotype11\tGenotype12\tGenotype22\tParent_Male_Freq_Genotype11\tParent_Male_Freq_Genotype12\tParent_Male_Freq_Genotype22\tParent_Male_Count_Genotype11\tParent_Male_Count_Genotype12\tParent_Male_Count_Genotype22\tParent_Female_Freq_Genotype11\tParent_Female_Freq_Genotype12\tParent_Female_Freq_Genotype22\tParent_Female_Count_Genotype11\tParent_Female_Count_Genotype12\tParent_Female_Count_Genotype22\n";
 		}
@@ -634,53 +690,64 @@ void ProcessAlleleFrequency::processtest() {
 		opts::addHeader(pgfname, "Parent_Female_Count_Genotype12");
 		opts::addHeader(pgfname, "Parent_Female_Count_Genotype22");
 
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			paren << "\t" << "Allele" << (i + 1);
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			paren << "\t" << "Parent_Male_Allele" << (i + 1) << "_freq";
 			opts::addHeader(pfname, "Parent_Male_Allele" + getString<int> (i
 					+ 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			paren << "\t" << "Parent_Male_Allele" << (i + 1) << "_count";
 			opts::addHeader(pfname, "Parent_Male_Allele" + getString<int> (i
 					+ 1) + "_count");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			paren << "\t" << "Parent_Female_Allele" << (i + 1) << "_freq";
 			opts::addHeader(pfname, "Parent_Female_Allele" + getString<int> (i
 					+ 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			paren << "\t" << "Parent_Female_Allele" << (i + 1) << "_count";
 			opts::addHeader(pfname, "Parent_Female_Allele" + getString<int> (i
 					+ 1) + "_count");
 		}
 		paren << endl;
 	}
-	if (options.doGender()) {
+	if (options.doGender())
+	{
 		gend.open(gendfname.c_str(), ios::out);
 		gendg.open(gendgfname.c_str(), ios::out);
 		opts::addFile("Marker", stepname, gendfname);
 		opts::addFile("Marker", stepname, gendgfname);
-		if (!gend) {
+		if (!gend)
+		{
 			opts::printLog("Error opening: " + gendfname + ". Exiting!\n");
 			throw MethodException("");
 		}
-		if (!gendg) {
+		if (!gendg)
+		{
 			opts::printLog("Error opening: " + gendgfname + ". Exiting!\n");
 			throw MethodException("");
 		}
 		gend.precision(4);
 		gendg.precision(4);
-		if (data_set->get_locus(0)->getDetailHeaders().size() > 0) {
+		if (data_set->get_locus(0)->getDetailHeaders().size() > 0)
+		{
 			gend << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders();
 			gendg << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders()
 					<< "\tGenotype11\tGenotype12\tGenotype22\tOverall_Male_Freq_Genotype11\tOverall_Male_Freq_Genotype12\tOverall_Male_Freq_Genotype22\tOverall_Male_Count_Genotype11\tOverall_Male_Count_Genotype12\tOverall_Male_Count_Genotype22\tOverall_Female_Freq_Genotype11\tOverall_Female_Freq_Genotype12\tOverall_Female_Freq_Genotype22\tOverall_Female_Count_Genotype11\tOverall_Female_Count_Genotype12\tOverall_Female_Count_Genotype22\n";
-		} else {
+		}
+		else
+		{
 			gend << "Chrom\trsID\tProbeID\tbploc";
 			gendg << "Chrom\trsID\tProbeID\tbploc\tGenotype11\tGenotype12\tGenotype22\tOverall_Male_Freq_Genotype11\tOverall_Male_Freq_Genotype12\tOverall_Male_Freq_Genotype22\tOverall_Male_Count_Genotype11\tOverall_Male_Count_Genotype12\tOverall_Male_Count_Genotype22\tOverall_Female_Freq_Genotype11\tOverall_Female_Freq_Genotype12\tOverall_Female_Freq_Genotype22\tOverall_Female_Count_Genotype11\tOverall_Female_Count_Genotype12\tOverall_Female_Count_Genotype22\n";
 		}
@@ -697,54 +764,65 @@ void ProcessAlleleFrequency::processtest() {
 		opts::addHeader(gendgfname, "Overall_Female_Count_Genotype12");
 		opts::addHeader(gendgfname, "Overall_Female_Count_Genotype22");
 
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			gend << "\t" << "Allele" << (i + 1);
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			gend << "\t" << "Overall_Male_Allele" << (i + 1) << "_freq";
 			opts::addHeader(gendfname, "Overall_Male_Allele" + getString<int> (
 					i + 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			gend << "\t" << "Overall_Male_Allele" << (i + 1) << "_count";
 			opts::addHeader(gendfname, "Overall_Male_Allele" + getString<int> (
 					i + 1) + "_count");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			gend << "\t" << "Overall_Female_Allele" << (i + 1) << "_freq";
 			opts::addHeader(gendfname, "Overall_Female_Allele"
 					+ getString<int> (i + 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			gend << "\t" << "Overall_Female_Allele" << (i + 1) << "_count";
 			opts::addHeader(gendfname, "Overall_Female_Allele"
 					+ getString<int> (i + 1) + "_count");
 		}
 		gend << endl;
 	}
-	if (options.doCaseControl()) {
+	if (options.doCaseControl())
+	{
 		cc.open(ccfname.c_str(), ios::out);
 		ccg.open(ccgfname.c_str(), ios::out);
 		opts::addFile("Marker", stepname, ccfname);
 		opts::addFile("Marker", stepname, ccgfname);
-		if (!cc) {
+		if (!cc)
+		{
 			opts::printLog("Error opening: " + ccfname + ". Exiting!\n");
 			throw MethodException("");
 		}
-		if (!ccg) {
+		if (!ccg)
+		{
 			opts::printLog("Error opening: " + ccgfname + ". Exiting!\n");
 			throw MethodException("");
 		}
 		cc.precision(4);
 		ccg.precision(4);
 
-		if (data_set->get_locus(0)->getDetailHeaders().size() > 0) {
+		if (data_set->get_locus(0)->getDetailHeaders().size() > 0)
+		{
 			cc << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders();
 			ccg << "Chrom\trsID\tProbeID\tbploc\t"
 					<< data_set->get_locus(0)->getDetailHeaders()
 					<< "\tGenotype11\tGenotype12\tGenotype22\tCase_Male_Freq_Genotype11\tCase_Male_Freq_Genotype12\tCase_Male_Freq_Genotype22\tCase_Male_Count_Genotype11\tCase_Male_Count_Genotype12\tCase_Male_Count_Genotype22\tCase_Female_Freq_Genotype11\tCase_Female_Freq_Genotype12\tCase_Female_Freq_Genotype22\tCase_Female_Count_Genotype11\tCase_Female_Count_Genotype12\tCase_Female_Count_Genotype22\tControl_Male_Freq_Genotype11\tControl_Male_Freq_Genotype12\tControl_Male_Freq_Genotype22\tControl_Male_Count_Genotype11\tControl_Male_Count_Genotype12\tControl_Male_Count_Genotype22\tControl_Female_Freq_Genotype11\tControl_Female_Freq_Genotype12\tControl_Female_Freq_Genotype22\tControl_Female_Count_Genotype11\tControl_Female_Count_Genotype12\tControl_Female_Count_Genotype22\n";
-		} else {
+		}
+		else
+		{
 			cc << "Chrom\trsID\tProbeID\tbploc";
 			ccg	<< "Chrom\trsID\tProbeID\tbploc\tGenotype11\tGenotype12\tGenotype22\tCase_Male_Freq_Genotype11\tCase_Male_Freq_Genotype12\tCase_Male_Freq_Genotype22\tCase_Male_Count_Genotype11\tCase_Male_Count_Genotype12\tCase_Male_Count_Genotype22\tCase_Female_Freq_Genotype11\tCase_Female_Freq_Genotype12\tCase_Female_Freq_Genotype22\tCase_Female_Count_Genotype11\tCase_Female_Count_Genotype12\tCase_Female_Count_Genotype22\tControl_Male_Freq_Genotype11\tControl_Male_Freq_Genotype12\tControl_Male_Freq_Genotype22\tControl_Male_Count_Genotype11\tControl_Male_Count_Genotype12\tControl_Male_Count_Genotype22\tControl_Female_Freq_Genotype11\tControl_Female_Freq_Genotype12\tControl_Female_Freq_Genotype22\tControl_Female_Count_Genotype11\tControl_Female_Count_Genotype12\tControl_Female_Count_Genotype22\n";
 		}
@@ -773,45 +851,54 @@ void ProcessAlleleFrequency::processtest() {
 		opts::addHeader(ccgfname, "Control_Female_Count_Genotype12");
 		opts::addHeader(ccgfname, "Control_Female_Count_Genotype22");
 
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Allele" << (i + 1);
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Case_Male_Allele" << (i + 1) << "_freq";
 			opts::addHeader(ccfname, "Case_Male_Allele"
 					+ getString<int> (i + 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Case_Male_Allele" << (i + 1) << "_count";
 			opts::addHeader(ccfname, "Case_Male_Allele"
 					+ getString<int> (i + 1) + "_count");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Case_Female_Allele" << (i + 1) << "_freq";
 			opts::addHeader(ccfname, "Case_Female_Allele" + getString<int> (i
 					+ 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Case_Female_Allele" << (i + 1) << "_count";
 			opts::addHeader(ccfname, "Case_Female_Allele" + getString<int> (i
 					+ 1) + "_count");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Control_Male_Allele" << (i + 1) << "_freq";
 			opts::addHeader(ccfname, "Control_Male_Allele" + getString<int> (i
 					+ 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Control_Male_Allele" << (i + 1) << "_count";
 			opts::addHeader(ccfname, "Control_Male_Allele" + getString<int> (i
 					+ 1) + "_count");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Control_Female_Allele" << (i + 1) << "_freq";
 			opts::addHeader(ccfname, "Control_Female_Allele" + getString<int> (
 					i + 1) + "_freq");
 		}
-		for (int i = 0; i < maxalleles; i++) {
+		for (int i = 0; i < maxalleles; i++)
+		{
 			cc << "\t" << "Control_Female_Allele" << (i + 1) << "_count";
 			opts::addHeader(ccfname, "Control_Female_Allele" + getString<int> (
 					i + 1) + "_count");
@@ -822,8 +909,8 @@ void ProcessAlleleFrequency::processtest() {
 	//begin processing
 #ifdef USE_DB
 	//need these strings to hold DB insert statements if using DB
-	string insert = "";
-	string ginsert = "";
+	insert = "";
+	ginsert = "";
 #endif
 	AlleleFrequency af;
 	af.resetDataSet(data_set);
@@ -866,18 +953,18 @@ void ProcessAlleleFrequency::processtest() {
 				myoutput << mark->toString();//data_set->get_locus(k)->toString();
 #else
 				string insert = defaultinsert;
-				insert += "," + mark.toString();
+				insert += "," + mark->toString();
 				string geninsert = defaultgenoinsert;
-				geninsert += "," + mark.toString();
+				geninsert += "," + mark->toString();
 #endif
 				if (options.doGroupFile()) {
 #ifndef USE_DB
 					gmyoutput << mark->toString();//data_set->get_locus(k)->toString();
 #else
 					string ginsert = groupinsert;
-					ginsert += "," + mark.toString();
+					ginsert += "," + mark->toString();
 					string ggeninsert = groupgenoinsert;
-					ggeninsert += "," + mark.toString();
+					ggeninsert += "," + mark->toString();
 #endif
 				}
 				if (options.doParental()) {
@@ -904,9 +991,9 @@ void ProcessAlleleFrequency::processtest() {
 #ifndef USE_DB
 					cc << mark->toString();//data_set->get_locus(k)->toString();
 #else
-					string ccinsert = casecontrolinsert;
-					ccinsert += "," mark->toString();
-					string ccgeninsert = casecontrolgenoinsert;
+					ccinsert = casecontrolinsert;
+					ccinsert += "," + mark->toString();
+					ccgeninsert = casecontrolgenoinsert;
 					ccgeninsert += "," + mark->toString();
 #endif
 				}
@@ -1006,7 +1093,7 @@ void ProcessAlleleFrequency::processtest() {
 #ifndef USE_DB
 					myoutput << "\t" << freq;
 #else
-					insert += "," + getString<float>freq;
+					insert += "," + getString<float>(freq);
 #endif
 				}
 				if (maxalleles > numalleles) {
@@ -1699,7 +1786,7 @@ void ProcessAlleleFrequency::processtest() {
 					myoutput << "\t" << af.getAone_count() << "\t" << af.getAtwo_count();
 #else
 					insert += "," + getString<int>(af.getAone_count());
-					insert += "," + getStirng<int>(af.getAtwo_count());
+					insert += "," + getString<int>(af.getAtwo_count());
 #endif
 				} else {
 #ifndef USE_DB
@@ -1865,7 +1952,7 @@ void ProcessAlleleFrequency::processtest() {
 					ginsert += "," + mark->toString();
 					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
-					ginsert += ",'" + mark->getallele2() + "_" + mark->getallele2() + "'";
+					ginsert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
 #endif
 				}
 				//overall
@@ -1950,7 +2037,7 @@ void ProcessAlleleFrequency::processtest() {
 				insert += ",";
 				insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
 				insert += "," + getString<int>(af.getAonehomoCon());
-				insert += "," + getString<int>(af.gethetCon());
+				insert += "," + getString<int>(af.getHetCon());
 				insert += "," + getString<int>(af.getAtwohomoCon());
 #endif
 
@@ -2027,7 +2114,7 @@ void ProcessAlleleFrequency::processtest() {
 					paren << "\t" << majfreq << "\t" << minfreq;
 #else
 					insert += "," + getString<float>(majfreq);
-					insert += "," = getString<float>(minfreq);
+					insert += "," + getString<float>(minfreq);
 #endif
 					for (int t = 2; t < maxalleles; t++) {
 #ifndef USE_DB
@@ -2151,7 +2238,7 @@ void ProcessAlleleFrequency::processtest() {
 							<< mark->getAllele2();
 #else
 					insert = genderinsert;
-					insert += "," = mark->toString();
+					insert += "," + mark->toString();
 					insert += ",'" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele2() + "'";
 #endif
@@ -2520,7 +2607,7 @@ void ProcessAlleleFrequency::processtest() {
 					Controller::execute_sql(myQuery, insert);
 
 					insert = casecontrolgenoinsert;
-					insert += "," mark->toString();
+					insert += "," + mark->toString();
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
 					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
 					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
@@ -2548,7 +2635,7 @@ void ProcessAlleleFrequency::processtest() {
 					freq1 = ((float) af.getAonehomoCaF()) / (af.getPopCaF());
 					freq2 = ((float) af.getHetCaF()) / (af.getPopCaF());
 					freq3 = ((float) af.getAtwohomoCaF()) / (af.getPopCaF());
-#ifndef
+#ifndef USE_DB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoCaF() << "\t" << af.getHetCaF()
 							<< "\t" << af.getAtwohomoCaF();
@@ -2645,7 +2732,8 @@ void ProcessAlleleFrequency::processtest() {
  *
  *
  */
-void ProcessAlleleFrequency::process(DataSet* ds) {
+void ProcessAlleleFrequency::process(DataSet* ds)
+{
 	data_set = ds;
 	if (options.doGroupFile()) {
 		options.readGroups(data_set->get_samples());
@@ -2654,5 +2742,583 @@ void ProcessAlleleFrequency::process(DataSet* ds) {
 	processtest();
 	return;
 
+}
+
+void ProcessAlleleFrequency::create_tables(){
+    Query myQuery(*db);
+    int msize = data_set->num_loci();
+
+    int maxalleles = 0;
+    for (int i = 0; i < msize; i++) {
+        if (data_set->get_locus(i)->isEnabled()) {
+                if (data_set->get_locus(i)->getNumAlleles() > maxalleles) {
+                        maxalleles = data_set->get_locus(i)->getNumAlleles();
+                }
+        }
+    }
+
+    for(int i = 0; i < (int)tablename.size(); i++){
+        Controller::drop_table(db, tablename[i]);
+    }
+    headers.clear();
+    tablename.clear();
+    primary_table.clear();
+
+    string tempbatch = batchname;
+    for(int i = 0; i < (int)tempbatch.size(); i++){
+        if(tempbatch[i] == ' '){
+            tempbatch[i] = '_';
+        }
+    }
+    string mytablename = tempbatch + "_";
+    tempbatch = name;
+    for(int i = 0; i < (int)tempbatch.size(); i++){
+        if(tempbatch[i] == ' '){
+            tempbatch[i] = '_';
+        }
+    }
+    string base = mytablename + tempbatch;
+
+    mytablename = base + "_" + getString<int>(position);
+    tablename.push_back(mytablename);
+    tablenicknames.push_back("");
+    primary_table[mytablename].push_back("LOCI");
+    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+    defaultinsert = "INSERT INTO " + mytablename + "(id, fkey";
+    sql += "fkey integer not null,";
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
+        defaultinsert += ",Allele" + getString<int>(i + 1);
+    }
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Overall_Allele" + getString<int>(i + 1) + "_freq REAL,";
+        headers[mytablename].push_back("Overall_Allele" + getString<int>(i + 1) + "_freq");
+        defaultinsert += ",Overall_Allele" + getString<int>(i + 1) + "_freq";
+    }
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Overall_Allele" + getString<int>(i + 1) + "_count integer,";
+        headers[mytablename].push_back("Overall_Allele" + getString<int>(i + 1) + "_count");
+        defaultinsert += ",Overall_Allele" + getString<int>(i + 1) + "_count";
+    }
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Case_Allele" + getString<int>(i + 1) + "_freq REAL,";
+        headers[mytablename].push_back("Case_Allele" + getString<int>(i + 1) + "_freq");
+        defaultinsert += ",Case_Allele" + getString<int>(i + 1) + "_freq";
+    }
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Case_Allele" + getString<int>(i + 1) + "_count integer,";
+        headers[mytablename].push_back("Case_Allele" + getString<int>(i + 1) + "_count");
+        defaultinsert += ",Case_Allele" + getString<int>(i + 1) + "_count";
+    }
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Control_Allele" + getString<int>(i + 1) + "_freq REAL,";
+        headers[mytablename].push_back("Control_Allele" + getString<int>(i + 1) + "_freq");
+        defaultinsert += ",Control_Allele" + getString<int>(i + 1) + "_freq";
+    }
+    for(int i = 0; i < maxalleles; i++){
+        sql += "Control_Allele" + getString<int>(i + 1) + "_count integer,";
+        headers[mytablename].push_back("Control_Allele" + getString<int>(i + 1) + "_count");
+        defaultinsert += ",Control_Allele" + getString<int>(i + 1) + "_count";
+    }
+    defaultinsert += ") VALUES (NULL";
+    sql = sql.replace(sql.size() - 1, 1, ")");
+
+    //just looking...
+    cout<<"The text in 'sql' is: \n" << sql << "\n";
+    cout<<"The text in 'defaultinsert' is: \n" << defaultinsert << "\n";
+
+    //Controller::execute_sql(db, sql);
+    myQuery.transaction();
+    Controller::execute_sql(myQuery, sql);
+    myQuery.commit();
+
+    mytablename = base + "_genotype_" + getString<int>(position);
+    tablename.push_back(mytablename);
+    tablenicknames.push_back("Genotype");
+    primary_table[mytablename].push_back("LOCI");
+    sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+    sql += "fkey integer not null,";
+    sql += "Genotype11 varchar(20),";
+    sql += "Genotype12 varchar(20),";
+    sql += "Genotype22 varchar(20),";
+    defaultgenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+    sql += "Overall_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Overall_Freq_Genotype11");
+    defaultgenoinsert += ",Overall_Freq_Genotype11";
+    sql += "Overall_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Overall_Freq_Genotype12");
+    defaultgenoinsert += ",Overall_Freq_Genotype12";
+    sql += "Overall_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Overall_Freq_Genotype22");
+    defaultgenoinsert += ",Overall_Freq_Genotype22";
+    sql += "Overall_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Overall_Count_Genotype11");
+    defaultgenoinsert += ",Overall_Count_Genotype11";
+    sql += "Overall_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Overall_Count_Genotype12");
+    defaultgenoinsert += ",Overall_Count_Genotype12";
+    sql += "Overall_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Overall_Count_Genotype22");
+    defaultgenoinsert += ",Overall_Count_Genotype22";
+    sql += "Case_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Case_Freq_Genotype11");
+    defaultgenoinsert += ",Case_Freq_Genotype11";
+    sql += "Case_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Case_Freq_Genotype12");
+    defaultgenoinsert += ",Case_Freq_Genotype12";
+    sql += "Case_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Case_Freq_Genotype22");
+    defaultgenoinsert += ",Case_Freq_Genotype22";
+    sql += "Case_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Case_Count_Genotype11");
+    defaultgenoinsert += ",Case_Count_Genotype11";
+    sql += "Case_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Case_Count_Genotype12");
+    defaultgenoinsert += ",Case_Count_Genotype12";
+    sql += "Case_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Case_Count_Genotype22");
+    defaultgenoinsert += ",Case_Count_Genotype22";
+    sql += "Control_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Control_Freq_Genotype11");
+    defaultgenoinsert += ",Control_Freq_Genotype11";
+    sql += "Control_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Control_Freq_Genotype12");
+    defaultgenoinsert += ",Control_Freq_Genotype12";
+    sql += "Control_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Control_Freq_Genotype22");
+    defaultgenoinsert += ",Control_Freq_Genotype22";
+    sql += "Control_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Control_Count_Genotype11");
+    defaultgenoinsert += ",Control_Count_Genotype11";
+    sql += "Control_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Control_Count_Genotype12");
+    defaultgenoinsert += ",Control_Count_Genotype12";
+    sql += "Control_Count_Genotype22 integer)";
+    headers[mytablename].push_back("Control_Count_Genotype22");
+    defaultgenoinsert += ",Control_Count_Genotype22";
+
+    defaultgenoinsert += ") VALUES (NULL";
+    //Controller::execute_sql(db, sql);
+    myQuery.transaction();
+    Controller::execute_sql(myQuery, sql);
+    myQuery.commit();
+
+    if(options.doCaseControl()){
+        mytablename = base + "_casecontrol_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Case/Control");
+        primary_table[mytablename].push_back("LOCI");
+        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        casecontrolinsert = "INSERT INTO " + mytablename + " (id, fkey";
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
+            casecontrolinsert += ",Allele" + getString<int>(i + 1);
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Case_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Case_Male_Allele" + getString<int>(i + 1) + "_freq");
+            casecontrolinsert += ",Case_Male_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Case_Male_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Case_Male_Allele" + getString<int>(i + 1) + "_count");
+            casecontrolinsert += ",Case_Male_Allele" + getString<int>(i + 1) + "_count";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Case_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Case_Female_Allele" + getString<int>(i + 1) + "_freq");
+            casecontrolinsert += ",Case_Female_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Case_Female_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Case_Female_Allele" + getString<int>(i + 1) + "_count");
+            casecontrolinsert += ",Case_Female_Allele" + getString<int>(i + 1) + "_count";
+        }
+
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Control_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Control_Male_Allele" + getString<int>(i + 1) + "_freq");
+            casecontrolinsert += ",Control_Male_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Control_Male_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Control_Male_Allele" + getString<int>(i + 1) + "_count");
+            casecontrolinsert += ",Control_Male_Allele" + getString<int>(i + 1) + "_count";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Control_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Control_Female_Allele" + getString<int>(i + 1) + "_freq");
+            casecontrolinsert += ",Control_Female_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Control_Female_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Control_Female_Allele" + getString<int>(i + 1) + "_count");
+            casecontrolinsert += ",Control_Female_Allele" + getString<int>(i + 1) + "_count";
+        }
+        casecontrolinsert += ") VALUES (NULL";
+        sql = sql.replace(sql.size() - 1, 1, ")");
+
+        //Controller::execute_sql(db, sql);
+        myQuery.transaction();
+        Controller::execute_sql(myQuery, sql);
+        myQuery.commit();
+
+        mytablename = base + "_genotype_casecontrol_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Case/Control Genotype");
+        primary_table[mytablename].push_back("LOCI");
+        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+    sql += "Genotype12 varchar(20),";
+    sql += "Genotype22 varchar(20),";
+        casecontrolgenoinsert = "INSERT INTO " + mytablename + "(id, fkey, Genotype11, Genotype12, Genotype22";
+    sql += "Case_Male_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Case_Male_Genotype11");
+    casecontrolgenoinsert += ",Case_Male_Freq_Genotype11";
+    sql += "Case_Male_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Case_Male_Freq_Genotype12");
+    casecontrolgenoinsert += ",Case_Male_Freq_Genotype12";
+    sql += "Case_Male_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Case_Male_Freq_Genotype22");
+    casecontrolgenoinsert += ",Case_Male_Freq_Genotype22";
+    sql += "Case_Male_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Case_Male_Count_Genotype11");
+    casecontrolgenoinsert += ",Case_Male_Count_Genotype11";
+    sql += "Case_Male_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Case_Male_Count_Genotype12");
+    casecontrolgenoinsert += ",Case_Male_Count_Genotype12";
+    sql += "Case_Male_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Case_Male_Count_Genotype22");
+    casecontrolgenoinsert += ",Case_Male_Count_Genotype22";
+    sql += "Case_Female_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Case_Female_Freq_Genotype11");
+    casecontrolgenoinsert += ",Case_Female_Freq_Genotype11";
+    sql += "Case_Female_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Case_Female_Freq_Genotype12");
+    casecontrolgenoinsert += ",Case_Female_Freq_Genotype12";
+    sql += "Case_Female_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Case_Female_Freq_Genotype22");
+    casecontrolgenoinsert += ",Case_Female_Freq_Genotype22";
+    sql += "Case_Female_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Case_Female_Count_Genotype11");
+    casecontrolgenoinsert += ",Case_Female_Count_Genotype11";
+    sql += "Case_Female_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Case_Female_Count_Genotype12");
+    casecontrolgenoinsert += ",Case_Female_Count_Genotype12";
+    sql += "Case_Female_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Case_Female_Count_Genotype22");
+    casecontrolgenoinsert += ",Case_Female_Count_Genotype22";
+
+    sql += "Control_Male_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Control_Male_Freq_Genotype11");
+    casecontrolgenoinsert += ",Control_Male_Freq_Genotype11";
+    sql += "Control_Male_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Control_Male_Freq_Genotype12");
+    casecontrolgenoinsert += ",Control_Male_Freq_Genotype12";
+    sql += "Control_Male_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Control_Male_Freq_Genotype22");
+    casecontrolgenoinsert += ",Control_Male_Freq_Genotype22";
+    sql += "Control_Male_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Control_Male_Count_Genotype11");
+    casecontrolgenoinsert += ",Control_Male_Count_Genotype11";
+    sql += "Control_Male_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Control_Male_Count_Genotype12");
+    casecontrolgenoinsert += ",Control_Male_Count_Genotype12";
+    sql += "Control_Male_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Control_Male_Count_Genotype22");
+    casecontrolgenoinsert += ",Control_Male_Count_Genotype22";
+    sql += "Control_Female_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Control_Female_Freq_Genotype11");
+    casecontrolgenoinsert += ",Control_Female_Freq_Genotype11";
+    sql += "Control_Female_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Control_Female_Freq_Genotype12");
+    casecontrolgenoinsert += ",Control_Female_Freq_Genotype12";
+    sql += "Control_Female_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Control_Female_Freq_Genotype22");
+    casecontrolgenoinsert += ",Control_Female_Freq_Genotype22";
+    sql += "Control_Female_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Control_Female_Count_Genotype11");
+    casecontrolgenoinsert += ",Control_Female_Count_Genotype11";
+    sql += "Control_Female_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Control_Female_Count_Genotype12");
+    casecontrolgenoinsert += ",Control_Female_Count_Genotype12";
+    sql += "Control_Female_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Control_Female_Count_Genotype22");
+    casecontrolgenoinsert += ",Control_Female_Count_Genotype22";
+    casecontrolgenoinsert += ") VALUES (NULL";
+    sql = sql.replace(sql.size() - 1, 1, ")");
+
+        //Controller::execute_sql(db, sql);
+    myQuery.transaction();
+    Controller::execute_sql(myQuery, sql);
+    myQuery.commit();
+    }
+
+    if(options.doGender()){
+        mytablename = base + "_gender_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Gender");
+        primary_table[mytablename].push_back("LOCI");
+        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        genderinsert = "INSERT INTO " + mytablename + " (id, fkey";
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
+            genderinsert += ",Allele" + getString<int>(i + 1);
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Overall_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Overall_Male_Allele" + getString<int>(i + 1) + "_freq");
+            genderinsert += ",Overall_Male_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Overall_Male_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Overall_Male_Allele" + getString<int>(i + 1) + "_count");
+            genderinsert += ",Overall_Male_Allele" + getString<int>(i + 1) + "_count";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Overall_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Overall_Female_Allele" + getString<int>(i + 1) + "_freq");
+            genderinsert += ",Overall_Female_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Overall_Female_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Overall_Female_Allele" + getString<int>(i + 1) + "_count");
+            genderinsert += ",Overall_Female_Allele" + getString<int>(i + 1) + "_count";
+        }
+
+        genderinsert += ") VALUES (NULL";
+        sql = sql.replace(sql.size() - 1, 1, ")");
+
+        //Controller::execute_sql(db, sql);
+        myQuery.transaction();
+        Controller::execute_sql(myQuery, sql);
+        myQuery.commit();
+
+        mytablename = base + "_genotype_gender_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Gender Genotype");
+        primary_table[mytablename].push_back("LOCI");
+        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+    sql += "Genotype12 varchar(20),";
+    sql += "Genotype22 varchar(20),";
+        gendergenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+    sql += "Overall_Male_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Overall_Male_Freq_Genotype11");
+    gendergenoinsert += ",Overall_Male_Freq_Genotype11";
+    sql += "Overall_Male_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Overall_Male_Freq_Genotype12");
+    gendergenoinsert += ",Overall_Male_Freq_Genotype12";
+    sql += "Overall_Male_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Overall_Male_Freq_Genotype22");
+    gendergenoinsert += ",Overall_Male_Freq_Genotype22";
+    sql += "Overall_Male_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Overall_Male_Count_Genotype11");
+    gendergenoinsert += ",Overall_Male_Count_Genotype11";
+    sql += "Overall_Male_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Overall_Male_Count_Genotype12");
+    gendergenoinsert += ",Overall_Male_Count_Genotype12";
+    sql += "Overall_Male_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Overall_Male_Count_Genotype22");
+    gendergenoinsert += ",Overall_Male_Count_Genotype22";
+    sql += "Overall_Female_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Overall_Female_Freq_Genotype11");
+    gendergenoinsert += ",Overall_Female_Freq_Genotype11";
+    sql += "Overall_Female_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Overall_Female_Freq_Genotype12");
+    gendergenoinsert += ",Overall_Female_Freq_Genotype12";
+    sql += "Overall_Female_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Overall_Female_Freq_Genotype22");
+    gendergenoinsert += ",Overall_Female_Freq_Genotype22";
+    sql += "Overall_Female_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Overall_Female_Count_Genotype11");
+    gendergenoinsert += ",Overall_Female_Count_Genotype11";
+    sql += "Overall_Female_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Overall_Female_Count_Genotype12");
+    gendergenoinsert += ",Overall_Female_Count_Genotype12";
+    sql += "Overall_Female_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Overall_Female_Count_Genotype22");
+    gendergenoinsert += ",Overall_Female_Count_Genotype22";
+    sql = sql.replace(sql.size() - 1, 1, ")");
+
+    gendergenoinsert += ") VALUES (NULL";
+    //Controller::execute_sql(db, sql);
+    myQuery.transaction();
+    Controller::execute_sql(myQuery, sql);
+    myQuery.commit();
+    }
+
+    if(options.doParental()){
+        mytablename = base + "_parental_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Parental");
+        primary_table[mytablename].push_back("LOCI");
+        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        parentalinsert = "INSERT INTO " + mytablename + " (id, fkey";
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
+            parentalinsert += ",Allele" + getString<int>(i + 1);
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Parent_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Parent_Male_Allele" + getString<int>(i + 1) + "_freq");
+            parentalinsert += ",Parent_Male_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Parent_Male_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Parent_Male_Allele" + getString<int>(i + 1) + "_count");
+            parentalinsert += ",Parent_Male_Allele" + getString<int>(i + 1) + "_count";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Parent_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
+            headers[mytablename].push_back("Parent_Female_Allele" + getString<int>(i + 1) + "_freq");
+            parentalinsert += ",Parent_Female_Allele" + getString<int>(i + 1) + "_freq";
+        }
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Parent_Female_Allele" + getString<int>(i + 1) + "_count integer,";
+            headers[mytablename].push_back("Parent_Female_Allele" + getString<int>(i + 1) + "_count");
+            parentalinsert += ",Parent_Female_Allele" + getString<int>(i + 1) + "_count";
+        }
+
+        sql = sql.replace(sql.size() - 1, 1, ")");
+
+        parentalinsert += ") VALUES (NULL";
+        //Controller::execute_sql(db, sql);
+        myQuery.transaction();
+        Controller::execute_sql(myQuery, sql);
+        myQuery.commit();
+
+        mytablename = base + "_genotype_parental_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Parental Genotype");
+        primary_table[mytablename].push_back("LOCI");
+        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+    sql += "Genotype12 varchar(20),";
+    sql += "Genotype22 varchar(20),";
+    parentalgenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+    sql += "Parent_Male_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Parent_Male_Freq_Genotype11");
+    parentalgenoinsert += ",Parent_Male_Freq_Genotype11";
+    sql += "Parent_Male_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Parent_Male_Freq_Genotype12");
+    parentalgenoinsert += ",Parent_Male_Freq_Genotype12";
+    sql += "Parent_Male_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Parent_Male_Freq_Genotype22");
+    parentalgenoinsert += ",Parent_Male_Freq_Genotype22";
+    sql += "Parent_Male_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Parent_Male_Count_Genotype11");
+    parentalgenoinsert += ",Parent_Male_Count_Genotype11";
+    sql += "Parent_Male_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Parent_Male_Count_Genotype12");
+    parentalgenoinsert += ",Parent_Male_Count_Genotype12";
+    sql += "Parent_Male_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Parent_Male_Count_Genotype22");
+    parentalgenoinsert += ",Parent_Male_Count_Genotype22";
+    sql += "Parent_Female_Freq_Genotype11 REAL,";
+    headers[mytablename].push_back("Parent_Female_Freq_Genotype11");
+    parentalgenoinsert += ",Parent_Female_Freq_Genotype11";
+    sql += "Parent_Female_Freq_Genotype12 REAL,";
+    headers[mytablename].push_back("Parent_Female_Freq_Genotype12");
+    parentalgenoinsert += ",Parent_Female_Freq_Genotype12";
+    sql += "Parent_Female_Freq_Genotype22 REAL,";
+    headers[mytablename].push_back("Parent_Female_Freq_Genotype22");
+    parentalgenoinsert += ",Parent_Female_Freq_Genotype22";
+    sql += "Parent_Female_Count_Genotype11 integer,";
+    headers[mytablename].push_back("Parent_Female_Count_Genotype11");
+    parentalgenoinsert += ",Parent_Female_Count_Genotype11";
+    sql += "Parent_Female_Count_Genotype12 integer,";
+    headers[mytablename].push_back("Parent_Female_Count_Genotype12");
+    parentalgenoinsert += ",Parent_Female_Count_Genotype12";
+    sql += "Parent_Female_Count_Genotype22 integer,";
+    headers[mytablename].push_back("Parent_Female_Count_Genotype22");
+    parentalgenoinsert += ",Parent_Female_Count_Genotype22";
+    sql = sql.replace(sql.size() - 1, 1, ")");
+
+    parentalgenoinsert += ") VALUES (NULL";
+	//Controller::execute_sql(db, sql);
+    myQuery.transaction();
+    Controller::execute_sql(myQuery, sql);
+    myQuery.commit();
+
+    }
+    if (options.doGroupFile()) {
+        mytablename = base + "_group_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Groups");
+        primary_table[mytablename].push_back("LOCI");
+        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        groupinsert = "INSERT INTO " + mytablename + " (id, fkey";
+        for(int i = 0; i < maxalleles; i++){
+            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
+            groupinsert += ",Allele" + getString<int>(i + 1);
+        }
+        map<string, vector<Methods::Sample*> >::iterator giter;
+        map<string, vector<Methods::Sample*> > groups = options.getGroups();
+        for (giter = groups.begin(); giter != groups.end(); giter++) {
+            string mygroup = giter->first;
+            for (int i = 0; i < maxalleles; i++) {
+                sql += mygroup + "_Allele" + getString<int>(i + 1) + "_freq REAL,";
+                headers[mytablename].push_back(mygroup + "_Allele" + getString<int>(i + 1) + "_freq");
+                groupinsert += "," + mygroup + "_Allele" + getString<int>(i + 1) + "_freq";
+            }
+            for (int i = 0; i < maxalleles; i++) {
+                sql += mygroup + "_Allele" + getString<int>(i + 1) + "_count integer,";
+                headers[mytablename].push_back(mygroup + "_Allele" + getString<int>(i + 1) + "_count");
+                groupinsert += "," + mygroup + "_Allele" + getString<int>(i + 1) + "_count";
+            }
+        }
+        sql = sql.replace(sql.size() - 1, 1, ")");
+        groupinsert += ") VALUES (NULL";
+        //Controller::execute_sql(db, sql);
+        myQuery.transaction();
+        Controller::execute_sql(myQuery, sql);
+        myQuery.commit();
+
+        mytablename = base + "_genotype_group_" + getString<int>(position);
+        tablename.push_back(mytablename);
+        tablenicknames.push_back("Groups Genotype");
+        primary_table[mytablename].push_back("LOCI");
+        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
+        sql += "fkey integer not null,";
+        sql += "Genotype11 varchar(20),";
+        sql += "Genotype12 varchar(20),";
+        sql += "Genotype22 varchar(20),";
+        groupgenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
+        for (giter = groups.begin(); giter != groups.end(); giter++) {
+            string mygroup = giter->first;
+
+            sql += mygroup + "_Freq_Genotype11 REAL,";
+            headers[mytablename].push_back(mygroup + "_Freq_Genotype11");
+            groupgenoinsert += "," + mygroup + "_Freq_Genotype11";
+            sql += mygroup + "_Freq_Genotype12 REAL,";
+            headers[mytablename].push_back(mygroup + "_Freq_Genotype12");
+            groupgenoinsert += "," + mygroup + "_Freq_Genotype12";
+            sql += mygroup + "_Freq_Genotype22 REAL,";
+            headers[mytablename].push_back(mygroup + "_Freq_Genotype22");
+            groupgenoinsert += "," + mygroup + "_Freq_Genotype22";
+            sql += mygroup + "_Count_Genotype11 REAL,";
+            headers[mytablename].push_back(mygroup + "_Count_Genotype11");
+            groupgenoinsert += "," + mygroup + "_Count_Genotype11";
+            sql += mygroup + "_Count_Genotype12 REAL,";
+            headers[mytablename].push_back(mygroup + "_Count_Genotype12");
+            groupgenoinsert += "," + mygroup + "_Count_Genotype12";
+            sql += mygroup + "_Count_Genotype22 REAL,";
+            headers[mytablename].push_back(mygroup + "_Count_Genotype22");
+            groupgenoinsert += "," + mygroup + "_Count_Genotype22";
+        }
+        sql = sql.replace(sql.size() - 1, 1, ")");
+        groupgenoinsert += ") VALUES (NULL";
+        myQuery.transaction();
+        Controller::execute_sql(myQuery, sql);
+        myQuery.commit();
+    }
 }
 
