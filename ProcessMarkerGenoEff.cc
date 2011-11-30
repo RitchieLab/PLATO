@@ -184,12 +184,14 @@ void ProcessMarkerGenoEff::PrintSummary(){
 				bygroup << good_markers[i]->toString();
 				map<string, vector<Sample*> > groups = options.getGroups();
 				map<string, vector<Sample*> >::iterator giter;
-				for(giter = groups.begin(); giter != groups.end(); giter++){
+				for(giter = groups.begin(); giter != groups.end(); giter++)
+				{
 					string group = giter->first;
 					int gzero = groupzeros[group][i];
 					int gtotal = grouptotal[group][i];
 					float gper = 0.0f;
-					if(gtotal > 0){
+					if(gtotal > 0)
+					{
 						gper = (float)(1.0f - ((float)gzero/(float)gtotal));// * 100.0f;
 					}
 					bygroup << "\t" << gper;
@@ -205,15 +207,19 @@ void ProcessMarkerGenoEff::PrintSummary(){
 		good_markers[i]->setFlag(false);
 	}
 
-	if(options.doGroupFile()){
+	if(options.doGroupFile())
+	{
 		map<string, vector<Sample*> > groups = options.getGroups();
 		map<string, vector<Sample*> >::iterator giter;
-		for(giter = groups.begin(); giter != groups.end(); giter++){
+		for(giter = groups.begin(); giter != groups.end(); giter++)
+		{
 			string group = giter->first;
 
 			int goodsamps = 0;
-			for(int gs = 0; gs < (int)groups[group].size(); gs++){
-				if(groups[group][gs]->isEnabled()){
+			for(int gs = 0; gs < (int)groups[group].size(); gs++)
+			{
+				if(groups[group][gs]->isEnabled())
+				{
 					goodsamps++;
 				}
 			}
@@ -223,7 +229,7 @@ void ProcessMarkerGenoEff::PrintSummary(){
 			bygroupmissing << group << "\t";
 			bygroupmissing << (group_avgs[group] / (double) total_snps) << "\t";
 			bygroupmissing << avg_log << "\t";
-			bygroupmissing << goodsamps;
+			bygroupmissing << goodsamps; //Nmiss (Non-MISSing samples) samples that survived the cut of previous steps...
 			bygroupmissing << endl;
 		}
  	}
