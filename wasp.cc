@@ -1289,7 +1289,7 @@ main (int argc, char* argv[])
 
 		//Begin batch file steps and reading in data
 		startProcess(&proc_order, NULL, myrank, &cmd_filters);
-	}catch(MethodException ex){
+	}catch(MethodException & ex){
 		opts::printLog(string(ex.what()) + "\n");
 	}
 //	catch(std::exception ex){
@@ -2049,14 +2049,16 @@ void runStep(Step current_step, DataSet* data_set){
 		current_step.PrintSummary();
 		current_step.filter();
 		current_step.FilterSummary();
-		current_step.close();
+		//current_step.close();
 		if(step_options->doTransform()){
 			step_options->undoTransforms(data_set);
 		}
-	}catch(MethodException ex){
+		//TODO: make sure that the close() statement being below doesn't break anything...
+		current_step.close();
+	}catch(MethodException & ex){
 		opts::printLog(ex.what());
 		exit(0);
-	}catch(std::exception ex){
+	}catch(std::exception & ex){
 		opts::printLog(ex.what());
 		exit(0);
 	}catch(...){
