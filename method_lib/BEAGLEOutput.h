@@ -12,8 +12,6 @@
 #include <vector>
 #include <list>
 #include <map>
-//#include "Markers.h"
-//#include "Families.h"
 #include "Marker.h"
 #include "Sample.h"
 #include "Family.h"
@@ -87,7 +85,6 @@ class BEAGLEOutput{
 		};
 		void setThreshold(string s){
 			options.setUp(s);
-			//threshold = 0;
 		};
 		void setOptions(StepOptions o){
 			options = o;
