@@ -1,0 +1,1025 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>PLATO: PLatform for the Analysis, Translation, and Organization of large-scale data</title>
+<link rel="icon" href="https://chgr.mc.vanderbilt.edu/plato/inputfiles/favicon.ico" type="image/icon" />
+<link rel="shortcut icon" href="https://chgr.mc.vanderbilt.edu/plato/inputfiles/favicon.ico" type="image/icon" />
+<link href="../stylesheets/cake.generic.css%3F1262635684.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="../stylesheets/wasp.css%3F1262635684.css" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<a name="top"></a>
+	<div id="container">
+		<div id="header">
+			<h1>
+<!--				<a href="/plato/"><img alt="Wasp_icon32x32" src="/plato/images/WASP_icon32x32.PNG?1262635684" /></a> -->
+				<a href="../index.html">PLATO:</a> PLatform for the Analysis, Translation, and Organization of large-scale data
+			</h1>
+		</div>
+		<div id="main" class="main">
+			<?php //include("side-menu.php");?>
+			<table border=0 cellpadding=0>
+			<tr>
+						<td id="side-menu" class="side-menu">
+		       	<br/>
+				<ul>
+					<li><a href="../index.html">Home</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu/ritchielab/subscriptions">Download</a></li>
+					<li><a href="../main/aboutus.html">About Us</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu/ritchielab/index.php">Ritchie Lab</a></li>
+					<li><a href="http://chgr.mc.vanderbilt.edu">CHGR</a></li>
+				</ul>
+<br/>
+<!-- Google CSE Search Box Begins  -->
+<form method="GET" action="http://searchvu.vanderbilt.edu/search">
+    <input type="text" name="q" maxlength="256" value="" />
+    <input type="hidden" name="site" value="default_collection" />  
+    <input type="hidden" name="client" value="default_frontend" />
+    <input type="hidden" name="proxystylesheet" value="default_frontend" />
+    <input type="hidden" name="output" value="xml_no_dtd" />   
+    <input type="hidden" name="sitesearch" value="https://edam.mc.vanderbilt.edu/wasp" />
+    <input type="submit" name="btnG" value="Search" />
+</form>
+<!-- Google CSE Search Box Ends -->
+
+				<br/>
+				<hr/>
+				<br/>
+<!--				<?php include("side-menu.php");?>-->
+				
+					<ul>
+					
+					<li><a href="../main/usage.html">Usage</a></li>
+					
+						<ul>
+							
+							<li><a href="../commandlines.html">Commandline Arguments</a></li>
+							
+							
+							<li><a href="../step_options.html">Step Specific Arguments</a></li>
+							
+						</ul>
+					</ul>
+						<br/>
+					<ul>
+						<li>Input Files</li>
+						<ul>
+							
+							<li><a href="batchfiles.html">Batch Files</a></li>
+							
+							
+							<li><a href="pedfile.html">PED File</a></li>
+							
+							
+							<li><a href="mapfile.html">MAP File</a></li>
+							
+							
+							<li><a href="tpedfile.html">TPED File</a></li>
+							
+							
+							<li><a href="tfamfile.html">TFAM File</a></li>
+							
+							
+							<li><a href="binary.html">Binary</a></li>
+							
+							
+							<li><a href="covtraitfile.html">Covariates/Traits</a></li>
+							
+
+							
+							<li><a href="freqfile.html">Frequency File</a></li>
+							
+							
+							<li><a href="strandfile.html">Strand File</a></li>
+							
+							
+							<li><a href="mapfileext.html">Extended Map File</a></li>
+							
+							
+							<li><a href="sampfileext.html">Extended Sample File</a></li>
+							
+							
+							<li><a href="incexclists.html">Include/Exclude Files</a></li>
+							
+							
+							<li><a href="stratfile.html">Stratification File</a></li>
+							
+							<b>
+							<li><a href="filterprocesscfg.html">Filter Process Config.</a></li>
+							</b>
+
+						</ul>
+					</ul>
+						<br/>
+
+					<ul>
+						<li>QC Steps</li>
+								<ul>
+									
+										<li>
+										<a href="../steps/1.html">Marker Genotype Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="../steps/2.html">Allele Frequency</a>
+										</li>
+									
+										<li>
+										<a href="../steps/3.html">Concordance</a>
+										</li>
+									
+										<li>
+										<a href="../steps/4.html">Gender Error</a>
+										</li>
+									
+										<li>
+										<a href="../steps/5.html">Hardy-Weinberg</a>
+										</li>
+									
+										<li>
+										<a href="../steps/6.html">Mendelian Errors</a>
+										</li>
+									
+										<li>
+										<a href="../steps/7.html">Mitochondrial Error</a>
+										</li>
+									
+										<li>
+										<a href="../steps/8.html">Sample Efficiency</a>
+										</li>
+									
+										<li>
+										<a href="../steps/33.html">Plato Filter Processing</a>
+										</li>
+									
+								</ul>
+						</ul>
+						<br/>
+
+						<ul>
+							<li>Analysis Steps</li>
+								<ul>
+									
+										<li>
+											<a href="../steps/9.html">Chisquare</a>
+										</li>
+										
+										<li>
+											<a href="../steps/10.html">Logistic Regression</a>
+										</li>
+										
+										<li>
+											<a href="../steps/11.html">Linear Regression</a>
+										</li>
+										
+										<li>
+											<a href="../steps/12.html">Deletion Detection</a>
+										</li>
+										
+										<li>
+											<a href="../steps/13.html">Homozygous</a>
+										</li>
+										
+										<li>
+											<a href="../steps/14.html">Linkage Disequilibrium</a>
+										</li>
+										
+										<li>
+											<a href="../steps/15.html">TDT</a>
+										</li>
+										
+										<li>
+											<a href="../steps/30.html">IBS</a>
+										</li>
+										
+										<li>
+											<a href="../steps/31.html">CMH Analysis</a>
+										</li>
+										
+										<li>
+											<a href="../steps/32.html">Data Transformations</a>
+										</li>
+										
+										<li>
+											<a href="../steps/34.html">(EARTH) Multivariate adaptive regression splines</a>
+										</li>
+										
+										<li>
+											<a href="../steps/35.html">Kinship</a>
+										</li>
+										
+								</ul>
+						</ul>
+						<br/>
+						<ul>
+							<li>Formatting Steps</li>
+								<ul>
+									
+										<li>
+											<a href="../steps/16.html">Beagle</a>
+										</li>
+										
+										<li>
+											<a href="../steps/17.html">FBAT</a>
+										</li>
+										
+										<li>
+											<a href="../steps/18.html">GRR</a>
+										</li>
+										
+										<li>
+											<a href="../steps/19.html">Lapis</a>
+										</li>
+										
+										<li>
+											<a href="../steps/20.html">MDR</a>
+										</li>
+										
+										<li>
+											<a href="../steps/21.html">PDT2</a>
+										</li>
+										
+										<li>
+											<a href="../steps/22.html">PED File</a>
+										</li>
+										
+										<li>
+											<a href="../steps/23.html">Phase</a>
+										</li>
+										
+										<li>
+											<a href="../steps/24.html">PowerMarker</a>
+										</li>
+										
+										<li>
+											<a href="../steps/25.html">QTDT</a>
+										</li>
+										
+										<li>
+											<a href="../steps/26.html">Structure</a>
+										</li>
+										
+										<li>
+											<a href="../steps/27.html">Superlink</a>
+										</li>
+										
+										<li>
+											<a href="../steps/28.html">TPED</a>
+										</li>
+										
+										<li>
+											<a href="../steps/29.html">Eigenstrat</a>
+										</li>
+										
+										<li>
+											<a href="../steps/36.html">Binary (.bim, .bed, .fam) Output</a>
+										</li>
+										
+									
+								</ul>
+						</ul>
+				<br/>
+
+			</td>
+			<td id="content" class="contents">
+				
+				<p style="color: green"></p>
+
+				<h2>Filter Process Configuration</h2>
+
+<p>
+PLatform for the Analysis, Translation, and Organization of large-scale data (PLATO) 
+incorporates several analytical and knowledge-based filters to help identify SNPs in a 
+genome-wide association study.
+</p>
+<p>
+All results from the filters can be scaled from 0 to 1.  Filters can be applied sequentially 
+to reduce the number of SNPs being analyzed.  Results can be reduced to a manageable number or 
+all results can be output for further investigation.  Alternatively, all results can be kept and recorded.
+</p>
+
+<h4>Configuration file</h4>
+<p>
+The configuration file specifies the general parameters for the analysis and the filters 
+that will be used to conduct the analysis.  The basic format is KEYWORD VALUE.  The keyword and values may be 
+separated by spaces or tabs.  The basic PLATO keywords are below.  Filters have their own keywords for 
+determining the parameters of the analysis.  Comments can be placed in a configuration 
+file and should begin with # (see examples).
+</p>
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Sample Value</th>
+		<th>Description</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>ANALYSIS</td>
+			<td>Establishes start of analysis.</td>
+			<td>Required before filters listed.</td>
+		</tr>
+		<tr>
+			<td>LOCICOMBO</td>
+			<td>ADD 1</td>
+			<td>Manages a list of SNPs and results that are passed from one filter to the next.  This should be specified for each filter and should be placed before the START keyword that identifies the parameters for that filter.  The options are:
+ADD - adds the indicated size of combination to the list of SNP combinations to analyze.
+REMOVE - removes the indicated size
+PASS - passes the current list of SNPs on to the next filter.  Doesn't have to be specified as it is the default option.
+			</td>
+		</tr>
+		<tr>
+			<td>START</td>
+			<td>CHISQUARE</td>
+			<td>Indicates the start of a filter.  Filters will run in the order they are specified in the configuration file.  
+			All of the filter's parameters need to be placed before the END keyword for the filter.
+</td>
+		</tr>
+		<tr>
+			<td>END</td>
+			<td>CHISQUARE</td>
+			<td>Terminates the parameter list for a filter.  All of the filter's parameters must be between the 
+			START and END keywords.
+</td>
+		</tr>
+		<tr>
+			<td>SUB</td>
+			<td>MDR</td>
+			<td>Indicates that this filter will be used as a subfilter by the enclosing filter.  
+			SERF is an example of a filter that uses a subfilter.  A subfilter is terminated by an END 
+			keyword and otherwise has to follow the rules for parameter declaration.
+</td>
+		</tr>
+		<tr>
+			<td>RANDSEED</td>
+			<td>17</td>
+			<td>Random number generator seed.  Used by some filters.
+</td>
+		</tr>
+		<tr>
+			<td>PSEUDOCONTROLS</td>
+			<td>ON</td>
+			<td>Creates a pseudocontrol for a pedigree input dataset consisting of trios.</td>
+		</tr>
+	</tbody>
+</table>
+
+<h4>Filters</h4>
+
+PLATO contains multiple filters and each has its own parameters to control its behavior.
+
+<ol >
+<li style="list-style : decimal;">	Chisquare - Calculates chi square on SNPs.  It can be used as a sub filter by other filters such as SERF, Contingency, and Biofilter</li>
+<li style="list-style : decimal;">	LogisticRegress - Calculates logistic regression on the models.  Parameters can be set so that multi-locus models can include interaction terms. </li>
+<li style="list-style : decimal;">	MDR - Runs MDR on models.  Doesn't include permutation testing.</li>
+<li style="list-style : decimal;">	OddsRatio - Calculates odds ratio.  Works on a contingency table and can be used by the contingency filter.</li>
+<li style="list-style : decimal;">	NMI - Calculates NMI and can calculate transposed NMI.  Also works on a contingency table and can be used by the contingency filter.</li>
+<li style="list-style : decimal;">	Armitage - Calculates Armitage on a contingency table.</li>
+<li style="list-style : decimal;">	LikelihoodRatio - Calculates likelihood ratio from a contingency table</li>
+<li style="list-style : decimal;">	UncertaintyCoeff - Calculates uncertainty coefficient from a contingency table</li>
+<li style="list-style : decimal;">	Contingency -Can use a number of filters as sub filters to perform a variety of calculations on contingency tables at one time so that the table only needs to be totaled once.  The filters it can use are OddsRatio, Chisquare, NMI, Armitage, LikelihoodRatio and UncertaintyCoeff.</li>
+<li style="list-style : decimal;">	AlleleFreq - Calculate major allele frequency for a SNP.  Can be used on cases, controls or both.</li>
+<li style="list-style : decimal;">	SERF - Runs sequential replication filter</li>
+<li style="list-style : decimal;">	ConditionalLR - Runs conditional logistic regression on family data.  Currently only works on trios or if the families have one affected and one unaffected child.</li>
+<li style="list-style : decimal;">	MaxScore - Best score from sub filters and assigns a p value based on permutation testing.</li>
+<li style="list-style : decimal;">	BioFilter - Selects models from a database and then uses subfilters to analyze the results.</li>
+<li style="list-style : decimal;">Tails  - Jonathan's new method</li>
+</ol>
+
+<h4>Filter Parameter lists</h4>
+
+<p>Chisquare - Calculates chi square on the data</p>
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>p-value or chi square value for excluding SNP being analyzed</td>
+			<td>-> 0.0-1.0 for p value<br/>-> >= 0 for chi scores</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>Userawscore</td>
+			<td>When set to true or on, the filter will compare the chi square against the threshold.  
+			When off, it will use the p value against the threshold.</td>
+			<td>True, False<br/>On, Off</td> 
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Test</td>
+			<td>Used with contingency filter to specify what totals in the contingency table to use</td>
+			<td>Genotype, Allele</td>
+			<td>Genotype</td>
+		</tr>
+	</tbody>
+</table>
+
+<p>LogisticRegress - Logistic regression filter</p>
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>p-value for excluding SNP being analyzed</td>
+			<td>0.0-1.0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>ModelType</td>
+			<td>Sets type of model to evaluate</td>
+			<td>Additive, Recessive, Dominant</td>
+			<td>Additive</td>
+		</tr>
+		<tr>
+			<td>MaxIterations</td>
+			<td># of iterations algorithm will run before accepting current value</td>
+			<td>>0</td>
+			<td>20</td>
+		</tr>
+		<tr>
+			<td>IncludeInteraction</td>
+			<td>If more than one snp in model, sets whether to use interaction terms</td>
+			<td>True, False</td>
+			<td>True</td>
+		</tr>
+		<tr>
+			<td>OutputCoeff</td>
+			<td>When on or true, will output coefficients in addition to the p value.</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>InterceptOut</td>
+			<td>When on or true, will output the intercept value in addition to p value</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>PType</td>
+			<td>Use either the overall or coefficient value</td>
+			<td>Overall, Coefficient</td>
+			<td>Overall</td>
+		</tr>
+	</tbody>
+</table>
+
+
+MDR - MDR filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>AccThreshold</td>
+			<td>Balanced accuracy value that must be met to keep model in the result set</td>
+			<td>0-1.0</td>
+			<td>0.50</td>
+		</tr>
+		<tr>
+			<td>ModThreshCalc</td>
+			<td>Calculate high/low risk threshold either once or for each model</td>
+			<td>Model, Set</td>
+			<td>Model</td>
+		</tr>
+		<tr>
+			<td>ModThreshold</td>
+			<td>Threshold value for declaring a cell in the model high or low risk</td>
+			<td>0.0-1.0</td>
+			<td>1.0</td>
+		</tr>
+	</tbody>
+</table>
+
+
+OddsRatio - Odds ratio filter 
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Threshold value (either raw score or the p value)</td>
+			<td>>= 0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>UseRawScore</td>
+			<td>Set to true to use the raw score produced by the filter.  If false uses a p-value as determined by permutation test</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+		<tr>
+			<td>Test</td>
+			<td>Used with contingency filter to specify what totals in the contingency table to use</td>
+			<td>Allele</td>
+			<td>Allele</td>
+		</tr>
+	</tbody>
+</table>
+
+NMI - NMI filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Threshold value (either raw score or the p value)</td>
+			<td>>= 0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>UseRawScore</td>
+			<td>Set to true to use the raw score produced by the filter.  If false uses a p-value as determined by permutation test</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Transpose</td>
+			<td>If set to true, will calculate the transposed NMI</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+		<tr>
+			<td>Test</td>
+			<td>Used with contingency filter to specify what totals in the contingency table to use</td>
+			<td>Genotype, Allele, Dominant, Recessive, Additive</td>
+			<td>Allele</td>
+		</tr>
+	</tbody>
+</table>
+
+Armitage - Armitage filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Threshold value (either raw score or the p value)</td>
+			<td>>= 0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>UseRawScore</td>
+			<td>Set to true to use the raw score produced by the filter.  If false uses a p-value as determined by permutation test</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+		<tr>
+			<td>Test</td>
+			<td>Used with contingency filter to specify what totals in the contingency table to use</td>
+			<td>Genotype, Additive</td>
+			<td>Genotype</td>
+		</tr>		
+	</tbody>
+</table>
+
+LikelihoodRatio - Likelihood Ratio filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Threshold value (either raw score or the p value)</td>
+			<td>>= 0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>UseRawScore</td>
+			<td>Set to true to use the raw score produced by the filter.  If false uses a p-value as determined by permutation test</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+		<tr>
+			<td>Test</td>
+			<td>Used with contingency filter to specify what totals in the contingency table to use</td>
+			<td>Genotype, Allele, Dominant, Recessive, Additive</td>
+			<td>Allele</td>
+		</tr>		
+	</tbody>
+</table>
+
+UncertaintyCoeff - Uncertainty coefficient filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Threshold value (either raw score or the p value)</td>
+			<td>>= 0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>UseRawScore</td>
+			<td>Set to true to use the raw score produced by the filter.  If false uses a p-value as determined by permutation test</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+		<tr>
+			<td>Test</td>
+			<td>Used with contingency filter to specify what totals in the contingency table to use</td>
+			<td>Genotype, Allele, Dominant, Recessive, Additive</td>
+			<td>Allele</td>
+		</tr>
+	</tbody>
+</table>
+
+Contingency - Contingency table filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Threshold value (either raw score or the p value)</td>
+			<td>>= 0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+		<tr>
+			<td>AlwaysInclude</td>
+			<td>Any loci set here will always be reported even if the value doesn't meet the threshold</td>
+			<td>1 Ð Max # of loci</td>
+			<td>none</td>
+		</tr>
+	</tbody>
+</table>
+
+
+AlleleFreq - Allele frequency filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>Minimum frequency needed</td>
+			<td>>= 0</td>
+			<td>0.0</td>
+		</tr>
+	</tbody>
+</table>
+
+SERF - Sequential Replication Filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>RepeatRequired</td>
+			<td>Number of replications needed to retain the result</td>
+			<td>>0</td>
+			<td>3</td>
+		</tr>
+		<tr>
+			<td>Initsize</td>
+			<td>Initial number of case-control pairs as starting size of analysis</td>
+			<td>>0</td>
+			<td>50</td>
+		</tr>
+		<tr>
+			<td>InitThreshold</td>
+			<td>Value for sub filter threshold for first set tested</td>
+			<td>0-1.0</td>
+			<td>0.05</td>
+		</tr>
+		<tr>
+			<td>RepThreshold</td>
+			<td>Value for each set after the first</td>
+			<td>0-1.0</td>
+			<td>0.01</td>
+		</tr>
+		<tr>
+			<td>Startopt</td>
+			<td>Parameter value to pass to sub filter to optimize SERF filter.  Tells subfilter when to clear any previous totals.</td>
+			<td>Chitype</td>
+			<td>Startchi</td>
+		</tr>
+		<tr>
+			<td>Optimizer</td>
+			<td>Parameter to pass to sub filter to optimize so that subfilter doesn't need to repeat full analysis</td>
+			<td>Chitype</td>
+			<td>Addinds</td>
+		</tr>
+		<tr>
+			<td>Outtype</td>
+			<td>Report result either as fraction of total possible replications in set or as actual number of replications</td>
+			<td>Fraction, Reps</td>
+			<td>Fraction</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+ConditionalLR - Conditional logistic regression filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>p-value threshold</td>
+			<td>0.0-1.0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>ModelType</td>
+			<td>Sets type of model to evaluate</td>
+			<td>Additive, Recessive, Dominant</td>
+			<td>Additive</td>
+		</tr>
+		<tr>
+			<td>PType</td>
+			<td>When set to overall reports the p value for the model.  When set to None reports the log likelihood ratio</td>
+			<td>Overall, None</td>
+			<td>Overall</td>
+		</tr>
+		<tr>
+			<td>OutputCoeff</td>
+			<td>Indicates whether coefficients should be output along with primary value selected above</td>
+			<td>True, False</td>
+			<td>False</td>
+		</tr>
+		<tr>
+			<td>IncludeInteraction</td>
+			<td>If more than one snp in model, sets whether to use interaction terms</td>
+			<td>True, False</td>
+			<td>True</td>
+		</tr>
+	</tbody>
+</table>
+
+MAXSCORE - Maximum Score filter
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Threshold</td>
+			<td>p-value threshold</td>
+			<td>0.0-1.0</td>
+			<td>1.0</td>
+		</tr>
+		<tr>
+			<td>Permutations</td>
+			<td>Number of permutations to run to set p value for this value</td>
+			<td>1-100000</td>
+			<td>1000</td>
+		</tr>
+	</tbody>
+</table>
+
+BioFilter 
+<table class="datatable">
+	<thead>
+		<th>Keyword</th>
+		<th>Description</th>
+		<th>Values</th>
+		<th>Default</th>
+	</thead>
+	<tbody>
+		<tr>
+			<td>OUTBIOFILE</td>
+			<td>Path and filename for results of the biofilter to write</td>
+			<td>string</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>INFILE</td>
+			<td>Path and filename for the binary biofilter file</td>
+			<td>string</td>
+			<td>1.0</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+
+
+<h4>Configuration file examples</h4>
+
+<br/>
+1.	Simple example that runs chi square on all SNPs
+<pre class="code">
+ANALYSIS
+
+# directive to the system specifying what size of
+# locus combination to use
+LOCICOMBO ADD 1
+
+START CHISQUARE
+
+# threshold for p-value to report to screen or pass
+# to next filter
+THRESHOLD 1.00
+
+END CHISQUARE
+
+# General parameters used in this analysis
+</pre>
+
+<br/>
+2.	Example shows use of a sub filter 
+<pre class="code">
+ANALYSIS
+
+# directive to the system specifying what size of
+# locus combination to use
+LOCICOMBO ADD 1
+
+
+START SERF
+# This sub filter is used by sequential replication
+# THRESHOLD needs to be 1.0 for sequential replication to work correctly
+SUB CHISQUARE
+THRESHOLD 1.0
+END CHISQUARE
+
+# Starting size of the group (50 affected and 50 unaffected)
+INITSIZE 50
+# Initial value returned from subfilter needed to count as a replication
+INITTHRESHOLD 0.01
+# Value that repeats after first much reach
+REPTHRESHOLD 0.05
+# Number of repeats required to pass this filter test
+REPEATREQUIRED 0
+# Optimizing parameter
+# Entire set is not recalculated every time
+# Only vaid with some sub filers such as
+# the chi square filter
+STARTOPT CHITYPE STARTCHI
+OPTIMIZER CHITYPE ADDINDS
+
+END SEQREP
+
+# General parameters used in this analysis
+RANDSEED 17
+</pre>
+
+<br/>
+3.	Configuration file showing analysis of single locus models using chi square followed by analysis
+ of 1 and 2 locus models using MDR.
+<pre class="code">
+ANALYSIS
+
+# directive to the system specifying what size of
+# locus combination to use
+LOCICOMBO ADD 1
+
+START CHISQUARE
+# threshold for p-value to report to screen or pass
+# to next filter
+THRESHOLD  1.00
+END CHISQUARE
+
+LOCICOMBO ADD 2
+
+START MDR
+
+# threshold for balanced accuracy to report to screen or pass
+# to next filter
+ACCTHRESHOLD 0
+
+# min size of combination to check
+COMBOMIN 1
+# max size of combination to check
+COMBOLIMIT 2
+# how to determine model threshold
+# how to determine model threshold
+# for assigning high and low risk cells
+# use SET when no missing data
+MODTHRESHCALC SET
+
+END MDR
+
+# General parameters used in this analysis
+</pre>
+
+
+<h4>Output file</h4>
+
+The output file lists the SNPs tested and the value of each analysis in tab-delimited columns.
+
+<pre class="code">
+Loci    ChiSquare
+rs1     0.980146
+rs2     0.977504
+rs3     0.815707
+rs4     0.51742
+rs5     0.0996525
+rs6     0.131814
+rs7     0.694171
+rs8     0.951806
+rs9     0.746597
+rs10    0.213325
+rs11    0.0767813
+rs12    0.0309052
+</pre>
+			</td>
+			</tr>
+			</table>
+		</div>
+		<div id="footer">
+			&nbsp;
+			
+					<a href="../admin/login.html">Login</a> 
+			
+			&nbsp;
+		</div>
+	</div>
+</body>
+</html>
