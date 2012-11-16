@@ -1,0 +1,308 @@
+#ifndef ALLELEFREQUENCY_H
+#define ALLELEFREQUENCY_H
+
+#include <stdio.h>
+#include <math.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <list>
+#include <map>
+#include "Marker.h"
+#include "Family.h"
+#include "Globals.h"
+#include "Chrom.h"
+#include "Process.h"
+#include "Options.h"
+#include "StepOptions.h"
+using namespace std;
+
+class AlleleFrequency : public Process{
+	private:
+		vector<Sample*>* samples;
+		vector<Marker*>* markers;
+		vector<Family*>* families;
+		vector<int>* marker_map;
+		StepOptions options;
+//		Markers* markers;
+//		Families* families;
+		float threshold;
+		int orig_num_markers;
+		int orig_num_families;
+		int orig_num_individuals;
+		int rank;
+		bool _DBOUTPUT_;		
+		bool _MARKERLIST_;
+		bool _STRATIFY_;
+		int order;
+
+		map<int, vector<int> > micro_allele_counts;
+		map<int, map<string, int> > micro_geno_counts;
+		//overall
+		vector<int> aone_count;
+		vector<int> atwo_count;
+		vector<int> aone_homo;
+		vector<int> atwo_homo;
+		vector<int> hetero;
+		//parent
+		vector<int> aone_countP;
+		vector<int> atwo_countP;
+		vector<int> aone_homoP;
+		vector<int> atwo_homoP;
+		vector<int> heteroP;
+		//parent Dad
+		vector<int> aone_countPD;
+		vector<int> atwo_countPD;
+		vector<int> aone_homoPD;
+		vector<int> atwo_homoPD;
+		vector<int> heteroPD;
+		//parent mom
+		// = parent - parent dad
+		
+		//child
+		// = overall - parent
+		
+		//child male
+		vector<int> aone_countCM;
+		vector<int> atwo_countCM;
+		vector<int> aone_homoCM;
+		vector<int> atwo_homoCM;
+		vector<int> heteroCM;
+		//child fem
+		// = overall - parent - child male
+		
+		//case
+		vector<int> aone_countCa;
+		vector<int> atwo_countCa;
+		vector<int> aone_homoCa;
+		vector<int> atwo_homoCa;
+		vector<int> heteroCa;
+		//case male
+		vector<int> aone_countCaM;
+		vector<int> atwo_countCaM;
+		vector<int> aone_homoCaM;
+		vector<int> atwo_homoCaM;
+		vector<int> heteroCaM;
+		//case fem
+		// = case - case male
+		
+		//control
+		// = overall - case
+		vector<int> aone_countCon;
+		vector<int> atwo_countCon;
+		vector<int> aone_homoCon;
+		vector<int> atwo_homoCon;
+		vector<int> heteroCon;
+		
+		//control fem
+		// = overall - case - control male
+		
+		//control male
+		vector<int> aone_countConM;
+		vector<int> atwo_countConM;
+		vector<int> aone_homoConM;
+		vector<int> atwo_homoConM;
+		vector<int> heteroConM;
+
+
+		
+		
+	public:
+		AlleleFrequency(){
+			markers = NULL;
+			families = NULL;
+			samples = NULL;
+			threshold = 0.0;
+			rank =0;
+			order = 0;
+		};
+		AlleleFrequency(float thresh) : threshold(thresh){
+			markers = NULL;
+			families = NULL;
+			samples = NULL;
+			rank = 0;
+			order = 0;
+		};
+		~AlleleFrequency(){};
+//		void process(Connection *, Families*, Markers*);
+//		void process(Families*, Markers*);
+		void process(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
+		void process_hw(vector<Sample*>*, vector<Family*>*, vector<Marker*>*, vector<int>*);
+		void PrintSummary();
+		void filter();
+		void setThreshold(string s){
+			options.setUp(s);
+			//threshold = std::atof(s.c_str());
+		};
+		void setOrder(int o){order = o;};
+		void FilterSummary();
+		int getOrigNumMarkers(){return orig_num_markers;};
+		int getOrigNumFamilies(){return orig_num_families;};
+//		void hw_process(Connection*, Families*, Markers*);
+		void setRank(int r){rank = r;};
+		int getRank(){return rank;};
+//		void updateFamsMarks(Families* f, Markers* m){
+//		    families = f;
+//		    markers = m;
+//		};
+        void setDBOUT(){_DBOUTPUT_ = true;};
+        void setMarkerList(){_MARKERLIST_ = true;};
+		void setStratify(){_STRATIFY_ = true;};
+
+		//parent
+		int getAonehomo(int i){return aone_homo[i];};
+		int getAtwohomo(int i){return atwo_homo[i];};
+		int getHet(int i){return hetero[i];};
+		int getAonehomoP(int i){return aone_homoP[i];};
+		int getAtwohomoP(int i){return atwo_homoP[i];};
+		int getHetP(int i){return heteroP[i];};
+		float getAonehomo_exp(int i);
+		float getAtwohomo_exp(int i);
+		float getHet_exp(int i);
+		float getAonehomoP_exp(int i);
+		float getAtwohomoP_exp(int i);
+		float getHetP_exp(int i);
+		float getAone_freq(int i);
+		float getAtwo_freq(int i);
+		float getAoneP_freq(int i);
+		float getAtwoP_freq(int i);
+		int getPop(int i){return (getAonehomo(i) + getAtwohomo(i) + getHet(i));};
+		int getPopP(int i){return (getAonehomoP(i) + getAtwohomoP(i) + getHetP(i));};
+
+		//parent MOM
+		int getAonehomoPM(int i){return (aone_homoP[i] - aone_homoPD[i]);};
+		int getAtwohomoPM(int i){return (atwo_homoP[i] - atwo_homoPD[i]);};
+		int getHetPM(int i){return (heteroP[i] - heteroPD[i]);};
+		float getAonehomoPM_exp(int i);
+		float getAtwohomoPM_exp(int i);
+		float getHetPM_exp(int i);
+		float getAonePM_freq(int i);
+		float getAtwoPM_freq(int i);
+		int getPopPM(int i){return (getAonehomoPM(i) + getAtwohomoPM(i) + getHetPM(i));};
+
+		//parent DAD
+		int getAonehomoPD(int i){return aone_homoPD[i];};
+		int getAtwohomoPD(int i){return atwo_homoPD[i];};
+		int getHetPD(int i){return heteroPD[i];};
+		float getAonehomoPD_exp(int i);
+		float getAtwohomoPD_exp(int i);
+		float getHetPD_exp(int i);
+		float getAonePD_freq(int i);
+		float getAtwoPD_freq(int i);
+		int getPopPD(int i){return (getAonehomoPD(i) + getAtwohomoPD(i) + getHetPD(i));};
+
+		//Child
+		int getAonehomoC(int i){return (aone_homo[i] - aone_homoP[i]);};
+		int getAtwohomoC(int i){return (atwo_homo[i] - atwo_homoP[i]);};
+		int getHetC(int i){return (hetero[i] - heteroP[i]);};
+		float getAonehomoC_exp(int i);
+		float getAtwohomoC_exp(int i);
+		float getHetC_exp(int i);
+		float getAoneC_freq(int i);
+		float getAtwoC_freq(int i);
+		int getPopC(int i){return (getAonehomoC(i) + getAtwohomoC(i) + getHetC(i));};
+
+		//Child Male
+		int getAonehomoCM(int i){return aone_homoCM[i];};
+		int getAtwohomoCM(int i){return atwo_homoCM[i];};
+		int getHetCM(int i){return heteroCM[i];};
+		float getAonehomoCM_exp(int i);
+		float getAtwohomoCM_exp(int i);
+		float getHetCM_exp(int i);
+		float getAoneCM_freq(int i);
+		float getAtwoCM_freq(int i);
+		int getPopCM(int i){return (getAonehomoCM(i) + getAtwohomoCM(i) + getHetCM(i));};
+
+		//Child Female
+		int getAonehomoCF(int i){return (aone_homo[i] - aone_homoP[i] - aone_homoCM[i]);};
+		int getAtwohomoCF(int i){return (atwo_homo[i] - atwo_homoP[i] - atwo_homoCM[i]);};
+		int getHetCF(int i){return (hetero[i] - heteroP[i] - heteroCM[i]);};
+		float getAonehomoCF_exp(int i);
+		float getAtwohomoCF_exp(int i);
+		float getHetCF_exp(int i);
+		float getAoneCF_freq(int i);
+		float getAtwoCF_freq(int i);
+		int getPopCF(int i){return (getAonehomoCF(i) + getAtwohomoCF(i) + getHetCF(i));};
+
+		//Case
+		int getAonehomoCa(int i){return aone_homoCa[i];};
+		int getAtwohomoCa(int i){return atwo_homoCa[i];};
+		int getHetCa(int i){return heteroCa[i];};
+		float getAonehomoCa_exp(int i);
+		float getAtwohomoCa_exp(int i);
+		float getHetCa_exp(int i);
+		float getAoneCa_freq(int i);
+		float getAtwoCa_freq(int i);
+		int getPopCa(int i){return (getAonehomoCa(i) + getAtwohomoCa(i) + getHetCa(i));};
+		int getAonecountCa(int i){return aone_countCa[i];};
+		int getAtwocountCa(int i){return atwo_countCa[i];};
+
+		//Case Male
+		int getAonehomoCaM(int i){return aone_homoCaM[i];};
+		int getAtwohomoCaM(int i){return atwo_homoCaM[i];};
+		int getHetCaM(int i){return heteroCaM[i];};
+		float getAonehomoCaM_exp(int i);
+		float getAtwohomoCaM_exp(int i);
+		float getHetCaM_exp(int i);
+		float getAoneCaM_freq(int i);
+		float getAtwoCaM_freq(int i);
+		int getPopCaM(int i){return (getAonehomoCaM(i) + getAtwohomoCaM(i) + getHetCaM(i));};
+
+		//Case Female
+		int getAonehomoCaF(int i){return (aone_homoCa[i] - aone_homoCaM[i]);};
+		int getAtwohomoCaF(int i){return (atwo_homoCa[i] - atwo_homoCaM[i]);};
+		int getHetCaF(int i){return (heteroCa[i] - heteroCaM[i]);};
+		float getAonehomoCaF_exp(int i);
+		float getAtwohomoCaF_exp(int i);
+		float getHetCaF_exp(int i);
+		float getAoneCaF_freq(int i);
+		float getAtwoCaF_freq(int i);
+		int getPopCaF(int i){return (getAonehomoCaF(i) + getAtwohomoCaF(i) + getHetCaF(i));};
+
+		//Control
+		//int getAonehomoCon(int i){return (aone_homo[i] - aone_homoCa[i]);};
+		//int getAtwohomoCon(int i){return (atwo_homo[i] - atwo_homoCa[i]);};
+		//int getHetCon(int i){return (hetero[i] - heteroCa[i]);};
+		int getAonehomoCon(int i){return (aone_homoCon[i]);};
+		int getAtwohomoCon(int i){return (atwo_homoCon[i]);};
+		int getHetCon(int i){return (heteroCon[i]);};
+		float getAonehomoCon_exp(int i);
+		float getAtwohomoCon_exp(int i);
+		float getHetCon_exp(int i);
+		float getAoneCon_freq(int i);
+		float getAtwoCon_freq(int i);
+		int getPopCon(int i){return (getAonehomoCon(i) + getAtwohomoCon(i) + getHetCon(i));};
+		int getAonecountCon(int i){return aone_countCon[i];};
+		int getAtwocountCon(int i){return atwo_countCon[i];};
+
+		//Control Male
+		int getAonehomoConM(int i){return aone_homoConM[i];};
+		int getAtwohomoConM(int i){return atwo_homoConM[i];};
+		int getHetConM(int i){return heteroConM[i];};
+		float getAonehomoConM_exp(int i);
+		float getAtwohomoConM_exp(int i);
+		float getHetConM_exp(int i);
+		float getAoneConM_freq(int i);
+		float getAtwoConM_freq(int i);
+		int getPopConM(int i){return (getAonehomoConM(i) + getAtwohomoConM(i) + getHetConM(i));};
+
+		//Control Female
+		//int getAonehomoConF(int i){return (aone_homo[i] - aone_homoCa[i] - aone_homoConM[i]);};
+		//int getAtwohomoConF(int i){return (atwo_homo[i] - atwo_homoCa[i] - atwo_homoConM[i]);};
+		//int getHetConF(int i){return (hetero[i] - heteroCa[i] - heteroConM[i]);};
+		int getAonehomoConF(int i){return (aone_homoCon[i] - aone_homoConM[i]);};
+		int getAtwohomoConF(int i){return (atwo_homoCon[i] - atwo_homoConM[i]);};
+		int getHetConF(int i){return (heteroCon[i] - heteroConM[i]);};
+		float getAonehomoConF_exp(int i);
+		float getAtwohomoConF_exp(int i);
+		float getHetConF_exp(int i);
+		float getAoneConF_freq(int i);
+		float getAtwoConF_freq(int i);
+		int getPopConF(int i){return (getAonehomoConF(i) + getAtwohomoConF(i) + getHetConF(i));};
+		
+
+
+};
+
+#endif
