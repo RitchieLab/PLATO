@@ -32,9 +32,7 @@
 
 #ifdef WIN
 #include <windows.h>
-#endif
-
-#ifdef UNIX
+#else
 #include <sys/types.h>    // Needed for system defined identifiers.
 #include <netinet/in.h>   // Needed for internet address structure.
 #include <sys/socket.h>   // Needed for socket(), bind(), etc...
@@ -43,15 +41,7 @@
 #include <netdb.h>
 #include <signal.h>
 #endif
-#ifdef MAC
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <signal.h>
-#endif
+
 
 
 using namespace std;
