@@ -264,4 +264,5 @@ ClusterMissing.h \
 filters/FilterDefinitions.h \
 filters/OutputWriter.h \
 earth.h \
+earth.cc \
 mdrpdt/exception.h 

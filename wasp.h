@@ -8,9 +8,6 @@
 #include <StepOptions.h>
 #include <MethodException.h>
 #include <stdio.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
@@ -19,11 +16,12 @@
 #include <list>
 #include <vector>
 #include <map>
+#include "config.h"
 #include "sockets.h"
 #include "Step.h"
 #include "ExampleModule.h"
 #include "ProcessKinship.h"
-#ifdef USE_R
+#ifdef HAVE_R
 #include "ProcessEarth.h"
 #endif
 #include "ProcessMendelianErrors.h"

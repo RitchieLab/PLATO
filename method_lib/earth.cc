@@ -173,7 +173,7 @@ void* earth::calloc1(size_t num, size_t size)
 }
 
 earth::earth(){
-	VERSION    = "version ~2.4"; // change if you modify this file!
+	EARTH_VERSION    = "version ~2.4"; // change if you modify this file!
 	BX_TOL      = 0.01;
 	QR_TOL      = 0.01;
 	MIN_GRSQ    = -10.0;
@@ -1879,7 +1879,7 @@ void earth::ForwardPass(
 
 #if _DEBUG_
 	if (nTraceGlobal >= 5)
-        printf("earth.c %s\n", VERSION.c_str());
+        printf("earth.c %s\n", EARTH_VERSION.c_str());
 #endif
     if (nTraceGlobal >= 4)
         PrintEstimatedMemoryUse(nMaxTerms, nCases, nPreds, nResp);

@@ -23,14 +23,14 @@
 using namespace std;
 
 namespace Methods{
-//static const double *pxGlobal;
+static const double *pxGlobal;
 
 class earth{
 
 private:
 	DataSet* data_set;
 
-	string VERSION;// change if you modify this file!
+	string EARTH_VERSION;// change if you modify this file!
 	double BX_TOL;
 	double QR_TOL;
 	double MIN_GRSQ;

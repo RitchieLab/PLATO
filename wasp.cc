@@ -189,7 +189,7 @@ void Initialize(){
 	s_mapStepValues["cmh"] = e_cmh;
 	s_mapStepValues["mdr"] = e_mdr;
 	s_mapStepValues["mdrpdt"] = e_mdrpdt;
-#ifdef USE_R
+#ifdef HAVE_R
 	s_mapStepValues["mars"] = e_mars;
 #endif
 	s_mapStepValues["cluster-missing"] = e_cluster_missing;
@@ -2232,7 +2232,7 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
-#ifdef USE_R
+#ifdef HAVE_R
 			case e_mars:
 				newstep = new Step("Earth/MARs Calculation", "", false);
 				if(tempproc != NULL){
@@ -3092,7 +3092,7 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				delete newstep;
 				break;
-#ifdef USE_R
+#ifdef HAVE_R
 			case e_mars:
 				newstep = new Step("Earth/MARs Calculation", "", false);
 				if(tempproc != NULL){

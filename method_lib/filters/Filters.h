@@ -1,9 +1,14 @@
+#ifndef FILTERS_H
+#define FILTERS_H
+
 // Filters.h
 
 // Lists all the filters currently part of the system
 // Also specifies the enumeration that is used
 // for the system
 
+
+#include "config.h"
 #include "ChiSquareFilter.h"
 //#include "SeqRepFilter.h"
 #include "MDRFilter.h"
@@ -24,7 +29,8 @@
 #include "MDRPDTFilter.h"
 #include "MaxScoreFilter.h"
 #include "PermScoreFilter.h"
-#ifdef USE_R
+#ifdef HAVE_R
 #include "MarsFilter.h"
 #endif
 
+#endif
