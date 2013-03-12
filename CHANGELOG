@@ -1,0 +1,30 @@
+== Version 1.2 ==
+
+New Features:
+
+1.  Added -update-ids command line option. Takes an input file of the format: OldFamID OldIndID NewFamID NewIndID  The ids are updated prior to performing a formatting step (output-ped, output-bin, etc
+2.  User can specify covariates to include in linear regression with the -covars-name and -covars-number parameters.
+3. MDROutput process can now use alternative phenotype provided by trait-file
+
+Bug Fixes:
+
+1.  In FST calculation checks that the number of groups specified doesn't equal the number of samples.
+2.  Replaced code to filter output based on -epi-alpha1 in Epistasis module.
+3.  Added markerGreater(...) method to be used as comparator in InputFilter class sorting.  This was a fix for an issue with -excMarkers flag not excluding all markers in the locus input file.
+4.  Fixed ExcludeLocusFilter(...) method in InputFilter class to make sure all markers in the input locus file are excluded regardless of order.
+5.  Changed to catch MethodException reference so messages are displayed correctly.
+6.  In Sample::addMicroSat and MarkerGenoEff::calcOne, changed map access from .at to [] because .at throws an exception when key doesn't exist and in this case, we are adding a new key/value pair to the map
+7.  Fixed Helpers::removeBeginWhiteSpace to properly remove whitespace at beginning of string
+8.  Added warning to BINOutput when trying to include a microsatellite marker in a plink output file
+9.  For LGEN file input, fixed missing data problem so that any marker not appearing in the input file would be set as missing for processing.
+10. For Eigenstrat output, corrected 0 and 2 output for alleles in the ancestry map file option.
+
+Output:
+1.  Linear Regression now outputs the number of covariates included in the model
+
+Style/Format/Other:
+1.  Many lines of commented out code removed.
+2.  Moved opening braces to separate lines
+3.  Changed STL map and vector access from [] operator to .at function.
+4.  Cast size() function of vectors as ints to remove compiler warnings
+5.  Removed R dependency and MARS filtering techniques
