@@ -62,6 +62,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#ifdef HAVE_R
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -2748,3 +2749,5 @@ int earth::runMe(void)
 }
 
 };
+
+#endif // HAVE_R

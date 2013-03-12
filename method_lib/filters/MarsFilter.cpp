@@ -1,4 +1,7 @@
 //MarsFilter.cpp
+
+#ifdef HAVE_R
+
 #include "MarsFilter.h"
 
 using namespace Methods;
@@ -287,3 +290,5 @@ void MarsFilter::set_params(PARAMS params, DataSet* set){
 
 }
 }
+
+#endif

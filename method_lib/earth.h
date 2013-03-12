@@ -16,6 +16,8 @@
 #ifndef EARTH_H
 #define EARTH_H
 
+#ifdef HAVE_R
+
 #include <string.h>
 #include "DataSet.h"
 #include "StepOptions.h"
@@ -581,5 +583,7 @@ int GetNextParent(   // returns -1 if no more parents
 
 };
 };
+
+#endif //HAVE_R
 
 #endif // EARTH_H

@@ -92,6 +92,7 @@ void ProcessEarth::doFilter(Methods::Marker* mark, double value) {
 //this version of ProcessEarth::process(DataSet* ds) was created just for comparing the R version to the Plato version...
 void ProcessEarth::process(DataSet* ds)
 {
+#ifdef HAVE_R
 	data_set = ds;
 	earth mars;
 	mars.set_parameters(&options);
@@ -99,6 +100,7 @@ void ProcessEarth::process(DataSet* ds)
 	mars.resetDataSet(ds);
 
 	mars.runMe();
+#endif
 }
 
 

@@ -3,6 +3,8 @@
 #ifndef __MARSFILTER_H__
 #define __MARSFILTER_H__
 
+#ifdef HAVE_R
+
 #include "Filter.h"
 #include <earth.h>
 #include <ContingencyTable.h>
@@ -61,5 +63,7 @@ class MarsFilter: public Filter{
 };
 
 }
+
+#endif // HAVE_R
 
 #endif
