@@ -3,6 +3,8 @@
 #ifndef __MARSFILTER_H__
 #define __MARSFILTER_H__
 
+#include "config.h"
+
 #ifdef HAVE_R
 
 #include "Filter.h"

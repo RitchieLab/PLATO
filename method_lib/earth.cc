@@ -62,6 +62,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include "earth.h"
 #ifdef HAVE_R
 
 #include <stdlib.h>
@@ -71,7 +72,6 @@
 #include <float.h>
 #include <math.h>
 #include "Helpers.h"
-#include "earth.h"
 //temporarily require fstream
 #include <fstream>
 #include <cstdlib>

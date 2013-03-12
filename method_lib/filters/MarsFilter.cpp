@@ -1,8 +1,8 @@
 //MarsFilter.cpp
 
+#include "MarsFilter.h"
 #ifdef HAVE_R
 
-#include "MarsFilter.h"
 
 using namespace Methods;
 namespace Filters{

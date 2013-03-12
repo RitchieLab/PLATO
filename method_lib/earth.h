@@ -16,6 +16,8 @@
 #ifndef EARTH_H
 #define EARTH_H
 
+#include "config.h"
+
 #ifdef HAVE_R
 
 #include <string.h>
