@@ -6,7 +6,6 @@ AC_INIT(PLATO, 1.2.0, software@ritchielab.psu.edu)
 # Checks for --enable-debug added
 AX_CHECK_ENABLE_DEBUG
 
-#AC_PROG_CC([gcc cc icc])
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX

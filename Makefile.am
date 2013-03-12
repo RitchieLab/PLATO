@@ -13,7 +13,7 @@ dist-hook:
 # This is here to prevent installation of LOKI during a distcheck
 DISTCHECK_CONFIGURE_FLAGS=--disable-loki
 
-AM_CPPFLAGS=$(BOOST_CPPFLAGS) -I$(top_srcdir)/method_lib $(R_CFLAGS)
+AM_CPPFLAGS=$(BOOST_CPPFLAGS) -I$(top_srcdir)/method_lib
 AM_LDFLAGS=$(BOOST_LDFLAGS) 
 
 bin_PROGRAMS=plato
@@ -48,8 +48,6 @@ ProcessConcordance.cc \
 ProcessConcordance.h \
 ProcessDeletions.cc \
 ProcessDeletions.h \
-ProcessEarth.cc \
-ProcessEarth.h \
 ProcessEigenstratOutput.cc \
 ProcessEigenstratOutput.h \
 ProcessEpistasis.cc \
@@ -126,4 +124,4 @@ DataSetObject.h
 
 
 
-plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(LIBR_LIBS)
+plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB)

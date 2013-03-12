@@ -21,9 +21,6 @@
 #include "Step.h"
 #include "ExampleModule.h"
 #include "ProcessKinship.h"
-#ifdef HAVE_R
-#include "ProcessEarth.h"
-#endif
 #include "ProcessMendelianErrors.h"
 #include "ProcessMarkerGenoEff.h"
 #include "ProcessAlleleFrequency.h"

@@ -29,8 +29,5 @@
 #include "MDRPDTFilter.h"
 #include "MaxScoreFilter.h"
 #include "PermScoreFilter.h"
-#ifdef HAVE_R
-#include "MarsFilter.h"
-#endif
 
 #endif

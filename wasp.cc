@@ -2232,25 +2232,6 @@ Step initializeSteps(string i){
 				}
 				newstep->setProcess(tempproc);
 				break;
-#ifdef HAVE_R
-			case e_mars:
-				newstep = new Step("Earth/MARs Calculation", "", false);
-				if(tempproc != NULL){
-					delete(tempproc);
-				}
-				tempproc = new ProcessEarth();
-				if(opts::_DBOUTPUT_){
-					tempproc->setDBOUT();
-				}
-				if(opts::_MARKERLIST_){
-					tempproc->setMarkerList();
-				}
-				if(opts::_STRATIFY_){
-					tempproc->setStratify();
-				}
-				newstep->setProcess(tempproc);
-				break;
-#endif
 			case e_marker_geno_eff:
 				newstep = new Step("Marker Genotyping Efficiency", "", false);
 				if(tempproc != NULL){
@@ -3092,27 +3073,6 @@ STEPS initializeSteps(){
 				steps[s_iter->first] = *newstep;
 				delete newstep;
 				break;
-#ifdef HAVE_R
-			case e_mars:
-				newstep = new Step("Earth/MARs Calculation", "", false);
-				if(tempproc != NULL){
-					delete(tempproc);
-				}
-				tempproc = new ProcessEarth();
-				if(opts::_DBOUTPUT_){
-					tempproc->setDBOUT();
-				}
-				if(opts::_MARKERLIST_){
-					tempproc->setMarkerList();
-				}
-				if(opts::_STRATIFY_){
-					tempproc->setStratify();
-				}
-				newstep->setProcess(tempproc);
-				steps[s_iter->first] = *newstep;
-				delete newstep;
-				break;
-#endif
 			case e_marker_geno_eff:
 				newstep = new Step("Marker Genotyping Efficiency", "", false);
 				if(tempproc != NULL){

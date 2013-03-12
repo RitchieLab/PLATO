@@ -81,11 +81,6 @@ Filter * FilterFactory::create_filter(std::string filterName){
     case PermScoreFilterType:
       newFilter = new PermScoreFilter(filterName);
       break;
-#ifdef HAVE_R
-    case MarsFilterType:
-    	newFilter = new MarsFilter(filterName);
-    	break;
-#endif
     default:
       throw FilterExcept(filterName + " is not a valid filter name.");
   };
@@ -118,9 +113,6 @@ void FilterFactory::SetFilterMap(){
   FilterMap["MDRPDT"] = MDRPDTFilterType;
   FilterMap["MAXSCORE"] = MaxScoreFilterType;
   FilterMap["PERMSCORE"] = PermScoreFilterType;
-#ifdef HAVE_R
-  FilterMap["MARS"] = MarsFilterType;
-#endif
 }
 }
 

@@ -92,8 +92,6 @@ filters/LogRegFilter.cpp \
 filters/LogRegFilter.h \
 filters/MarkerGenoFilter.cpp \
 filters/MarkerGenoFilter.h \
-filters/MarsFilter.cpp \
-filters/MarsFilter.h \
 filters/MaxScoreFilter.cpp \
 filters/MaxScoreFilter.h \
 filters/MDRFilter.cpp \
@@ -263,6 +261,4 @@ MethodException.h \
 ClusterMissing.h \
 filters/FilterDefinitions.h \
 filters/OutputWriter.h \
-earth.h \
-earth.cc \
 mdrpdt/exception.h 

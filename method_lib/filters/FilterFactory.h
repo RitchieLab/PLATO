@@ -61,8 +61,6 @@ class FilterFactory{
       MaxScoreFilterType,
       /// Enum for Perm Score Filter
       PermScoreFilterType,
-      /// Enum for Earth/Mars Score Filter
-      MarsFilterType
     };
 
   private:
