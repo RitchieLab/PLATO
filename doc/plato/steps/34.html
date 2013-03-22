@@ -202,8 +202,7 @@
 										</li>
 										
 										<li>
-											<a href="34.html">(EARTH) Multivariate adaptive regression splines</a>
-										</li>
+											<a href="34.html">Regression Interaction</a>										</li>
 										
 										<li>
 											<a href="35.html">Kinship</a>
@@ -287,21 +286,27 @@
 				<p style="color: green"></p>
 
 				<h2>
-  (EARTH) Multivariate adaptive regression splines
-</h2>
+											<a href="34.html">Regression Interaction</a></h2>
 
 
 
 <p>
-	Perform the "Earth" or multivariate adaptive regression splines algorithm as described and implemented by http://www.milbo.users.sonic.net/earth/index.html
+  Perform a regression interaction analysis.  It can be an exhaustive SNP X SNP or a list of 
+  models specified in a snp biofile.  It will report the regression results for each univariate
+  model, the reduced model with both SNPs and the full model with an interaction term for the two SNPs.
+  The results can be filtered by a log-likelihood p-value threshold.
 </p>
+<p>
+  Linear regression will be used unless the phenotype is a binary one.  For a binary phenotype, logistic regression will be done.
+</p>
+
 
 <br/>
 
 <p>
-	<a href="../inputfiles/batchfiles.html">Batch file</a> command:<br/>
+	<a href="/plato/inputfiles/batchfiles">Batch file</a> command:<br/>
 	<pre class=code>
-mars
+interaction
 	</pre>
 </p>
 
@@ -310,20 +315,20 @@ mars
 Step specific options:
 <table class="datatable" style="background-color:#DBDBDB">
 
+
 	<tr>
 		<td>
 			
 				<b>
-				-bp-max {number}			
+				-bio-snp-file {filename}			
 				</b>
 		</td>
 		<td>
-				Specifies a maximum chromosome specific base-pair location to process. All markers with base-pairs greater than the number will be excluded for the specified step only. Can be used in conjunction with -bp-min and -bp-space. Note: -chrom is required.
-
+				Specify the biofilter output file with the fixed width format.
 				<br/>
 				<br/>
 				<b>Ex:</b>
-				-chrom 3 -bp-max 15000000
+				epistasis -bio-snp-file biofilterFile.txt
 		</td>
 			
 	</tr>
@@ -332,16 +337,33 @@ Step specific options:
 		<td>
 			
 				<b>
-				-bp-min {number}			
+				-lrt-pval {number}			
 				</b>
 		</td>
 		<td>
-				Specifies a minimum chromosome specific base-pair location to process. All markers with base-pairs less than the number will be excluded for the specified step only. Can be used in conjunction with -bp-max and -bp-space. Note: -chrom is required.
-
+				Specify the log-likelihood ratio test p-value for filtering.  The default is 0.05.
 				<br/>
 				<br/>
 				<b>Ex:</b>
-				-chrom 3 -bp-min 5000000
+				epistasis -lrt-pval 0.001
+		</td>
+			
+	</tr>
+
+
+	<tr>
+		<td>
+			
+				<b>
+				-pheno {name}			
+				</b>
+		</td>
+		<td>
+				Specify trait {name} to be used as the phenotype.  The phenotype selection is based on what is read in when the user has traits loaded in from the command line.
+				<br/>
+				<br/>
+				<b>Ex:</b>
+				output-ped -pheno age
 		</td>
 			
 	</tr>
@@ -350,142 +372,26 @@ Step specific options:
 		<td>
 			
 				<b>
-				-bp-space {number}			
+				-pheno-index {number}			
 				</b>
 		</td>
 		<td>
-				Specifies to process only markers spaced by {number} base-pairs across all chromosomes. Can be used in conjunction with -bp-min and -bp-max. Note: -chrom is not required.
-
+				Specify trait {index} to be used as the phenotype. The phenotype selection is based on what is read in when the user has traits loaded in from the command line.  The index is based on what column the trait was, zero based.  So the first column would be 0, second column 1, etc.
 				<br/>
 				<br/>
 				<b>Ex:</b>
-				-bp-space 1000000
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-chrom {number}			
-				</b>
-		</td>
-		<td>
-				Specifies a specific chromosome to process. Only this one chromosome will be processed for the step specified. (Note: X = 23, Y = 24, XY = 25, Mitochondrial = 26)
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				-chrom 3
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-covars-name {list of columns}			
-				</b>
-		</td>
-		<td>
-				Specifies named columns to use in covariate file separated by commas.  Dashes are used to denote ranges of covariate columns.
-
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				-covars-name AGE-NUM_FOUND,GRE,FN
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-covars-number {list of columns}			
-				</b>
-		</td>
-		<td>
-				Specifies column numbers in the covariate file to use separated by commas.  Dashes denote range of covariate columns.
-
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				-covars-number 1-3,5,7
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-loci <comma delimited snp list>			
-				</b>
-		</td>
-		<td>
-				Specify snps you would like to include in a model.  Snps should be separated by commas.  Currently useful for only the "mars" step.
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				-loci rs1234,rs3213,rs23421
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-mars-degree <number>			
-				</b>
-		</td>
-		<td>
-				Modifies the degree of interaction capable of being simulated in a MARS calculation.  Default is 1.
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				mars -mars-degree 3
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-mars-maxterms <num_terms>			
-				</b>
-		</td>
-		<td>
-				Specifies the maximum number of terms allowed when performing the mars calculation.  Default is 21.
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				-mars-maxterms 10
-		</td>
-			
-	</tr>
-
-	<tr>
-		<td>
-			
-				<b>
-				-out {name}			
-				</b>
-		</td>
-		<td>
-				Overrides the suffix of the output files to be {name}
-				<br/>
-				<br/>
-				<b>Ex:</b>
-				-out test1
+				output-ped -pheno-index 2
 		</td>
 			
 	</tr>
 
 </table>
+	
+
+
+			</td>
+			</tr>
+			</table>
 	
 
 

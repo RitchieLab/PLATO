@@ -4,7 +4,7 @@
 #define __ARMITAGEFILTER_H__
 
 #include "Filter.h"
-#include <ChiSquareArmitage.h>
+#include "../ChiSquareArmitage.h"
 #include <ContingencyTable.h>
 #include "Permutation.h"
 #include <time.h>

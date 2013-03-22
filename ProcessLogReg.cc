@@ -263,7 +263,6 @@ void ProcessLogReg::process(DataSet* ds)
 
 		lr.resetDataSet(tempds);
 
-
 			#ifndef PLATOLIB
 			int nmiss = 0;
 			for(int s = 0; s < tempds->num_inds(); s++)

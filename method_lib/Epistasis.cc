@@ -80,12 +80,14 @@ void Epistasis::evalBioFile(ofstream &EPI)
 	vector<bool> sA(nl_all, false);
 	vector<bool> sB(nl_all, false);
 
+  // this may be important to include 
 	vector<int> good_indexes = Helpers::findValidMarkersIndexes(data_set->get_markers(), &options);
 
+  // call the bio text file
 	options.readBioTextFile(options.getBioSnpFile());
 	map<string, vector<string> > pairs = options.getBioPairs();
 
-
+  
 	double epi_alpha1 = fabs(Helpers::ltqnorm(options.get_epi_alpha1() / 2));
 
 	vector<int> summary_sig(nl_all, 0);
@@ -108,9 +110,11 @@ void Epistasis::evalBioFile(ofstream &EPI)
 	map<string, vector<string> >::iterator bio_iter;
 	for(bio_iter = pairs.begin(); bio_iter != pairs.end(); bio_iter++)
 	{
+	  // pairs are a 2-D vector
 		string snp1 = bio_iter->first;
 		vector<string> snp_list = bio_iter->second;
 
+    // find first marker ( one represented by the first marker )
 		Marker* s1 = NULL;
 		try
 		{
@@ -126,6 +130,7 @@ void Epistasis::evalBioFile(ofstream &EPI)
 			continue;
 		}
 
+    // check for it being disabled
 		if(s1 != NULL)
 		{
 			if(!s1->isEnabled())
@@ -162,7 +167,7 @@ void Epistasis::evalBioFile(ofstream &EPI)
 					}
 
 					//perform comparison of bio snps
-
+          // skips chrom X
 					if(opts::_CHRX_ == s1->getChrom() || opts::_CHRX_ == s2->getChrom())
 						continue;
 
@@ -521,12 +526,14 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	samples = ss;
 	marker_map = mm;
 
+    // check for overwriting existing file
     string fname = opts::_OUTPREFIX_ + "epistasis" + options.getOut() + ".txt";
     if(!overwrite)
     {
         fname += "." + getString<int>(order);
     }
 
+  // open output file
 	ofstream EPI(fname.c_str());
 	if(!EPI)
 	{
@@ -534,6 +541,8 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	}
 	EPI.precision(4);
 
+
+  // write headers to the epi output file
 	if (!options.doEpiQuickscan())
 	{
 
@@ -562,6 +571,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 				<< "CHISQ" << " " << "\n";
 	}
 
+
 	////////////////////////////////////////////////////////////////////
 	// epi1 and epi2 thresholds were given in terms of 0.01 (two-sided)
 	// calculate appropriate absolute Z scores
@@ -571,6 +581,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 	opts::printLog("Threshold for counting epistatic result (-epi-alpha2) : p <= "
 			+ getString<double> (options.get_epi_alpha2()) + "\n");
 
+  // get the bio file SNPS
 	if(options.getBioSnpFile() != "")
 	{
 		evalBioFile(EPI);
@@ -578,8 +589,12 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 		{
 			EPI.close();
 		}
+		// analysis is done by evalBioFile so return after it completes
 		return;
 	}
+	
+  
+	// these are the threshold values
 	double epi_alpha1 = fabs(Helpers::ltqnorm(options.get_epi_alpha1() / 2));
 	double epi_alpha2 = fabs(Helpers::ltqnorm(options.get_epi_alpha2() / 2));
 

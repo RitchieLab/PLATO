@@ -3,20 +3,20 @@
 #ifndef __LOGISTICREGRESSION_H__
 #define __LOGISTICREGRESSION_H__
 
-#include "DataSet.h"
+// #include "DataSet.h"
+#include "Regression.h"
 #include "FlatIndex.h"
-#include "StepOptions.h"
+// #include "StepOptions.h"
 #include "MethodException.h"
 
 ///
 /// Calculates logistic regression in method library
-/// used by plato and wasp.  This method currently
-/// only accepts snps for markers.
+/// used by plato.
 ///
 
 /// Method class that performs logistic regression
 namespace Methods{
-class LogisticRegression{
+class LogisticRegression: public Regression{
 
   public:
     LogisticRegression();
@@ -47,8 +47,14 @@ class LogisticRegression{
     /// returns the standard errors for the coefficients
     vector<double> getCoeffStandardErr(){return standard_errors;}
 
+    /// returns the p-values for coefficients
+    vector<double> getCoeffPValues(){return coeff_pvalues;}
+
     /// returns intersect coefficient
     double getCoeffIntercept(){return coeff_intercept;}
+    
+    /// returns number of genotypes (samples) used in the calculation
+    int getNumGenotypes(){return ngenotypes;}
 
     /// set parameters for method using StepOptions class
     void set_parameters(StepOptions* options);
@@ -74,11 +80,17 @@ class LogisticRegression{
     /// returns current number of iterations
     unsigned int getMaximumIterations(){return maxIterations;}
 
+    /// returns the pseudo R-squared value (McFadden method)
+    double getPseudoR2(){return pseudo_r2;}
+
     /// sets DataSet
     void resetDataSet(DataSet* ds);
 
 	  /// gets conversion value of genotype based on model and which allele is the referent allele
 	  int get_geno_conversion(int geno, int ref_allele_index);
+	  
+	  /// returns the pseudo rsquared
+	  double adjusted_rsquared(){return pseudo_r2;}
 
   private:
     DataSet* set;
@@ -97,8 +109,9 @@ class LogisticRegression{
     vector<unsigned int> convert_loc_order(vector<unsigned int>& loci);
     vector<unsigned int> convert_loc_order(vector<Marker*> loci);
 
-    vector<double> coefficients, standard_errors;
-    double coeffPvalue, LLR, overallPvalue, coeff_intercept, missingCoValue;
+    vector<double> coefficients, standard_errors, coeff_pvalues;
+    double coeffPvalue, LLR, overallPvalue, coeff_intercept, missingCoValue,
+      pseudo_r2;
     bool fullInteraction, includeInteractions;
 
     ModelTypes modType;
@@ -108,7 +121,8 @@ class LogisticRegression{
     vector<vector<int> > includedIndexes;
     unsigned int maxLocusValue, missingValue, maxIterations, modelSize,
       LociComboMin, LociComboLimit, defaultComboInterval;
-
+    int ngenotypes;
+    
     vector<vector<unsigned int> >geno_convert;
     vector<Marker*> * markers;
 

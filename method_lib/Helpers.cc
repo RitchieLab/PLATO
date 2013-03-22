@@ -1290,6 +1290,7 @@ void Helpers::assignLinks(vector<Methods::Family*>* families){
  *
  */
 void Helpers::reorderAlleles(vector<Methods::Sample*>* samples, vector<Methods::Marker*>* markers){
+
 	int msize = markers->size();
 	int ssize = samples->size();
 
@@ -1354,7 +1355,6 @@ void Helpers::reorderAlleles(vector<Methods::Sample*>* samples, vector<Methods::
 
 		}
 	}
-
 }
 
 /*

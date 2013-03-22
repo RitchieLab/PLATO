@@ -316,6 +316,10 @@ class StepOptions {
     bool do_epi_sets;
     string epi_sets_filename;
     bool epi_filter;
+    
+    // regression interaction testing
+    double lrt_pval;
+    bool lrt_pval_filter;
 
     //athena/biofilter comparison input
     string bio_comparison_file;
@@ -552,6 +556,9 @@ class StepOptions {
 		    //eigenstrat
 		    s_qtl,
 		    s_ancestry,
+		    
+		    // regression interaction testing
+		    s_lrt_pval,
 
 		    //output synthesis view
 		    s_output_synthview,
@@ -699,6 +706,9 @@ class StepOptions {
 
 			//autosome_only
 			autosome_only = false;
+
+      // regression interactions
+      lrt_pval = 0.05;
 
 			//eigenstrat
 			qtl = false;
@@ -929,6 +939,9 @@ class StepOptions {
 			//autosome only
 			s_ArgVals["-auto-only"] = s_autosome_only;
 
+      // regression interaction testing
+      s_ArgVals["-lrt-pval"] = s_lrt_pval;
+
 			s_subsetVals["-parental"] = s_parental;
 			s_subsetVals["-gender"] = s_gender;
 			s_subsetVals["-casecontrol"] = s_casecontrol;
@@ -1115,6 +1128,11 @@ class StepOptions {
 		bool getEpiFilter(){return epi_filter;}
 		bool doEpiFilter(){return epi_filter;}
 
+    //get/set interaction regression
+    void setLRTPval(double val){lrt_pval=val;}
+    double getLRTPval(){return lrt_pval;}
+		void setLRTFilter(bool b){lrt_pval_filter = b;}
+		bool doLRTFilter(){return lrt_pval_filter;}
 
 		///get/set group frequencies
 		void setDoGroupFreq(bool b){do_group_freq = b;}

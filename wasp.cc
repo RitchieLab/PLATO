@@ -30,7 +30,7 @@ using namespace Methods;
 using namespace PlatoLib;
 #endif
 
-static string _WASPVER_ = "0.84";
+static string _WASPVER_ = "1.2.0";
 //enum for batch file step switch
 enum StepValue{
 					   e_examplemodule,    //examplemodule
@@ -75,6 +75,7 @@ enum StepValue{
 					   e_kinship,			//kinship
 					   e_bin_output,			//binary output
 					   e_epistasis,			//epistasis
+					   e_interaction, // interaction
 					   e_impute_output		//IMPUTE
 					 };
 enum cmdArgs{
@@ -198,6 +199,7 @@ void Initialize(){
 	s_mapStepValues["kinship"] = e_kinship;
 	s_mapStepValues["output-bin"] = e_bin_output;
 	s_mapStepValues["epistasis"] = e_epistasis;
+	s_mapStepValues["interaction"] = e_interaction;
 	s_mapStepValues["output-impute"] = e_impute_output;
 
 	s_mapcmdArgs["-h"] = a_h;
@@ -1984,7 +1986,6 @@ void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
 //		delete(families[i]);
 //	}
 
-	//cout << myrank << " leaving process function" << endl;
 }
 
 vector<ORDER> optimize(ORDER* order){
@@ -2692,6 +2693,23 @@ Step initializeSteps(string i){
 					delete(tempproc);
 				}
 				tempproc = new ProcessEpistasis();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				break;
+			case e_interaction:
+				newstep = new Step("Interaction", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessInteraction();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}
@@ -3549,6 +3567,25 @@ STEPS initializeSteps(){
 					delete(tempproc);
 				}
 				tempproc = new ProcessEpistasis();
+				if(opts::_DBOUTPUT_){
+					tempproc->setDBOUT();
+				}
+				if(opts::_MARKERLIST_){
+					tempproc->setMarkerList();
+				}
+				if(opts::_STRATIFY_){
+					tempproc->setStratify();
+				}
+				newstep->setProcess(tempproc);
+				steps[s_iter->first] = *newstep;
+				delete newstep;
+				break;
+			case e_interaction:
+				newstep = new Step("Interaction", "", false);
+				if(tempproc != NULL){
+					delete(tempproc);
+				}
+				tempproc = new ProcessInteraction();
 				if(opts::_DBOUTPUT_){
 					tempproc->setDBOUT();
 				}

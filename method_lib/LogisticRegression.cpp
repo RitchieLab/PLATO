@@ -91,22 +91,25 @@ void LogisticRegression::initialize_interactions(){
 /// @return none
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci){
+  vector<unsigned int> traits, covars;
+  calculate(loci,covars,traits);
+
   // when model is too large for current interaction list
   // update interactions
-  if(loci.size() > LociComboLimit){
-    LociComboLimit = loci.size();
-    initialize_interactions();
-  }
-
-  vector<int> includedCells = includedIndexes.at(loci.size());
-  vector<unsigned int> converted_loci = convert_loc_order(loci);
-
-  summarize_data(loci);
-  // assume loci are in marker_map order so need to alter to order contained
-  // in samples
-
-  // run routine that calculates LR values
-  calculateLR(summary_data, true, includedCells);
+//   if(loci.size() > LociComboLimit){
+//     LociComboLimit = loci.size();
+//     initialize_interactions();
+//   }
+// 
+//   vector<int> includedCells = includedIndexes.at(loci.size());
+//   vector<unsigned int> converted_loci = convert_loc_order(loci);
+// 
+//   summarize_data(loci);
+//   // assume loci are in marker_map order so need to alter to order contained
+//   // in samples
+// 
+//   // run routine that calculates LR values
+//   calculateLR(summary_data, true, includedCells);
 }
 
 
@@ -175,6 +178,7 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
   coefficients.clear();
   standard_errors.clear();
   coefficients.resize(nP-1);
+  coeff_pvalues.resize(nP-1);
   standard_errors.resize(nP-1);
 
   vector<double> SEP(nP);
@@ -340,9 +344,15 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
     for(j=1; j<=nColumns; j++) {
       coefficients.at(j-1) = Par.at(j);
       standard_errors.at(j-1) = SEP.at(j);
+      coeff_pvalues.at(j-1) = norm(fabs(Par.at(j)/SEP.at(j)));
     }
 
-    // calculate
+    // calculate pseudo r-squared
+    // http://statistics.ats.ucla.edu/stat/mult_pkg/faq/general/Psuedo_RSquareds.htm
+    // using McFadden's method from page
+    pseudo_r2 = 1 - LL/LLn;
+
+    // calculate log-likelihood 
     LLR = LLn-LL;
   }
 
@@ -486,6 +496,8 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos)
     ref_alleles.at(curr_mark) = set->get_locus(genos.at(curr_mark))->getReferentIndex();
   }
 
+  ngenotypes=0;
+
   // add to summary totals for each genotype
   // use current model to convert genotypes
   for(currInd=0; currInd < numInds; currInd++)
@@ -499,6 +511,7 @@ void LogisticRegression::summarize_data(vector<unsigned int> & genos)
 
     // increment count based on status of individual
     summary_data.at(indexConverter.flatten_indexes(genotype)).at(unaffIndex+(*set)[currInd]->getAffected())++;
+    ngenotypes++;
   }
 
 }
@@ -592,6 +605,8 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
 
   // determine size of row for each sample in dataset
   unsigned int row_size = numLoci + numCovars + numTraits + 1;
+  if(includeInteractions)
+    row_size++;
 
   vector<double> row(row_size, 0);
 
@@ -610,6 +625,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     ref_alleles.at(curr_mark) = set->get_locus(loci.at(curr_mark))->getReferentIndex();
   }
 
+  ngenotypes=0;
   unsigned int currInd, currValue, i;
   for(currInd=0; currInd < numInds; currInd++)
   {
@@ -629,6 +645,13 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
         break;
       }
     }
+    // assuming only 2 loci
+    if(includeInteractions){
+      row.at(currValue) = row.at(0) * row.at(1);
+      currValue++;
+    }
+    
+    
     for(i=0; i < numCovars; i++)
     {
       if((*set)[currInd]->getCovariate(covars.at(i)) != missingCoValue)
@@ -654,6 +677,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
       row.at(currValue) = ((*set)[currInd]->getAffected());
       summary_data.push_back(row);
       includedCells.push_back(summary_data.size()-1);
+      ngenotypes++;
     }
   }
 
@@ -694,7 +718,6 @@ vector<unsigned int> LogisticRegression::convert_loc_order(vector<Marker*> loci)
 /// @param options StepOptions containing options
 ///
 void LogisticRegression::set_parameters(StepOptions* options){
-
     setFullInteraction(options->getLRFullInteraction());
     setIncludeInteractions(options->getLRIncludeInteractions());
     setMaximumIterations(options->getLRMaximumIterations());

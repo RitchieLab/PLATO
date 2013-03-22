@@ -227,6 +227,29 @@ void StepOptions::setUp(string s){
 				case s_epi_fast:
 					setEpiFast(true);
 					break;
+				case s_lrt_pval:
+					if(i + 1 < (int)tokens.size()){
+						string val = tokens.at(++i);
+						try{
+							for(int c = 0; c < (int)val.size(); c++){
+								if(!isdigit(val[c]) && val[c] != '.'){
+									throw "oops!";
+								}
+							}
+							lrt_pval = std::strtod(val.c_str(), NULL);
+							if(Helpers::dGreater(lrt_pval, 1.0f)){
+								lrt_pval_filter = false;
+							}
+						}catch(...){
+							opts::printLog(val + " is not a valid value for line: " + options + "\n");
+							throw MethodException(val + " is not a valid value for line: " + options + "\n");
+						}
+					}
+					else{
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
+					}
+					break;
 				case s_epi_alpha1:
 					if(i + 1 < (int)tokens.size()){
 						string val = tokens.at(++i);

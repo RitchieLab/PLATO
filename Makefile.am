@@ -13,7 +13,7 @@ dist-hook:
 # This is here to prevent installation of LOKI during a distcheck
 DISTCHECK_CONFIGURE_FLAGS=--disable-loki
 
-AM_CPPFLAGS=$(BOOST_CPPFLAGS) -I$(top_srcdir)/method_lib
+AM_CPPFLAGS=$(BOOST_CPPFLAGS) -I$(top_srcdir)/method_lib 
 AM_LDFLAGS=$(BOOST_LDFLAGS) 
 
 bin_PROGRAMS=plato
@@ -120,7 +120,9 @@ Step.h \
 Vars.h \
 wasp.cc \
 wasp.h \
-DataSetObject.h
+DataSetObject.h \
+ProcessInteraction.h \
+ProcessInteraction.cpp
 
 
 

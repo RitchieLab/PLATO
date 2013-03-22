@@ -5,6 +5,7 @@ New Features:
 1.  Added -update-ids command line option. Takes an input file of the format: OldFamID OldIndID NewFamID NewIndID  The ids are updated prior to performing a formatting step (output-ped, output-bin, etc
 2.  User can specify covariates to include in linear regression with the -covars-name and -covars-number parameters.
 3. MDROutput process can now use alternative phenotype provided by trait-file
+4  Added a regression interaction analysis.  It can be accessed using the batch command 'interaction' and can accept a bio-snp-file as epistasis does to run pairwise regression analyses.
 
 Bug Fixes:
 

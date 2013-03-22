@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES=libmethods.la
 
-AM_CPPFLAGS=$(BOOST_CPPFLAGS)
+AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS)
+AM_LDFLAGS=$(GSL_LDFLAGS)
 
 libmethods_la_SOURCES=AlleleFrequency.cc \
 AlleleFrequency.h \
@@ -263,4 +264,11 @@ MethodException.h \
 ClusterMissing.h \
 filters/FilterDefinitions.h \
 filters/OutputWriter.h \
-mdrpdt/exception.h 
+mdrpdt/exception.h \
+LinRegression.h \
+LinRegression.cpp \
+Regression.h \
+Interactions.cpp \
+Interactions.h
+
+libmethods_la_LIBADD=$(GSL_LIBS)
