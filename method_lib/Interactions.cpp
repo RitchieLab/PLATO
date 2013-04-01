@@ -115,8 +115,6 @@ void Interactions::CalculateExhaustive(ostream& inter_out){
   MarkerInfo mark1, mark2;
   uni_results.clear();
   
-// cout <<  "  CalculateExhaustive " << endl;
-  
   for(vector<int>::iterator snp1_iter = good_indexes.begin(); snp1_iter != good_indexes.end(); ++snp1_iter){
     if(!getMarker(*snp1_iter, mark1, epi_log))
       continue;   
@@ -142,7 +140,6 @@ void Interactions::CalculateExhaustive(ostream& inter_out){
 void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out){
 
   // output results -- can add checks throughout for thresholds
-// cout << "Calculate Pair " << snp1.marker->getRSID() << " " << snp2.marker->getRSID() << endl;
 
   // get snp1 results
   UniRegression snp1_results, snp2_results;
@@ -150,80 +147,108 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
   snp2_results = GetSingleRegression(snp2.loc_index);
   
   vector<unsigned int> snps;
-  snps.push_back(snp1.loc_index);
-  snps.push_back(snp2.loc_index);
+  bool snp1_invalid = isnan(snp1_results.p_value);
+  bool snp2_invalid = isnan(snp2_results.p_value);
+  if(!snp1_invalid)
+    snps.push_back(snp1.loc_index);
+  if(!snp2_invalid)
+    snps.push_back(snp2.loc_index);
 
+  double lrt_p_value = 1.0;
+  double red_p_value, red_rsq, red_llr, full_p_value,
+    full_rsq, full_llr, likelihood_ratio;
+  vector<double> red_coeff_p, red_beta, red_se, full_coeff_p, full_beta, full_se;
+  
+  if(!snps.empty()){
   // calculate reduced model
   regressor->setIncludeInteractions(false);
   regressor->calculate(snps);
-  vector<double> red_coeff_p = regressor->getCoeffPValues();
-  vector<double> red_beta = regressor->getCoefficients();
-  vector<double> red_se = regressor->getCoeffStandardErr();
-  double red_p_value = regressor->getOverallP();
-  double red_rsq = regressor->adjusted_rsquared();
-  double red_llr = regressor->getLLR();
+  red_coeff_p = regressor->getCoeffPValues();
+  red_beta = regressor->getCoefficients();
+  red_se = regressor->getCoeffStandardErr();
+  red_p_value = regressor->getOverallP();
+  red_rsq = regressor->adjusted_rsquared();
+  red_llr = regressor->getLLR();
  
-// cout << "Reduced: " << endl;
-// for(unsigned int i=0; i<red_beta.size(); i++){
-//   cout << "term=" << i << " beta: " << red_beta[i] << " se: " << red_se[i] << " coeff_p: " << red_coeff_p[i] << endl;
-// } 
-// cout << "red rsq=" << red_rsq << endl;
-// cout << "red pval=" << red_p_value << endl;
-// cout << "red llr=" << red_llr << endl;
-  
   // calculate full model
-  regressor->setIncludeInteractions(true);
+  if(snp1_invalid || snp2_invalid)
+    regressor->setIncludeInteractions(false);
+  else
+    regressor->setIncludeInteractions(true);
   regressor->calculate(snps);
-  vector<double> full_coeff_p = regressor->getCoeffPValues();
-  vector<double> full_beta = regressor->getCoefficients();
-  vector<double> full_se = regressor->getCoeffStandardErr();
-  double full_p_value = regressor->getOverallP();
-  double full_rsq = regressor->adjusted_rsquared();
-  double full_llr = regressor->getLLR();
+  full_coeff_p = regressor->getCoeffPValues();
+  full_beta = regressor->getCoefficients();
+  full_se = regressor->getCoeffStandardErr();
+  full_p_value = regressor->getOverallP();
+  full_rsq = regressor->adjusted_rsquared();
+  full_llr = regressor->getLLR();
 
+  likelihood_ratio = -2 * (red_llr - full_llr);
 
-// cout << "Full: " << endl;
-// for(unsigned int i=0; i<full_beta.size(); i++){
-//   cout << "term=" << i << " beta: " << full_beta[i] << " se: " << full_se[i] << " coeff_p: " << full_coeff_p[i] << endl;
-// } 
-// cout << "full rsq=" << full_rsq << endl;
-// cout << "full pval=" << full_p_value << endl;
-// cout << "full llr=" << full_llr << endl;
-// 
-// cout << "snp2 marker maf=" << snp2.marker->getMAF() <<endl;
-  
-//   double likelihood_ratio = -2 * (log(-red_llr) - log(-full_llr));
-  double likelihood_ratio = -2 * (red_llr - full_llr);
-
-// cout << "log likelihood reduced=" << log(-red_llr) << endl;
-// cout << "log likelihood full=" << log(-full_llr) << endl;
-// cout << "likelihood_ratio=" << likelihood_ratio << endl;
-// cout << "likelihood ratio p_value=" <<  GetLLRPValue(likelihood_ratio) << endl; 
-// cout << "1-llr p=" << 1-GetLLRPValue(likelihood_ratio) << endl;
-  double lrt_p_value = GetLLRPValue(likelihood_ratio);
+  lrt_p_value = GetLLRPValue(likelihood_ratio);
+  }
   
   if(lrt_p_value > lrt_threshold){
     return;
   }
 
   string sep=" ";
+  string invalid = "NA";
   inter_out << snp1.marker->getRSID() << "_" << snp2.marker->getRSID() << sep <<
     snp1.marker->getRSID() << sep << snp2.marker->getRSID() << sep <<
     snp1.marker->getChrom() << ":" << snp1.marker->getBPLOC() << sep <<
     snp1_results.maf << sep << snp1_results.ngenotypes << sep <<
     snp2.marker->getChrom() << ":" << snp2.marker->getBPLOC() << sep <<
-    snp2_results.maf<< sep << snp2_results.ngenotypes << sep <<
-    snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
-    snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
-    red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
-    red_coeff_p[1] << sep << red_beta[1] << sep << red_beta[1] << sep <<
-    full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
-    full_coeff_p[1] << sep << full_beta[1] << sep << full_se[1] << sep <<
-    full_coeff_p[2] << sep << full_beta[2] << sep << full_se[2] << sep <<
-    red_p_value << sep << red_rsq << sep << 
-    full_p_value << sep << full_rsq << sep <<
-    full_rsq - red_rsq << sep <<
-    lrt_p_value << endl;
+    snp2_results.maf<< sep << snp2_results.ngenotypes << sep;
+  
+   if(!snp1_invalid && !snp2_invalid)
+     inter_out << snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
+      snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
+      red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
+      red_coeff_p[1] << sep << red_beta[1] << sep << red_beta[1] << sep <<
+      full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
+      full_coeff_p[1] << sep << full_beta[1] << sep << full_se[1] << sep <<
+      full_coeff_p[2] << sep << full_beta[2] << sep << full_se[2] << sep <<
+      red_p_value << sep << red_rsq << sep << 
+      full_p_value << sep << full_rsq << sep <<
+      full_rsq - red_rsq << sep <<
+      lrt_p_value << endl;    
+    else if(snp1_invalid && snp2_invalid)
+      inter_out << invalid << sep << invalid<< sep << invalid<< sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
+      invalid << sep << invalid<< sep << invalid << sep <<
+      invalid << sep << invalid << sep << invalid<< sep <<
+      invalid << sep << invalid<< sep << invalid << sep <<
+      invalid << sep << invalid<< sep << invalid << sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
+      invalid << sep << invalid << sep << 
+      invalid<< sep << invalid<< sep <<
+      invalid << sep <<
+      invalid << endl;
+    else if(snp1_invalid)
+     inter_out << invalid << sep << invalid << sep << invalid << sep <<
+      snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
+      invalid << sep << invalid<< sep << invalid << sep <<
+      red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
+      invalid<< sep << invalid << sep << invalid << sep <<
+      full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
+      red_p_value << sep << red_rsq << sep << 
+      full_p_value << sep << full_rsq << sep <<
+      full_rsq - red_rsq << sep <<
+      lrt_p_value << endl;    
+    else //snp2 invalid
+      inter_out << snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
+      red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
+      full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
+      invalid << sep << invalid<< sep << invalid << sep <<
+      red_p_value << sep << red_rsq << sep << 
+      full_p_value << sep << full_rsq << sep <<
+      full_rsq - red_rsq << sep <<
+      lrt_p_value << endl;
 }
 
 
@@ -250,7 +275,6 @@ Interactions::UniRegression Interactions::GetSingleRegression(int snp_index){
     snps.push_back(snp_index);
     // run this SNP
     UniRegression results;
-// cout << "call regression calculator with " << snps[0] << endl;
     regressor->calculate(snps);
     
     results.p_value = (regressor->getCoeffPValues())[0];
@@ -259,19 +283,8 @@ Interactions::UniRegression Interactions::GetSingleRegression(int snp_index){
     results.ngenotypes = regressor->getNumGenotypes();
     results.maf = calcMAF(snp_index);
 
-// cout << "p_value=" << results.p_value;
-// cout << " beta=" << results.beta;
-// cout << " se=" << results.se ;
-// cout << " ngenotypes=" << results.ngenotypes << endl;
-    
     uni_results[snp_index] = results;
   }
-
-// cout << "p_value=" << uni_results[snp_index].p_value;
-// cout << " beta=" << uni_results[snp_index].beta;
-// cout << " se=" << uni_results[snp_index].se ;
-// cout << " ngenotypes=" << uni_results[snp_index].ngenotypes << endl;
-
 
   return uni_results[snp_index];
 }
@@ -447,3 +460,4 @@ void Interactions::openLog(ofstream& epi_log){
 }
 
 } // end namespace Methods
+
