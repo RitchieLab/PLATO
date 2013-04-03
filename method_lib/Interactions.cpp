@@ -35,6 +35,9 @@ void Interactions::calculate(DataSet* ds){
 	  openOutput(inter_out, true);
 	}
 	
+	// set covariates if used in model
+	SetCovariates();
+	
 	regressor->resetDataSet(data_set);
 	regressor->set_parameters(&options);
 	
@@ -52,6 +55,29 @@ void Interactions::calculate(DataSet* ds){
   // free memory
   delete regressor;
 }
+
+
+///
+/// Set covariates for use in regression models
+///
+void Interactions::SetCovariates(){
+  vector<string> use_covs = options.getCovars();
+
+  if(options.doCovarsName()){
+    // convert to indexes and add to covars
+    for(unsigned int i =0; i<use_covs.size(); i++){
+      covars.push_back(data_set->get_covariate_index(use_covs[i]));
+    }
+  }
+  else{
+    // convert string numbers to numbers
+    for(unsigned int i =0; i<use_covs.size(); i++)
+      covars.push_back(atoi(use_covs[i].c_str())-1);
+  }
+  
+}
+
+
 
 ///
 /// Take SNP pairings from bio file
@@ -162,7 +188,7 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
   if(!snps.empty()){
   // calculate reduced model
   regressor->setIncludeInteractions(false);
-  regressor->calculate(snps);
+  regressor->calculate(snps, covars);
   red_coeff_p = regressor->getCoeffPValues();
   red_beta = regressor->getCoefficients();
   red_se = regressor->getCoeffStandardErr();
@@ -175,7 +201,7 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
     regressor->setIncludeInteractions(false);
   else
     regressor->setIncludeInteractions(true);
-  regressor->calculate(snps);
+  regressor->calculate(snps, covars);
   full_coeff_p = regressor->getCoeffPValues();
   full_beta = regressor->getCoefficients();
   full_se = regressor->getCoeffStandardErr();
@@ -267,7 +293,6 @@ double Interactions::GetLLRPValue(double llr){
 ///  @param snp1 locus index for the snp
 ///
 Interactions::UniRegression Interactions::GetSingleRegression(int snp_index){
-  
   if(uni_results.find(snp_index) == uni_results.end())
   {
     regressor->setIncludeInteractions(false);
@@ -275,7 +300,7 @@ Interactions::UniRegression Interactions::GetSingleRegression(int snp_index){
     snps.push_back(snp_index);
     // run this SNP
     UniRegression results;
-    regressor->calculate(snps);
+    regressor->calculate(snps, covars);
     
     results.p_value = (regressor->getCoeffPValues())[0];
     results.beta = (regressor->getCoefficients())[0];

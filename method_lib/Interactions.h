@@ -81,7 +81,7 @@ namespace Methods{
   
     void CalculateBioFile(ostream& inter_out, string biofiltername);
     void CalculateExhaustive(ostream& out);
-
+    void SetCovariates();
     
     map<int, UniRegression> uni_results;
     
@@ -97,6 +97,8 @@ namespace Methods{
     void openOutput(ofstream & out, bool isLinearReg);
     
     void openLog(ofstream& epi_log);
+    
+    vector<unsigned int> covars;
   
 		DataSet* data_set;
 		Regression * regressor;

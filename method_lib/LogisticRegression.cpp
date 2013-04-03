@@ -594,6 +594,19 @@ void LogisticRegression::zero_summary(unsigned int array_size, unsigned int mode
 /// specified.  No interaction terms are included
 /// @param loci vector pass empty if no markers included in analysis
 /// @param covars vector pass empty if no covariates included in analysis
+///
+void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned int>& covars)
+{
+  vector<unsigned int> traits;
+  calculate(loci,covars,traits);
+}
+
+
+///
+/// Performs logistic regression on the snps and covariates
+/// specified.  No interaction terms are included
+/// @param loci vector pass empty if no markers included in analysis
+/// @param covars vector pass empty if no covariates included in analysis
 /// @param traits pass empty if no traits in analysis
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned int>& covars, vector<unsigned int> & traits)

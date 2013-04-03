@@ -27,6 +27,9 @@ class LogisticRegression: public Regression{
 
     /// runs logistic regression on the dataset set within the method
     void calculate(vector<unsigned int>& loci);
+    
+    /// runs logistic regression on the indicated loci and covariates
+    void calculate(vector<unsigned int>& loci, vector<unsigned int>& covariates);
 
     /// runs logistic regression on combination of traits, loci, and covariates
     void calculate(vector<unsigned int>& loci, vector<unsigned int>& covars,

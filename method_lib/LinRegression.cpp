@@ -81,7 +81,7 @@ void LinRegression::calculate(vector<unsigned int>& loci, vector<unsigned int>& 
 /// @param covars vector pass empty if no covariates included in analysis
 ///
 void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned int>& covars){
-  
+
   unsigned int numInds = set->num_inds();
   
   // convert loci indexes to marker map
@@ -101,13 +101,12 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   
   vector<vector<double> > analysis_matrix;
   
-  
   unsigned int currInd;
   // first column will be for the outcome variable
   vector<double> row(n_vars+1,0.0);
   int curr_column;
   bool any_missing;
-  
+
   for(currInd=0; currInd < numInds; currInd++)
   {
     curr_column=0;
@@ -145,12 +144,6 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
         break;
       } 
 	  }
- 
- 
-//  for(unsigned int r=0; r<row.size(); r++){
-//   cout << row[r] << " ";
-//  }
-//  cout << endl;
 
     
     if(!any_missing)
@@ -172,7 +165,6 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
 /// column should be the outcome variable.
 ///
 void LinRegression::calculate_linreg(vector<vector<double> >& analysis_matrix){
-  
   gsl_matrix *X, *cov;
   gsl_vector *y, *c;
   double chisq;

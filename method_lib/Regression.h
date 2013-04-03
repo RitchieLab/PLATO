@@ -23,6 +23,9 @@ class Regression{
 
     /// run regression on the indicated 
     virtual void calculate(vector<unsigned int>& loci)=0;
+    
+    /// run regression on the indicated 
+    virtual void calculate(vector<unsigned int>& loci, vector<unsigned int>& covars)=0;
 
     /// returns the overall model p value
     virtual double getOverallP()=0;
