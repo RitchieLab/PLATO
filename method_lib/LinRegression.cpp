@@ -4,7 +4,7 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_cdf.h>
-#include <cmath>;
+#include <cmath>
 
 namespace Methods{
 
@@ -149,7 +149,7 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
     if(!any_missing)
       analysis_matrix.push_back(row);
   }
-  
+
   // total number of cases will equal the number of analysis matrix rows
   ngenotypes = int(analysis_matrix.size());
   

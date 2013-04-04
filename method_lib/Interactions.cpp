@@ -8,6 +8,8 @@
 #include <gsl/gsl_cdf.h>
 #include "Helpers.h"
 #include "AlleleFrequency.h"
+#include<set>
+#include<sstream> 
 
 namespace Methods{
 ///
@@ -24,7 +26,8 @@ void Interactions::calculate(DataSet* ds){
   
   // create appropriate type of regression calculator
   
-  if (opts::_BINTRAIT_)
+//  if (opts::_BINTRAIT_)
+  if(PhenoBinary())
 	{
 	  regressor = new LogisticRegression;  
 	  openOutput(inter_out, false);
@@ -55,6 +58,47 @@ void Interactions::calculate(DataSet* ds){
   // free memory
   delete regressor;
 }
+
+
+
+///
+/// Return true if phenotype is binary
+/// @return true for binary phenotype
+///
+bool Interactions::PhenoBinary(){
+  set<string> phenos;
+  phenos.insert("0");
+  phenos.insert("1");
+  phenos.insert("2");
+  phenos.insert("-9");
+  phenos.insert("-1");
+  phenos.insert("-99999");
+
+  if(options.getUsePheno()){
+    int index = options.getPhenoLoc();
+    if(options.getPhenoName() != ""){
+      index = data_set->get_trait_index(options.getPhenoName());
+    }
+    for(int i=0; i<data_set->num_inds(); i++){
+      stringstream ss;
+      ss << data_set->get_sample(i)->getPheno(index);
+      if(phenos.find(ss.str()) == phenos.end())
+        return false;
+    }
+  }
+  else{
+    for(int i=0; i<data_set->num_inds(); i++){
+      stringstream ss;
+      ss << data_set->get_sample(i)->getPheno();
+      if(phenos.find(ss.str()) == phenos.end())
+        return false;
+    }
+  }
+
+  return true;
+
+}
+
 
 
 ///
@@ -96,7 +140,6 @@ void Interactions::CalculateBioFile(ostream& inter_out, string biofiltername){
   MarkerInfo mark1, mark2;
   
   uni_results.clear(); // clear any previous single SNP results
-  
   for(map<string, vector<string> >::iterator bio_iter = pairs.begin(); bio_iter != pairs.end(); 
     bio_iter++){
     
@@ -118,7 +161,6 @@ void Interactions::CalculateBioFile(ostream& inter_out, string biofiltername){
 			  epi_log << snp1 << " " << *snp2_iter << " ---> " << "Snps have same index!" << endl;
 				continue;        
       }
-      
       CalculatePair(mark1, mark2, inter_out);
     }
   }
@@ -230,8 +272,8 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
    if(!snp1_invalid && !snp2_invalid)
      inter_out << snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
       snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
-      red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
-      red_coeff_p[1] << sep << red_beta[1] << sep << red_beta[1] << sep <<
+      red_coeff_p[0] << sep << red_beta[0] << sep << red_se[0] << sep <<
+      red_coeff_p[1] << sep << red_beta[1] << sep << red_se[1] << sep <<
       full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
       full_coeff_p[1] << sep << full_beta[1] << sep << full_se[1] << sep <<
       full_coeff_p[2] << sep << full_beta[2] << sep << full_se[2] << sep <<
@@ -255,7 +297,7 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
      inter_out << invalid << sep << invalid << sep << invalid << sep <<
       snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
       invalid << sep << invalid<< sep << invalid << sep <<
-      red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
+      red_coeff_p[0] << sep << red_beta[0] << sep << red_se[0] << sep <<
       invalid<< sep << invalid << sep << invalid << sep <<
       full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
@@ -266,7 +308,7 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
     else //snp2 invalid
       inter_out << snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
-      red_coeff_p[0] << sep << red_beta[0] << sep << red_beta[0] << sep <<
+      red_coeff_p[0] << sep << red_beta[0] << sep << red_se[0] << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
       full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
       invalid << sep << invalid << sep << invalid << sep <<

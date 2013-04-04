@@ -83,6 +83,7 @@ namespace Methods{
     void CalculateExhaustive(ostream& out);
     void SetCovariates();
     
+    bool PhenoBinary();
     map<int, UniRegression> uni_results;
     
     void CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out);
