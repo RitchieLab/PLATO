@@ -1,5 +1,8 @@
 #include "Chrom.h"
+
 using namespace Methods;
+using std::string;
+
 bool Chrom::haveMarker(int v){
 	MKR::iterator m_iter;
 	m_iter = markers.find(v);

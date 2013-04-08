@@ -1,44 +1,27 @@
 #ifndef PROCESSALLELEFREQUENCY_H
 #define PROCESSALLELEFREQUENCY_H
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
 #include <string>
-#include <list>
+#include <vector>
 #include <map>
+
+#include <Sample.h>
 #include <Marker.h>
 #include <Family.h>
-#include <Globals.h>
-#include "Chrom.h"
-#include "Process.h"
-#include <Options.h>
-#include <StepOptions.h>
-#include <DataSet.h>
 #include <AlleleFrequency.h>
+#include <DataSet.h>
+#include <StepOptions.h>
 
-
-//define the PlatoLib namespace for use with Plato as a library
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-using namespace std;
-using namespace Methods;
+#include "Process.h"
 
 class ProcessAlleleFrequency : public Process{
-	static string stepname;
+	static std::string stepname;
 	private:
-		DataSet* data_set;
-		vector<Sample*>* samples;
-		vector<Marker*>* markers;
-		vector<Family*>* families;
-		vector<int>* marker_map;
+		Methods::DataSet* data_set;
+		std::vector<Methods::Sample*>* samples;
+		std::vector<Methods::Marker*>* markers;
+		std::vector<Methods::Family*>* families;
+		std::vector<int>* marker_map;
 		//StepOptions options;
 //		Markers* markers;
 //		Families* families;
@@ -53,19 +36,9 @@ class ProcessAlleleFrequency : public Process{
 		bool useoverall;
 		bool overwrite;
 		int order;
-	    string defaultinsert;
-	    string defaultgenoinsert;
-	    string casecontrolinsert;
-	    string casecontrolgenoinsert;
-	    string parentalinsert;
-	    string parentalgenoinsert;
-	    string groupinsert;
-	    string groupgenoinsert;
-	    string genderinsert;
-	    string gendergenoinsert;
 
 		//overall groups
-		map<string, int> ga1_count, ga2_count, ga1_homo_count, ga2_homo_count, ga12_count;
+		std::map<std::string, int> ga1_count, ga2_count, ga1_homo_count, ga2_homo_count, ga12_count;
 
 		//overall (no criteria...raw counts)
 		int a1_count, a2_count, a1_homo_count, a2_homo_count, a12_count;
@@ -99,19 +72,19 @@ class ProcessAlleleFrequency : public Process{
 		int a1_countConF, a2_countConF, a1_homo_countConF, a2_homo_countConF, a12_countConF;
 
 		//groups?
-		map<string, vector<int> > gm_allele_counts_o;
-		map<string, map<string, int> > gm_geno_counts_o;
+		std::map<std::string, std::vector<int> > gm_allele_counts_o;
+		std::map<std::string, std::map<std::string, int> > gm_geno_counts_o;
 
-		vector<int> m_allele_counts_o, m_allele_counts_om, m_allele_counts_of;
-		map<string, int> m_geno_counts_o, m_geno_counts_om, m_geno_counts_of;
-		vector<int> m_allele_counts_p, m_allele_counts_pm, m_allele_counts_pf;
-	    map<string, int> m_geno_counts_p, m_geno_counts_pm, m_geno_counts_pf;
-		vector<int> m_allele_counts_c, m_allele_counts_cm, m_allele_counts_cf;
-	    map<string, int> m_geno_counts_c, m_geno_counts_cm, m_geno_counts_cf;
-		vector<int> m_allele_counts_ca, m_allele_counts_cam, m_allele_counts_caf;
-		map<string, int> m_geno_counts_ca, m_geno_counts_cam, m_geno_counts_caf;
-		vector<int> m_allele_counts_con, m_allele_counts_conm, m_allele_counts_conf;
-		map<string, int> m_geno_counts_con, m_geno_counts_conm, m_geno_counts_conf;
+		std::vector<int> m_allele_counts_o, m_allele_counts_om, m_allele_counts_of;
+		std::map<std::string, int> m_geno_counts_o, m_geno_counts_om, m_geno_counts_of;
+		std::vector<int> m_allele_counts_p, m_allele_counts_pm, m_allele_counts_pf;
+	    std::map<std::string, int> m_geno_counts_p, m_geno_counts_pm, m_geno_counts_pf;
+		std::vector<int> m_allele_counts_c, m_allele_counts_cm, m_allele_counts_cf;
+	    std::map<std::string, int> m_geno_counts_c, m_geno_counts_cm, m_geno_counts_cf;
+		std::vector<int> m_allele_counts_ca, m_allele_counts_cam, m_allele_counts_caf;
+		std::map<std::string, int> m_geno_counts_ca, m_geno_counts_cam, m_geno_counts_caf;
+		std::vector<int> m_allele_counts_con, m_allele_counts_conm, m_allele_counts_conf;
+		std::map<std::string, int> m_geno_counts_con, m_geno_counts_conm, m_geno_counts_conf;
 
 	public:
 		ProcessAlleleFrequency(){
@@ -126,7 +99,7 @@ class ProcessAlleleFrequency : public Process{
 			 orig_num_families = 0;
 			 orig_num_individuals = 0;
 		};
-		ProcessAlleleFrequency(vector<Sample*>* samps){
+		ProcessAlleleFrequency(std::vector<Methods::Sample*>* samps){
 			data_set = NULL;
 			samples = samps;
 			markers = NULL;
@@ -137,7 +110,7 @@ class ProcessAlleleFrequency : public Process{
 			orig_num_families = 0;
 			orig_num_individuals = 0;
 		};
-		ProcessAlleleFrequency(vector<Sample*>* samps, vector<Family*>* fams){
+		ProcessAlleleFrequency(std::vector<Methods::Sample*>* samps, std::vector<Methods::Family*>* fams){
 			data_set = NULL;
 			samples = samps;
 			families = fams;
@@ -148,7 +121,7 @@ class ProcessAlleleFrequency : public Process{
 		 orig_num_families = 0;
 		 orig_num_individuals = 0;
 		};
-		ProcessAlleleFrequency(DataSet* ds){
+		ProcessAlleleFrequency(Methods::DataSet* ds){
 			data_set = ds;
 			samples = NULL;
 			families = NULL;
@@ -170,31 +143,19 @@ class ProcessAlleleFrequency : public Process{
 		 orig_num_families = 0;
 		 orig_num_individuals = 0;
 		};
-#ifdef PLATOLIB
-		ProcessAlleleFrequency(string bn, int pos, Database* pdb)
-		{
-			db = pdb;
-			useoverall = false;
-			hasresults = false;
-			name = "Allele Frequency";
-			batchname = bn;
-			position = pos;
 
-		}
-#endif
-
-		~ProcessAlleleFrequency(){};
+		virtual ~ProcessAlleleFrequency(){};
 //		void process(Connection *, Families*, Markers*);
 //		void process(Families*, Markers*);
-		void process(DataSet*);
+		void process(Methods::DataSet*);
 		void processtest();
 		void PrintSummary();
 		void filter();
-		void setThreshold(string s){
+		void setThreshold(std::string s){
 			options.setUp(s);
 			//threshold = std::atof(s.c_str());
 		};
-		void setOptions(StepOptions o){
+		void setOptions(Methods::StepOptions o){
 			options = o;
 		};
 		void setOrder(int o){order = o;};
@@ -213,16 +174,10 @@ class ProcessAlleleFrequency : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 
 		void initializeCounts(int);
-		void doFilter(Marker*, AlleleFrequency*);
+		void doFilter(Methods::Marker*, Methods::AlleleFrequency*);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
+
 #endif

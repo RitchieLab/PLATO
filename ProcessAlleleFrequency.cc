@@ -33,11 +33,8 @@
 #include "Chrom.h"
 #include <General.h>
 #include "Helpers.h"
-#include <sqlite3.h>
-#ifdef PLATOLIB
-#include <libsqlitewrapped.h>
-#include "Controller.h"
-#endif
+
+
 
 //TODO:  did not import the Vars.h or Vars.cpp, instead replaced
 //			Vars::LOCUS_TABLE with "LOCI" in 10 places
@@ -45,12 +42,11 @@
 
 
 //create a namespace to use when using Plato as a library
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
 using namespace Methods;
+
+using std::string;
+using std::map;
+using std::vector;
 
 string ProcessAlleleFrequency::stepname = "allele-freq";
 
@@ -356,15 +352,6 @@ void ProcessAlleleFrequency::processtest()
 	map<string, double> group_avg;
 	string afname;
 
-#ifdef PLATOLIB
-	//create a Query object if set to use a database
-	Query myQuery(*db);
-	//TODO:  create the following method...
-	create_tables();
-	string insert, pinsert, pgeninsert, gendinsert, ginsert;
-	string ccgeninsert, gendgeninsert, ccinsert, ggeninsert;
-
-#else
 	//this section sets up the output files, headers and filestreams
 	//and is not included if USE_DB is defined
 	afname = opts::_OUTPREFIX_ + "allele_freq" + options.getOut()
@@ -495,8 +482,6 @@ void ProcessAlleleFrequency::processtest()
 		opts::addHeader(gafnameavg, "N");
 	}
 
-#endif
-
 	int msize = data_set->num_loci();
 
 	int maxalleles = 0;
@@ -511,7 +496,6 @@ void ProcessAlleleFrequency::processtest()
 		}
 	}
 
-#ifndef PLATOLIB
 	//the following code is needed only for the file output
 	myoutput.precision(4);
 	mygeno.precision(4);
@@ -915,13 +899,8 @@ void ProcessAlleleFrequency::processtest()
 		}
 		cc << endl;
 	}
-#endif
 	//begin processing
-#ifdef PLATOLIB
-	//need these strings to hold DB insert statements if using DB
-	insert = "";
-	ginsert = "";
-#endif
+
 	AlleleFrequency af;
 	af.resetDataSet(data_set);
 	af.initializeCounts(0);
@@ -938,10 +917,6 @@ void ProcessAlleleFrequency::processtest()
 		useoverall = true;
 	}
 
-#ifdef PLATOLIB
-	//open a transaction for the following insert statements if using DB
-	myQuery.transaction();
-#endif
 	vector<Marker*> good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 	msize = good_markers.size();
 
@@ -959,63 +934,19 @@ void ProcessAlleleFrequency::processtest()
 			doFilter(mark, &af);//data_set->get_locus(k), &af);
 
 			if (mark->isMicroSat()){//data_set->get_locus(k)->isMicroSat()) {
-#ifndef PLATOLIB
 				myoutput << mark->toString();//data_set->get_locus(k)->toString();
-#else
-				string insert = defaultinsert;
-				//insert += "," + mark->toString();
-				insert += "," + getString<int>(mark->getBPLOC());
-				string geninsert = defaultgenoinsert;
-				//geninsert += "," + mark->toString();
-				geninsert += "," + getString<int>(mark->getBPLOC());
-#endif
+
 				if (options.doGroupFile()) {
-#ifndef PLATOLIB
 					gmyoutput << mark->toString();//data_set->get_locus(k)->toString();
-#else
-					string ginsert = groupinsert;
-					//ginsert += "," + mark->toString();
-					ginsert += "," + getString<int>(mark->getBPLOC());
-					string ggeninsert = groupgenoinsert;
-					//ggeninsert += "," + mark->toString();
-					ggeninsert += "," + getString<int>(mark->getBPLOC());
-#endif
 				}
 				if (options.doParental()) {
-#ifndef PLATOLIB
 					paren << mark->toString();//data_set->get_locus(k)->toString();
-#else
-					string pinsert = parentalinsert;
-					//pinsert += "," + mark->toString();
-					pinsert += "," + getString<int>(mark->getBPLOC());
-					string pgeninsert = parentalgenoinsert;
-					//pgeninsert += "," + mark->toString();
-					pgeninsert += "," + getString<int>(mark->getBPLOC());
-#endif
 				}
 				if (options.doGender()) {
-#ifndef PLATOLIB
 					gend << mark->toString();//data_set->get_locus(k)->toString();
-#else
-					string gendinsert = genderinsert;
-					//gendinsert += "," + mark->toString();
-					gendinsert += "," + getString<int>(mark->getBPLOC());
-					string gendgeninsert = gendergenoinsert;
-					//gendgeninsert += "," + mark->toString();
-					gendgeninsert += "," + getString<int>(mark->getBPLOC());
-#endif
 				}
 				if (options.doCaseControl()) {
-#ifndef PLATOLIB
 					cc << mark->toString();//data_set->get_locus(k)->toString();
-#else
-					ccinsert = casecontrolinsert;
-					//ccinsert += "," + mark->toString();
-					ccinsert += "," + getString<int>(mark->getBPLOC());
-					ccgeninsert = casecontrolgenoinsert;
-					//ccgeninsert += "," + mark->toString();
-					ccgeninsert += "," + getString<int>(mark->getBPLOC());
-#endif
 				}
 				int total_o = 0;
 				int total_ca = 0;
@@ -1031,74 +962,35 @@ void ProcessAlleleFrequency::processtest()
 					total_con += af.getMicroCountCon(a);
 				}
 				for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 					myoutput << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
-#else
-					insert += ",'" + mark->getAllele(a) + "'";
-#endif
+
 					if (options.doGroupFile()) {
-#ifndef PLATOLIB
 						gmyoutput << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
-#else
-						ginsert += ",'" + mark->getAllele(a) + "'";
-#endif
 					}
 					if (options.doParental()) {
-#ifndef PLATOLIB
 						paren << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
-#else
-						pinsert += ",'" + mark->getAllele(a) + "'";
-#endif
 					}
 					if (options.doGender()) {
-#ifndef PLATOLIB
 						gend << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
-#else
-						gendinsert += ",'" + mark->getAllele(a) + "'";
-#endif
 					}
 					if (options.doCaseControl()) {
-#ifndef PLATOLIB
 						cc << "\t" << mark->getAllele(a);//data_set->get_locus(k)->getAllele(a);
-#else
-						ccinsert += ",'" + mark->getAllele(a) = "'";
-#endif
 					}
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 						if (options.doGroupFile()) {
-#ifndef PLATOLIB
 							gmyoutput << "\tNA";
-#else
-							ginsert += ",NULL";
-#endif
 						}
 						if (options.doParental()) {
-#ifndef PLATOLIB
 							paren << "\tNA";
-#else
-							pinsert += ",NULL";
-#endif
 						}
 						if (options.doGender()) {
-#ifndef PLATOLIB
 							gend << "\tNA";
-#else
-							geninsert += ",NULL";
-#endif
 						}
 						if (options.doCaseControl()) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 				}
@@ -1110,123 +1002,68 @@ void ProcessAlleleFrequency::processtest()
 					} else {
 						freq = ((float) af.getMicroCountP(a) / (float) total_o);
 					}
-#ifndef PLATOLIB
 					myoutput << "\t" << freq;
-#else
-					insert += "," + getString<float>(freq);
-#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 				}
 				for (int a = 0; a < numalleles; a++) {
 					if (useoverall) {
-#ifndef PLATOLIB
 						myoutput << "\t" << af.getMicroCount(a);
-#else
-						insert += "," + getString<int>(af.getMicroCount(a));
-#endif
 					} else {
-#ifndef PLATOLIB
 						myoutput << "\t" << af.getMicroCountP(a);
-#else
-						insert += "," + getString<int>(af.getMicroCountP(a));
-#endif
 					}
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 				}
 				//case
 				for (int a = 0; a < numalleles; a++) {
 					float freq = ((float) af.getMicroCountCa(a)
 							/ (float) total_ca);
-#ifndef PLATOLIB
 					myoutput << "\t" << freq;
-#else
-					insert += "," + getString<float>(freq);
-#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 				}
 				for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 					myoutput << "\t" << af.getMicroCountCa(a);
-#else
-					insert += "," + getString<int>(af.getMicroCountCa(a));
-#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 				}
 				//control
 				for (int a = 0; a < numalleles; a++) {
 					float freq = ((float) af.getMicroCountCon(a)
 							/ (float) total_con);
-#ifndef PLATOLIB
 					myoutput << "\t" << freq;
-#else
-					insert += "," + getString<float>(freq);
-#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 				}
 				for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 					myoutput << "\t" << af.getMicroCountCon(a);
-#else
-					insert += "," + getString<int>(af.getMicroCountCon(a));
-#endif
 				}
 				if (maxalleles > numalleles) {
 					for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 						myoutput << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 				}
 				//groups?
-#ifndef PLATOLIB
 				mygeno << mark->toString();//data_set->get_locus(k)->toString();
-#endif
+
 				if (options.doGroupFile()) {
-#ifndef PLATOLIB
 					gmygeno << mark->toString();//data_set->get_locus(k)->toString();
-#endif
 					int gm_total = 0;
 					map<string, vector<Sample*> > groups = options.getGroups();
 					map<string, vector<Sample*> >::iterator giter;
@@ -1239,94 +1076,40 @@ void ProcessAlleleFrequency::processtest()
 							float freq =
 									((float) af.getGroupMicroCount(mygroup, a)
 											/ (float) gm_total);
-#ifndef PLATOLIB
 							gmyoutput << "\t" << freq;
-#else
-							ginsert += "," + getString<float>(freq);
-#endif
 						}
 						if (maxalleles > numalleles) {
 							for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 								gmyoutput << "\tNA";
-#else
-								ginsert += ",NULL";
-#endif
 							}
 						}
 						for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 							gmyoutput << "\t" << af.getGroupMicroCount(mygroup, a);
-#else
-							ginsert += "," + getString<int>(af.getGroupMicroCount(mygroup, a));
-#endif
 						}
 						if (maxalleles > numalleles) {
 							for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 								gmyoutput << "\tNA";
-#else
-								ginsert += ",NULL";
-#endif
 							}
 						}
-#ifndef PLATOLIB
 						gmygeno << "\tNA\tNA\tNA\tNA\tNA\tNA";
-#else
-						ginsert += ",NULL,NULL,NULL,NULL,NULL,NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					gmyoutput << endl;
-#else
-					ginsert += ")";
-					//TODO: add Controller to Plato library
-					Controller::execute_sql(myQuery, ginsert);
-#endif
 				}
-#ifndef PLATOLIB
 				myoutput << endl;
-#else
-				insert += ")";
-				//TODO: add Controller to Plato library
-				Controller::execute_sql(myQuery, insert);
-#endif
 
 				for (int l = 0; l < 21; l++) {
-#ifndef PLATOLIB
 					mygeno << "\tNA";
-#else
-					geninsert += ",NULL";
-#endif
 					if (options.doGroupFile()) {
-#ifndef PLATOLIB
 						gmygeno << "\tNA";
-#else
-						ggeninsert += ",NULL";
-#endif
 					}
 				}
-#ifndef PLATOLIB
 				mygeno << endl;
-#else
-				geninsert += ")";
-				//TODO:  Controller
-				Controller::execute_sql(myQuery, geninsert);
-#endif
 				if (options.doGroupFile()) {
-#ifndef PLATOLIB
 					gmygeno << endl;
-#else
-					ggeninsert += ")";
-					//TODO: controller
-					Controller::execute_sql(myQuery, ggeninsert);
-#endif
 				}
 
 				if (options.doParental()) {
-#ifndef PLATOLIB
 					pareng << mark->toString();//data_set->get_locus(k)->toString();
-#endif
 					int total_pm = 0;
 					int total_pf = 0;
 					for (int a = 0; a < numalleles; a++) {
@@ -1337,100 +1120,50 @@ void ProcessAlleleFrequency::processtest()
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountPM(a)
 								/ (float) total_pm);
-#ifndef PLATOLIB
 						paren << "\t" << freq;
-#else
-						pinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							paren << "\tNA";
-#else
-							pinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 						paren << "\t" << af.getMicroCountPM(a);
-#else
-						pinsert += "," + af.getMicroCountPM(a);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							paren << "\tNA";
-#else
-							pinsert += ",NULL";
-#endif
 						}
 					}
 					//Female
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountPF(a)
 								/ (float) total_pf);
-#ifndef PLATOLIB
 						paren << "\t" << freq;
-#else
-						pinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							paren << "\tNA";
-#else
-							pinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 						paren << "\t" << af.getMicroCountPF(a);
-#else
-						pinsert += "," + getString<int>(af.getMicroCountPF(a));
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							paren << "\tNA";
-#else
-							pinsert += ",NULL";
-#endif
 						}
 					}
-#ifndef PLATOLIB
 					paren << endl;
-#else
-					pinsert += ")";
-					//TODO: controller
-					Controller::execute_sql(myQuery, pinsert);
-#endif
 
 					for (int l = 0; l < 15; l++) {
-#ifndef PLATOLIB
 						pareng << "\tNA";
-#else
-						pgeninsert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					pareng << endl;
-#else
-					pgeninsert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, pgeninsert);
-#endif
 
 				}
 				if (options.doGender()) {
-#ifndef PLATOLIB
 					gendg << mark->toString();//data_set->get_locus(k)->toString();
-#endif
 					int total_pm = 0;
 					int total_pf = 0;
 					for (int a = 0; a < numalleles; a++) {
@@ -1452,43 +1185,23 @@ void ProcessAlleleFrequency::processtest()
 							freq = ((float) af.getMicroCountPM(a)
 									/ (float) total_pm);
 						}
-#ifndef PLATOLIB
 						gend << "\t" << freq;
-#else
-						gendinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							gend << "\tNA";
-#else
-							gendinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
 						if (useoverall) {
-#ifndef PLATOLIB
 							gend << "\t" << af.getMicroCountM(a);
-#else
-							gendinsert += "," + getString<int>(af.getMicroCountM(a));
-#endif
 						} else {
-#ifndef PLATOLIB
 							gend << "\t" << af.getMicroCountPM(a);
-#else
-							gendinsert += "," + getString<int>(af.getMicroCountPM(a));
-#endif
 						}
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							gend << "\tNA";
-#else
-							gendinsert += ",NULL";
-#endif
 						}
 					}
 					//Female
@@ -1501,73 +1214,35 @@ void ProcessAlleleFrequency::processtest()
 							freq = ((float) af.getMicroCountPF(a)
 									/ (float) total_pf);
 						}
-#ifndef PLATOLIB
 						gend << "\t" << freq;
-#else
-						gendinsert += "," + getString<float>(freq);
-#endif
-					}
+				}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							gend << "\tNA";
-#else
-							gendinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
 						if (useoverall) {
-#ifndef PLATOLIB
 							gend << "\t" << af.getMicroCountF(a);
-#else
-							gendinsert += "," + getString<int>(af.getMicroCountF(a));
-#endif
 						} else {
-#ifndef PLATOLIB
 							gend << "\t" << af.getMicroCountPF(a);
-#else
-							gendinsert += "," + getString<int>(af.getMicroCountPF(a));
-#endif
 						}
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							gend << "\tNA";
-#else
-							gendinsert += ",NULL";
-#endif
 						}
 					}
-#ifndef PLATOLIB
 					gend << endl;
-#else
-					geninsert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, gendinsert);
-#endif
 
 					for (int l = 0; l < 15; l++) {
-#ifndef PLATOLIB
 						gendg << "\tNA";
-#else
-						gendgeninsert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					gendg << endl;
-#else
-					gendgeninsert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, gendgeninsert);
-#endif
 
 				}
 				if (options.doCaseControl()) {
-#ifndef PLATOLIB
 					ccg << mark->toString();//data_set->get_locus(k)->toString();
-#endif
 					int total_cam = 0;
 					int total_caf = 0;
 					int total_conm = 0;
@@ -1582,204 +1257,99 @@ void ProcessAlleleFrequency::processtest()
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountCaM(a)
 								/ (float) total_cam);
-#ifndef PLATOLIB
 						cc << "\t" << freq;
-#else
-						ccinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 						cc << "\t" << af.getMicroCountCaM(a);
-#else
-						ccinsert += "," + getString<float>(af.getMicroCountCaM(a));
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					//Case Female
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountCaF(a)
 								/ (float) total_caf);
-#ifndef PLATOLIB
 						cc << "\t" << freq;
-#else
-						ccinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 						cc << "\t" << af.getMicroCountCaF(a);
-#else
-						ccinsert += "," + getString<int>(af.getMicroCountCaF(a));
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					//Control Male
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountConM(a)
 								/ (float) total_conm);
-#ifndef PLATOLIB
 						cc << "\t" << freq;
-#else
-						ccinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 						cc << "\t" << af.getMicroCountConM(a);
-#else
-						ccinsert += "," + getString<int>(af.getMicroCountConM(a));
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					//Control Female
 					for (int a = 0; a < numalleles; a++) {
 						float freq = ((float) af.getMicroCountConF(a)
 								/ (float) total_conf);
-#ifndef PLATOLIB
 						cc << "\t" << freq;
-#else
-						ccinsert += "," + getString<float>(freq);
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
 					for (int a = 0; a < numalleles; a++) {
-#ifndef PLATOLIB
 						cc << "\t" << af.getMicroCountConF(a);
-#else
-						ccinsert += "," + getString<int>(af.getMicroCountConF(a));
-#endif
 					}
 					if (maxalleles > numalleles) {
 						for (int b = 0; b < (maxalleles - numalleles); b++) {
-#ifndef PLATOLIB
 							cc << "\tNA";
-#else
-							ccinsert += ",NULL";
-#endif
 						}
 					}
-#ifndef PLATOLIB
 					cc << endl;
-#else
-					ccinsert += ")";
-					//TODO: controller
-					Controller::execute_sql(myQuery, ccinsert);
-#endif
 
 					for (int l = 0; l < 27; l++) {
-#ifndef PLATOLIB
 						ccg << "\tNA";
-#else
-						ccgeninsert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					ccg << endl;
-#else
-					ccgeninsert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, ccgeninsert);
-#endif
 
 				}
 			} else { //not microsats
-#ifndef PLATOLIB
 				myoutput << mark->toString() << "\t"
 						<< mark->getAllele1() << "\t"
 						<< mark->getAllele2();
-#else
-				insert = defaultinsert;
-				//insert += "," + mark->toString();
-				insert += "," + getString<int>(mark->getBPLOC());
-				insert += ",'" + mark->getAllele1() + "'";
-				insert += ",'" + mark->getAllele2() + "'";
-
-#endif
 				if (options.doGroupFile()) {
-#ifndef PLATOLIB
 					gmyoutput << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
-#else
-					ginsert = groupinsert;
-					//ginsert += "," + mark->toString();
-					ginsert += "," + getString<int>(mark->getBPLOC());
-					ginsert += ",'" + mark->getAllele1() + "'";
-					ginsert += ",'" + mark->getAllele2() + "'";
-#endif
 				}
 				for (int l = 2; l < maxalleles; l++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 					if (options.doGroupFile()) {
-#ifndef PLATOLIB
 						gmyoutput << "\tNA";
-#else
-						ginsert += ",NULL";
-#endif
 					}
 				}
 
@@ -1791,98 +1361,39 @@ void ProcessAlleleFrequency::processtest()
 					majfreq = af.getAoneP_freq();
 				}
 				float minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 				myoutput << "\t" << majfreq << "\t" << minfreq;
-#else
-				insert += "," + getString<float>(majfreq);
-				insert += "," + getString<float>(minfreq);
-#endif
 				for (int l = 2; l < maxalleles; l++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 				}
 				if (useoverall) {
-#ifndef PLATOLIB
 					myoutput << "\t" << af.getAone_count() << "\t" << af.getAtwo_count();
-#else
-					insert += "," + getString<int>(af.getAone_count());
-					insert += "," + getString<int>(af.getAtwo_count());
-#endif
 				} else {
-#ifndef PLATOLIB
 					myoutput << "\t" << af.getAoneP_count() << "\t" << af.getAtwoP_count();
-#else
-					insert += "," + getString<int>(af.getAoneP_count());
-					insert += "," + getString<int>(af.getAtwoP_count());
-#endif
 				}
 				for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 				}
 				//case
 				majfreq = af.getAoneCa_freq();
 				minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 				myoutput << "\t" << majfreq << "\t" << minfreq;
-#else
-				insert += "," + getString<float>(majfreq);
-				insert += "," + getString<float>(minfreq);
-#endif
 				for (int l = 2; l < maxalleles; l++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 				}
-#ifndef PLATOLIB
 				myoutput << "\t" << af.getAoneCa_count() << "\t" << af.getAtwoCa_count();
-#else
-				insert += "," + getString<int>(af.getAoneCa_count());
-				insert += "," + getString<int>(af.getAtwoCa_count());
-#endif
 				for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 				}
 				//control
 				majfreq = af.getAoneCon_freq();
 				minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 				myoutput << "\t" << majfreq << "\t" << minfreq;
-#else
-				insert += "," + getString<float>(majfreq);
-				insert += "," + getString<float>(minfreq);
-#endif
 				for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 				}
-#ifndef PLATOLIB
 				myoutput << "\t" << af.getAoneCon_count() << "\t" << af.getAtwoCon_count();
-#else
-				insert += "," + getString<int>(af.getAoneCon_count());
-				insert += "," + getString<int>(af.getAtwoCon_count());
-#endif
 				for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 					myoutput << "\tNA";
-#else
-					insert += ",NULL";
-#endif
 				}
 
 				//groups?
@@ -1896,32 +1407,14 @@ void ProcessAlleleFrequency::processtest()
 						float freq = ((float) af.getGroupAone_count(mygroup)
 								/ (float) gm_total);
 						float freq2 = 1.0f - freq;
-#ifndef PLATOLIB
 						gmyoutput << "\t" << freq << "\t" << freq2;
-#else
-						ginsert += "," + getString<float>(freq);
-						ginsert += "," + getString<float>(freq2);
-#endif
 						for (int b = 2; b < maxalleles; b++) {
-#ifndef PLATOLIB
 							gmyoutput << "\tNA";
-#else
-							ginsert += ",NULL";
-#endif
 						}
-#ifndef PLATOLIB
 						gmyoutput << "\t" << af.getGroupAone_count(mygroup) << "\t"
 								<< af.getGroupAtwo_count(mygroup);
-#else
-						ginsert += "," + getString<int>(af.getGroupAone_count(mygroup));
-						ginsert += "," + getString<int>(af.getGroupAtwo_count(mygroup));
-#endif
 						for (int b = 2; b < maxalleles; b++) {
-#ifndef PLATOLIB
 							gmyoutput << "\tNA";
-#else
-							ginsert += ",NULL";
-#endif
 						}
 
 						if(freq < freq2){
@@ -1931,22 +1424,10 @@ void ProcessAlleleFrequency::processtest()
 							group_avg[mygroup] += freq2;
 						}
 					}
-#ifndef PLATOLIB
 					gmyoutput << endl;
-#else
-					ginsert += ")";
-					//TODO: controller
-					Controller::execute_sql(myQuery, ginsert);
-#endif
 				}
-#ifndef PLATOLIB
 				myoutput << endl;
-#else
-				insert += ")";
-				//TODO: Controller
-				Controller::execute_sql(myQuery, insert);
-#endif
-#ifndef PLATOLIB
+
 				mygeno << mark->toString() << "\t"
 						<< mark->getAllele1() << "_"
 						<< mark->getAllele1() << "\t"
@@ -1954,16 +1435,7 @@ void ProcessAlleleFrequency::processtest()
 						<< mark->getAllele2() << "\t"
 						<< mark->getAllele2() << "_"
 						<< mark->getAllele2();
-#else
-				insert = defaultgenoinsert;
-				//insert += "," + mark->toString();
-				insert += "," + getString<int>(mark->getBPLOC());
-				insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
-				insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
-				insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
-#endif
 				if (options.doGroupFile()) {
-#ifndef PLATOLIB
 					gmygeno << mark->toString() << "\t"
 							<< mark->getAllele1() << "_"
 							<< mark->getAllele1() << "\t"
@@ -1971,14 +1443,6 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2() << "\t"
 							<< mark->getAllele2() << "_"
 							<< mark->getAllele2();
-#else
-					ginsert = groupgenoinsert;
-					//ginsert += "," + mark->toString();
-					ginsert += "," + getString<int>(mark->getBPLOC());
-					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
-					ginsert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
-					ginsert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
-#endif
 				}
 				//overall
 				float freq1 = 0.0f;
@@ -1988,40 +1452,16 @@ void ProcessAlleleFrequency::processtest()
 					freq1 = ((float) af.getAonehomo()) / (af.getPop());
 					freq2 = ((float) af.getHet()) / (af.getPop());
 					freq3 = ((float) af.getAtwohomo()) / (af.getPop());
-#ifndef PLATOLIB
 					mygeno << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomo() << "\t" << af.getHet()
 							<< "\t" << af.getAtwohomo() << "\t";
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2)  || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomo());
-					insert += "," + getString<int>(af.getHet());
-					insert += "," + getString<int>(af.getAtwohomo());
-#endif
 				} else {
 					freq1 = ((float) af.getAonehomoP()) / (af.getPopP());
 					freq2 = ((float) af.getHetP()) / (af.getPopP());
 					freq3 = ((float) af.getAtwohomoP()) / (af.getPopP());
-#ifndef PLATOLIB
 					mygeno << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoP() << "\t" << af.getHetP()
 							<< "\t" << af.getAtwohomoP() << "\t";
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoP());
-					insert += "," + getString<int>(af.getHetP());
-					insert += "," + getString<int>(af.getAtwohomoP());
-#endif
 				}
 
 				//			mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t" << a1_homo_countP << "\t"
@@ -2031,40 +1471,17 @@ void ProcessAlleleFrequency::processtest()
 				freq1 = ((float) af.getAonehomoCa()) / (af.getPopCa());
 				freq2 = ((float) af.getHetCa()) / (af.getPopCa());
 				freq3 = ((float) af.getAtwohomoCa()) / (af.getPopCa());
-#ifndef PLATOLIB
 				mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t"
 						<< af.getAonehomoCa() << "\t" << af.getHetCa() << "\t"
 						<< af.getAtwohomoCa() << "\t";
-#else
-				insert += ",";
-				insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-				insert += ",";
-				insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-				insert += ",";
-				insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-				insert += "," + getString<int>(af.getAonehomoCa());
-				insert += "," + getString<int>(af.getHetCa());
-				insert += "," + getString<int>(af.getAtwohomoCa());
-#endif
+
 				//control overall
 				freq1 = ((float) af.getAonehomoCon()) / (af.getPopCon());
 				freq2 = ((float) af.getHetCon()) / (af.getPopCon());
 				freq3 = ((float) af.getAtwohomoCon()) / (af.getPopCon());
-#ifndef PLATOLIB
 				mygeno << freq1 << "\t" << freq2 << "\t" << freq3 << "\t"
 						<< af.getAonehomoCon() << "\t" << af.getHetCon() << "\t"
 						<< af.getAtwohomoCon();
-#else
-				insert += ",";
-				insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-				insert += ",";
-				insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-				insert += ",";
-				insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-				insert += "," + getString<int>(af.getAonehomoCon());
-				insert += "," + getString<int>(af.getHetCon());
-				insert += "," + getString<int>(af.getAtwohomoCon());
-#endif
 
 				//groups?
 				if (options.doGroupFile()) {
@@ -2077,56 +1494,22 @@ void ProcessAlleleFrequency::processtest()
 						freq1 = ((float) af.getGroupAonehomo(mygroup) / genotot);
 						freq2 = ((float) af.getGroupHet(mygroup) / genotot);
 						freq3 = ((float) af.getGroupAtwohomo(mygroup) / genotot);
-#ifndef PLATOLIB
 						gmygeno << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getGroupAonehomo(mygroup)
 								<< "\t" << af.getGroupHet(mygroup) << "\t"
 								<< af.getGroupAtwohomo(mygroup);
-#else
-						ginsert += ",";
-						ginsert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-						ginsert += ",";
-						ginsert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-						ginsert += ",";
-						ginsert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-						ginsert += "," + getString<int>(af.getGroupAonehomo(mygroup));
-						ginsert += "," + getString<int>(af.getGroupHet(mygroup));
-						ginsert += "," + getString<int>(af.getGroupAtwohomo(mygroup));
-#endif
+
 					}
-#ifndef PLATOLIB
 					gmygeno << endl;
-#else
-					ginsert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, ginsert);
-#endif
 				}
-#ifndef PLATOLIB
 				mygeno << endl;
-#else
-				insert += ")";
-				//TODO: Controller
-				Controller::execute_sql(myQuery, insert);
-#endif
 
 				if (options.doParental()) {
-#ifndef PLATOLIB
 					paren << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
-#else
-					insert = parentalinsert;
-					insert + "," + mark->toString();
-					insert += ",'" + mark->getAllele1() + "'";
-					insert += ",'" + mark->getAllele2() + "'";
-#endif
 					for (int l = 2; l < maxalleles; l++) {
-#ifndef PLATOLIB
 						paren << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					//parent male
 					float majfreq = af.getAonePM_freq();
@@ -2135,62 +1518,26 @@ void ProcessAlleleFrequency::processtest()
 						majfreq = 0;
 						minfreq = 0;
 					}
-#ifndef PLATOLIB
 					paren << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						paren << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					paren << "\t" << af.getAonePM_count() << "\t" << af.getAtwoPM_count();
-#else
-					insert += "," + getString<int>(af.getAonePM_count());
-					insert += "," + getString<int>(af.getAtwoPM_count());
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						paren << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					//parent female
 					majfreq = af.getAonePF_freq();
 					minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 					paren << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						paren << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					paren << "\t" << af.getAonePF_count() << "\t" << af.getAtwoPF_count();
-#else
-					insert += "," + getString<int>(af.getAonePF_count());
-					insert += "," + getString<int>(af.getAtwoPF_count());
-#endif
+
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						paren << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					paren << endl;
 
 					pareng << mark->toString() << "\t"
@@ -2200,81 +1547,30 @@ void ProcessAlleleFrequency::processtest()
 					<< mark->getAllele2() << "\t"
 					<< mark->getAllele2() << "_"
 					<< mark->getAllele2();
-#else
-					insert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, insert);
-
-					insert = parentalgenoinsert;
-					//insert += "," + mark->toString();
-					insert += "," + getString<int>(mark->getBPLOC());
-					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
-					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
-					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
-#endif
 
 
 					float freq1 = ((float) af.getAonehomoPM()) / (af.getPopPM());
 					float freq2 = ((float) af.getHetPM()) / (af.getPopPM());
 					float freq3 = ((float) af.getAtwohomoPM()) / (af.getPopPM());
-#ifndef PLATOLIB
 					pareng << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoPM() << "\t" << af.getHetPM()
 							<< "\t" << af.getAtwohomoPM();
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoPM());
-					insert += "," + getString<int>(af.getHetPM());
-					insert += "," + getString<int>(af.getAtwohomoPM());
-#endif
 					freq1 = ((float) af.getAonehomoPF()) / (af.getPopPF());
 					freq2 = ((float) af.getHetPF()) / (af.getPopPF());
 					freq3 = ((float) af.getAtwohomoPF()) / (af.getPopPF());
-#ifndef PLATOLIB
 					pareng << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoPF() << "\t" << af.getHetPF()
 							<< "\t" << af.getAtwohomoPF();
 					pareng << endl;
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoPF());
-					insert += "," + getString<int>(af.getHetPF());
-					insert += "," + getString<int>(af.getAtwohomoPF());
-
-					insert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, insert);
-#endif
 				}
 				if (options.doGender()) {
 					//overall male
-#ifndef PLATOLIB
 					gend << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
-#else
-					insert = genderinsert;
-					//insert += "," + mark->toString();
-					insert += "," + getString<int>(mark->getBPLOC());
-					insert += ",'" + mark->getAllele1() + "'";
-					insert += ",'" + mark->getAllele2() + "'";
-#endif
+
 					for (int l = 2; l < maxalleles; l++) {
-#ifndef PLATOLIB
 						gend << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					float majfreq = 0.0f;
 					if (useoverall) {
@@ -2290,40 +1586,18 @@ void ProcessAlleleFrequency::processtest()
 						majfreq = 0;
 						minfreq = 0;
 					}
-#ifndef PLATOLIB
 					gend << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
+
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						gend << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					if (useoverall) {
-#ifndef PLATOLIB
 						gend << "\t" << af.getAoneM_count() << "\t" << af.getAtwoM_count();
-#else
-						insert += "," + getString<int>(af.getAoneM_count());
-						insert += "," + getString<int>(af.getAtwoM_count());
-#endif
 					} else {
-#ifndef PLATOLIB
 						gend << "\t" << af.getAonePM_count() << "\t" << af.getAtwoPM_count();
-#else
-						insert += "," + getString<int>(af.getAonePM_count());
-						insert += "," + getString<int>(af.getAtwoPM_count());
-#endif
 					}
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						gend << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					//overall female
 					if (useoverall) {
@@ -2332,42 +1606,19 @@ void ProcessAlleleFrequency::processtest()
 						majfreq = af.getAonePF_freq();
 					}
 					minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 					gend << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
+
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						gend << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					if (useoverall) {
-#ifndef PLATOLIB
 						gend << "\t" << af.getAoneF_count() << "\t" << af.getAtwoF_count();
-#else
-						insert += "," + getString<int>(af.getAoneF_count());
-						insert += "," + getString<int>(af.getAtwoF_count());
-#endif
 					} else {
-#ifndef PLATOLIB
 						gend << "\t" << af.getAonePF_count() << "\t" << af.getAtwoPF_count();
-#else
-						insert += "," + getString<int>(af.getAonePF_count());
-						insert += "," + getString<int>(af.getAtwoPF_count());
-#endif
 					}
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						gend << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					gend << endl;
 
 					gendg << mark->toString() << "\t"
@@ -2377,125 +1628,49 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2() << "\t"
 							<< mark->getAllele2() << "_"
 							<< mark->getAllele2();
-#else
-					insert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, insert);
-
-					insert = gendergenoinsert;
-					//insert += "," + mark->toString();
-					insert += "," + getString<int>(mark->getBPLOC());
-					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
-					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
-					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
-#endif
 					if (useoverall) {
 						float freq1 =
 								((float) af.getAonehomoM()) / (af.getPopM());
 						float freq2 = ((float) af.getHetM()) / (af.getPopM());
 						float freq3 =
 								((float) af.getAtwohomoM()) / (af.getPopM());
-#ifndef PLATOLIB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoM() << "\t"
 								<< af.getHetM() << "\t" << af.getAtwohomoM();
-#else
-						insert += ",";
-						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-						insert += ",";
-						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-						insert += ",";
-						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-						insert += "," + getString<int>(af.getAonehomoM());
-						insert += "," + getString<int>(af.getHetM());
-						insert += "," + getString<int>(af.getAtwohomoM());
-#endif
 						freq1 = ((float) af.getAonehomoF()) / (af.getPopF());
 						freq2 = ((float) af.getHetF()) / (af.getPopF());
 						freq3 = ((float) af.getAtwohomoF()) / (af.getPopF());
-#ifndef PLATOLIB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoF() << "\t"
 								<< af.getHetF() << "\t" << af.getAtwohomoF();
-#else
-						insert += ",";
-						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-						insert += ",";
-						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-						insert += ",";
-						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-						insert += "," + getString<int>(af.getAonehomoF());
-						insert += "," + getString<int>(af.getHetF());
-						insert += "," + getString<int>(af.getAtwohomoF());
-#endif
 					} else {
 						float freq1 = ((float) af.getAonehomoPM())
 								/ (af.getPopPM());
 						float freq2 = ((float) af.getHetPM()) / (af.getPopPM());
 						float freq3 = ((float) af.getAtwohomoPM())
 								/ (af.getPopPM());
-#ifndef PLATOLIB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoPM() << "\t"
 								<< af.getHetPM() << "\t" << af.getAtwohomoPM();
-#else
-						insert += ",";
-						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-						insert += ",";
-						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-						insert += ",";
-						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-						insert += "," + getString<int>(af.getAonehomoPM());
-						insert += "," + getString<int>(af.getHetPM());
-						insert += "," + getString<int>(af.getAtwohomoPM());
-#endif
 						freq1 = ((float) af.getAonehomoPF()) / (af.getPopPF());
 						freq2 = ((float) af.getHetPF()) / (af.getPopPF());
 						freq3 = ((float) af.getAtwohomoPF()) / (af.getPopPF());
-#ifndef PLATOLIB
 						gendg << "\t" << freq1 << "\t" << freq2 << "\t"
 								<< freq3 << "\t" << af.getAonehomoPF() << "\t"
 								<< af.getHetPF() << "\t" << af.getAtwohomoPF();
-#else
-						insert += ",";
-						insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-						insert += ",";
-						insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-						insert += ",";
-						insert += (isnan(freq3) || isinf(freq3)) ? "NULL" : getString<float>(freq3);
-						insert += "," + getString<int>(af.getAonehomoPF());
-						insert += "," + getString<int>(af.getHetPF());
-						insert += "," + getString<int>(af.getAtwohomoPF());
-#endif
+
 					}
-#ifndef PLATOLIB
 					gendg << endl;
-#else
-					insert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, insert);
-#endif
 
 				}
 				if (options.doCaseControl()) {
 					//case male
-#ifndef PLATOLIB
 					cc << mark->toString() << "\t"
 							<< mark->getAllele1() << "\t"
 							<< mark->getAllele2();
-#else
-					insert = casecontrolinsert;
-					//insert += "," + mark->toString();
-					insert += "," + getString<int>(mark->getBPLOC());
-					insert += ",'" + mark->getAllele1() + "'";
-					insert += ",'" + mark->getAllele2() + "'";
-#endif
+
 					for (int l = 2; l < maxalleles; l++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					float majfreq = af.getAoneCaM_freq();
 					float minfreq = 1.0f - majfreq;
@@ -2503,60 +1678,25 @@ void ProcessAlleleFrequency::processtest()
 						majfreq = 0;
 						minfreq = 0;
 					}
-#ifndef PLATOLIB
 					cc << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
+
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					cc << "\t" << af.getAoneCaM_count() << "\t" << af.getAtwoCaM_count();
-#else
-					insert += "," + getString<int>(af.getAoneCaM_count());
-					insert += "," + getString<int>(af.getAtwoCaM_count());
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					//case female
 					majfreq = af.getAoneCaF_freq();
 					minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 					cc << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(majfreq);
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					cc << "\t" << af.getAoneCaF_count() << "\t" << af.getAtwoCaF_count();
-#else
-					insert += "," + getString<int>(af.getAoneCaF_count());
-					insert += "," + getString<int>(af.getAtwoCaF_count());
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					//control male
 					majfreq = af.getAoneConM_freq();
@@ -2565,62 +1705,25 @@ void ProcessAlleleFrequency::processtest()
 						majfreq = 0;
 						minfreq = 0;
 					}
-#ifndef PLATOLIB
 					cc << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert + "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					cc << "\t" << af.getAoneConM_count() << "\t" << af.getAtwoConM_count();
-#else
-					insert += "," + getString<int>(af.getAoneConM_count());
-					insert += "," + getString<int>(af.getAtwoConM_count());
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
 					//control female
 					majfreq = af.getAoneConF_freq();
 					minfreq = 1.0f - majfreq;
-#ifndef PLATOLIB
 					cc << "\t" << majfreq << "\t" << minfreq;
-#else
-					insert += "," + getString<float>(majfreq);
-					insert += "," + getString<float>(minfreq);
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					cc << "\t" << af.getAoneConF_count() << "\t" << af.getAtwoConF_count();
-#else
-					insert += "," + getString<int>(af.getAoneConF_count());
-					insert += "," + getString<int>(af.getAtwoConF_count());
-#endif
 					for (int t = 2; t < maxalleles; t++) {
-#ifndef PLATOLIB
 						cc << "\tNA";
-#else
-						insert += ",NULL";
-#endif
 					}
-#ifndef PLATOLIB
 					cc << endl;
 
 					ccg << mark->toString() << "\t"
@@ -2630,97 +1733,36 @@ void ProcessAlleleFrequency::processtest()
 							<< mark->getAllele2() << "\t"
 							<< mark->getAllele2() << "_"
 							<< mark->getAllele2();
-#else
-					insert += ")";
-					//TODO: controller
-					Controller::execute_sql(myQuery, insert);
 
-					insert = casecontrolgenoinsert;
-					//insert += "," + mark->toString();
-					insert += "," + getString<int>(mark->getBPLOC());
-					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele1() + "'";
-					insert += ",'" + mark->getAllele1() + "_" + mark->getAllele2() + "'";
-					insert += ",'" + mark->getAllele2() + "_" + mark->getAllele2() + "'";
-#endif
 					float freq1 = ((float) af.getAonehomoCaM())
 							/ (af.getPopCaM());
 					float freq2 = ((float) af.getHetCaM()) / (af.getPopCaM());
 					float freq3 = ((float) af.getAtwohomoCaM())
 							/ (af.getPopCaM());
-#ifndef PLATOLIB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoCaM() << "\t" << af.getHetCaM()
 							<< "\t" << af.getAtwohomoCaM();
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoCaM());
-					insert += "," + getString<int>(af.getHetCaM());
-					insert += "," + getString<int>(af.getAtwohomoCaM());
-#endif
 					freq1 = ((float) af.getAonehomoCaF()) / (af.getPopCaF());
 					freq2 = ((float) af.getHetCaF()) / (af.getPopCaF());
 					freq3 = ((float) af.getAtwohomoCaF()) / (af.getPopCaF());
-#ifndef PLATOLIB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoCaF() << "\t" << af.getHetCaF()
 							<< "\t" << af.getAtwohomoCaF();
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoCaF());
-					insert += "," + getString<int>(af.getHetCaF());
-					insert += "," + getString<int>(af.getAtwohomoCaF());
-#endif
+
 					freq1 = ((float) af.getAonehomoConM()) / (af.getPopConM());
 					freq2 = ((float) af.getHetConM()) / (af.getPopConM());
 					freq3 = ((float) af.getAtwohomoConM()) / (af.getPopConM());
-#ifndef PLATOLIB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoConM() << "\t"
 							<< af.getHetConM() << "\t" << af.getAtwohomoConM();
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoConM());
-					insert += "," + getString<int>(af.getHetConM());
-					insert += "," + getString<int>(af.getAtwohomoConM());
-#endif
+
 					freq1 = ((float) af.getAonehomoConF()) / (af.getPopConF());
 					freq2 = ((float) af.getHetConF()) / (af.getPopConF());
 					freq3 = ((float) af.getAtwohomoConF()) / (af.getPopConF());
-#ifndef PLATOLIB
 					ccg << "\t" << freq1 << "\t" << freq2 << "\t" << freq3
 							<< "\t" << af.getAonehomoConF() << "\t"
 							<< af.getHetConF() << "\t" << af.getAtwohomoConF();
 					ccg << endl;
-#else
-					insert += ",";
-					insert += (isnan(freq1) || isinf(freq1)) ? "NULL" : getString<float>(freq1);
-					insert += ",";
-					insert += (isnan(freq2) || isinf(freq2)) ? "NULL" : getString<float>(freq2);
-					insert += ",";
-					insert += (isnan(freq3)|| isinf(freq3)) ? "NULL" : getString<float>(freq3);
-					insert += "," + getString<int>(af.getAonehomoConF());
-					insert += "," + getString<int>(af.getHetConF());
-					insert += "," + getString<int>(af.getAtwohomoConF());
-
-					insert += ")";
-					//TODO: Controller
-					Controller::execute_sql(myQuery, insert);
-#endif
 
 				}
 			}
@@ -2730,7 +1772,6 @@ void ProcessAlleleFrequency::processtest()
 		}
 	}
 //TODO:  not sure if this block should have a database version or not...
-#ifndef PLATOLIB
 	if(options.doGroupFile()){
 		map<string, vector<Sample*> > groups = options.getGroups();
 		map<string, vector<Sample*> >::iterator giter;
@@ -2748,11 +1789,6 @@ void ProcessAlleleFrequency::processtest()
 		}
 	}
 
-#endif
-//need to commit the above DB statements to the database
-#ifdef PLATOLIB
-	myQuery.commit();
-#endif
 }
 
 /*
@@ -2774,596 +1810,3 @@ void ProcessAlleleFrequency::process(DataSet* ds)
 	return;
 
 }
-
-#ifdef PLATOLIB
-void ProcessAlleleFrequency::dump2db(){}
-
-void ProcessAlleleFrequency::create_tables()
-{
-    Query myQuery(*db);
-    int msize = data_set->num_loci();
-
-    int maxalleles = 0;
-    for (int i = 0; i < msize; i++) {
-        if (data_set->get_locus(i)->isEnabled()) {
-                if (data_set->get_locus(i)->getNumAlleles() > maxalleles) {
-                        maxalleles = data_set->get_locus(i)->getNumAlleles();
-                }
-        }
-    }
-
-    for(int i = 0; i < (int)tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    tablename.clear();
-    primary_table.clear();
-
-    string tempbatch = batchname;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string base = mytablename + tempbatch;
-
-    mytablename = base + "_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back("LOCI");
-    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    defaultinsert = "INSERT INTO " + mytablename + "(id, fkey";
-    sql += "fkey integer not null,";
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
-        defaultinsert += ",Allele" + getString<int>(i + 1);
-    }
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Overall_Allele" + getString<int>(i + 1) + "_freq REAL,";
-        headers[mytablename].push_back("Overall_Allele" + getString<int>(i + 1) + "_freq");
-        defaultinsert += ",Overall_Allele" + getString<int>(i + 1) + "_freq";
-    }
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Overall_Allele" + getString<int>(i + 1) + "_count integer,";
-        headers[mytablename].push_back("Overall_Allele" + getString<int>(i + 1) + "_count");
-        defaultinsert += ",Overall_Allele" + getString<int>(i + 1) + "_count";
-    }
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Case_Allele" + getString<int>(i + 1) + "_freq REAL,";
-        headers[mytablename].push_back("Case_Allele" + getString<int>(i + 1) + "_freq");
-        defaultinsert += ",Case_Allele" + getString<int>(i + 1) + "_freq";
-    }
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Case_Allele" + getString<int>(i + 1) + "_count integer,";
-        headers[mytablename].push_back("Case_Allele" + getString<int>(i + 1) + "_count");
-        defaultinsert += ",Case_Allele" + getString<int>(i + 1) + "_count";
-    }
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Control_Allele" + getString<int>(i + 1) + "_freq REAL,";
-        headers[mytablename].push_back("Control_Allele" + getString<int>(i + 1) + "_freq");
-        defaultinsert += ",Control_Allele" + getString<int>(i + 1) + "_freq";
-    }
-    for(int i = 0; i < maxalleles; i++){
-        sql += "Control_Allele" + getString<int>(i + 1) + "_count integer,";
-        headers[mytablename].push_back("Control_Allele" + getString<int>(i + 1) + "_count");
-        defaultinsert += ",Control_Allele" + getString<int>(i + 1) + "_count";
-    }
-    defaultinsert += ") VALUES (NULL";
-    sql = sql.replace(sql.size() - 1, 1, ")");
-
-    //Controller::execute_sql(db, sql);
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-
-    mytablename = base + "_genotype_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("Genotype");
-    primary_table[mytablename].push_back("LOCI");
-    sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "Genotype11 varchar(20),";
-    sql += "Genotype12 varchar(20),";
-    sql += "Genotype22 varchar(20),";
-    defaultgenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
-    sql += "Overall_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Overall_Freq_Genotype11");
-    defaultgenoinsert += ",Overall_Freq_Genotype11";
-    sql += "Overall_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Overall_Freq_Genotype12");
-    defaultgenoinsert += ",Overall_Freq_Genotype12";
-    sql += "Overall_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Overall_Freq_Genotype22");
-    defaultgenoinsert += ",Overall_Freq_Genotype22";
-    sql += "Overall_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Overall_Count_Genotype11");
-    defaultgenoinsert += ",Overall_Count_Genotype11";
-    sql += "Overall_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Overall_Count_Genotype12");
-    defaultgenoinsert += ",Overall_Count_Genotype12";
-    sql += "Overall_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Overall_Count_Genotype22");
-    defaultgenoinsert += ",Overall_Count_Genotype22";
-    sql += "Case_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Case_Freq_Genotype11");
-    defaultgenoinsert += ",Case_Freq_Genotype11";
-    sql += "Case_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Case_Freq_Genotype12");
-    defaultgenoinsert += ",Case_Freq_Genotype12";
-    sql += "Case_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Case_Freq_Genotype22");
-    defaultgenoinsert += ",Case_Freq_Genotype22";
-    sql += "Case_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Case_Count_Genotype11");
-    defaultgenoinsert += ",Case_Count_Genotype11";
-    sql += "Case_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Case_Count_Genotype12");
-    defaultgenoinsert += ",Case_Count_Genotype12";
-    sql += "Case_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Case_Count_Genotype22");
-    defaultgenoinsert += ",Case_Count_Genotype22";
-    sql += "Control_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Control_Freq_Genotype11");
-    defaultgenoinsert += ",Control_Freq_Genotype11";
-    sql += "Control_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Control_Freq_Genotype12");
-    defaultgenoinsert += ",Control_Freq_Genotype12";
-    sql += "Control_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Control_Freq_Genotype22");
-    defaultgenoinsert += ",Control_Freq_Genotype22";
-    sql += "Control_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Control_Count_Genotype11");
-    defaultgenoinsert += ",Control_Count_Genotype11";
-    sql += "Control_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Control_Count_Genotype12");
-    defaultgenoinsert += ",Control_Count_Genotype12";
-    sql += "Control_Count_Genotype22 integer)";
-    headers[mytablename].push_back("Control_Count_Genotype22");
-    defaultgenoinsert += ",Control_Count_Genotype22";
-
-    defaultgenoinsert += ") VALUES (NULL";
-    //Controller::execute_sql(db, sql);
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-
-    if(options.doCaseControl()){
-        mytablename = base + "_casecontrol_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Case/Control");
-        primary_table[mytablename].push_back("LOCI");
-        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        casecontrolinsert = "INSERT INTO " + mytablename + " (id, fkey";
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
-            casecontrolinsert += ",Allele" + getString<int>(i + 1);
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Case_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Case_Male_Allele" + getString<int>(i + 1) + "_freq");
-            casecontrolinsert += ",Case_Male_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Case_Male_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Case_Male_Allele" + getString<int>(i + 1) + "_count");
-            casecontrolinsert += ",Case_Male_Allele" + getString<int>(i + 1) + "_count";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Case_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Case_Female_Allele" + getString<int>(i + 1) + "_freq");
-            casecontrolinsert += ",Case_Female_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Case_Female_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Case_Female_Allele" + getString<int>(i + 1) + "_count");
-            casecontrolinsert += ",Case_Female_Allele" + getString<int>(i + 1) + "_count";
-        }
-
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Control_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Control_Male_Allele" + getString<int>(i + 1) + "_freq");
-            casecontrolinsert += ",Control_Male_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Control_Male_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Control_Male_Allele" + getString<int>(i + 1) + "_count");
-            casecontrolinsert += ",Control_Male_Allele" + getString<int>(i + 1) + "_count";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Control_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Control_Female_Allele" + getString<int>(i + 1) + "_freq");
-            casecontrolinsert += ",Control_Female_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Control_Female_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Control_Female_Allele" + getString<int>(i + 1) + "_count");
-            casecontrolinsert += ",Control_Female_Allele" + getString<int>(i + 1) + "_count";
-        }
-        casecontrolinsert += ") VALUES (NULL";
-        sql = sql.replace(sql.size() - 1, 1, ")");
-
-        //Controller::execute_sql(db, sql);
-        myQuery.transaction();
-        Controller::execute_sql(myQuery, sql);
-        myQuery.commit();
-
-        mytablename = base + "_genotype_casecontrol_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Case/Control Genotype");
-        primary_table[mytablename].push_back("LOCI");
-        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        sql += "Genotype11 varchar(20),";
-    sql += "Genotype12 varchar(20),";
-    sql += "Genotype22 varchar(20),";
-        casecontrolgenoinsert = "INSERT INTO " + mytablename + "(id, fkey, Genotype11, Genotype12, Genotype22";
-    sql += "Case_Male_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Case_Male_Genotype11");
-    casecontrolgenoinsert += ",Case_Male_Freq_Genotype11";
-    sql += "Case_Male_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Case_Male_Freq_Genotype12");
-    casecontrolgenoinsert += ",Case_Male_Freq_Genotype12";
-    sql += "Case_Male_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Case_Male_Freq_Genotype22");
-    casecontrolgenoinsert += ",Case_Male_Freq_Genotype22";
-    sql += "Case_Male_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Case_Male_Count_Genotype11");
-    casecontrolgenoinsert += ",Case_Male_Count_Genotype11";
-    sql += "Case_Male_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Case_Male_Count_Genotype12");
-    casecontrolgenoinsert += ",Case_Male_Count_Genotype12";
-    sql += "Case_Male_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Case_Male_Count_Genotype22");
-    casecontrolgenoinsert += ",Case_Male_Count_Genotype22";
-    sql += "Case_Female_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Case_Female_Freq_Genotype11");
-    casecontrolgenoinsert += ",Case_Female_Freq_Genotype11";
-    sql += "Case_Female_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Case_Female_Freq_Genotype12");
-    casecontrolgenoinsert += ",Case_Female_Freq_Genotype12";
-    sql += "Case_Female_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Case_Female_Freq_Genotype22");
-    casecontrolgenoinsert += ",Case_Female_Freq_Genotype22";
-    sql += "Case_Female_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Case_Female_Count_Genotype11");
-    casecontrolgenoinsert += ",Case_Female_Count_Genotype11";
-    sql += "Case_Female_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Case_Female_Count_Genotype12");
-    casecontrolgenoinsert += ",Case_Female_Count_Genotype12";
-    sql += "Case_Female_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Case_Female_Count_Genotype22");
-    casecontrolgenoinsert += ",Case_Female_Count_Genotype22";
-
-    sql += "Control_Male_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Control_Male_Freq_Genotype11");
-    casecontrolgenoinsert += ",Control_Male_Freq_Genotype11";
-    sql += "Control_Male_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Control_Male_Freq_Genotype12");
-    casecontrolgenoinsert += ",Control_Male_Freq_Genotype12";
-    sql += "Control_Male_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Control_Male_Freq_Genotype22");
-    casecontrolgenoinsert += ",Control_Male_Freq_Genotype22";
-    sql += "Control_Male_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Control_Male_Count_Genotype11");
-    casecontrolgenoinsert += ",Control_Male_Count_Genotype11";
-    sql += "Control_Male_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Control_Male_Count_Genotype12");
-    casecontrolgenoinsert += ",Control_Male_Count_Genotype12";
-    sql += "Control_Male_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Control_Male_Count_Genotype22");
-    casecontrolgenoinsert += ",Control_Male_Count_Genotype22";
-    sql += "Control_Female_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Control_Female_Freq_Genotype11");
-    casecontrolgenoinsert += ",Control_Female_Freq_Genotype11";
-    sql += "Control_Female_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Control_Female_Freq_Genotype12");
-    casecontrolgenoinsert += ",Control_Female_Freq_Genotype12";
-    sql += "Control_Female_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Control_Female_Freq_Genotype22");
-    casecontrolgenoinsert += ",Control_Female_Freq_Genotype22";
-    sql += "Control_Female_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Control_Female_Count_Genotype11");
-    casecontrolgenoinsert += ",Control_Female_Count_Genotype11";
-    sql += "Control_Female_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Control_Female_Count_Genotype12");
-    casecontrolgenoinsert += ",Control_Female_Count_Genotype12";
-    sql += "Control_Female_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Control_Female_Count_Genotype22");
-    casecontrolgenoinsert += ",Control_Female_Count_Genotype22";
-    casecontrolgenoinsert += ") VALUES (NULL";
-    sql = sql.replace(sql.size() - 1, 1, ")");
-
-        //Controller::execute_sql(db, sql);
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-    }
-
-    if(options.doGender()){
-        mytablename = base + "_gender_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Gender");
-        primary_table[mytablename].push_back("LOCI");
-        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        genderinsert = "INSERT INTO " + mytablename + " (id, fkey";
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
-            genderinsert += ",Allele" + getString<int>(i + 1);
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Overall_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Overall_Male_Allele" + getString<int>(i + 1) + "_freq");
-            genderinsert += ",Overall_Male_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Overall_Male_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Overall_Male_Allele" + getString<int>(i + 1) + "_count");
-            genderinsert += ",Overall_Male_Allele" + getString<int>(i + 1) + "_count";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Overall_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Overall_Female_Allele" + getString<int>(i + 1) + "_freq");
-            genderinsert += ",Overall_Female_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Overall_Female_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Overall_Female_Allele" + getString<int>(i + 1) + "_count");
-            genderinsert += ",Overall_Female_Allele" + getString<int>(i + 1) + "_count";
-        }
-
-        genderinsert += ") VALUES (NULL";
-        sql = sql.replace(sql.size() - 1, 1, ")");
-
-        //Controller::execute_sql(db, sql);
-        myQuery.transaction();
-        Controller::execute_sql(myQuery, sql);
-        myQuery.commit();
-
-        mytablename = base + "_genotype_gender_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Gender Genotype");
-        primary_table[mytablename].push_back("LOCI");
-        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        sql += "Genotype11 varchar(20),";
-    sql += "Genotype12 varchar(20),";
-    sql += "Genotype22 varchar(20),";
-        gendergenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
-    sql += "Overall_Male_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Overall_Male_Freq_Genotype11");
-    gendergenoinsert += ",Overall_Male_Freq_Genotype11";
-    sql += "Overall_Male_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Overall_Male_Freq_Genotype12");
-    gendergenoinsert += ",Overall_Male_Freq_Genotype12";
-    sql += "Overall_Male_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Overall_Male_Freq_Genotype22");
-    gendergenoinsert += ",Overall_Male_Freq_Genotype22";
-    sql += "Overall_Male_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Overall_Male_Count_Genotype11");
-    gendergenoinsert += ",Overall_Male_Count_Genotype11";
-    sql += "Overall_Male_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Overall_Male_Count_Genotype12");
-    gendergenoinsert += ",Overall_Male_Count_Genotype12";
-    sql += "Overall_Male_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Overall_Male_Count_Genotype22");
-    gendergenoinsert += ",Overall_Male_Count_Genotype22";
-    sql += "Overall_Female_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Overall_Female_Freq_Genotype11");
-    gendergenoinsert += ",Overall_Female_Freq_Genotype11";
-    sql += "Overall_Female_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Overall_Female_Freq_Genotype12");
-    gendergenoinsert += ",Overall_Female_Freq_Genotype12";
-    sql += "Overall_Female_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Overall_Female_Freq_Genotype22");
-    gendergenoinsert += ",Overall_Female_Freq_Genotype22";
-    sql += "Overall_Female_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Overall_Female_Count_Genotype11");
-    gendergenoinsert += ",Overall_Female_Count_Genotype11";
-    sql += "Overall_Female_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Overall_Female_Count_Genotype12");
-    gendergenoinsert += ",Overall_Female_Count_Genotype12";
-    sql += "Overall_Female_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Overall_Female_Count_Genotype22");
-    gendergenoinsert += ",Overall_Female_Count_Genotype22";
-    sql = sql.replace(sql.size() - 1, 1, ")");
-
-    gendergenoinsert += ") VALUES (NULL";
-    //Controller::execute_sql(db, sql);
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-    }
-
-    if(options.doParental()){
-        mytablename = base + "_parental_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Parental");
-        primary_table[mytablename].push_back("LOCI");
-        string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        parentalinsert = "INSERT INTO " + mytablename + " (id, fkey";
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
-            parentalinsert += ",Allele" + getString<int>(i + 1);
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Parent_Male_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Parent_Male_Allele" + getString<int>(i + 1) + "_freq");
-            parentalinsert += ",Parent_Male_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Parent_Male_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Parent_Male_Allele" + getString<int>(i + 1) + "_count");
-            parentalinsert += ",Parent_Male_Allele" + getString<int>(i + 1) + "_count";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Parent_Female_Allele" + getString<int>(i + 1) + "_freq REAL,";
-            headers[mytablename].push_back("Parent_Female_Allele" + getString<int>(i + 1) + "_freq");
-            parentalinsert += ",Parent_Female_Allele" + getString<int>(i + 1) + "_freq";
-        }
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Parent_Female_Allele" + getString<int>(i + 1) + "_count integer,";
-            headers[mytablename].push_back("Parent_Female_Allele" + getString<int>(i + 1) + "_count");
-            parentalinsert += ",Parent_Female_Allele" + getString<int>(i + 1) + "_count";
-        }
-
-        sql = sql.replace(sql.size() - 1, 1, ")");
-
-        parentalinsert += ") VALUES (NULL";
-        //Controller::execute_sql(db, sql);
-        myQuery.transaction();
-        Controller::execute_sql(myQuery, sql);
-        myQuery.commit();
-
-        mytablename = base + "_genotype_parental_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Parental Genotype");
-        primary_table[mytablename].push_back("LOCI");
-        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        sql += "Genotype11 varchar(20),";
-    sql += "Genotype12 varchar(20),";
-    sql += "Genotype22 varchar(20),";
-    parentalgenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
-    sql += "Parent_Male_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Parent_Male_Freq_Genotype11");
-    parentalgenoinsert += ",Parent_Male_Freq_Genotype11";
-    sql += "Parent_Male_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Parent_Male_Freq_Genotype12");
-    parentalgenoinsert += ",Parent_Male_Freq_Genotype12";
-    sql += "Parent_Male_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Parent_Male_Freq_Genotype22");
-    parentalgenoinsert += ",Parent_Male_Freq_Genotype22";
-    sql += "Parent_Male_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Parent_Male_Count_Genotype11");
-    parentalgenoinsert += ",Parent_Male_Count_Genotype11";
-    sql += "Parent_Male_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Parent_Male_Count_Genotype12");
-    parentalgenoinsert += ",Parent_Male_Count_Genotype12";
-    sql += "Parent_Male_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Parent_Male_Count_Genotype22");
-    parentalgenoinsert += ",Parent_Male_Count_Genotype22";
-    sql += "Parent_Female_Freq_Genotype11 REAL,";
-    headers[mytablename].push_back("Parent_Female_Freq_Genotype11");
-    parentalgenoinsert += ",Parent_Female_Freq_Genotype11";
-    sql += "Parent_Female_Freq_Genotype12 REAL,";
-    headers[mytablename].push_back("Parent_Female_Freq_Genotype12");
-    parentalgenoinsert += ",Parent_Female_Freq_Genotype12";
-    sql += "Parent_Female_Freq_Genotype22 REAL,";
-    headers[mytablename].push_back("Parent_Female_Freq_Genotype22");
-    parentalgenoinsert += ",Parent_Female_Freq_Genotype22";
-    sql += "Parent_Female_Count_Genotype11 integer,";
-    headers[mytablename].push_back("Parent_Female_Count_Genotype11");
-    parentalgenoinsert += ",Parent_Female_Count_Genotype11";
-    sql += "Parent_Female_Count_Genotype12 integer,";
-    headers[mytablename].push_back("Parent_Female_Count_Genotype12");
-    parentalgenoinsert += ",Parent_Female_Count_Genotype12";
-    sql += "Parent_Female_Count_Genotype22 integer,";
-    headers[mytablename].push_back("Parent_Female_Count_Genotype22");
-    parentalgenoinsert += ",Parent_Female_Count_Genotype22";
-    sql = sql.replace(sql.size() - 1, 1, ")");
-
-    parentalgenoinsert += ") VALUES (NULL";
-	//Controller::execute_sql(db, sql);
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-
-    }
-    if (options.doGroupFile()) {
-        mytablename = base + "_group_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Groups");
-        primary_table[mytablename].push_back("LOCI");
-        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        groupinsert = "INSERT INTO " + mytablename + " (id, fkey";
-        for(int i = 0; i < maxalleles; i++){
-            sql += "Allele" + getString<int>(i + 1) + " varchar(10),";
-            groupinsert += ",Allele" + getString<int>(i + 1);
-        }
-        map<string, vector<Methods::Sample*> >::iterator giter;
-        map<string, vector<Methods::Sample*> > groups = options.getGroups();
-        for (giter = groups.begin(); giter != groups.end(); giter++) {
-            string mygroup = giter->first;
-            for (int i = 0; i < maxalleles; i++) {
-                sql += mygroup + "_Allele" + getString<int>(i + 1) + "_freq REAL,";
-                headers[mytablename].push_back(mygroup + "_Allele" + getString<int>(i + 1) + "_freq");
-                groupinsert += "," + mygroup + "_Allele" + getString<int>(i + 1) + "_freq";
-            }
-            for (int i = 0; i < maxalleles; i++) {
-                sql += mygroup + "_Allele" + getString<int>(i + 1) + "_count integer,";
-                headers[mytablename].push_back(mygroup + "_Allele" + getString<int>(i + 1) + "_count");
-                groupinsert += "," + mygroup + "_Allele" + getString<int>(i + 1) + "_count";
-            }
-        }
-        sql = sql.replace(sql.size() - 1, 1, ")");
-        groupinsert += ") VALUES (NULL";
-        //Controller::execute_sql(db, sql);
-        myQuery.transaction();
-        Controller::execute_sql(myQuery, sql);
-        myQuery.commit();
-
-        mytablename = base + "_genotype_group_" + getString<int>(position);
-        tablename.push_back(mytablename);
-        tablenicknames.push_back("Groups Genotype");
-        primary_table[mytablename].push_back("LOCI");
-        sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-        sql += "fkey integer not null,";
-        sql += "Genotype11 varchar(20),";
-        sql += "Genotype12 varchar(20),";
-        sql += "Genotype22 varchar(20),";
-        groupgenoinsert = "INSERT INTO " + mytablename + " (id, fkey, Genotype11, Genotype12, Genotype22";
-        for (giter = groups.begin(); giter != groups.end(); giter++) {
-            string mygroup = giter->first;
-
-            sql += mygroup + "_Freq_Genotype11 REAL,";
-            headers[mytablename].push_back(mygroup + "_Freq_Genotype11");
-            groupgenoinsert += "," + mygroup + "_Freq_Genotype11";
-            sql += mygroup + "_Freq_Genotype12 REAL,";
-            headers[mytablename].push_back(mygroup + "_Freq_Genotype12");
-            groupgenoinsert += "," + mygroup + "_Freq_Genotype12";
-            sql += mygroup + "_Freq_Genotype22 REAL,";
-            headers[mytablename].push_back(mygroup + "_Freq_Genotype22");
-            groupgenoinsert += "," + mygroup + "_Freq_Genotype22";
-            sql += mygroup + "_Count_Genotype11 REAL,";
-            headers[mytablename].push_back(mygroup + "_Count_Genotype11");
-            groupgenoinsert += "," + mygroup + "_Count_Genotype11";
-            sql += mygroup + "_Count_Genotype12 REAL,";
-            headers[mytablename].push_back(mygroup + "_Count_Genotype12");
-            groupgenoinsert += "," + mygroup + "_Count_Genotype12";
-            sql += mygroup + "_Count_Genotype22 REAL,";
-            headers[mytablename].push_back(mygroup + "_Count_Genotype22");
-            groupgenoinsert += "," + mygroup + "_Count_Genotype22";
-        }
-        sql = sql.replace(sql.size() - 1, 1, ")");
-        groupgenoinsert += ") VALUES (NULL";
-        myQuery.transaction();
-        Controller::execute_sql(myQuery, sql);
-        myQuery.commit();
-    }
-}
-
-    void ProcessAlleleFrequency::run(DataSetObject* ds)
-    {
-    	data_set = ds;
-    	if (options.doGroupFile())
-    	{
-    		options.readGroups(data_set->get_samples());
-    	}
-    	processtest();
-    	return;
-    }
-#endif
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

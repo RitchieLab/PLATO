@@ -1,43 +1,26 @@
 #ifndef PERCENTBYFAMILY_H
 #define PERCENTBYFAMILY_H
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
 #include <vector>
-#include <list>
+#include <string>
 #include <map>
-#include <Marker.h>
-#include <Family.h>
-#include <Globals.h>
+
 #include "Process.h"
-#include <Options.h>
-#include <Sample.h>
+#include <General.h>
 #include <StepOptions.h>
 #include <DataSet.h>
-#include <MethodException.h>
-
-using namespace std;
-using namespace Methods;
-#ifdef PLATOLIB
-using namespace PlatoLib;
-#endif
+#include <Marker.h>
 
 //typedef vector<int> PERCENT;
 
 class PercentByFamily : public Process{
-	static string stepname;
+	static std::string stepname;
 	private:
-		DataSet* data_set;
-		vector<Sample*>* samples;
-		vector<Marker*>* markers;
-		vector<Family*>* families;
-		vector<int>* marker_map;
+		Methods::DataSet* data_set;
+		std::vector<Methods::Sample*>* samples;
+		std::vector<Methods::Marker*>* markers;
+		std::vector<Methods::Family*>* families;
+		std::vector<int>* marker_map;
 		StepOptions options;
 		//Markers* markers;
 		//Families* families;
@@ -53,27 +36,15 @@ class PercentByFamily : public Process{
 		bool overwrite;
 		int order;
 
-		vector<int> fzeros;
-		vector<int> ftotal;
-		vector<int> mzeros;
-		vector<int> mtotal;
-		vector< map<string, int> > enzyme_zeros;
-		vector< map<string, int> > enzyme_total;
+		std::vector<int> fzeros;
+		std::vector<int> ftotal;
+		std::vector<int> mzeros;
+		std::vector<int> mtotal;
+		std::vector< std::map<std::string, int> > enzyme_zeros;
+		std::vector< std::map<std::string, int> > enzyme_total;
 
 	public:
 		PercentByFamily(){
-			/*per_cutoff.push_back(100);
-			per_cutoff.push_back(95);
-			per_cutoff.push_back(90);
-			per_cutoff.push_back(85);
-			per_cutoff.push_back(80);
-			per_cutoff.push_back(75);
-			per_cutoff.push_back(70);
-			per_cutoff.push_back(65);
-			per_cutoff.push_back(60);
-			per_cutoff.push_back(55);
-			per_cutoff.push_back(50);
-			*/
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -85,18 +56,6 @@ class PercentByFamily : public Process{
 			order = 0;
 		};
 		PercentByFamily(float thresh) : threshold(thresh){
-			/*per_cutoff.push_back(100);
-			per_cutoff.push_back(95);
-			per_cutoff.push_back(90);
-			per_cutoff.push_back(85);
-			per_cutoff.push_back(80);
-			per_cutoff.push_back(75);
-			per_cutoff.push_back(70);
-			per_cutoff.push_back(65);
-			per_cutoff.push_back(60);
-			per_cutoff.push_back(55);
-			per_cutoff.push_back(50);
-			*/
 			data_set = NULL;
 			families = NULL;
 			markers = NULL;
@@ -107,13 +66,15 @@ class PercentByFamily : public Process{
 			rank = 0;
 			order =0;
 		};
-		~PercentByFamily(){};
+		virtual ~PercentByFamily(){};
+
+
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();
 		void filter();
-		void process(DataSet*);
-		void setThreshold(string s){threshold = std::atof(s.c_str());};
+		void process(Methods::DataSet*);
+		void setThreshold(std::string s){threshold = std::atof(s.c_str());};
 		//PERCENT* getPerCutoff(){return &per_cutoff;};
 		void FilterSummary();
 		int getOrigNumMarkers(){return orig_num_markers;};
@@ -131,7 +92,7 @@ class PercentByFamily : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
+		//void run(DataSetObject*){};
 		void dump2db(){};
 };
 

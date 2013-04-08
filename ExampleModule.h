@@ -1,39 +1,25 @@
 #ifndef EXAMPLEMODULE_H   //change to actual process name
 #define EXAMPLEMODULE_H   //change to actual process name
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <sstream>
-#include <string>
 #include <vector>
-#include <list>
-#include <map>
-#include "Globals.h"
+#include <string>
+
 #include "Process.h"
-#include <Options.h>
 #include <General.h>
 #include <StepOptions.h>
 #include <DataSet.h>
 
-using namespace std;
-using namespace Methods;
-#ifdef PLATOLIB
-using namespace PlatoLib;
-#endif
+//using namespace std;
+//using namespace Methods;
 
 class ExampleModule : public Process{
 	private:
-		DataSet* data_set;
-		vector<Sample*>* samples;
-		vector<Marker*>* markers;
-		vector<Family*>* families;
-		vector<int>* marker_map;
-		StepOptions options;
+		Methods::DataSet* data_set;
+		std::vector<Methods::Sample*>* samples;
+		std::vector<Methods::Marker*>* markers;
+		std::vector<Methods::Family*>* families;
+		std::vector<int>* marker_map;
+		Methods::StepOptions options;
 		float threshold;
 		int orig_num_markers;
 		int orig_num_families;
@@ -44,9 +30,9 @@ class ExampleModule : public Process{
 		bool _STRATIFY_;
 		bool overwrite;
 		int order;
-		vector<int> homoaffcount;
-		vector<int> homounaffcount;
-		vector<int> homoallcount;
+		std::vector<int> homoaffcount;
+		std::vector<int> homounaffcount;
+		std::vector<int> homoallcount;
 
 
 	public:
@@ -79,11 +65,11 @@ class ExampleModule : public Process{
 			_STRATIFY_ = false;
 			order = 0;
 		};
-		~ExampleModule(){
+		virtual ~ExampleModule(){
 		};
 		void PrintSummary();
 		void filter();
-		void setThreshold(string s){
+		void setThreshold(std::string s){
 			options.setUp(s);
 		};
 		void FilterSummary();
@@ -95,11 +81,11 @@ class ExampleModule : public Process{
 		void setDBOUT(){_DBOUTPUT_ = true;};
 		void setMarkerList(){_MARKERLIST_ = true;};
 		void setStratify(){_STRATIFY_ = true;};
-		void process(DataSet*);
+		void process(Methods::DataSet*);
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		void run(DataSetObject*){};
+		//void run(DataSetObject*){};
 		void dump2db(){};
 };
 

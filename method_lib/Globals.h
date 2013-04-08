@@ -1,10 +1,5 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <vector>
-using namespace std;
 
 namespace Methods{
 /***IF USING MPI, UNCOMMENT BELOW***/

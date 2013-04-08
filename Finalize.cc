@@ -1,20 +1,12 @@
-#include <stdio.h>
 #include <iostream>
 #include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <Globals.h>
-#include <Options.h>
 #include "Finalize.h"
 #include <Helpers.h>
 
-using namespace std;
+using std::string;
+using std::ofstream;
+using std::vector;
+using namespace Methods;
 
 void Finalize::finish(vector<Marker*>* markers, vector<Sample*>* samples, vector<Family*>* families){
 	string mname = opts::_OUTPREFIX_ + "Remaining_makers.txt";

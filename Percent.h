@@ -1,17 +1,6 @@
 #ifndef PERCENT_H
 #define PERCENT_H
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <map>
-
 class Percent{
 	private:
 		float percent;

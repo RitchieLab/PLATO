@@ -20,10 +20,7 @@ bin_PROGRAMS=plato
 
 plato_SOURCES=Chrom.cc \
 Chrom.h \
-Controller.h \
 dcdflib.cpp \
-ExampleModule.cc \
-ExampleModule.h \
 Finalize.cc \
 Finalize.h \
 ipmpar.c \
@@ -120,7 +117,6 @@ Step.h \
 Vars.h \
 wasp.cc \
 wasp.h \
-DataSetObject.h \
 ProcessInteraction.h \
 ProcessInteraction.cpp
 

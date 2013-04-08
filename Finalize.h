@@ -1,25 +1,10 @@
 #ifndef FINALIZE_H
 #define FINALIZE_H
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <bitset>
-#include "Globals.h"
-#include "General.h"
+#include <vector>
 #include "Marker.h"
 #include "Sample.h"
 #include "Family.h"
-using namespace std;
-using namespace Methods;
 
 class Finalize{
 	private:
@@ -28,6 +13,6 @@ class Finalize{
 		Finalize(){
 		};
 		~Finalize(){};
-		void finish(vector<Marker*>*, vector<Sample*>*, vector<Family*>*);
+		void finish(std::vector<Methods::Marker*>*, std::vector<Methods::Sample*>*, std::vector<Methods::Family*>*);
 };
 #endif
