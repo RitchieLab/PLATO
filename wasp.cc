@@ -69,7 +69,6 @@ enum StepValue{
 					   e_mdr,				//MDR
 					   e_mdrpdt,			//MDRPDT
 					   e_cluster_missing,	//cluster-missing
-					   e_mars,				//mars
 					   e_filter_process,		//plato filter-process,
 					   e_fst,				//fst
 					   e_kinship,			//kinship
@@ -190,9 +189,6 @@ void Initialize(){
 	s_mapStepValues["cmh"] = e_cmh;
 	s_mapStepValues["mdr"] = e_mdr;
 	s_mapStepValues["mdrpdt"] = e_mdrpdt;
-#ifdef HAVE_R
-	s_mapStepValues["mars"] = e_mars;
-#endif
 	s_mapStepValues["cluster-missing"] = e_cluster_missing;
 	s_mapStepValues["filter-process"] = e_filter_process;
 	s_mapStepValues["fst"] = e_fst;
