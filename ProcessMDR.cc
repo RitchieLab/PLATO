@@ -39,10 +39,6 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessMDR::stepname = ProcessMDR::doRegister("mdr");
 
@@ -290,11 +286,3 @@ void ProcessMDR::process(DataSet* ds){
     }
 }
 
-#ifdef PLATOLIB
-void ProcessMDR::dump2db(){}//end method dump2db()
-void ProcessMDR::create_tables(){}//end method create_tables()
-void ProcessMDR::run(DataSetObject* ds){}//end method run(DataSetObject*)
-#endif
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

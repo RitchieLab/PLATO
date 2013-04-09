@@ -36,10 +36,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessImputeOutput::stepname = ProcessImputeOutput::doRegister("output-impute");
 
@@ -90,14 +86,4 @@ void ProcessImputeOutput::process(DataSet* ds){
 	Impute.calculate(data_set);
 	}
 }
-#ifdef PLATOLIB
-void ProcessImputeOutput::create_tables(){}
 
-void ProcessImputeOutput::dump2db(){}
-
-void ProcessImputeOutput::run(DataSetObject* ds){}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

@@ -36,22 +36,6 @@ using namespace Methods;
 string ProcessBEAGLEOutput::stepname = ProcessBEAGLEOutput::doRegister("output-beagle");
 
 //define the PlatoLib namespace for use with Plato as a library
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-//Constructor to allow for use as Library with Plato-viewer
-ProcessBEAGLEOutput::ProcessBEAGLEOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output Beagle";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 /*
  *Function: FilterSummary
@@ -124,39 +108,4 @@ void ProcessBEAGLEOutput::process(DataSet* ds){
 	}
 }
 
-#ifdef PLATOLIB
-void ProcessBEAGLEOutput::dump2db(){};
-/*
- * Function: create_tables
- * Description: create db tables for use in process
- * not used
- */
-void ProcessBEAGLEOutput::create_tables(){};
-/*
- * Method: ProcessBEAGLEOutput::run
- * used by Plato-viewer
- */
-void ProcessBEAGLEOutput::run(DataSetObject* ds)
-{
-	data_set = ds;
-
-	Methods::BEAGLEOutput bo;
-#ifdef WIN
-	//use windows version of project path + batchname
-	options.setOverrideOut(projectPath + "\\" + options.convertString(batchname + "_" + name + "_" + getString<int>(position)));
-#else
-	//use non-windows version of project path + batchname
-	options.setOverrideOut(projectPath + "/" + options.convertString(batchname + "_" + name + "_" + getString<int>(position)));
-#endif
-	bo.setOrder(position);
-	bo.setOverwrite(true);
-	bo.setOptions(options);
-	bo.calculate(data_set);
-
-	filenames = bo.get_filenames();
-}
-#endif
-#ifdef PLATOLIB
-}
-#endif
 

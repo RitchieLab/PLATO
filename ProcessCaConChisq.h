@@ -89,9 +89,6 @@ class ProcessCaConChisq : public ProcessImpl<ProcessCaConChisq>{
 			orig_num_families = 0;
 			orig_num_samples = 0;
 		};
-#ifdef PLATOLIB
-		ProcessCaConChisq(string, int, Database*);
-#endif
 
 		virtual ~ProcessCaConChisq();
 
@@ -111,13 +108,5 @@ class ProcessCaConChisq : public ProcessImpl<ProcessCaConChisq>{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void setThreshold(string s){options.setUp(s);};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

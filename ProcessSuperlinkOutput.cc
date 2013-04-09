@@ -33,24 +33,9 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessSuperlinkOutput::stepname = ProcessSuperlinkOutput::doRegister("output-superlink");
 
-#ifdef PLATOLIB
-ProcessSuperlinkOutput::ProcessSuperlinkOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output Superlink";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 void ProcessSuperlinkOutput::FilterSummary(){}
 
@@ -70,11 +55,7 @@ void ProcessSuperlinkOutput::process(DataSet* ds)
 
 	SuperlinkOutput so;
 	so.setOrder(this->order);
-	#ifdef PLATOLIB
-		so.setOverwrite(true);
-	#else
 		so.setOverwrite(this->overwrite);
-	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
 	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
@@ -102,27 +83,6 @@ void ProcessSuperlinkOutput::process(DataSet* ds)
 		so.setOptions(options);
 		so.calculate(data_set);
 	}
-	#ifdef PLATOLIB
-		filenames = so.get_filenames();
-	#endif
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessSuperlinkOutput::create_tables(){}
 
-void ProcessSuperlinkOutput::dump2db(){}
-
-void ProcessSuperlinkOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

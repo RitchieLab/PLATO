@@ -62,12 +62,4 @@ void ProcessClusterMissing::process(DataSet* ds){
 	miss.calculate(opts::_OUTPREFIX_, (options.getOut() + ".txt"));
 
 }
-#ifdef PLATOLIB
-void ProcessClusterMissing::dump2db(){}
-void ProcessClusterMissing::create_tables(){}
-void ProcessClusterMissing::run(DataSetObject* ds){}
-#endif
 
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif

@@ -36,29 +36,11 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessMendelianErrors::stepname = ProcessMendelianErrors::doRegister("mendelian-error");
-#ifdef PLATOLIB
-ProcessMendelianErrors::ProcessMendelianErrors(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Mendelian Errors";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 void ProcessMendelianErrors::setThreshold(string thresh){
 	options.setUp(thresh);
@@ -257,16 +239,10 @@ void ProcessMendelianErrors::process(DataSet* ds){
 	merrors = me.getNumMarkerErrors();
 	ferrors = me.getNumFamilyErrors();
 	serrors = me.getNumSampleErrors();
-	#ifdef PLATOLIB
-		filenames.push_back(me.get_error_filename());
-		filenames.push_back(me.get_level2_filename());
-	#endif
 	if(options.zeroGenos()){
 		zeroErrors();
 	}
-	#ifndef PLATOLIB
 		filter_markers();
-	#endif
 	//resetCounts();
 	//perform_evaluation(false);
 }
@@ -346,125 +322,3 @@ void ProcessMendelianErrors::filter(){
 		}
 	}
 }//end method filter()
-#ifdef PLATOLIB
-void ProcessMendelianErrors::create_tables()
-{
-	Query myQuery(*db);
-	myQuery.transaction();
-    for(int i = 0; i < (int)tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    tablename.clear();
-    primary_table.clear();
-
-    string tempbatch = batchname;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string base = mytablename + tempbatch;
-
-
-    mytablename = base + "_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
-
-    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "ME_count_All integer";
-    headers[mytablename].push_back("ME_count_All");
-    sql += ")";
-    defaultinsert = "INSERT INTO " + mytablename + " (id, fkey, ME_count_ALL) VALUES (NULL";
-    Controller::execute_sql(myQuery, sql);
-
-    mytablename = base + "_samples_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("Samples");
-    primary_table[mytablename].push_back(Vars::SAMPLE_TABLE);
-    sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "ME_count_All integer";
-    headers[mytablename].push_back("ME_count_All");
-    sql += ")";
-    sampleinsert = "INSERT INTO " + mytablename + " (id, fkey, ME_count_ALL) VALUES (NULL";
-    Controller::execute_sql(myQuery, sql);
-
-    mytablename = base + "_pedigrees_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("Pedigrees");
-    primary_table[mytablename].push_back(Vars::PEDIGREE_TABLE);
-    sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "ME_count_All integer";
-    headers[mytablename].push_back("ME_count_All");
-    sql += ")";
-    pedigreeinsert = "INSERT INTO " + mytablename + " (id, fkey, ME_count_ALL) VALUES (NULL";
-    Controller::execute_sql(myQuery, sql);
-
-    myQuery.commit();
-}//end method create_tables()
-
-void ProcessMendelianErrors::dump2db(){
-    create_tables();
-
-    Query myQuery(*db);
-    myQuery.transaction();
-
-    int prev_base = 0;
-    int prev_chrom = -1;
-    for(int i = 0; i < (int)data_set->num_loci(); i++){
-        if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && Helpers::isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
-            string sql = defaultinsert;
-            sql += "," + getString<int>(data_set->get_locus(i)->getSysprobe());
-            sql += "," + getString<int>(merrors[i]);
-            sql += ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-    }
-
-    for(int i = 0; i < (int)data_set->num_pedigrees(); i++){
-        if(data_set->get_pedigree(i)->isEnabled()){
-            string sql = pedigreeinsert;
-            sql += "," + getString<int>(data_set->get_pedigree(i)->getSysid());
-            sql += "," + getString<int>(ferrors[i]);
-            sql += ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-    }
-
-    for(int i = 0; i < data_set->num_inds(); i++){
-        if(data_set->get_sample(i)->isEnabled()){
-            string sql = sampleinsert;
-            sql += "," + getString<int>(data_set->get_sample(i)->getSysid());
-            sql += "," + getString<int>(serrors[i]);
-            sql += ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-    }
-
-    myQuery.commit();
-}//end method dump2db()
-
-void ProcessMendelianErrors::run(DataSetObject* ds)
-{
-#ifdef WIN
-	options.setOverrideOut(projectPath + "\\");
-#else
-	options.setOverrideOut(projectPath + "/");
-#endif
-	process(ds);
-}
-#endif
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

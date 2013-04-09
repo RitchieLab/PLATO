@@ -25,10 +25,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessMendelianErrors : public ProcessImpl<ProcessMendelianErrors>{
 	static string stepname;
@@ -109,9 +105,6 @@ class ProcessMendelianErrors : public ProcessImpl<ProcessMendelianErrors>{
 			rank = 0;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessMendelianErrors(string, int, Database*, string);
-#endif
 		virtual ~ProcessMendelianErrors(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -130,14 +123,6 @@ class ProcessMendelianErrors : public ProcessImpl<ProcessMendelianErrors>{
 		void zeroErrors();
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-				void run(DataSetObject*);
-				void dump2db();
-				void create_tables();
-		#endif
 
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

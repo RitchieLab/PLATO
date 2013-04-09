@@ -30,28 +30,10 @@
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessMitoCheck::stepname = ProcessMitoCheck::doRegister("mito-check");
-#ifdef PLATOLIB
-ProcessMitoCheck::ProcessMitoCheck(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Mito";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 void ProcessMitoCheck::Tokenize(const string& str, vector<string>& tokens, const string& delimiter){
     string::size_type lastPos = str.find_first_not_of(delimiter, 0);
@@ -273,7 +255,6 @@ void ProcessMitoCheck::FilterSummary(){
 
 void ProcessMitoCheck::filter()
 {
-	#ifndef PLATOLIB
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int msize = good_markers.size();//data_set->num_loci();
 		for(int m = 0; m < msize; m++){
@@ -323,7 +304,6 @@ void ProcessMitoCheck::filter()
 			}
 		}
 	}
-	#endif
 }//end method filter()
 
 void ProcessMitoCheck::filter_markers(){
@@ -358,130 +338,4 @@ void ProcessMitoCheck::process(DataSet* ds){
 	error_map = mc.getErrorMap();
 }
 
-#ifdef PLATOLIB
-void ProcessMitoCheck::create_tables()
-{
-	Query myQuery(*db);
-	myQuery.transaction();
 
-    for(unsigned int i = 0; i < tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    tablename.clear();
-    primary_table.clear();
-
-    string tempbatch = batchname;
-    for(unsigned int i = 0; i < tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(unsigned int i = 0; i < tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-
-    string base = mytablename + base;
-    mytablename += base + "_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
-
-
-    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "Num_errors integer";
-    headers[mytablename].push_back("Num_errors");
-    sql += ")";
-    defaultinsert = "INSERT INTO " + mytablename + " (id, fkey, Num_errors) VALUES (NULL";
-    Controller::execute_sql(myQuery, sql);
-
-    mytablename = base + "_samples_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("Samples");
-    primary_table[mytablename].push_back(Vars::SAMPLE_TABLE);
-    sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "Num_errors integer";
-    headers[mytablename].push_back("Num_errors");
-    sql += ")";
-    sampleinsert = "INSERT INTO " + mytablename + " (id, fkey, Num_errors) VALUES (NULL";
-    Controller::execute_sql(myQuery, sql);
-
-    myQuery.commit();
-}//end method create_tables()
-
-void ProcessMitoCheck::dump2db()
-{
-    create_tables();
-
-    Query myQuery(*db);
-    myQuery.transaction();
-
-    int msize = data_set->num_loci();
-
-    for(int i = 0; i < msize; i++){
-        if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && data_set->get_locus(i)->getChrom() == opts::_MITO_){
-            if(options.doChrom()){
-                if(!options.checkChrom(data_set->get_locus(i)->getChrom())){
-                    continue;
-                }
-                if(!options.checkBp(data_set->get_locus(i)->getBPLOC())){
-                    continue;
-                }
-            }
-            string sql = defaultinsert;
-            sql += "," + getString<int>(data_set->get_locus(i)->getSysprobe());
-            sql += "," + getString<int>(merrors[i]);
-            sql += ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-        data_set->get_locus(i)->setFlag(false);
-    }
-
-    int ssize = data_set->num_inds();
-    for(int i = 0; i < ssize; i++){
-        if(data_set->get_sample(i)->isEnabled()){
-            string sql = sampleinsert;
-            sql += "," + getString<int>(data_set->get_sample(i)->getSysid());
-            sql += "," + getString<int>(serrors[i]);
-            sql += ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-    }
-    myQuery.commit();
-}//end method dump2db()
-
-void ProcessMitoCheck::resize(int i){}
-
-void ProcessMitoCheck::run(DataSetObject* ds)
-{
-    data_set = ds;
-
-#ifdef WIN
-	options.setOverrideOut(projectPath + "\\");
-#else
-	options.setOverrideOut(projectPath + "/");
-#endif
-
-    MitoCheck mc(data_set);
-    mc.setOptions(options);
-    mc.calculate();
-    merrors = mc.getNumMarkerErrors();
-    serrors = mc.getNumSampleErrors();
-    error_map = mc.getErrorMap();
-
-#ifdef PLATOLIB
-    PrintSummary();
-#endif
-}
-
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

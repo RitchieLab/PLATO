@@ -25,10 +25,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessLD : public ProcessImpl<ProcessLD>{
 	static string stepname;
@@ -119,13 +115,5 @@ class ProcessLD : public ProcessImpl<ProcessLD>{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

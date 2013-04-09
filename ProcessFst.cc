@@ -90,7 +90,6 @@ void ProcessFst::process(DataSet* ds) {
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
-	#ifndef PLATOLIB
 		string fname = opts::_OUTPREFIX_ + "fst" + options.getOut() + ".txt";
 		if (!overwrite) {
 			fname += "." + getString<int> (order);
@@ -101,7 +100,6 @@ void ProcessFst::process(DataSet* ds) {
 			throw MethodException("");
 		}
 		eout.precision(4);
-	#endif
 	//    DataSet* trimmed_data = new DataSet();
 	//    trimmed_data->set_markers(ds->get_markers());
 	//    trimmed_data->set_covariates(ds->get_covariates());
@@ -125,26 +123,19 @@ void ProcessFst::process(DataSet* ds) {
 	vector<int> good_markers = Helpers::findValidMarkersIndexes(ds->get_markers(), &options);
 	int msize = good_markers.size();
 
-	#ifndef PLATOLIB
 		eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
 			opts::addFile("Marker", stepname, fname);
 
 			opts::addHeader(fname, "FSTWC");
 			opts::addHeader(fname, "FSTRH");
 	//		opts::addHeader(fname, "FSTHM");
-	#endif
 
 		for (int m = 0; m < (int) msize; m++){//ds->num_loci(); m++) {
 			Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 			if (mark->isEnabled()){// && isValidMarker(mark, &options, prev_base,prev_chrom)) {
 				fst.calculate(good_markers[m]);
-#ifdef PLATOLIB
-				fst_res.push_back(fst.getFst());
-				fst_rh_res.push_back(fst.getFstRH());
-#else
 				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH()// << "\t" << fst.getFstHM()
 						<< endl;
-#endif
 			}
 		}
 
@@ -229,103 +220,6 @@ void ProcessFst::process(DataSet* ds) {
 	 }
 	 }
 	 */
-#ifndef PLATOLIB
 	eout.close();
-#endif
 }//end method process(DataSet*)
-#ifdef PLATOLIB
 
-void ProcessFst::create_tables(){
-	Query myQuery(*db);
-    for(unsigned int i = 0; i < tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    tablename.clear();
-    primary_table.clear();
-
-    string tempbatch = batchname;
-    for(unsigned int i = 0; i < tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(unsigned int i = 0; i < tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string base = mytablename + tempbatch;
-
-    mytablename = base + "_marker_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
-
-    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "FST REAL,";
-    headers[mytablename].push_back("FST");
-    sql += "FST_RH REAL";
-    headers[mytablename].push_back("FST_RH");
-    sql += ")";
-    defaultinsert = "INSERT INTO " + mytablename + " (id, fkey, FST, FST_RH) VALUES (NULL";
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-}
-
-void ProcessFst::dump2db(){
-        create_tables();
-        Query myQuery(*db);
-
-        myQuery.transaction();
-        int msize = data_set->num_loci();
-
-        int prev_base = 0;
-        int prev_chrom = -1;
-
-        int count = 0;
-        for(int i = 0; i < msize; i++){
-            Marker* m = data_set->get_locus(i);
-            if(m->isEnabled() && Helpers::isValidMarker(m, &options, prev_base, prev_chrom)){
-                string sql = defaultinsert;
-                sql += "," + getString<int>(data_set->get_locus(i)->getSysprobe());
-                sql += "," + ((isnan(fst_res[count]) || isinf(fst_res[count])) ? "NULL" : getString<float>(fst_res[count]));
-                sql += "," + ((isnan(fst_rh_res[count]) || isinf(fst_rh_res[count])) ? "NULL" : getString<float>(fst_rh_res[count]));
-                sql += ")";
-                Controller::execute_sql(myQuery, sql);
-                count++;
-            }
-            data_set->get_locus(i)->setFlag(false);
-        }
-        myQuery.commit();
-}
-
-void ProcessFst::run(DataSetObject* ds){
-//    data_set = ds;
-//
-//    Fst fst;
-//    fst.set_parameters(&options);
-//    fst.resetDataSet(ds);
-//    int prev_base = 0;
-//    int prev_chrom = -1;
-//
-//    int msize = ds->num_loci();
-//    for(int m = 0; m < msize; m++){
-//        Marker* mark = ds->get_locus(m);
-//        if(mark->isEnabled() && Helpers::isValidMarker(mark, &options, prev_base, prev_chrom)){
-//            fst.calculate(m);
-//            fst_res.push_back(fst.getFst());
-//            fst_rh_res.push_back(fst.getFstRH());
-//        }
-//    }
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

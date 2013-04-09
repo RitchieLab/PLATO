@@ -35,21 +35,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessMDROutput::ProcessMDROutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output MDR";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 string ProcessMDROutput::stepname = ProcessMDROutput::doRegister("output-mdr");
 
@@ -97,27 +82,3 @@ void ProcessMDROutput::process(DataSet* ds){
 	mdr.calculate(data_set);
 	}
 }
-#ifdef PLATOLIB
-void ProcessMDROutput::dump2db(){}//end method dump2db()
-void ProcessMDROutput::create_tables(){}//end method create_tables()
-void ProcessMDROutput::run(DataSetObject* ds)
-{
-    data_set = ds;
-
-    MDROutput Mdr;
-#ifdef WIN
-    options.setOverrideOut(projectPath + "\\" + options.convertString(batchname + "_" + name + "_" + getString<int>(position)));
-#else
-    options.setOverrideOut(projectPath + "/" + options.convertString(batchname + "_" + name + "_" + getString<int>(position)));
-#endif
-    Mdr.setOrder(position);
-    Mdr.setOverwrite(true);
-    Mdr.setOptions(options);
-    Mdr.calculate(data_set);
-
-    filenames = Mdr.get_filenames();
-}//end method run(DataSetObject*)
-#endif
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

@@ -50,11 +50,7 @@ void ProcessGRROutput::process(DataSet* ds){
 	data_set = ds;
 
 	GRROutput grr;
-#ifdef PLATOLIB
-	grr.setOverwrite(true);
-#else
 	grr.setOverwrite(this->overwrite);
-#endif
 	grr.setOrder(this->order);
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
@@ -69,49 +65,17 @@ void ProcessGRROutput::process(DataSet* ds){
 			ds.set_traits(data_set->get_traits());
 			ds.recreate_family_vector();
 			string tempout = options.getOut();
-#ifdef PLATOLIB
-			FixOutputName(i, tempout);
-#else
 			options.setOut("_random_set_" + getString<int>(i + 1) + tempout);
-#endif
 			grr.setOptions(options);
 			grr.calculate(&ds);
 			options.setOut(tempout);
-#ifdef PLATOLIB
-			filenames = grr.get_filenames();
-#endif
 			ds.clear_all();
 		}
 	}
 	else
 	{
-#ifdef PLATOLIB
-		FixOutputName(1, options.getOut());
-#endif
 		grr.setOptions(options);
 		grr.calculate(data_set);
 	}
 }//end method process(DataSet*)
-#ifdef PLATOLIB
-void ProcessGRROutput::dump2db(){}
 
-void ProcessGRROutput::create_tables(){}
-
-void ProcessGRROutput::run(DataSetObject* ds)
-{
-	process(ds);
-}
-
-void ProcessGRROutput::FixOutputName(int i, string tempout)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
-	#else
-		options.setOverrideOut(projectPath + "/" + "_random-set_" + getString<int>(i + 1) + tempout);
-	#endif
-}
-#endif
-
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif

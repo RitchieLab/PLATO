@@ -25,10 +25,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessMarkerGenoEff : public ProcessImpl<ProcessMarkerGenoEff>{
 	static string stepname;
@@ -83,9 +79,6 @@ class ProcessMarkerGenoEff : public ProcessImpl<ProcessMarkerGenoEff>{
 			_STRATIFY_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessMarkerGenoEff(string, int, Database*);
-#endif
 		virtual ~ProcessMarkerGenoEff(){
 		zeros.resize(0);
 		total.resize(0);
@@ -119,13 +112,5 @@ class ProcessMarkerGenoEff : public ProcessImpl<ProcessMarkerGenoEff>{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-#ifdef PLATOLIB
-		void run(DataSetObject*);
-		void dump2db();
-		void create_tables();
-#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

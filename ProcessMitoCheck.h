@@ -25,10 +25,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessMitoCheck : public ProcessImpl<ProcessMitoCheck>{
 	static string stepname;
@@ -94,9 +90,6 @@ class ProcessMitoCheck : public ProcessImpl<ProcessMitoCheck>{
 			order =0;
 			overwrite = true;
 		};
-#ifdef PLATOLIB
-		ProcessMitoCheck(string, int, Database*, string);
-#endif
 		virtual ~ProcessMitoCheck(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -122,14 +115,5 @@ class ProcessMitoCheck : public ProcessImpl<ProcessMitoCheck>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-			void resize(int);
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

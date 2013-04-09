@@ -35,21 +35,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessPDT2Output::ProcessPDT2Output(string bn, int pos, Database* pdb, string projPath)
-{
-    name = "Output PDT2";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-    projectPath = projPath;
-}
-#endif
 
 string ProcessPDT2Output::stepname = ProcessPDT2Output::doRegister("output-pdt2");
 
@@ -97,26 +82,7 @@ void ProcessPDT2Output::process(DataSet* ds){
 	pdt2.setOptions(options);
 	pdt2.calculate(data_set);
 	}
-#ifdef PLATOLIB
-	filenames = pdt2.get_filenames();
-#endif
 }//end method process(DataSet*)
 
-#ifdef PLATOLIB
-void ProcessPDT2Output::dump2db(){}
-void ProcessPDT2Output::create_tables(){}
-void ProcessPDT2Output::run(DataSetObject* ds)
-{
-#ifdef WIN
-	options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-#else
-	options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-#endif
-	process(ds);
-}
-#endif
 
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif
 

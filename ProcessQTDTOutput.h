@@ -27,10 +27,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessQTDTOutput : public ProcessImpl<ProcessQTDTOutput>{
 	static string stepname;
@@ -105,9 +101,6 @@ class ProcessQTDTOutput : public ProcessImpl<ProcessQTDTOutput>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessQTDTOutput(string, int, Database*, string);
-#endif
 		virtual ~ProcessQTDTOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -135,13 +128,5 @@ class ProcessQTDTOutput : public ProcessImpl<ProcessQTDTOutput>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

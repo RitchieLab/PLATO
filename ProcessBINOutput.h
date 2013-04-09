@@ -25,10 +25,6 @@
 using namespace std;
 using namespace Methods;
 //define the PlatoLib namespace for use with Plato as a library
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessBINOutput : public ProcessImpl<ProcessBINOutput>{
 	static string stepname;
@@ -100,9 +96,6 @@ class ProcessBINOutput : public ProcessImpl<ProcessBINOutput>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessBINOutput(string, int, Database*, string);
-#endif
 		virtual ~ProcessBINOutput();
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -134,14 +127,6 @@ class ProcessBINOutput : public ProcessImpl<ProcessBINOutput>{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
 //define the PlatoLib namespace for use with Plato as a library
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

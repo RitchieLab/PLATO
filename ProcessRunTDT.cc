@@ -21,28 +21,11 @@
 //#include "ChiSquare.h"
 #include <Helpers.h>
 #include <cdflib.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessRunTDT::stepname = ProcessRunTDT::doRegister("tdt");
-#ifdef PLATOLIB
-ProcessRunTDT::ProcessRunTDT(string bn, int pos, Database* pdb)
-{
-    name = "TDT";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-}
-#endif
 
 void ProcessRunTDT::PrintSummary(){
 	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
@@ -271,7 +254,6 @@ void ProcessRunTDT::PrintSummary(){
 
 void ProcessRunTDT::filter()
 {
-	#ifndef PLATOLIB
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
 		int size = good_markers.size();//data_set->num_loci();
 //		int prev_base = 0;
@@ -293,7 +275,6 @@ void ProcessRunTDT::filter()
 			}
 		}
 	}
-	#endif
 }//end method filter()
 
 void ProcessRunTDT::setThreshold(string thresh){
@@ -367,124 +348,4 @@ void ProcessRunTDT::process(DataSet* ds)
 	}
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessRunTDT::create_tables()
-{
-	Query myQuery(*db);
-	myQuery.transaction();
-    for(int i = 0; i < (int)tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    primary_table.clear();
-    tablename.clear();
 
-    string tempbatch = batchname;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-
-    mytablename += tempbatch + "_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
-
-    string sql = "CREATE TABLE " + tablename.at(0) + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "chi_square REAL,";
-    headers[tablename.at(0)].push_back("chi_square");
-    sql += "pvalue REAL,";
-    headers[tablename.at(0)].push_back("pvalue");
-    sql += "neglog_pvalue REAL,";
-    headers[tablename.at(0)].push_back("neglog_pvalue");
-    sql += "num_fams integer,";
-    headers[tablename.at(0)].push_back("num_fams");
-    sql += "transmitted integer,";
-    headers[tablename.at(0)].push_back("transmitted");
-    sql += "untransmitted integer,";
-    headers[tablename.at(0)].push_back("untransmitted");
-    sql += "a1 varchar(10),";
-    sql += "a2 varchar(10),";
-    sql += "odds_ratio REAL,";
-    headers[tablename.at(0)].push_back("odds_ratio");
-    sql += "L" + getString<double>(options.getCI() * 100) + " REAL,";
-    headers[tablename.at(0)].push_back("L" + getString<double>(options.getCI() * 100));
-    sql += "U" + getString<double>(options.getCI() * 100) + " REAL)";
-    headers[tablename.at(0)].push_back("U" + getString<double>(options.getCI() * 100));
-    cout << sql << endl;
-
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-}//end method create_tables()
-
-void ProcessRunTDT::dump2db()
-{
-    create_tables();
-
-    string sql = "";
-
-    int msize = data_set->num_loci();
-
-    double zt = Helpers::ltqnorm(1 - (1 - options.getCI()) / 2);//Methods::ltqnorm(1 - (1 - options.getCI()) / 2);
-
-    int prev_base = 0;
-    int prev_chrom = -1;
-    cout << "START TDT INSERT" << endl;
-//    sql = "BEGIN;\n";
-
-    Query myQuery(*db);
-    myQuery.transaction();
-
-    for(int i = 0; i < msize; i++){
-        if(data_set->get_locus(i)->isEnabled() && !data_set->get_locus(i)->isFlagged() && Helpers::isValidMarker(data_set->get_locus(i), &options, prev_base, prev_chrom)){
-            sql = "INSERT INTO " + tablename.at(0) + " (id, fkey, chi_square, pvalue, neglog_pvalue, num_fams, transmitted, untransmitted, a1, a2, odds_ratio, ";
-            sql += "L" + getString<double>(options.getCI() * 100) + ",";
-            sql += "U" + getString<double>(options.getCI() * 100) + ") VALUES (NULL, ";
-            sql += getString<int>(data_set->get_locus(i)->getSysprobe()) + ",";
-            //sql += "(SELECT id from LOCI WHERE name = '" + data_set->get_locus(i)->getRSID() + "' ";
-            //sql += "AND chrom = '" + getString<int>(data_set->get_locus(i)->getChrom()) + "' ";
-            //sql += "AND bploc = '" + getString<int>(data_set->get_locus(i)->getBPLOC()) + "'), ";
-            sql += (isnan(chi[i]) || isinf(chi[i])) ? "NULL," : getString<double>(chi[i]) + ", ";
-            sql += (isnan(pval[i]) || isinf(pval[i])) ? "NULL," : getString<double>(pval[i]) + ", ";
-            sql += (isnan((double)std::abs(log10(pval[i]))) || isinf((double)std::abs(log10(pval[i])))) ? "NULL," : getString<double>((double)std::abs(log10(pval[i]))) + ", ";
-            sql += getString<int>(fams_used[i]) + ", ";
-            sql += getString<int>(trans[i]) + ", ";
-            sql += getString<int>(untrans[i]) + ", ";
-            sql += "'" + data_set->get_locus(i)->getAllele1() + "', ";
-            sql += "'" + data_set->get_locus(i)->getAllele2() + "', ";
-            double OR = (double)trans[i] / (double)untrans[i];
-            double OR_lower = exp(log(OR) - zt * sqrt(1/trans[i] + 1/untrans[i]));
-            double OR_upper = exp(log(OR) + zt * sqrt(1/trans[i] + 1/untrans[i]));
-            sql += (isnan(OR) || isinf(OR)) ? "NULL," : getString<double>(OR) + ", ";
-            sql += (isnan(OR_lower) || isinf(OR_lower))? "NULL," : getString<double>(OR_lower) + ", ";
-            sql += (isnan(OR_upper) || isinf(OR_upper)) ? "NULL)" : getString<double>(OR_upper) + ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-        data_set->get_locus(i)->setFlag(false);
-    }
-
-    myQuery.commit();
-
-    cout << "END TDT INSERT" << endl;
-    hasresults = true;
-}//end method dump2db()
-
-void ProcessRunTDT::run(DataSetObject* ds)
-{
-	process(ds);
-}//end method run(DataSetObject* ds)
-
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

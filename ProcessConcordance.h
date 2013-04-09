@@ -27,10 +27,6 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessConcordance : public ProcessImpl<ProcessConcordance>{
 	static string stepname;
@@ -96,9 +92,6 @@ class ProcessConcordance : public ProcessImpl<ProcessConcordance>{
 			check_markers.resize(0);
 			check_marker_map.clear();
 		};
-#ifdef PLATOLIB
-		ProcessConcordance(string, int, Database*, string);
-#endif
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -125,14 +118,5 @@ class ProcessConcordance : public ProcessImpl<ProcessConcordance>{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-			void resize(int);
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

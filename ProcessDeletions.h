@@ -92,9 +92,6 @@ class ProcessDeletions : public ProcessImpl<ProcessDeletions>{
 			orig_num_families = 0;
 			orig_num_samples = 0;
 		};
-#ifdef PLATOLIB
-		ProcessDeletions(string, int, Database*, string);
-#endif
 		virtual ~ProcessDeletions(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -118,14 +115,5 @@ class ProcessDeletions : public ProcessImpl<ProcessDeletions>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-			void resize(int);
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

@@ -31,21 +31,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessQTDTOutput::ProcessQTDTOutput(string bn, int pos, Database* pdb, string projPath)
-{
-    name = "Output QTDT";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-    projectPath = projPath;
-}
-#endif
 
 string ProcessQTDTOutput::stepname = ProcessQTDTOutput::doRegister("output-qtdt");
 
@@ -66,11 +51,7 @@ void ProcessQTDTOutput::process(DataSet* ds)
 	data_set = ds;
 
 	QTDTOutput qtdt;
-	#ifdef PLATOLIB
-		qtdt.setOverwrite(true);
-	#else
 		qtdt.setOverwrite(this->overwrite);
-	#endif
 	qtdt.setOrder(this->order);
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
 	{
@@ -99,27 +80,6 @@ void ProcessQTDTOutput::process(DataSet* ds)
 		qtdt.setOptions(options);
 		qtdt.calculate(data_set);
 	}
-	#ifdef PLATOLIB
-		filenames = qtdt.get_filenames();
-	#endif
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessQTDTOutput::dump2db(){}
 
-void ProcessQTDTOutput::create_tables(){}
-
-void ProcessQTDTOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

@@ -36,21 +36,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessTPEDOutput::ProcessTPEDOutput(string bn, int pos, Database* pdb, string projPath)
-{
-    name = "Output TPED";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-    projectPath = projPath;
-}
-#endif
 
 string ProcessTPEDOutput::stepname = ProcessTPEDOutput::doRegister("output-tped");
 
@@ -102,22 +87,4 @@ void ProcessTPEDOutput::process(DataSet* ds)
 	}
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessTPEDOutput::dump2db(){}
 
-void ProcessTPEDOutput::create_tables(){}
-
-void ProcessTPEDOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

@@ -39,10 +39,6 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessMDRPDT::stepname = ProcessMDRPDT::doRegister("mdrpdt");
 
@@ -155,12 +151,4 @@ void ProcessMDRPDT::process(DataSet* ds){
     	mdrout.close();
     }
 }
-#ifdef PLATOLIB
-void ProcessMDRPDT::create_tables(){}
-void ProcessMDRPDT::dump2db(){}
-void ProcessMDRPDT::run(DataSetObject* ds){}
-#endif
 
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

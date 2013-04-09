@@ -26,10 +26,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessSuperlinkOutput : public ProcessImpl<ProcessSuperlinkOutput>{
 	private:
@@ -104,9 +100,6 @@ class ProcessSuperlinkOutput : public ProcessImpl<ProcessSuperlinkOutput>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessSuperlinkOutput(string, int, Database*, string);
-#endif
 		virtual ~ProcessSuperlinkOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -151,13 +144,5 @@ class ProcessSuperlinkOutput : public ProcessImpl<ProcessSuperlinkOutput>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

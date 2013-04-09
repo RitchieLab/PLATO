@@ -124,14 +124,5 @@ class ProcessHomozygous : public ProcessImpl<ProcessHomozygous>{
 		void perform_homozyg_permutations();
 		Sample* findRandomSample(map<Sample*, bool>);
 		void resize(int);
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-			void FixOutputName();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

@@ -36,21 +36,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessPHASEOutput::ProcessPHASEOutput(string bn, int pos, Database* pdb, string projPath)
-{
-    name = "Output Phase";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-    projectPath = projPath;
-}
-#endif
 
 string ProcessPHASEOutput::stepname = ProcessPHASEOutput::doRegister("output-phase");
 
@@ -72,11 +57,7 @@ void ProcessPHASEOutput::process(DataSet* ds)
 
 	PHASEOutput phase;
 	phase.setOrder(this->order);
-	#ifdef PLATOLIB
-		phase.setOverwrite(true);
-	#else
 		phase.setOverwrite(this->overwrite);
-	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
 	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
@@ -104,29 +85,8 @@ void ProcessPHASEOutput::process(DataSet* ds)
 		phase.setOptions(options);
 		phase.calculate(data_set);
 	}
-	#ifdef PLATOLIB
-		filenames = phase.get_filenames();
-	#endif
 }//end method Process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessPHASEOutput::create_tables(){}
 
-void ProcessPHASEOutput::dump2db(){}
-
-void ProcessPHASEOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-		process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif
 
 

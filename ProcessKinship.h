@@ -26,10 +26,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessKinship : public ProcessImpl<ProcessKinship>{
 	static string stepname;
@@ -94,9 +90,6 @@ class ProcessKinship : public ProcessImpl<ProcessKinship>{
 			run_start = -1;
 			run_end = -1;
 		};
-#ifdef PLATOLIB
-		ProcessKinship(string, int, Database*, string);
-#endif
 		virtual ~ProcessKinship(){
 		};
 		//void process(Connection*, Families*, Markers*);
@@ -125,14 +118,5 @@ class ProcessKinship : public ProcessImpl<ProcessKinship>{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-#ifdef PLATOLIB
-		void run(DataSetObject*);
-		void dump2db();
-		void create_tables();
-		void resize(int);
-#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

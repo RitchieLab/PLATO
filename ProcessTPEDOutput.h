@@ -24,10 +24,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessTPEDOutput : public ProcessImpl<ProcessTPEDOutput>{
 	static string stepname;
@@ -99,9 +95,6 @@ class ProcessTPEDOutput : public ProcessImpl<ProcessTPEDOutput>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessTPEDOutput(string, int, Database*, string);
-#endif
 		virtual ~ProcessTPEDOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
@@ -133,13 +126,5 @@ class ProcessTPEDOutput : public ProcessImpl<ProcessTPEDOutput>{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

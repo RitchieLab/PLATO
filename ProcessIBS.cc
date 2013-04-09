@@ -67,10 +67,6 @@ void ProcessIBS::process(DataSet* ds){
 	ibs.resetDataSet(data_set);
 	ibs.set_parameters(&options);
 	int ssize = data_set->num_inds();
-#ifdef PLATOLIB
-	ibs.setOverwrite(true);
-	ibs.setRank(position);
-#endif
 ////	int msize = data_set->num_loci();
 
 	//calculate IBS by all pairs
@@ -90,9 +86,6 @@ void ProcessIBS::process(DataSet* ds){
 			throw MethodException("");
 		}
 
-		#ifdef PLATOLIB
-				filenames.push_back(filename);
-		#endif
 
 		out.precision(4);
 		out << "FamID1\tInd1\tFamID2\tInd2\tNum_Comps\tIBS_AVG\n";
@@ -129,9 +122,6 @@ void ProcessIBS::process(DataSet* ds){
 			throw MethodException("");
 		}
 
-		#ifdef PLATOLIB
-				filenames.push_back(filename2);
-		#endif
 
 		rawout.precision(4);
 		rawout << "SNP\tFamID1\tInd1\tFamID2\tInd2\tIBS\n";
@@ -193,9 +183,6 @@ void ProcessIBS::process(DataSet* ds){
 			throw MethodException("");
 		}
 
-		#ifdef PLATOLIB
-				filenames.push_back(filename2);
-		#endif
 
 		rawout.precision(4);
 		rawout << "FamID1\tFamID2\tPaternal_avg\tMaternal_avg\tITBS_avg\tNsnps\n";
@@ -372,21 +359,4 @@ void ProcessIBS::process(DataSet* ds){
 
 }
 
-#ifdef PLATOLIB
-void ProcessIBS::create_tables(){}
-void ProcessIBS::dump2db(){}
-void ProcessIBS::run(DataSetObject* ds)
-{
-#ifdef PLATOLIB
-	options.setOverrideOut(projectPath + "\\");
-#else
-	options.setOverrideOut(projectPath + "/");
-#endif
-	process(ds);
-}
 
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

@@ -39,21 +39,6 @@
 //#include "Chrom.h"
 //#include "Families.h"
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessKinship::ProcessKinship(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Kinship";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 string ProcessKinship::stepname = ProcessKinship::doRegister("kinship");
 
@@ -163,25 +148,5 @@ void ProcessKinship::process(DataSet* ds) {
 			}
 		}
 	eout.close();
-	#ifdef PLATOLIB
-		filenames.push_back(fname);
-	#endif
 }
 
-#ifdef PLATOLIB
-void ProcessKinship::create_tables(){}
-void ProcessKinship::dump2db(){}
-void ProcessKinship::resize(int i){}
-void ProcessKinship::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\");
-	#else
-		options.setOverrideOut(projectPath + "/");
-	#endif
-	process(ds);
-}
-#endif
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

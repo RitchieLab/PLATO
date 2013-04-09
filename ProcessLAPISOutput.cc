@@ -82,20 +82,4 @@ void ProcessLAPISOutput::process(DataSet* ds){
 	}
 }
 
-#ifdef PLATOLIB
-void ProcessLAPISOutput::dump2db(){}
-void ProcessLAPISOutput::create_tables(){}
-void ProcessLAPISOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + "input_lapis");
-	#else
-		options.setOverrideOut(projectPath + "/" + "input_lapis");
-	#endif
-	process(ds);
-}
-#endif
 
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

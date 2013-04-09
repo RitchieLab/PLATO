@@ -26,10 +26,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessLogReg : public ProcessImpl<ProcessLogReg>{
 	static string stepname;
@@ -93,9 +89,6 @@ class ProcessLogReg : public ProcessImpl<ProcessLogReg>{
 			run_start = -1;
 			run_end = -1;
 		};
-#ifdef PLATOLIB
-		ProcessLogReg(string, int, Database*);
-#endif
 		virtual ~ProcessLogReg(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
@@ -119,13 +112,5 @@ class ProcessLogReg : public ProcessImpl<ProcessLogReg>{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

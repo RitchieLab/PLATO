@@ -25,10 +25,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 //ntypedef vector<int> PERCENT;
 
@@ -106,9 +102,6 @@ class ProcessSampleGenoEff : public ProcessImpl<ProcessSampleGenoEff>{
 		 orig_num_families = 0;
 		 orig_num_samples = 0;
 		};
-#ifdef PLATOLIB
-		ProcessSampleGenoEff(string, int, Database*);
-#endif
 		virtual ~ProcessSampleGenoEff(){
 		zeros.resize(0);
 		total.resize(0);
@@ -139,13 +132,5 @@ class ProcessSampleGenoEff : public ProcessImpl<ProcessSampleGenoEff>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

@@ -26,10 +26,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessRunTDT : public ProcessImpl<ProcessRunTDT>{
 	static string stepname;
@@ -84,9 +80,6 @@ class ProcessRunTDT : public ProcessImpl<ProcessRunTDT>{
 			orig_num_markers = 0;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessRunTDT(string, int, Database*);
-#endif
 		virtual ~ProcessRunTDT(){};
 		void PrintSummary();
 		void filter();
@@ -102,13 +95,5 @@ class ProcessRunTDT : public ProcessImpl<ProcessRunTDT>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

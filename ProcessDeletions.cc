@@ -86,19 +86,10 @@ void ProcessDeletions::process(DataSet* ds){
 	Deletions dels(data_set);
 	dels.setOptions(&options);
 	dels.setOrder(this->order);
-#ifdef PLATOLIB
-	options.setOverrideOut(projectPath + "\\");
-	dels.setOverwrite(true);
-#else
 	dels.setOverwrite(this->overwrite);
-#endif
 
 	dels.calculate();
 
-#ifdef PLATOLIB
-	filenames.push_back(dels.get_default_filename());
-	filenames.push_back(dels.get_density_filename());
-#endif
 
 }
 
@@ -112,19 +103,4 @@ void ProcessDeletions::filter(){
 }
 
 
-#ifdef PLATOLIB
-void ProcessDeletions::create_tables(){}
 
-void ProcessDeletions::dump2db(){}
-
-void ProcessDeletions::resize(int i){}
-
-void ProcessDeletions::run(DataSetObject* ds)
-{
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

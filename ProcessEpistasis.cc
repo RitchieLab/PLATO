@@ -36,10 +36,6 @@
 #include <General.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessEpistasis::stepname = ProcessEpistasis::doRegister("epistasis");
 
@@ -66,14 +62,4 @@ void ProcessEpistasis::process(DataSet* ds){
 	epi.setOptions(options);
 	epi.calculate(data_set);
 }
-#ifdef PLATOLIB
-void ProcessEpistasis::dump2db(){}
 
-void ProcessEpistasis::create_tables(){}
-
-void ProcessEpistasis::run(DataSetObject* ds){}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

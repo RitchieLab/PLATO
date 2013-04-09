@@ -37,21 +37,6 @@
 #include <Helpers.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessBINOutput::ProcessBINOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output Bin";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 string ProcessBINOutput::stepname = ProcessBINOutput::doRegister("output-bin");
 
@@ -98,32 +83,4 @@ void ProcessBINOutput::process(DataSet* ds){
 	BIN.calculate(data_set);
 	}
 }
-#ifdef PLATOLIB
-void ProcessBINOutput::dump2db(){}
 
-void ProcessBINOutput::create_tables(){}
-
-void ProcessBINOutput::run(DataSetObject* ds)
-{
-	data_set = ds;
-
-	Methods::BINOutput Bin;
-#ifdef WIN
-	//use windows version of project path + batchname
-	options.setOverrideOut(projectPath + "\\" + options.convertString(batchname + "_" + name + "_" + getString<int>(position)));
-#else
-	//use non-windows version of project path + batchname
-	options.setOverrideOut(projectPath + "/" + options.convertString(batchname + "_" + name + "_" + getString<int>(position)));
-#endif
-	Bin.setOrder(position);
-	Bin.setOverwrite(true);
-	Bin.setOptions(options);
-	Bin.calculate(data_set);
-
-	filenames = Bin.get_filenames();
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

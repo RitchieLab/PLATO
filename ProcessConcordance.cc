@@ -56,33 +56,9 @@ void ProcessConcordance::process(DataSet* ds){
 	data_set = ds;
 	Concordance con(data_set);
 	con.setOrder(this->order);
-#ifdef PLATOLIB
-	options.setOverrideOut(projectPath + "\\");
-	con.setOverwrite(true);
-#else
 	con.setOverwrite(this->overwrite);
-#endif
 	con.setOptions(options);
 	con.calculate();
 
-#ifdef PLATOLIB
-	filenames.push_back(con.get_sample_error_file());
-	filenames.push_back(con.get_main_file());
-	filenames.push_back(con.get_error_file());
-#endif
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessConcordance::create_tables(){}
-
-void ProcessConcordance::dump2db(){}
-
-void ProcessConcordance::resize(int i){}
-
-void ProcessConcordance::run(DataSetObject* ds)
-{
-	process(ds);
-}//end method run(DataSetObject* ds)
-
-}//end namespace PlatoLib
-#endif

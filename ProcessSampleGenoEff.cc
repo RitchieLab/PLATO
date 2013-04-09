@@ -19,29 +19,11 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessSampleGenoEff::stepname = ProcessSampleGenoEff::doRegister("sample-geno-eff");
 
-#ifdef PLATOLIB
-ProcessSampleGenoEff::ProcessSampleGenoEff(string bn, int pos, Database* pdb)
-{
-	// TODO Auto-generated constructor stub
-	name = "Sample Efficiency";
-        batchname = bn;
-        position = pos;
-        hasresults = false;
-        db = pdb;
-}
-#endif
 
 void ProcessSampleGenoEff::process(DataSet* ds){
 	data_set = ds;
@@ -218,81 +200,4 @@ void ProcessSampleGenoEff::FilterSummary(){
 
 }//end method FilterSummary()
 
-#ifdef PLATOLIB
-void ProcessSampleGenoEff::create_tables()
-{
-	Query myQuery(*db);
-	myQuery.transaction();
 
-    for(int i = 0; i < (int)tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    tablename.clear();
-    primary_table.clear();
-
-    string tempbatch = batchname;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(int i = 0; i < (int)tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-
-    mytablename += tempbatch + "_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back(Vars::SAMPLE_TABLE);
-
-    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "percent_GenoEff_All REAL";
-    headers[mytablename].push_back("percent_GenoEff_All");
-    sql += ")";
-    Controller::execute_sql(myQuery, sql);
-}//end method create_tables()
-
-void ProcessSampleGenoEff::dump2db()
-{
-    create_tables();
-
-    Query myQuery(*db);
-    myQuery.transaction();
-
-    for(int i = 0; i < data_set->num_inds(); i++){
-        if(data_set->get_sample(i)->isEnabled()){
-            float percent = 0.0f;
-            if(total[i] > 0){
-                percent = (1.0f - ((float)zeros[i]/(float)total[i]));
-            }
-            string sql = "INSERT INTO " + tablename.at(0) + " (id, fkey, percent_GenoEff_All) VALUES (NULL";
-            sql += "," + getString<int>(data_set->get_sample(i)->getSysid());
-            sql += "," + getString<float>(percent);
-            sql += ")";
-            Controller::execute_sql(myQuery, sql);
-        }
-    }
-    myQuery.commit();
-
-    hasresults = true;
-    for(int i = 0; i < (int)data_set->num_loci(); i++){
-        data_set->get_locus(i)->setFlag(false);
-    }
-}//end method dump2db()
-
-void ProcessSampleGenoEff::run(DataSetObject* ds)
-{
-
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

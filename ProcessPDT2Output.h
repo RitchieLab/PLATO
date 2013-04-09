@@ -26,10 +26,6 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessPDT2Output : public ProcessImpl<ProcessPDT2Output>{
 	static string stepname;
@@ -104,9 +100,6 @@ class ProcessPDT2Output : public ProcessImpl<ProcessPDT2Output>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessPDT2Output(string, int, Database*, string);
-#endif
 		virtual ~ProcessPDT2Output(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -136,13 +129,5 @@ class ProcessPDT2Output : public ProcessImpl<ProcessPDT2Output>{
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void outputCovarFile(ofstream& pdt, Sample* samp);
 		void outputCovars(ofstream& pdt, Sample* samp);
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

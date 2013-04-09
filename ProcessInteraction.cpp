@@ -17,10 +17,6 @@
 #include <General.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessInteraction::stepname = ProcessInteraction::doRegister("interaction");
 
@@ -47,14 +43,4 @@ void ProcessInteraction::process(DataSet* ds){
 	inter.setOptions(options);
 	inter.calculate(data_set);
 }
-#ifdef PLATOLIB
-void ProcessInteraction::dump2db(){}
 
-void ProcessInteraction::create_tables(){}
-
-void ProcessInteraction::run(DataSetObject* ds){}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

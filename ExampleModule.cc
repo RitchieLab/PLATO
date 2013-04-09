@@ -34,9 +34,6 @@
 #include <cdflib.h>
 
 using namespace Methods;
-#ifdef PLATOLIB
-using namespace PlatoLib;
-#endif
 
 //FilterSummary()
 //used to output the number of elements remaining after process

@@ -71,52 +71,16 @@ void ProcessEigenstratOutput::process(DataSet* ds){
 			ds.set_covariates(data_set->get_covariates());
 			ds.set_traits(data_set->get_traits());
 			ds.recreate_family_vector();
-			#ifdef PLATOLIB
-				FixOutputName(i, tempout);
-			#endif
 			ped.setOptions(options);
 			ped.calculate(&ds);
-			#ifdef PLATOLIB
-				filenames = ped.get_filenames();
-			#endif
 			options.setOut(tempout);
 			ds.clear_all();
 		}//end for
 	}//end if
 	else{
-	#ifdef PLATOLIB
-		FixOutputName(1, tempout);
-	#endif
 		ped.setOptions(options);
 		ped.calculate(data_set);
-	#ifdef PLATOLIB
-		filenames = ped.get_filenames();
-	#endif
 	}
 }//end method process(DataSet*)
 
-#ifdef PLATOLIB
-void ProcessEigenstratOutput::dump2db(){}
 
-void ProcessEigenstratOutput::create_tables(){}
-
-void ProcessEigenstratOutput::run(DataSetObject* ds)
-{
-	process(ds);
-}
-
-void ProcessEigenstratOutput::FixOutputName(int i, string tempout)
-{
-	#ifdef WIN
-	//use windows version of project path + batchname
-	options.setOverrideOut(projectPath + "\\" + "_random_set_" + getString<int>(i + 1) + tempout);
-	#else
-	//use non-windows version of project path + batchname
-	options.setOverrideOut(projectPath + "/" + "_random_set_" + getString<int>(i + 1) + tempout);
-	#endif
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

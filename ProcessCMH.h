@@ -22,17 +22,10 @@
 #include <StepOptions.h>
 #include <DataSet.h>
 #include <CMH.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessCMH : public ProcessImpl<ProcessCMH>{
 	static string stepname;
@@ -99,9 +92,6 @@ private:
 			run_end = -1;
 		};
 		virtual ~ProcessCMH(){};
-#ifdef PLATOLIB
-		ProcessCMH(string, int, Database*);
-#endif
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -128,13 +118,5 @@ private:
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

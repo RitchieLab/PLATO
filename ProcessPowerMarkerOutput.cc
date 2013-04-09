@@ -36,23 +36,8 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 string ProcessPowerMarkerOutput::stepname = ProcessPowerMarkerOutput::doRegister("output-powermarker");
-#ifdef PLATOLIB
-ProcessPowerMarkerOutput::ProcessPowerMarkerOutput(string bn, int pos, Database* pdb, string projPath)
-{
-    name = "Output PowerMarker";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-    projectPath = projPath;
-}
-#endif
 
 void ProcessPowerMarkerOutput::FilterSummary(){}
 
@@ -72,11 +57,7 @@ void ProcessPowerMarkerOutput::process(DataSet* ds)
 
 	PowerMarkerOutput pmo;
 	pmo.setOrder(this->order);
-	#ifdef PLATOLIB
-		pmo.setOverwrite(true);
-	#else
 		pmo.setOverwrite(this->overwrite);
-	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
 	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
@@ -104,25 +85,6 @@ void ProcessPowerMarkerOutput::process(DataSet* ds)
 		pmo.setOptions(options);
 		pmo.calculate(data_set);
 	}
-	#ifdef PLATOLIB
-		filenames = pmo.get_filenames();
-	#endif
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessPowerMarkerOutput::dump2db(){}
-void ProcessPowerMarkerOutput::create_tables(){}
-void ProcessPowerMarkerOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-	process(ds);
-}
-#endif
 
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

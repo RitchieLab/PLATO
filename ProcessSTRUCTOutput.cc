@@ -33,21 +33,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessSTRUCTOutput::ProcessSTRUCTOutput(string bn, int pos, Database* pdb, string projPath)
-{
-    name = "Output Structure";
-    batchname = bn;
-    position = pos;
-    hasresults = false;
-    db = pdb;
-    projectPath = projPath;
-}
-#endif
 
 string ProcessSTRUCTOutput::stepname = ProcessSTRUCTOutput::doRegister("output-structure");
 
@@ -69,11 +54,7 @@ void ProcessSTRUCTOutput::process(DataSet* ds)
 
 	STRUCTOutput str;
 	str.setOrder(this->order);
-	#ifdef PLATOLIB
-		str.setOverwrite(true);
-	#else
 		str.setOverwrite(this->overwrite);
-	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
 	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
@@ -101,27 +82,6 @@ void ProcessSTRUCTOutput::process(DataSet* ds)
 		str.setOptions(options);
 		str.calculate(data_set);
 	}
-	#ifdef PLATOLIB
-		filenames = str.get_filenames();
-	#endif
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessSTRUCTOutput::dump2db(){}
 
-void ProcessSTRUCTOutput::create_tables(){}
-
-void ProcessSTRUCTOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-	process(ds);
-}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

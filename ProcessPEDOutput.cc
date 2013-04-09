@@ -36,21 +36,6 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessPEDOutput::ProcessPEDOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output PED";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 string ProcessPEDOutput::stepname = ProcessPEDOutput::doRegister("output-ped");
 
@@ -72,11 +57,7 @@ void ProcessPEDOutput::process(DataSet* ds)
 
 	PEDOutput ped;
 	ped.setOrder(this->order);
-	#ifdef PLATOLIB
-		ped.setOverwrite(true);
-	#else
 		ped.setOverwrite(this->overwrite);
-	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0)
 	{
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
@@ -104,25 +85,6 @@ void ProcessPEDOutput::process(DataSet* ds)
 		ped.setOptions(options);
 		ped.calculate(data_set);
 	}
-	#ifdef PLATOLIB
-		filenames = ped.get_filenames();
-	#endif
 }//end method process(DataSet* ds)
 
-#ifdef PLATOLIB
-void ProcessPEDOutput::create_tables(){}
-void ProcessPEDOutput::dump2db(){}
-void ProcessPEDOutput::run(DataSetObject* ds)
-{
-	#ifdef WIN
-		options.setOverrideOut(projectPath + "\\" + batchname + "_" + name + "_" + getString<int>(position));
-	#else
-		options.setOverrideOut(projectPath + "/" + batchname + "_" + name + "_" + getString<int>(position));
-	#endif
-	process(ds);
-}
-#endif
 
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

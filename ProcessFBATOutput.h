@@ -27,10 +27,6 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
 class ProcessFBATOutput : public ProcessImpl<ProcessFBATOutput>{
 	static string stepname;
@@ -105,9 +101,6 @@ class ProcessFBATOutput : public ProcessImpl<ProcessFBATOutput>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessFBATOutput(string, int, Database*, string);
-#endif
 		virtual ~ProcessFBATOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -135,14 +128,5 @@ class ProcessFBATOutput : public ProcessImpl<ProcessFBATOutput>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-			void FixOutputName();
-		#endif
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

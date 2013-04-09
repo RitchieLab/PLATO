@@ -28,10 +28,6 @@
 using namespace std;
 using namespace Methods;
 //define the PlatoLib namespace for use with Plato as a library
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 class ProcessBEAGLEOutput : public ProcessImpl<ProcessBEAGLEOutput>{
 	static string stepname;
 
@@ -106,9 +102,6 @@ class ProcessBEAGLEOutput : public ProcessImpl<ProcessBEAGLEOutput>{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessBEAGLEOutput(string, int, Database*, string);
-#endif
 		virtual ~ProcessBEAGLEOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
@@ -136,13 +129,5 @@ class ProcessBEAGLEOutput : public ProcessImpl<ProcessBEAGLEOutput>{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
         bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
 };
-#ifdef PLATOLIB
-};
-#endif
 #endif

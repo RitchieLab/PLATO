@@ -32,21 +32,6 @@
 #include <Helpers.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessFBATOutput::ProcessFBATOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output FBAT";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 string ProcessFBATOutput::stepname = ProcessFBATOutput::doRegister("output-fbat");
 
@@ -67,11 +52,7 @@ void ProcessFBATOutput::process(DataSet* ds){
 
 	FBATOutput fbat;
 	fbat.setOrder(this->order);
-	#ifdef PLATOLIB
-		fbat.setOverwrite(true);
-	#else
 		fbat.setOverwrite(this->overwrite);
-	#endif
 	if(options.getRandSamps() > 0 || options.getSetsSamps() > 0){
 		vector<vector<Sample*> > sample_sets = Helpers::generateSampleSets(data_set, &options);
 		for(int i = 0; i < (int)sample_sets.size(); i++){
@@ -85,9 +66,6 @@ void ProcessFBATOutput::process(DataSet* ds){
 			ds.set_traits(data_set->get_traits());
 			ds.recreate_family_vector();
 			string tempout = options.getOut();
-			#ifdef PLATOLIB
-				FixOutputName();
-			#endif
 			options.setOut("_random_set_" + getString<int>(i + 1) + tempout);
 			fbat.setOptions(options);
 			fbat.calculate(&ds);
@@ -96,38 +74,9 @@ void ProcessFBATOutput::process(DataSet* ds){
 		}
 	}
 	else{
-	#ifdef PLATOLIB
-		FixOutputName();
-	#endif
 	fbat.setOptions(options);
 	fbat.calculate(data_set);
 	}
 }
 
-#ifdef PLATOLIB
-void ProcessFBATOutput::dump2db(){}
-
-void ProcessFBATOutput::create_tables(){}
-
-void ProcessFBATOutput::run(DataSetObject* ds)
-{
-	process(ds);
-}
-
-void ProcessFBATOutput::FixOutputName()
-{
-
-	#ifdef WIN
-			//use windows version of project path + batchname
-			options.setOverrideOut(projectPath + "\\" + batchname + "_" + name +  "_" + getString<int>(position));
-	#else
-			//use non-windows version of project path + batchname
-			options.setOverrideOut(projectPath + "/" + batchname + "_" + name +  "_" + getString<int>(position));
-	#endif
-
-}
-#endif
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif
 

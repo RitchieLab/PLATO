@@ -61,12 +61,6 @@ void ProcessLinearReg::PrintSummary(){
 
 void ProcessLinearReg::filter()
 {
-#ifdef PLATOLIB
-	for (int m = 0; m < (int)data_set->num_loci(); m++)
-	{
-		data_set->get_locus(m)->setFlag(false);
-	}
-#endif
 }
 
 void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
@@ -92,9 +86,6 @@ void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
 void ProcessLinearReg::process(DataSet* ds){
 	data_set = ds;
 
-	#ifdef PLATOLIB
-		create_tables();
-	#endif
 
 		//MEMORY_LEAK
 		if(options.doGroupFile()){
@@ -115,7 +106,6 @@ void ProcessLinearReg::process(DataSet* ds){
 		opts::printLog("Number of covariates used in Linear Model: " + getString<int>(options.getCovars().size()) + "\n");
 	}
 
-#ifndef PLATOLIB
     string fname = opts::_OUTPREFIX_ + "linearreg" + options.getOut() + ".txt";
     if(!overwrite){
         fname += "." + getString<int>(order);
@@ -149,26 +139,20 @@ void ProcessLinearReg::process(DataSet* ds){
     	lrsvout << "SNP\tChromosome\tLocation";
     }
     //END_MEMORY_LEAK
-#endif
 
 	LinearRegression lr;
 	lr.setOptions(options);
-#ifdef PLATOLIB
-	ds->set_missing_covalues(-99999);
-#endif
 
 	//MEMORY_LEAK
 	if(groups.size() == 0){
 		groups["GROUP_1"] = *(ds->get_samples());
 	}
-#ifndef PLATOLIB
 	if(options.doOutputSynthView()){
 		for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 			lrsvout << "\t" << group_iter->first << ":pval" << "\t" << group_iter->first << ":beta" << "\t" << group_iter->first << ":N";
 		}
 		lrsvout << endl;
 	}
-#endif
 	//lr.resetDataSet(ds);
 
 	//END_MEMORY_LEAK
@@ -179,20 +163,14 @@ void ProcessLinearReg::process(DataSet* ds){
 	int prev_base = 0;
 	int prev_chrom = -1;
 	int msize = good_markers.size();
-	#ifdef PLATOLIB
-		Query myQuery(*db);
-		myQuery.transaction();
-	#endif
 
 	for(int i = 0; i < msize; i++){
 		Marker* mark = good_markers[i];//ds->get_locus(i);
 		if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
-#ifndef PLATOLIB
 			//MEMORY_LEAK
 			if(options.doOutputSynthView()){
 				lrsvout << mark->getRSID() << "\t" << mark->getChrom() << "\t" << mark->getBPLOC();
 			}
-#endif
 			for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++){
 				DataSet* tempds = new DataSet();
 				tempds->set_markers(ds->get_markers());
@@ -220,20 +198,6 @@ void ProcessLinearReg::process(DataSet* ds){
 
 				for(int l = 1; l < (int)labels.size(); l++)
 				{
-					#ifdef PLATOLIB
-					string sql = defaultinsert;
-					sql += "," + getString<int>(mark->getSysprobe());
-					sql += ",'" + mark->getReferent() + "'";
-					sql += ",'" + labels[l] + "'";
-					sql += "," + getString<int>(lr.getCalcMissing());
-					sql += ",";
-					sql += (isnan(coefs[l]) || isinf(coefs[l])) ? "NULL," : (getString<double>(coefs[l]) + ",");
-					sql += (isnan(zs[l]) || isinf(zs[l])) ? "NULL," : (getString<double>(zs[l]) + ",");
-					sql += (isnan(pvals[l]) || isinf(pvals[l])) ? "NULL," : (getString<double>(pvals[l]));
-					sql += ")";
-					cout << "SQL: " << sql << endl;
-					Controller::execute_sql(myQuery, sql);
-					#else
 					bool okay = vars[l] < 1e-20 || !Helpers::realnum(vars[l]) ? false : true;
 					double se = 0;
 					if(okay){
@@ -257,30 +221,18 @@ void ProcessLinearReg::process(DataSet* ds){
 							lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();
 						}
 					}
-					#endif
 				}//end loop through labels
-				#ifndef PLATOLIB
 				chis[i] = lr.getStatistic();
 				main_pvals[i] = pvals[1];
-				#endif
 			}//end loop through Groups
-#ifndef PLATOLIB
 			if(options.doOutputSynthView()){
 				lrsvout << endl;
 			}
-#endif
 		}
-		#ifdef PLATOLIB
-				hasresults = true;
-		#endif
 //		lrout << options.getLinRModelType() << "\t";
 //		lrout << lr.getCalcMissing() << "\t" << lr.getTestCoef() << "\t" << lr.getZ() << "\t" << lr.getPValue() << endl;
 	}//end loop through Markers
-	#ifdef PLATOLIB
-				myQuery.commit();
-	#endif
 
-	#ifndef PLATOLIB
 	if(options.doMultCompare()){
 		string fcomp = opts::_OUTPREFIX_ + "linearreg_comparisons" + options.getOut() + ".txt";
 		if (!overwrite) {
@@ -364,68 +316,6 @@ void ProcessLinearReg::process(DataSet* ds){
 	if(lrout.is_open()){
 		lrout.close();
 	}
-	#endif
 }
 
-#ifdef PLATOLIB
-void ProcessLinearReg::dump2db(){}
-void ProcessLinearReg::create_tables()
-{
-	Query myQuery(*db);
-    for(unsigned int i = 0; i < tablename.size(); i++){
-        Controller::drop_table(db, tablename[i]);
-    }
-    headers.clear();
-    tablename.clear();
-    primary_table.clear();
 
-    string tempbatch = batchname;
-    for(unsigned int i = 0; i < tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string mytablename = tempbatch + "_";
-    tempbatch = name;
-    for(unsigned int i = 0; i < tempbatch.size(); i++){
-        if(tempbatch[i] == ' '){
-            tempbatch[i] = '_';
-        }
-    }
-    string base = mytablename + tempbatch;
-
-
-    mytablename = base + "_" + getString<int>(position);
-    tablename.push_back(mytablename);
-    tablenicknames.push_back("");
-    primary_table[mytablename].push_back(Vars::LOCUS_TABLE);
-
-    string sql = "CREATE TABLE " + mytablename + " (id integer primary key,";
-    sql += "fkey integer not null,";
-    sql += "Reference_Allele varchar(10),";
-    sql += "Test varchar(20),";
-    sql += "Nmiss integer,";
-    headers[mytablename].push_back("Nmiss");
-    sql += "Beta REAL,";
-    headers[mytablename].push_back("Beta");
-    sql += "STAT REAL,";
-    headers[mytablename].push_back("STAT");
-    sql += "Pvalue REAL";
-    headers[mytablename].push_back("Pvalue");
-    sql += ")";
-    defaultinsert = "INSERT INTO " + mytablename + " (id, fkey, Reference_Allele, Test, Nmiss, Beta, STAT, Pvalue) VALUES (NULL";
-    myQuery.transaction();
-    Controller::execute_sql(myQuery, sql);
-    myQuery.commit();
-}//end method create_tables()
-
-void ProcessLinearReg::run(DataSetObject* ds)
-{
-	process(ds);
-}
-
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif
