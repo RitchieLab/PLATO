@@ -13,37 +13,15 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
 #include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include "ExampleModule.h" //////CHANGE TO REAL MODULE NAME
 #include <Options.h>
-#include <General.h>
-#include <Helpers.h>
-#include <cdflib.h>
 
-using namespace Methods;
+#include "ExampleModule.h" //////CHANGE TO REAL MODULE NAME
 
-//FilterSummary()
-//used to output the number of elements remaining after process
-void ExampleModule::FilterSummary(){
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-}
+using std::cout;
+using Methods::opts;
+
+const string ExampleModule::stepname = ExampleModule::doRegiser("example");
 
 //PrintSummary()
 //used to output results after processing the data

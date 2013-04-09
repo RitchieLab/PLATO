@@ -27,57 +27,11 @@
 
 #include "wasp.h"
 
-
 using namespace std;
 using namespace Methods;
 
 static string _WASPVER_ = "1.2.0";
-//enum for batch file step switch
-enum StepValue{
-					   e_examplemodule,    //examplemodule
-					   e_marker_geno_eff,  //marker-geno-eff
-					   e_sample_geno_eff,  //sample-geno-eff
-					   e_family_geno_eff,  //family-geno-eff
-					   e_allele_freq,      //allele-freq
-					   e_mendelian_error,  //mendelian-error
-					   e_hw,               //hw
-					   e_gender_error,     //gender-error
-					   e_tdt,              //tdt
-					   e_grr_output,       //grr-output
-					   e_ped_output,       //ped-output
-					   e_tped_output,		//tped-output
-					   e_chisquare, //ca-con-chisquare
-					   e_structure_output, //structure-output
-					   e_phase_output,	   //phase-output
-					   e_beagle_output,	   //beagle-output
-					   e_lapis_output,	   //lapis-output
-					   e_superlink_output, //superlink-output
-					   e_homozygous, 	   //homozygous
-					   e_ld, 	           //ld
-					   e_powermarker_output,//powermarker-output
-					   e_deletions,	       //deletions
-					   e_fbat_output,	   //fbat-output
-					   e_qtdt_output,	   //qtdt-output
-					   e_mdr_output, 	   //mdr-output
-					   e_pdt2_output,	   //output-pdt2
-					   e_eigenstrat_output, //output-eigenstrat
-					   e_concordance,	   //concordance
-					   e_logreg,			//logreg
-					   e_linreg,			//linear-reg
-					   e_mitocheck,         //mito-check
-					   e_ibs,				//IBS
-					   e_cmh,				//CMH
-					   e_mdr,				//MDR
-					   e_mdrpdt,			//MDRPDT
-					   e_cluster_missing,	//cluster-missing
-					   e_filter_process,		//plato filter-process,
-					   e_fst,				//fst
-					   e_kinship,			//kinship
-					   e_bin_output,			//binary output
-					   e_epistasis,			//epistasis
-					   e_interaction, // interaction
-					   e_impute_output		//IMPUTE
-					 };
+
 enum cmdArgs{
 	a_h,
 	a_S,
@@ -141,10 +95,8 @@ enum cmdArgs{
 	a_update_ids
 
 };
-static map<string, StepValue> s_mapStepValues;
+
 static map<string, cmdArgs> s_mapcmdArgs;
-
-
 
 /*
  *Function: Initialize()
@@ -154,51 +106,7 @@ static map<string, cmdArgs> s_mapcmdArgs;
  */
 void Initialize(){
 	srand((unsigned) time(0));
-/*
-	s_mapStepValues["examplemodule"] = e_examplemodule;
-	s_mapStepValues["marker-geno-eff"] = e_marker_geno_eff;
-	s_mapStepValues["sample-geno-eff"] = e_sample_geno_eff;
-	s_mapStepValues["family-geno-eff"] = e_family_geno_eff;
-	s_mapStepValues["allele-freq"] = e_allele_freq;
-	s_mapStepValues["mendelian-error"] = e_mendelian_error;
-	s_mapStepValues["hw"] = e_hw;
-	s_mapStepValues["gender-error"] = e_gender_error;
-	s_mapStepValues["tdt"] = e_tdt;
-	s_mapStepValues["output-grr"] = e_grr_output;
-	s_mapStepValues["output-ped"] = e_ped_output;
-	s_mapStepValues["output-eigenstrat"] = e_eigenstrat_output;
-	s_mapStepValues["ibs"] = e_ibs;
-	s_mapStepValues["output-tped"] = e_tped_output;
-	s_mapStepValues["chisquare"] = e_chisquare;
-	s_mapStepValues["output-structure"] = e_structure_output;
-	s_mapStepValues["output-phase"] = e_phase_output;
-	s_mapStepValues["output-beagle"] = e_beagle_output;
-	s_mapStepValues["output-superlink"] = e_superlink_output;
-	s_mapStepValues["homozygous"] = e_homozygous;
-	s_mapStepValues["ld"] = e_ld;
-	s_mapStepValues["output-powermarker"] = e_powermarker_output;
-	s_mapStepValues["deletions"] = e_deletions;
-	s_mapStepValues["concordance"] = e_concordance;
-	s_mapStepValues["mito-check"] = e_mitocheck;
-	s_mapStepValues["output-lapis"] = e_lapis_output;
-	s_mapStepValues["output-fbat"] = e_fbat_output;
-	s_mapStepValues["output-mdr"] = e_mdr_output;
-	s_mapStepValues["output-qtdt"] = e_qtdt_output;
-	s_mapStepValues["output-pdt2"] = e_pdt2_output;
-	s_mapStepValues["logreg"] = e_logreg;
-	s_mapStepValues["linear-reg"] = e_linreg;
-	s_mapStepValues["cmh"] = e_cmh;
-	s_mapStepValues["mdr"] = e_mdr;
-	s_mapStepValues["mdrpdt"] = e_mdrpdt;
-	s_mapStepValues["cluster-missing"] = e_cluster_missing;
-	s_mapStepValues["filter-process"] = e_filter_process;
-	s_mapStepValues["fst"] = e_fst;
-	s_mapStepValues["kinship"] = e_kinship;
-	s_mapStepValues["output-bin"] = e_bin_output;
-	s_mapStepValues["epistasis"] = e_epistasis;
-	s_mapStepValues["interaction"] = e_interaction;
-	s_mapStepValues["output-impute"] = e_impute_output;
-*/
+
 	s_mapcmdArgs["-h"] = a_h;
 	s_mapcmdArgs["-S"] = a_S;
 	s_mapcmdArgs["-bin-input"] = a_bin_input;
@@ -269,8 +177,7 @@ main (int argc, char* argv[])
 	Initialize();
 	int myrank;
 	myrank = 0;
-	STEPS steps;
-	ORDER proc_order;
+	vector<Process*> proc_order;
 	vector<string> usechroms;
 	vector<long> usembrange;
 	InputFilter cmd_filters;
@@ -285,8 +192,7 @@ main (int argc, char* argv[])
 			exit(1);
 		}
 		if(arg == "-S"){
-			steps = initializeSteps();
-			print_steps(steps);
+			print_steps();
 			exit(1);
 		}
 		if(arg == "-O"){
@@ -1254,7 +1160,7 @@ main (int argc, char* argv[])
 		error_check();
 		//steps = initializeSteps();
 		if(!opts::_MAKEBIN_){
-			proc_order = parseInput(arg);//, &steps);
+			parseInput(arg, proc_order);//, &steps);
 		}
 
 	}
@@ -1267,7 +1173,7 @@ main (int argc, char* argv[])
 	opts::printLog("\nPlato started: " + tdstamp + "\n");
 
 	//Begin batch file steps and reading in data
-	startProcess(&proc_order, NULL, myrank, &cmd_filters);
+	startProcess(proc_order, myrank, &cmd_filters);
 	}catch(MethodException & ex){
 		opts::printLog(string(ex.what()) + "\n");
 	}
@@ -1436,11 +1342,12 @@ void printOptions(){
  *Description:
  *Outputs valid batch file steps and their descriptions when the -S command line argument is used
  */
-void print_steps(STEPS s){
-	STEPS::iterator s_iter;
+void print_steps(){
 	unsigned int field = 0;
-	for(s_iter = s.begin(); s_iter != s.end(); s_iter++){
-		Step mystep =  s_iter->second;
+
+	ProcessFactory& f = ProcessFactory::getFactory();
+
+	for(ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++){
 		if(s_iter->first.size() > field){
 			field = s_iter->first.size();
 		}
@@ -1448,9 +1355,12 @@ void print_steps(STEPS s){
 	field+=5;
 	cout << left << setw(field) << "Step:" << "Description:" << endl;
 	cout << left << setw(field) << "----------" << "---------------" << endl;
-	for(s_iter = s.begin(); s_iter != s.end(); s_iter++){
-		Step mystep =  s_iter->second;
-		cout << left << setw(field) << s_iter->first <<  mystep.getName() << endl;
+
+	for(ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++){
+
+		Process* p = f.Create((*s_iter).first);
+		cout << left << setw(field) << (*s_iter).first <<  p->getName() << endl;
+		delete p;
 		//cout << "\tThresh: " << mystep.getThreshold() << endl;
 	}
 }
@@ -1484,492 +1394,502 @@ void usage(){
  *Description:
  *Starts wasp process
  */
-void startProcess(ORDER* order, void* con, int myrank, InputFilter* filters){
-	ORDER::iterator o_iter;
-	vector<ORDER> optimized = optimize(order);
+void startProcess(vector<Process*>& order, int myrank, InputFilter* filters) {
+	vector<Process*>::iterator o_iter;
+	vector<vector<Process*> > optimized = optimize(order);
 
 	DataSet data_set;
-		//set up filters
-//		InputFilter filters;
-		if(opts::_EXCCOVS_.length() > 0){
-			vector<string>* list = new vector<string>;
-			Helpers::readCovTraitFile(opts::_EXCCOVS_, list);
-			filters->add_covariate_list(list);
-			filters->add_covariate_filter(InputFilter::ExcludeCovariateFilter);
-		}
-		if(opts::_INCCOVS_.length() > 0){
-			vector<string>* list = new vector<string>;
-			Helpers::readCovTraitFile(opts::_INCCOVS_, list);
-			filters->add_covariate_list(list);
-			filters->add_covariate_filter(InputFilter::IncludeCovariateFilter);
-		}
-		if(opts::_EXCTRAITS_.length() > 0){
-			vector<string>* list = new vector<string>;
-			Helpers::readCovTraitFile(opts::_EXCTRAITS_, list);
-			filters->add_covariate_list(list);
-			filters->add_covariate_filter(InputFilter::ExcludeTraitFilter);
-		}
-		if(opts::_INCTRAITS_.length() > 0){
-			vector<string>* list = new vector<string>;
-			Helpers::readCovTraitFile(opts::_INCTRAITS_, list);
-			filters->add_covariate_list(list);
-			filters->add_covariate_filter(InputFilter::IncludeTraitFilter);
-		}
-		if(opts::_EXCMARKERS_.length() > 0){
-			vector<Marker*>* list = new vector<Marker*>;
-			Helpers::readLocusFile(opts::_EXCMARKERS_, list);
-			filters->add_locus_list(list);
-			filters->add_locus_filter(InputFilter::ExcludeLocusFilter);
-		}
-		if(opts::_INCMARKERS_.length() > 0){
-			vector<Marker*>* list = new vector<Marker*>;
-			Helpers::readLocusFile(opts::_INCMARKERS_, list);
-			filters->add_locus_list(list);
-			filters->add_locus_filter(InputFilter::IncludeLocusFilter);
-		}
-		if(opts::_EXCSAMPS_.length() > 0){
-			vector<Sample*>* list = new vector<Sample*>;
-			Helpers::readSampleFile(opts::_EXCSAMPS_, list);
-			filters->add_sample_list(list);
-			filters->add_sample_filter(InputFilter::ExcludeSampleFilter);
-		}
-		if(opts::_INCSAMPLES_.length() > 0){
-			vector<Sample*>* list = new vector<Sample*>;
-			Helpers::readSampleFile(opts::_INCSAMPLES_, list);
-			filters->add_sample_list(list);
-			filters->add_sample_filter(InputFilter::IncludeSampleFilter);
-		}
-		if(opts::_EXCFAMILIES_.length() > 0){
-			vector<Family*>* list = new vector<Family*>;
-			Helpers::readFamilyFile(opts::_EXCFAMILIES_, list);
-			filters->add_family_list(list);
-			filters->add_family_filter(InputFilter::ExcludeFamilyFilter);
-		}
-		if(opts::_INCFAMILIES_.length() > 0){
-			vector<Family*>* list = new vector<Family*>;
-			Helpers::readFamilyFile(opts::_INCFAMILIES_, list);
-			filters->add_family_list(list);
-			filters->add_family_filter(InputFilter::IncludeFamilyFilter);
-		}
-		if(opts::_CHROM_LIMIT_){
+	//set up filters
+	//		InputFilter filters;
+	if (opts::_EXCCOVS_.length() > 0) {
+		vector<string>* list = new vector<string> ;
+		Helpers::readCovTraitFile(opts::_EXCCOVS_, list);
+		filters->add_covariate_list(list);
+		filters->add_covariate_filter(InputFilter::ExcludeCovariateFilter);
+	}
+	if (opts::_INCCOVS_.length() > 0) {
+		vector<string>* list = new vector<string> ;
+		Helpers::readCovTraitFile(opts::_INCCOVS_, list);
+		filters->add_covariate_list(list);
+		filters->add_covariate_filter(InputFilter::IncludeCovariateFilter);
+	}
+	if (opts::_EXCTRAITS_.length() > 0) {
+		vector<string>* list = new vector<string> ;
+		Helpers::readCovTraitFile(opts::_EXCTRAITS_, list);
+		filters->add_covariate_list(list);
+		filters->add_covariate_filter(InputFilter::ExcludeTraitFilter);
+	}
+	if (opts::_INCTRAITS_.length() > 0) {
+		vector<string>* list = new vector<string> ;
+		Helpers::readCovTraitFile(opts::_INCTRAITS_, list);
+		filters->add_covariate_list(list);
+		filters->add_covariate_filter(InputFilter::IncludeTraitFilter);
+	}
+	if (opts::_EXCMARKERS_.length() > 0) {
+		vector<Marker*>* list = new vector<Marker*> ;
+		Helpers::readLocusFile(opts::_EXCMARKERS_, list);
+		filters->add_locus_list(list);
+		filters->add_locus_filter(InputFilter::ExcludeLocusFilter);
+	}
+	if (opts::_INCMARKERS_.length() > 0) {
+		vector<Marker*>* list = new vector<Marker*> ;
+		Helpers::readLocusFile(opts::_INCMARKERS_, list);
+		filters->add_locus_list(list);
+		filters->add_locus_filter(InputFilter::IncludeLocusFilter);
+	}
+	if (opts::_EXCSAMPS_.length() > 0) {
+		vector<Sample*>* list = new vector<Sample*> ;
+		Helpers::readSampleFile(opts::_EXCSAMPS_, list);
+		filters->add_sample_list(list);
+		filters->add_sample_filter(InputFilter::ExcludeSampleFilter);
+	}
+	if (opts::_INCSAMPLES_.length() > 0) {
+		vector<Sample*>* list = new vector<Sample*> ;
+		Helpers::readSampleFile(opts::_INCSAMPLES_, list);
+		filters->add_sample_list(list);
+		filters->add_sample_filter(InputFilter::IncludeSampleFilter);
+	}
+	if (opts::_EXCFAMILIES_.length() > 0) {
+		vector<Family*>* list = new vector<Family*> ;
+		Helpers::readFamilyFile(opts::_EXCFAMILIES_, list);
+		filters->add_family_list(list);
+		filters->add_family_filter(InputFilter::ExcludeFamilyFilter);
+	}
+	if (opts::_INCFAMILIES_.length() > 0) {
+		vector<Family*>* list = new vector<Family*> ;
+		Helpers::readFamilyFile(opts::_INCFAMILIES_, list);
+		filters->add_family_list(list);
+		filters->add_family_filter(InputFilter::IncludeFamilyFilter);
+	}
+	if (opts::_CHROM_LIMIT_) {
+		Marker* temp = new Marker();
+		temp->setChrom(opts::_CHROM_);
+		vector<Marker*>* list = new vector<Marker*> ;
+		list->push_back(temp);
+		filters->add_locus_list(list);
+		filters->add_locus_filter(InputFilter::LocusChromFilter);
+	}
+	if (opts::_BP_LOW_LIMIT_ || opts::_BP_HIGH_LIMIT_) {
+		vector<Marker*>* list = new vector<Marker*> ;
+		if (opts::_BP_LOW_LIMIT_) {
 			Marker* temp = new Marker();
-			temp->setChrom(opts::_CHROM_);
-			vector<Marker*>* list = new vector<Marker*>;
+			temp->setBPLOC(opts::_BP_LOW_);
 			list->push_back(temp);
-			filters->add_locus_list(list);
-			filters->add_locus_filter(InputFilter::LocusChromFilter);
+		} else {
+			list->push_back(NULL);
 		}
-		if(opts::_BP_LOW_LIMIT_ || opts::_BP_HIGH_LIMIT_){
-			vector<Marker*>* list = new vector<Marker*>;
-			if(opts::_BP_LOW_LIMIT_){
-				Marker* temp = new Marker();
-				temp->setBPLOC(opts::_BP_LOW_);
-				list->push_back(temp);
-			}
-			else{
-				list->push_back(NULL);
-			}
-			if(opts::_BP_HIGH_LIMIT_){
-				Marker* temp = new Marker();
-				temp->setBPLOC(opts::_BP_HIGH_);
-				list->push_back(temp);
-			}
-			else{
-				list->push_back(NULL);
-			}
-			filters->add_locus_list(list);
-			filters->add_locus_filter(InputFilter::LocusBplocRangeFilter);
+		if (opts::_BP_HIGH_LIMIT_) {
+			Marker* temp = new Marker();
+			temp->setBPLOC(opts::_BP_HIGH_);
+			list->push_back(temp);
+		} else {
+			list->push_back(NULL);
 		}
-		//set options
-		StepOptions options;
-		options.setMapFile(opts::_MAPFILE_);
-		options.setMapContainsReferent(opts::_MAP_INCLUDES_REF_);
-		options.setPedFile(opts::_PEDFILE_);
-		options.setBinInput(opts::_BINPREFIX_);
-		options.setTFamFile(opts::_FAMFILE_);
-		options.setTPedFile(opts::_TPEDFILE_);
-		options.setMdrMapFile(opts::_MDRMAPFILE_);
-		options.setMdrPedFile(opts::_MDRPEDFILE_);
-		options.setCovarMissing(opts::_COVAR_MISSING_);
-		options.setTraitMissing(opts::_TRAIT_MISSING_);
+		filters->add_locus_list(list);
+		filters->add_locus_filter(InputFilter::LocusBplocRangeFilter);
+	}
+	//set options
+	StepOptions options;
+	options.setMapFile(opts::_MAPFILE_);
+	options.setMapContainsReferent(opts::_MAP_INCLUDES_REF_);
+	options.setPedFile(opts::_PEDFILE_);
+	options.setBinInput(opts::_BINPREFIX_);
+	options.setTFamFile(opts::_FAMFILE_);
+	options.setTPedFile(opts::_TPEDFILE_);
+	options.setMdrMapFile(opts::_MDRMAPFILE_);
+	options.setMdrPedFile(opts::_MDRPEDFILE_);
+	options.setCovarMissing(opts::_COVAR_MISSING_);
+	options.setTraitMissing(opts::_TRAIT_MISSING_);
 
-		if(opts::_SAMPLEBPRANGEFILTER_.length() > 0){
-			options.setSampleBprangeFile(opts::_SAMPLEBPRANGEFILTER_);
-			opts::printLog("Reading sample/bprange file: " + opts::_SAMPLEBPRANGEFILTER_ + "\n");
-			options.readSampleBprangeFile();
-		}
+	if (opts::_SAMPLEBPRANGEFILTER_.length() > 0) {
+		options.setSampleBprangeFile(opts::_SAMPLEBPRANGEFILTER_);
+		opts::printLog("Reading sample/bprange file: "
+				+ opts::_SAMPLEBPRANGEFILTER_ + "\n");
+		options.readSampleBprangeFile();
+	}
 
-		if(opts::_FREQ_FILE_EXISTS_){
-			opts::printLog("Reading marker frequencies from: " + opts::_FREQ_FILE_ + "\n");
-			options.setFrequencies(Helpers::readFreqFile(opts::_FREQ_FILE_));
-		}
+	if (opts::_FREQ_FILE_EXISTS_) {
+		opts::printLog("Reading marker frequencies from: " + opts::_FREQ_FILE_
+				+ "\n");
+		options.setFrequencies(Helpers::readFreqFile(opts::_FREQ_FILE_));
+	}
 
-		//read zerogenofile
-		if(opts::_ZEROGENOFILE_.length() > 0){
-			Helpers::readZeroGenoFile(opts::_ZEROGENOFILE_);
+	//read zerogenofile
+	if (opts::_ZEROGENOFILE_.length() > 0) {
+		Helpers::readZeroGenoFile(opts::_ZEROGENOFILE_);
+	}
+	//new 12-06-2010
+	if (opts::_LGENFILE_.length() > 0) {
+		if (opts::_PEDFILE_.length() == 0 || opts::_MAPFILE_.length() == 0) {
+			opts::printLog(
+					"You specified -lgen-file.  Corresponding ped and map files must be specified using -ped and -map.  Exiting!\n");
+			exit(1);
 		}
-		//new 12-06-2010
-		if(opts::_LGENFILE_.length() > 0)
-		{
-			if(opts::_PEDFILE_.length() ==0 || opts::_MAPFILE_.length() ==0)
-			{
-				opts::printLog("You specified -lgen-file.  Corresponding ped and map files must be specified using -ped and -map.  Exiting!\n");
-				exit(1);
-			}
-		}
+	}
 
-		//read Binary input
-		if(opts::_BINPREFIX_.length() > 0 && !opts::_MAKEBIN_){
-			if(opts::_PEDINFO_.length() > 0){
-				opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
+	//read Binary input
+	if (opts::_BINPREFIX_.length() > 0 && !opts::_MAKEBIN_) {
+		if (opts::_PEDINFO_.length() > 0) {
+			opts::printLog("Reading Pedigree information file: "
+					+ opts::_PEDINFO_ + "\n");
+			Helpers::readPedInfo();
+		}
+		opts::printLog("Reading data using Binary inputs: prefix: "
+				+ opts::_BINPREFIX_ + "\n");
+		if (opts::_MICROSATS_) {
+			opts::printLog(
+					"You specified microsatellite markers exist.  This option is not compatible with binary input files.  Please use the standard PED file format for your input when using microsatellite markers.  Exiting...\n");
+			exit(1);
+		}
+		Helpers::readBinM(&data_set, options, filters);//(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+		//assignLinks(data_set.get_families());
+		//reorderAlleles(data_set.get_samples(), data_set.get_markers());
+		if (opts::_FLIPSTRAND_) {
+			flipStrand(data_set.get_markers());
+		}
+	}
+	//read ped & map file
+	else if ((opts::_PEDFILE_.length() > 0 || opts::_MAPFILE_.length() > 0)
+			&& opts::_TPEDFILE_.length() == 0 && opts::_MDRPEDFILE_.length()
+			== 0) {
+		if (opts::_MAPFILE_.length() > 0) {
+			opts::printLog("Reading MAP file: " + opts::_MAPFILE_ + "\n");
+			//readMap(data_set.get_markers(), data_set.get_marker_map());
+			Helpers::readMapM(&data_set, options, filters);
+		} else {
+			opts::printLog(
+					"You specified -ped.  A corresponding map file needs to be specified using -map. Exiting!\n");
+			exit(1);
+		}
+		if (opts::_PEDFILE_.length() > 0) {
+			if (opts::_PEDINFO_.length() > 0) {
+				opts::printLog("Reading Pedigree information file: "
+						+ opts::_PEDINFO_ + "\n");
 				Helpers::readPedInfo();
 			}
-			opts::printLog("Reading data using Binary inputs: prefix: " + opts::_BINPREFIX_ + "\n");
-			if(opts::_MICROSATS_){
-				opts::printLog("You specified microsatellite markers exist.  This option is not compatible with binary input files.  Please use the standard PED file format for your input when using microsatellite markers.  Exiting...\n");
-				exit(1);
-			}
-			Helpers::readBinM(&data_set, options, filters);//(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+			opts::printLog("Reading PED file: " + opts::_PEDFILE_ + "\n");
+			//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
 			//assignLinks(data_set.get_families());
 			//reorderAlleles(data_set.get_samples(), data_set.get_markers());
-			if(opts::_FLIPSTRAND_){
+			Helpers::readPedM_3vec_set(&data_set, options, filters);
+			if (opts::_FLIPSTRAND_) {
 				flipStrand(data_set.get_markers());
 			}
-		}
-		//read ped & map file
-		else if((opts::_PEDFILE_.length() > 0 || opts::_MAPFILE_.length() > 0) && opts::_TPEDFILE_.length() == 0
-				&& opts::_MDRPEDFILE_.length() == 0){
-			if(opts::_MAPFILE_.length() > 0){
-				opts::printLog("Reading MAP file: " + opts::_MAPFILE_ + "\n");
-				//readMap(data_set.get_markers(), data_set.get_marker_map());
-				Helpers::readMapM(&data_set, options, filters);
-			}
-			else{
-				opts::printLog("You specified -ped.  A corresponding map file needs to be specified using -map. Exiting!\n");
-				exit(1);
-			}
-			if(opts::_PEDFILE_.length() > 0){
-				if(opts::_PEDINFO_.length() > 0){
-					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-					Helpers::readPedInfo();
-				}
-				opts::printLog("Reading PED file: " + opts::_PEDFILE_ + "\n");
-				//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
-				//assignLinks(data_set.get_families());
-				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
-				Helpers::readPedM_3vec_set(&data_set, options, filters);
-				if(opts::_FLIPSTRAND_){
-					flipStrand(data_set.get_markers());
-				}
-				//new 12-06-2010
-				if(opts::_LGENFILE_.length() > 0)
-				{
-					opts::printLog("Reading LGEN file: " + opts::_LGENFILE_ + "\n");
-					Helpers::readLgenFile(&data_set, options, filters);
-					if(opts::_FLIPSTRAND_)
-					{
-						flipStrand(data_set.get_markers());
-					}
-				}
-			}
-			else{
-				opts::printLog("You specified -map.  A corresponding PED file needs to be specified using -ped. Exiting!\n");
-				exit(1);
-			}
-		}
-		else if(opts::_PEDFILE_.length() == 0 && opts::_MDRPEDFILE_.length() == 0 &&
-				(opts::_TPEDFILE_.length() > 0 || opts::_FAMFILE_.length() > 0)){
-			if(opts::_FAMFILE_.length() > 0){
-				if(opts::_PEDINFO_.length() > 0){
-					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-					Helpers::readPedInfo();
-				}
-				opts::printLog("Reading Pedigree file: " + opts::_FAMFILE_ + "\n");
-				Helpers::readTFamM(&data_set, options, filters);
-				//assignLinks(data_set.get_families());
-			}
-			else{
-				opts::printLog("You specified -tped.  A corresponding Pedigree Information file needs to be specified using -tfam. Exiting!\n");
-				exit(1);
-			}
-			if(opts::_TPEDFILE_.length() > 0){
-				opts::printLog("Reading TPED file: " + opts::_TPEDFILE_ + "\n");
-				Helpers::readTPedM(&data_set, options, filters);//data_set.get_markers(), data_set.get_samples(), data_set.get_marker_map());
-				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
-				if(opts::_FLIPSTRAND_){
+			//new 12-06-2010
+			if (opts::_LGENFILE_.length() > 0) {
+				opts::printLog("Reading LGEN file: " + opts::_LGENFILE_ + "\n");
+				Helpers::readLgenFile(&data_set, options, filters);
+				if (opts::_FLIPSTRAND_) {
 					flipStrand(data_set.get_markers());
 				}
 			}
-			else{
-				opts::printLog("You specified -tfam.  A corresponding transposed PED file needs to be specified using -tped. Exiting!\n");
-				exit(1);
-			}
-		}
-		else if(opts::_MDRPEDFILE_.length() > 0 || opts::_MDRMAPFILE_.length() > 0){
-			if(opts::_MDRMAPFILE_.length() > 0){
-				opts::printLog("Reading MDRMAP file: " + opts::_MDRMAPFILE_ + "\n");
-				//readMap(data_set.get_markers(), data_set.get_marker_map());
-				Helpers::readMapMdr(&data_set, options, filters);
-
-			}
-			else{
-				opts::printLog("You specified -mdrped.  A corresponding MAP file needs to be specified using -mdrmap. Exiting!\n");
-				exit(1);
-			}
-
-			if(opts::_MDRPEDFILE_.length() > 0){
-				if(opts::_PEDINFO_.length() > 0){
-					opts::printLog("Reading Pedigree information file: " + opts::_PEDINFO_ + "\n");
-					Helpers::readPedInfo();
-				}
-				opts::printLog("Reading MDRPED file: " + opts::_MDRPEDFILE_ + "\n");
-				//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
-				//assignLinks(data_set.get_families());
-				//reorderAlleles(data_set.get_samples(), data_set.get_markers());
-				Helpers::readMdr(&data_set, options, filters);
-				if(opts::_FLIPSTRAND_){
-					flipStrand(data_set.get_markers());
-				}
-
-			}
-			else{
-				opts::printLog("You specified -mdrmap.  A corresponding MDR-PED file needs to be specified using -mdrped. Exiting!\n");
-				exit(1);
-			}
-		}
-		else if(!opts::_DBINPUT_){
-			cerr << "No input method specified!" << endl;
+		} else {
+			opts::printLog(
+					"You specified -map.  A corresponding PED file needs to be specified using -ped. Exiting!\n");
 			exit(1);
 		}
-		if(opts::_COVFILE_.length() > 0){
-			opts::printLog("Reading covariate file: " + opts::_COVFILE_ + "\n");
-			Helpers::readCovariateFile(opts::_COVFILE_, &data_set, options, filters);
-		}
-		if(opts::_TRAITFILE_.length() > 0){
-			opts::printLog("Reading trait file: " + opts::_TRAITFILE_ + "\n");
-			Helpers::readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
-		}
-		if(opts::_ID_FILE_EXISTS_)
-		{
-			opts::printLog("Reading ID file: " + opts::_ID_FILE_ + "\n");
-			Helpers::readIDFile(opts::_ID_FILE_, &data_set);
-		}
-
-		if(opts::_SAMPLEBPRANGEFILTER_.length() > 0){
-			opts::printLog("Running sample/bprange filter...\n");
-			filters->run_sample_bprange_filter(data_set.get_samples(), data_set.get_markers(), (options.getSampleBprangeSamples()), (options.getSampleBprangeMarkers()));
-		}
-
-		//int goodsamps = 0;
-		//int goodfams = 0;
-		//int goodmarkers = 0;
-		if(opts::_TODIGIT_){
-			opts::printLog("Mapping Families/Samples to numeric format.");
-			Helpers::remapFamsToDigit(data_set.get_families());
-			Helpers::printFamsToDigit(data_set.get_families(), "global", options);
-		}
-		for(unsigned int i = 0; i < data_set.get_samples()->size(); i++){
-			Sample* samp = data_set.get_sample(i);
-			if(samp->isEnabled()){
-				//goodsamps++;
-				opts::_SAMPLES_WORKING_++;
+	} else if (opts::_PEDFILE_.length() == 0 && opts::_MDRPEDFILE_.length()
+			== 0 && (opts::_TPEDFILE_.length() > 0 || opts::_FAMFILE_.length()
+			> 0)) {
+		if (opts::_FAMFILE_.length() > 0) {
+			if (opts::_PEDINFO_.length() > 0) {
+				opts::printLog("Reading Pedigree information file: "
+						+ opts::_PEDINFO_ + "\n");
+				Helpers::readPedInfo();
 			}
-		}
-		for(unsigned int i = 0; i < data_set.get_families()->size(); i++){
-			Family* fam = data_set.get_pedigree(i);
-			if(fam->isEnabled()){
-				//goodfams++;
-				opts::_FAMILIES_WORKING_++;
-			}
-		}
-		for(unsigned int i = 0; i < data_set.get_markers()->size(); i++){
-			Marker* mark = data_set.get_locus(i);
-			if(mark->isEnabled()){
-				//goodmarkers++;
-				opts::_MARKERS_WORKING_++;
-			}
-		}
-		opts::_COVS_WORKING_ = data_set.num_covariates();
-		opts::_TRAITS_WORKING_ = data_set.num_traits();
-		string text = "Markers found: ";
-		text += getString<int>(opts::_MARKERS_FOUND_);
-		text += ", ";
-		text += getString<int>(opts::_MARKERS_WORKING_);
-	   	text += " are enabled!\n";
-		opts::printLog(text);
-		text = "Samples found: ";
-	   	text += getString<int>(opts::_SAMPLES_FOUND_);
-	   	text += ", ";
-	   	text += getString<int>(opts::_SAMPLES_WORKING_);
-	   	text += " are enabled!\n";
-		opts::printLog(text);
-		text = "Families found: ";
-	    text += getString<int>(opts::_FAMILIES_FOUND_);
-	   	text += ", ";
-	   	text += getString<int>(opts::_FAMILIES_WORKING_);
-	    text += " are enabled!\n";
-	    if(opts::_COVS_FOUND_ > 0){
-	    	text += "Covariates found: " + getString<int>(opts::_COVS_FOUND_) + ", " + getString<int>(opts::_COVS_WORKING_) + " are enabled!\n";
-	    }
-	    if(opts::_TRAITS_FOUND_ > 0){
-	    	text += "Traits found: " + getString<int>(opts::_TRAITS_FOUND_) + ", " + getString<int>(opts::_TRAITS_WORKING_) + " are enabled!\n";
-	    }
-		int founders = 0;
-		int nonfounders = 0;
-		for(unsigned int f = 0; f < data_set.get_families()->size(); f++){
-			Family* fam = data_set.get_pedigree(f);
-			if(fam->isEnabled()){
-				vector<Sample*>* founder = fam->getFounders();
-				vector<Sample*>* nonfound = fam->getNonFounders();
-				for(unsigned int s = 0; s < founder->size(); s++){
-					Sample* samp = (*founder)[s];
-					if(samp->isEnabled()){
-						founders++;
-					}
-				}
-				for(unsigned int s = 0; s < nonfound->size(); s++){
-					Sample* samp = (*nonfound)[s];
-					if(samp->isEnabled()){
-						nonfounders++;
-					}
-				}
-			}
-		}
-		text += "Founders found: ";
-		text += getString<int>(founders);
-		text += "\n";
-		opts::printLog(text);
-		opts::printLog("Non-founders found: " + getString<int>(nonfounders) + "\n");
-
-		if(opts::_MARKERS_WORKING_ == 0){
-			opts::printLog("No enabled markers are found.  Please check your input files and arguments.\n");
+			opts::printLog("Reading Pedigree file: " + opts::_FAMFILE_ + "\n");
+			Helpers::readTFamM(&data_set, options, filters);
+			//assignLinks(data_set.get_families());
+		} else {
+			opts::printLog(
+					"You specified -tped.  A corresponding Pedigree Information file needs to be specified using -tfam. Exiting!\n");
 			exit(1);
 		}
-		if(opts::_SAMPLES_WORKING_ == 0){
-			opts::printLog("No enabled samples are found.  Please check your input files and arguments.\n");
+		if (opts::_TPEDFILE_.length() > 0) {
+			opts::printLog("Reading TPED file: " + opts::_TPEDFILE_ + "\n");
+			Helpers::readTPedM(&data_set, options, filters);//data_set.get_markers(), data_set.get_samples(), data_set.get_marker_map());
+			//reorderAlleles(data_set.get_samples(), data_set.get_markers());
+			if (opts::_FLIPSTRAND_) {
+				flipStrand(data_set.get_markers());
+			}
+		} else {
+			opts::printLog(
+					"You specified -tfam.  A corresponding transposed PED file needs to be specified using -tped. Exiting!\n");
 			exit(1);
 		}
-		if(opts::_FAMILIES_WORKING_ == 0){
-			opts::printLog("No enabled families are found.  Please check your input files and arguments.\n");
+	} else if (opts::_MDRPEDFILE_.length() > 0 || opts::_MDRMAPFILE_.length()
+			> 0) {
+		if (opts::_MDRMAPFILE_.length() > 0) {
+			opts::printLog("Reading MDRMAP file: " + opts::_MDRMAPFILE_ + "\n");
+			//readMap(data_set.get_markers(), data_set.get_marker_map());
+			Helpers::readMapMdr(&data_set, options, filters);
+
+		} else {
+			opts::printLog(
+					"You specified -mdrped.  A corresponding MAP file needs to be specified using -mdrmap. Exiting!\n");
 			exit(1);
 		}
 
-		if(opts::zerogenoinfo.size() > 0){
-			opts::printLog("Zero-ing specified Sample/SNP pairs.\n");
-			Helpers::zeroSingleGenos(data_set.get_markers(), data_set.get_samples());
-		}
+		if (opts::_MDRPEDFILE_.length() > 0) {
+			if (opts::_PEDINFO_.length() > 0) {
+				opts::printLog("Reading Pedigree information file: "
+						+ opts::_PEDINFO_ + "\n");
+				Helpers::readPedInfo();
+			}
+			opts::printLog("Reading MDRPED file: " + opts::_MDRPEDFILE_ + "\n");
+			//readPed(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+			//assignLinks(data_set.get_families());
+			//reorderAlleles(data_set.get_samples(), data_set.get_markers());
+			Helpers::readMdr(&data_set, options, filters);
+			if (opts::_FLIPSTRAND_) {
+				flipStrand(data_set.get_markers());
+			}
 
-//		if(opts::_MAKEBIN_){
-//			writeBit(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
-//		}
-		if(opts::_PRINTFAMS_){
-			opts::printLog("Printing family structure diagram.\n");
-			printFamilies(data_set.get_families());
+		} else {
+			opts::printLog(
+					"You specified -mdrmap.  A corresponding MDR-PED file needs to be specified using -mdrped. Exiting!\n");
+			exit(1);
 		}
-		data_set.create_marker_name_map();
+	} else if (!opts::_DBINPUT_) {
+		cerr << "No input method specified!" << endl;
+		exit(1);
+	}
+	if (opts::_COVFILE_.length() > 0) {
+		opts::printLog("Reading covariate file: " + opts::_COVFILE_ + "\n");
+		Helpers::readCovariateFile(opts::_COVFILE_, &data_set, options, filters);
+	}
+	if (opts::_TRAITFILE_.length() > 0) {
+		opts::printLog("Reading trait file: " + opts::_TRAITFILE_ + "\n");
+		Helpers::readTraitFile(opts::_TRAITFILE_, &data_set, options, filters);
+	}
+	if (opts::_ID_FILE_EXISTS_) {
+		opts::printLog("Reading ID file: " + opts::_ID_FILE_ + "\n");
+		Helpers::readIDFile(opts::_ID_FILE_, &data_set);
+	}
+
+	if (opts::_SAMPLEBPRANGEFILTER_.length() > 0) {
+		opts::printLog("Running sample/bprange filter...\n");
+		filters->run_sample_bprange_filter(data_set.get_samples(),
+				data_set.get_markers(), (options.getSampleBprangeSamples()),
+				(options.getSampleBprangeMarkers()));
+	}
+
+	//int goodsamps = 0;
+	//int goodfams = 0;
+	//int goodmarkers = 0;
+	if (opts::_TODIGIT_) {
+		opts::printLog("Mapping Families/Samples to numeric format.");
+		Helpers::remapFamsToDigit(data_set.get_families());
+		Helpers::printFamsToDigit(data_set.get_families(), "global", options);
+	}
+	for (unsigned int i = 0; i < data_set.get_samples()->size(); i++) {
+		Sample* samp = data_set.get_sample(i);
+		if (samp->isEnabled()) {
+			//goodsamps++;
+			opts::_SAMPLES_WORKING_++;
+		}
+	}
+	for (unsigned int i = 0; i < data_set.get_families()->size(); i++) {
+		Family* fam = data_set.get_pedigree(i);
+		if (fam->isEnabled()) {
+			//goodfams++;
+			opts::_FAMILIES_WORKING_++;
+		}
+	}
+	for (unsigned int i = 0; i < data_set.get_markers()->size(); i++) {
+		Marker* mark = data_set.get_locus(i);
+		if (mark->isEnabled()) {
+			//goodmarkers++;
+			opts::_MARKERS_WORKING_++;
+		}
+	}
+	opts::_COVS_WORKING_ = data_set.num_covariates();
+	opts::_TRAITS_WORKING_ = data_set.num_traits();
+	string text = "Markers found: ";
+	text += getString<int> (opts::_MARKERS_FOUND_);
+	text += ", ";
+	text += getString<int> (opts::_MARKERS_WORKING_);
+	text += " are enabled!\n";
+	opts::printLog(text);
+	text = "Samples found: ";
+	text += getString<int> (opts::_SAMPLES_FOUND_);
+	text += ", ";
+	text += getString<int> (opts::_SAMPLES_WORKING_);
+	text += " are enabled!\n";
+	opts::printLog(text);
+	text = "Families found: ";
+	text += getString<int> (opts::_FAMILIES_FOUND_);
+	text += ", ";
+	text += getString<int> (opts::_FAMILIES_WORKING_);
+	text += " are enabled!\n";
+	if (opts::_COVS_FOUND_ > 0) {
+		text += "Covariates found: " + getString<int> (opts::_COVS_FOUND_)
+				+ ", " + getString<int> (opts::_COVS_WORKING_)
+				+ " are enabled!\n";
+	}
+	if (opts::_TRAITS_FOUND_ > 0) {
+		text += "Traits found: " + getString<int> (opts::_TRAITS_FOUND_) + ", "
+				+ getString<int> (opts::_TRAITS_WORKING_) + " are enabled!\n";
+	}
+	int founders = 0;
+	int nonfounders = 0;
+	for (unsigned int f = 0; f < data_set.get_families()->size(); f++) {
+		Family* fam = data_set.get_pedigree(f);
+		if (fam->isEnabled()) {
+			vector<Sample*>* founder = fam->getFounders();
+			vector<Sample*>* nonfound = fam->getNonFounders();
+			for (unsigned int s = 0; s < founder->size(); s++) {
+				Sample* samp = (*founder)[s];
+				if (samp->isEnabled()) {
+					founders++;
+				}
+			}
+			for (unsigned int s = 0; s < nonfound->size(); s++) {
+				Sample* samp = (*nonfound)[s];
+				if (samp->isEnabled()) {
+					nonfounders++;
+				}
+			}
+		}
+	}
+	text += "Founders found: ";
+	text += getString<int> (founders);
+	text += "\n";
+	opts::printLog(text);
+	opts::printLog("Non-founders found: " + getString<int> (nonfounders) + "\n");
+
+	if (opts::_MARKERS_WORKING_ == 0) {
+		opts::printLog(
+				"No enabled markers are found.  Please check your input files and arguments.\n");
+		exit(1);
+	}
+	if (opts::_SAMPLES_WORKING_ == 0) {
+		opts::printLog(
+				"No enabled samples are found.  Please check your input files and arguments.\n");
+		exit(1);
+	}
+	if (opts::_FAMILIES_WORKING_ == 0) {
+		opts::printLog(
+				"No enabled families are found.  Please check your input files and arguments.\n");
+		exit(1);
+	}
+
+	if (opts::zerogenoinfo.size() > 0) {
+		opts::printLog("Zero-ing specified Sample/SNP pairs.\n");
+		Helpers::zeroSingleGenos(data_set.get_markers(), data_set.get_samples());
+	}
+
+	//		if(opts::_MAKEBIN_){
+	//			writeBit(data_set.get_samples(), data_set.get_families(), data_set.get_markers(), data_set.get_marker_map());
+	//		}
+	if (opts::_PRINTFAMS_) {
+		opts::printLog("Printing family structure diagram.\n");
+		printFamilies(data_set.get_families());
+	}
+	data_set.create_marker_name_map();
 	//}
 	//set_me_up->summary();
 
 	//Start processing steps by slaves.  MASTER gathers all data from slaves and does summary work
 	//threading here?
 
-//		if(opts::_THREADS_){
-//		}
-		int count = 0;
-		vector<boost::thread*> threads_hash;
-		//vector<boost::thread*>::iterator thread_iter;
-//		boost::thread *threads[opts::_NUMTHREADS_];
+	//		if(opts::_THREADS_){
+	//		}
+	int count = 0;
+	vector<boost::thread*> threads_hash;
+	//vector<boost::thread*>::iterator thread_iter;
+	//		boost::thread *threads[opts::_NUMTHREADS_];
 
 	map<int, int> thread_step_map;
-	ORDER yesthread = optimized[0];
-	ORDER nothread = optimized[1];
+	vector<Process*> yesthread = optimized[0];
+	vector<Process*> nothread = optimized[1];
 
-	for(unsigned int o = 0; o < yesthread.size(); o++){//o_iter = order->begin(); o_iter != order->end(); o_iter++){
-		Step current_step = yesthread.at(o);//(Step)(*o_iter);//(*steps)[(*o_iter)];
-//		runStep(current_step, &data_set);
+	for (unsigned int o = 0; o < yesthread.size(); o++) {//o_iter = order->begin(); o_iter != order->end(); o_iter++){
+		Process* current_step = yesthread.at(o);//(Step)(*o_iter);//(*steps)[(*o_iter)];
+		//		runStep(current_step, &data_set);
 
-		if(opts::_THREADS_){
-//			thread_step_map[count] = o;
-//			threads[count++] = new boost::thread(boost::bind(&runStep, current_step, &data_set));
+		if (opts::_THREADS_) {
+			//			thread_step_map[count] = o;
+			//			threads[count++] = new boost::thread(boost::bind(&runStep, current_step, &data_set));
 			threads_hash.push_back(new boost::thread(boost::bind(&runStep, current_step, &data_set)));
-//			cout << "thread count " << count << endl;
+			//			cout << "thread count " << count << endl;
 			count++;
-			if(count >= opts::_NUMTHREADS_){
-//				for(int i = 0; i < count; i++){
-/////				for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){
-				while(count >= opts::_NUMTHREADS_){
-				for(int i = 0; i < (int)threads_hash.size(); i++){
-//					if(threads[i]->timed_join(boost::posix_time::milliseconds(500))){
-					if(threads_hash[i]->timed_join(boost::posix_time::milliseconds(500))){
-/////					finalizeStep(order->at(thread_step_map[i]));
-						delete(threads_hash[i]);//thread_iter->first]);
-//						thread_step_map.erase(count - 1);
-						threads_hash.erase(threads_hash.begin() + i);//thread_iter->first);
-						count--;
-						i--;
+			if (count >= opts::_NUMTHREADS_) {
+				//				for(int i = 0; i < count; i++){
+				/////				for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){
+				while (count >= opts::_NUMTHREADS_) {
+					for (int i = 0; i < (int) threads_hash.size(); i++) {
+						//					if(threads[i]->timed_join(boost::posix_time::milliseconds(500))){
+						if (threads_hash[i]->timed_join(
+								boost::posix_time::milliseconds(500))) {
+							/////					finalizeStep(order->at(thread_step_map[i]));
+							delete (threads_hash[i]);//thread_iter->first]);
+							//						thread_step_map.erase(count - 1);
+							threads_hash.erase(threads_hash.begin() + i);//thread_iter->first);
+							count--;
+							i--;
+						}
 					}
 				}
-				}
-//				count = 0;
-//				thread_step_map.clear();
+				//				count = 0;
+				//				thread_step_map.clear();
 			}
-		}
-		else{
+		} else {
 			runStep(current_step, &data_set);
 		}
 	}
 
-	if(opts::_THREADS_){
-	//for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){//int i = 0; i < count; i++){
-	for(int i = 0; i < (int)threads_hash.size(); i++){
-		threads_hash[i]->join();//thread_iter->first]->join();
-			delete(threads_hash[i]);//thread_iter->first]);
+	if (opts::_THREADS_) {
+		//for(thread_iter = threads_hash.begin(); thread_iter < threads_hash.end(); thread_iter++){//int i = 0; i < count; i++){
+		for (int i = 0; i < (int) threads_hash.size(); i++) {
+			threads_hash[i]->join();//thread_iter->first]->join();
+			delete (threads_hash[i]);//thread_iter->first]);
 
-	}
+		}
 	}
 
-	for(unsigned int o = 0; o < nothread.size(); o++){
-		Step current_step = nothread.at(o);
+	for (unsigned int o = 0; o < nothread.size(); o++) {
+		Process* current_step = nothread.at(o);
 		runStep(current_step, &data_set);
 	}
 
-
-
-	if(myrank == 0){
-		if(opts::_OUTPUTREMAINS_){
+	if (myrank == 0) {
+		if (opts::_OUTPUTREMAINS_) {
 			Finalize* f = new Finalize();
-			f->finish(data_set.get_markers(), data_set.get_samples(), data_set.get_families());
-			delete(f);
+			f->finish(data_set.get_markers(), data_set.get_samples(),
+					data_set.get_families());
+			delete (f);
 		}
-		if(opts::_COMPILE_OUTPUTS_ && opts::filenames.size() > 0){
-			compileOutputs(data_set.get_markers(), data_set.get_families(), data_set.get_samples());
+		if (opts::_COMPILE_OUTPUTS_ && opts::filenames.size() > 0) {
+			compileOutputs(data_set.get_markers(), data_set.get_families(),
+					data_set.get_samples());
 		}
 	}
-//	int fsize = families.size();
-//	int ssize = samples.size();
-//	int msize = markers.size();
-//	for(int i = 0; i < msize; i++){
-//		delete(markers[i]);
-//	}
-//	for(int i = 0; i < ssize; i++){
-//		delete(samples[i]);
-//	}
-//	for(int i = 0; i < fsize; i++){
-//		delete(families[i]);
-//	}
+	//	int fsize = families.size();
+	//	int ssize = samples.size();
+	//	int msize = markers.size();
+	//	for(int i = 0; i < msize; i++){
+	//		delete(markers[i]);
+	//	}
+	//	for(int i = 0; i < ssize; i++){
+	//		delete(samples[i]);
+	//	}
+	//	for(int i = 0; i < fsize; i++){
+	//		delete(families[i]);
+	//	}
 
 }
 
-vector<ORDER> optimize(ORDER* order){
-	ORDER nothread;
-	ORDER yesthread;
+vector<vector<Process*> > optimize(vector<Process*>& order){
+	vector<Process*> nothread;
+	vector<Process*> yesthread;
 
-	vector<ORDER> results;
+	vector<vector<Process*> > results;
 
 	opts::printLog("Optimizing processing order, thresholding and batch file rules will be maintained...\n");
 	bool thresh = false;
-	for(unsigned int o = 0; o < order->size(); o++){
-		StepOptions* options = order->at(o).getOptions();
+	for(unsigned int o = 0; o < order.size(); o++){
+		StepOptions* options = order.at(o)->getOptions();
 		if(options->doTransform() ||
 				options->doThreshMarkersLow() ||
 				options->doThreshMarkersHigh() ||
@@ -1985,11 +1905,11 @@ vector<ORDER> optimize(ORDER* order){
 				options->doZeroDisabled() ||
 				thresh
 		){
-			nothread.push_back(order->at(o));
+			nothread.push_back(order.at(o));
 			thresh = true;
 		}
 		else{
-			yesthread.push_back(order->at(o));
+			yesthread.push_back(order.at(o));
 		}
 	}
 
@@ -1999,35 +1919,29 @@ vector<ORDER> optimize(ORDER* order){
 
 	cout << "Threadable: \n";
 	for(int i = 0; i < (int)yesthread.size(); i++){
-		cout << yesthread[i].getName() << "\n";
+		cout << yesthread[i]->getName() << "\n";
 	}
 	cout << "Un-Threadable: \n";
 	for(int i = 0; i < (int)nothread.size(); i++){
-		cout << nothread[i].getName() << "\n";
+		cout << nothread[i]->getName() << "\n";
 	}
 
 	return results;
 }
 
-void runStep(Step current_step, DataSet* data_set){
-	opts::printLog("Working on " + current_step.getName() + "\n");
-	//current_step.process(con, families, markers);
+void runStep(Process* current_step, DataSet* data_set){
+	opts::printLog("Working on " + current_step->getName() + "\n");
 	try{
-		StepOptions* step_options = current_step.getOptions();
+		StepOptions* step_options = current_step->getOptions();
 
 		if(step_options->doTransform()){
 			step_options->performTransforms(data_set);
 		}
-		current_step.process(data_set);
-		current_step.PrintSummary();
-		current_step.filter();
-		current_step.FilterSummary();
-		//current_step.close();
+		current_step->run(data_set);
+
 		if(step_options->doTransform()){
 			step_options->undoTransforms(data_set);
 		}
-		//TODO: make sure that the close() statement being below doesn't break anything...
-		current_step.close();
 	}catch(MethodException & ex){
 		opts::printLog(ex.what());
 		exit(0);
@@ -2093,9 +2007,8 @@ map<string, vector<string> > getBatchArgs(string f){
  *Description:
  *Parses batch file and sets up steps for processing.
  */
-ORDER parseInput(string file){
+void parseInput(const string& file, vector<Process*>& proc_list){
 	ifstream inFile;
-	ORDER process;
 
 	const char* temp = file.c_str();
 	inFile.open(temp, ios::in);
@@ -2138,60 +2051,25 @@ ORDER parseInput(string file){
 			for(unsigned int i = 1; i < tokens.size(); i++){
 				thresh += tokens[i] + " ";
 			}
-			Step s = initializeSteps(step);
-			s.setOrder(count);
-			s.setThreshold(thresh);
-			s.setOverwrite(overwrite);
-			if(s.hasIncExc()){
+			Process* p = ProcessFactory::getFactory().Create(step);
+			if (p){
+				p->setOrder(count);
+				p->setThreshold(thresh);
+				p->setOverwrite(overwrite);
+			}else{
+				opts::printLog("Step: " + step + " not recognized.  Exiting.\n");
+				inFile.close();
+				exit(1);
+			}
+
+			if(p->hasIncExc()){
 				opts::_KEEP_EXC_SAMPLES_ = true;
 			}
-			process.push_back(s);
+			proc_list.push_back(p);
 		}
 	}
 	inFile.close();
 
-
-	return process;
-}
-
-/*
- *Function: initializeSteps
- *Parameter: batch step string
- *Return: Step object
- *Description:
- *Creates a Step object based on each step listed in the batch file
- *
- */
-Step initializeSteps(string i){
-		Step *newstep = NULL;
-		Process* proc = NULL;
-
-		proc = ProcessFactory::getFactory().Create(i);
-
-		if(proc){
-			return Step(proc);
-		}else{
-			opts::printLog("Step: " + i + " not recognized.  Exiting.\n");
-			exit(1);
-		}
-}
-
-/*Function: initializeSteps
- *Return: STEPS object
- *
- *Description:
- *Returns a list of valid steps.  Used when -S command line argument is specified
- *
- */
-STEPS initializeSteps(){
-	STEPS steps;
-	ProcessFactory::const_iterator s_iter;
-	ProcessFactory& f = ProcessFactory::getFactory();
-    for(s_iter = f.begin(); s_iter != f.end(); s_iter++){
-    	steps[(*s_iter).first] = initializeSteps((*s_iter).first);
-    }
-
-    return steps;
 }
 
 /*

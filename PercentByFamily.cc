@@ -13,43 +13,18 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "PercentByFamily.h"
 #include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
 
 using std::string;
+using Methods::opts;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Sample;
 
-string PercentByFamily::stepname = PercentByFamily::doRegister("family-geno-eff");
-
-/*
- *Function: FilterSummary
- *Description:
- *Outputs total number of markers and families remaining
- *
- */
-void PercentByFamily::FilterSummary(){
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string PercentByFamily::stepname = PercentByFamily::doRegister("family-geno-eff");
 
 /*
  * Function: PrintSummary
