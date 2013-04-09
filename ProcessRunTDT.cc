@@ -32,7 +32,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessRunTDT::stepname = "tdt";
+string ProcessRunTDT::stepname = ProcessRunTDT::doRegister("tdt");
 #ifdef PLATOLIB
 ProcessRunTDT::ProcessRunTDT(string bn, int pos, Database* pdb)
 {

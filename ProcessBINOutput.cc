@@ -53,6 +53,8 @@ ProcessBINOutput::ProcessBINOutput(string bn, int pos, Database* pdb, string pro
 }
 #endif
 
+string ProcessBINOutput::stepname = ProcessBINOutput::doRegister("output-bin");
+
 ProcessBINOutput::~ProcessBINOutput(){}
 void ProcessBINOutput::filter(){}
 void ProcessBINOutput::FilterSummary(){}

@@ -31,7 +31,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessLogReg : public Process{
+class ProcessLogReg : public ProcessImpl<ProcessLogReg>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -95,7 +96,7 @@ class ProcessLogReg : public Process{
 #ifdef PLATOLIB
 		ProcessLogReg(string, int, Database*);
 #endif
-		~ProcessLogReg(){};
+		virtual ~ProcessLogReg(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();

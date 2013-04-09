@@ -25,12 +25,9 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
+class ProcessFilterProcess : public ProcessImpl<ProcessFilterProcess>{
+	static string stepname;
 
-class ProcessFilterProcess : public Process{
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -98,7 +95,7 @@ class ProcessFilterProcess : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-		~ProcessFilterProcess(){};
+		virtual ~ProcessFilterProcess(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();
@@ -129,13 +126,7 @@ class ProcessFilterProcess : public Process{
 		int get_marker_loc(int);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
+
 #endif

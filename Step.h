@@ -1,23 +1,14 @@
 #ifndef STEP_H
 #define STEP_H
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
 #include <StepOptions.h>
-#include <stdlib.h>
-#include <string.h>
 #include <string>
 #include <list>
-//#include "MendelianErrors.h"
 #include "Process.h"
+
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-using namespace PlatoLib;
-#endif
+
 class Step{
 	private:
 		string name;
@@ -28,15 +19,13 @@ class Step{
 
 	public:
 		Step(){};
+		Step(Process* p) : name(p->getName()), threshold(""), multi_thresh(false), order(0), myprocess(p){}
 		Step(string n, string t, bool mt){
 			multi_thresh = mt;
 			name = n;
 			threshold = t;
 		};
 		virtual ~Step(){
-		//	if(myprocess){
-		//		delete(myprocess);
-		//	}
 		};
 
 		string getName();
@@ -51,10 +40,7 @@ class Step{
 		Process* getProcess(){return myprocess;};
 		void setName(string s){name = s;};
 		void setOrder(int);
-		//void process(Connection* con, Families* f, Markers* m) {myprocess->process(con, f, m);};
-		//void process(Families* f, Markers* m) {myprocess->process(f, m);};
 		void process(DataSet* ds){myprocess->process(ds);};
-		//Families* f, Markers* m) {myprocess->process(f, m);};
 		void PrintSummary(){myprocess->PrintSummary();};
 		void filter(){myprocess->filter();};
 
@@ -62,7 +48,6 @@ class Step{
 		void setRank(int r){myprocess->setRank(r);};
 		void close(){delete myprocess;};
 		StepOptions* getOptions(){return myprocess->getOptions();}
-		//void updateFamsMarks(Families* f, Markers* m){myprocess->updateFamsMarks(f, m);};
 };
 
 #endif

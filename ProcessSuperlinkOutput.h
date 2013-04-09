@@ -31,7 +31,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessSuperlinkOutput : public Process{
+class ProcessSuperlinkOutput : public ProcessImpl<ProcessSuperlinkOutput>{
 	private:
 		DataSet* data_set;
 		static string stepname;
@@ -107,7 +107,7 @@ class ProcessSuperlinkOutput : public Process{
 #ifdef PLATOLIB
 		ProcessSuperlinkOutput(string, int, Database*, string);
 #endif
-		~ProcessSuperlinkOutput(){};
+		virtual ~ProcessSuperlinkOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();

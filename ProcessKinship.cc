@@ -55,6 +55,8 @@ ProcessKinship::ProcessKinship(string bn, int pos, Database* pdb, string projPat
 }
 #endif
 
+string ProcessKinship::stepname = ProcessKinship::doRegister("kinship");
+
 void ProcessKinship::FilterSummary() {
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");

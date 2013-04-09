@@ -13,7 +13,7 @@
 
 //typedef vector<int> PERCENT;
 
-class PercentByFamily : public Process{
+class PercentByFamily : public ProcessImpl<PercentByFamily>{
 	static std::string stepname;
 	private:
 		Methods::DataSet* data_set;

@@ -48,7 +48,7 @@ using std::string;
 using std::map;
 using std::vector;
 
-string ProcessAlleleFrequency::stepname = "allele-freq";
+string ProcessAlleleFrequency::stepname = ProcessAlleleFrequency::doRegister("allele-freq");
 
 /*
  *Function: FilterSummary

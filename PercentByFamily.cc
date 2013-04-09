@@ -32,7 +32,9 @@
 #include <General.h>
 #include <Helpers.h>
 
-string PercentByFamily::stepname = "family-geno-eff";
+using std::string;
+
+string PercentByFamily::stepname = PercentByFamily::doRegister("family-geno-eff");
 
 /*
  *Function: FilterSummary

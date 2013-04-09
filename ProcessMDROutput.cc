@@ -51,6 +51,8 @@ ProcessMDROutput::ProcessMDROutput(string bn, int pos, Database* pdb, string pro
 }
 #endif
 
+string ProcessMDROutput::stepname = ProcessMDROutput::doRegister("output-mdr");
+
 void ProcessMDROutput::FilterSummary(){
 }
 

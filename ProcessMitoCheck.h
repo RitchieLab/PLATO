@@ -30,7 +30,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessMitoCheck : public Process{
+class ProcessMitoCheck : public ProcessImpl<ProcessMitoCheck>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -97,7 +97,7 @@ class ProcessMitoCheck : public Process{
 #ifdef PLATOLIB
 		ProcessMitoCheck(string, int, Database*, string);
 #endif
-		~ProcessMitoCheck(){};
+		virtual ~ProcessMitoCheck(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

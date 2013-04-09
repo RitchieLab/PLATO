@@ -37,23 +37,7 @@
 #include <Helpers.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-string ProcessEigenstratOutput::stepname = "output-eigenstrat";
-#ifdef PLATOLIB
-ProcessEigenstratOutput::ProcessEigenstratOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output Eigenstrature";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
+string ProcessEigenstratOutput::stepname = ProcessEigenstratOutput::doRegister("output-eigenstrat");
 
 void ProcessEigenstratOutput::FilterSummary(){}
 

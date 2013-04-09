@@ -29,7 +29,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessTPEDOutput : public Process{
+class ProcessTPEDOutput : public ProcessImpl<ProcessTPEDOutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -101,7 +102,7 @@ class ProcessTPEDOutput : public Process{
 #ifdef PLATOLIB
 		ProcessTPEDOutput(string, int, Database*, string);
 #endif
-		~ProcessTPEDOutput(){};
+		virtual ~ProcessTPEDOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

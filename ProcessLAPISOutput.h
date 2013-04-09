@@ -26,15 +26,11 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessLAPISOutput : public Process{
+class ProcessLAPISOutput : public ProcessImpl<ProcessLAPISOutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
-		static string stepname;
 		vector<Sample*>* samples;
 		vector<Family*>* families;
 		vector<Marker*>* markers;
@@ -103,10 +99,8 @@ class ProcessLAPISOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessLAPISOutput(string, int, Database*, string);
-#endif
-		~ProcessLAPISOutput(){};
+
+		virtual ~ProcessLAPISOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();
@@ -136,13 +130,6 @@ class ProcessLAPISOutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-				void run(DataSetObject*);
-				void dump2db();
-				void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

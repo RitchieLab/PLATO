@@ -31,7 +31,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessInteraction : public Process{
+class ProcessInteraction : public ProcessImpl<ProcessInteraction>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -74,7 +75,7 @@ class ProcessInteraction : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-		~ProcessInteraction(){};
+		virtual ~ProcessInteraction(){};
 		
 		void PrintSummary();
 		void filter();

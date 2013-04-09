@@ -44,6 +44,8 @@ namespace PlatoLib
 {
 #endif
 
+string ProcessMDR::stepname = ProcessMDR::doRegister("mdr");
+
 void ProcessMDR::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");

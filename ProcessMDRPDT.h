@@ -32,7 +32,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessMDRPDT : public Process{
+class ProcessMDRPDT : public ProcessImpl<ProcessMDRPDT>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -93,7 +94,7 @@ class ProcessMDRPDT : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessMDRPDT(){
+		virtual ~ProcessMDRPDT(){
 		};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();

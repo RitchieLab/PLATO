@@ -31,21 +31,7 @@
 #include <Helpers.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-#ifdef PLATOLIB
-ProcessGRROutput::ProcessGRROutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output GRR";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
+string ProcessGRROutput::stepname = ProcessGRROutput::doRegister("output-grr");
 
 void ProcessGRROutput::FilterSummary(){}
 

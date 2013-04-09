@@ -9,7 +9,7 @@ class Percent{
 	public:
 		Percent(){};
 		Percent(float p) : percent(p){count = 0;};
-		~Percent(){};
+		virtual ~Percent(){};
 		void incCount(){count++;};
 		int getCount(){return count;};
 		float getPercent(){return percent;};

@@ -42,7 +42,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessMarkerGenoEff::stepname = "marker-geno-eff";
+string ProcessMarkerGenoEff::stepname = ProcessMarkerGenoEff::doRegister("marker-geno-eff");
 
 #ifdef PLATOLIB
 ProcessMarkerGenoEff::ProcessMarkerGenoEff(string bn, int pos, Database* pdb)

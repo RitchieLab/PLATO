@@ -32,7 +32,7 @@ namespace PlatoLib
 
 //ntypedef vector<int> PERCENT;
 
-class ProcessSampleGenoEff : public Process{
+class ProcessSampleGenoEff : public ProcessImpl<ProcessSampleGenoEff>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -109,7 +109,7 @@ class ProcessSampleGenoEff : public Process{
 #ifdef PLATOLIB
 		ProcessSampleGenoEff(string, int, Database*);
 #endif
-		~ProcessSampleGenoEff(){
+		virtual ~ProcessSampleGenoEff(){
 		zeros.resize(0);
 		total.resize(0);
 		};

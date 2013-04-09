@@ -26,12 +26,7 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-class ProcessGenderCheck : public Process{
+class ProcessGenderCheck : public ProcessImpl<ProcessGenderCheck>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -95,10 +90,8 @@ class ProcessGenderCheck : public Process{
 			rank = 0;
 			order =0;
 		};
-#ifdef PLATOLIB
-		ProcessGenderCheck(string, int, Database*);
-#endif
-		~ProcessGenderCheck(){};
+
+		virtual ~ProcessGenderCheck(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();
@@ -123,13 +116,6 @@ class ProcessGenderCheck : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

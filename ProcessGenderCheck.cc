@@ -36,7 +36,7 @@ namespace PlatoLib
 #endif
 
 
-string ProcessGenderCheck::stepname = "gender-error";
+string ProcessGenderCheck::stepname = ProcessGenderCheck::doRegister("gender-error");
 #ifdef PLATOLIB
 ProcessGenderCheck::ProcessGenderCheck(string bn, int pos, Database* pdb)
 {

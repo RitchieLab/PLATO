@@ -36,10 +36,7 @@
 #include <General.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
+string ProcessClusterMissing::stepname = ProcessClusterMissing::doRegister("cluster-missing");
 
 void ProcessClusterMissing::FilterSummary(){
 }

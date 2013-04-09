@@ -41,7 +41,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessPowerMarkerOutput::stepname = "output-powermarker";
+string ProcessPowerMarkerOutput::stepname = ProcessPowerMarkerOutput::doRegister("output-powermarker");
 #ifdef PLATOLIB
 ProcessPowerMarkerOutput::ProcessPowerMarkerOutput(string bn, int pos, Database* pdb, string projPath)
 {

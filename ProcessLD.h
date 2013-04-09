@@ -30,7 +30,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessLD : public Process{
+class ProcessLD : public ProcessImpl<ProcessLD>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -91,7 +92,7 @@ class ProcessLD : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessLD(){
+		virtual ~ProcessLD(){
 		};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();

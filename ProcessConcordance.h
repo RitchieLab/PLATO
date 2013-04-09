@@ -32,7 +32,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessConcordance : public Process{
+class ProcessConcordance : public ProcessImpl<ProcessConcordance>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -90,7 +90,7 @@ class ProcessConcordance : public Process{
 			_STRATIFY_ = false;
 			order = 0;
 		};
-		~ProcessConcordance(){
+		virtual ~ProcessConcordance(){
 			check_samples.resize(0);
 			check_families.resize(0);
 			check_markers.resize(0);

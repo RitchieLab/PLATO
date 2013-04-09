@@ -25,12 +25,7 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-class ProcessEigenstratOutput : public Process{
+class ProcessEigenstratOutput : public ProcessImpl<ProcessEigenstratOutput>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -100,10 +95,8 @@ class ProcessEigenstratOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessEigenstratOutput(string, int, Database*, string);
-#endif
-		~ProcessEigenstratOutput(){};
+
+		virtual ~ProcessEigenstratOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

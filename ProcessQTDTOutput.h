@@ -32,7 +32,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessQTDTOutput : public Process{
+class ProcessQTDTOutput : public ProcessImpl<ProcessQTDTOutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -107,7 +108,7 @@ class ProcessQTDTOutput : public Process{
 #ifdef PLATOLIB
 		ProcessQTDTOutput(string, int, Database*, string);
 #endif
-		~ProcessQTDTOutput(){};
+		virtual ~ProcessQTDTOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();

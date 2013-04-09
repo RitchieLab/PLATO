@@ -18,16 +18,17 @@ AM_LDFLAGS=$(BOOST_LDFLAGS)
 
 bin_PROGRAMS=plato
 
-plato_SOURCES=Chrom.cc \
+plato_SOURCES= cdflib.h \
+Chrom.cc \
 Chrom.h \
 dcdflib.cpp \
 Finalize.cc \
 Finalize.h \
 ipmpar.c \
-PercentByFamily.cc \
-PercentByFamily.h \
 Percent.cc \
 Percent.h \
+PercentByFamily.cc \
+PercentByFamily.h \
 ProcessAlleleFrequency.cc \
 ProcessAlleleFrequency.h \
 ProcessBEAGLEOutput.cc \
@@ -118,8 +119,9 @@ Vars.h \
 wasp.cc \
 wasp.h \
 ProcessInteraction.h \
-ProcessInteraction.cpp
-
+ProcessInteraction.cpp \
+ProcessFactory.cpp \
+ProcessFactory.h
 
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB)

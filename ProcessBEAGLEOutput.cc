@@ -33,6 +33,8 @@
 
 using namespace Methods;
 
+string ProcessBEAGLEOutput::stepname = ProcessBEAGLEOutput::doRegister("output-beagle");
+
 //define the PlatoLib namespace for use with Plato as a library
 #ifdef PLATOLIB
 namespace PlatoLib

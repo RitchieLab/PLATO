@@ -29,7 +29,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessSampleGenoEff::stepname = "sample-geno-eff";
+string ProcessSampleGenoEff::stepname = ProcessSampleGenoEff::doRegister("sample-geno-eff");
 
 #ifdef PLATOLIB
 ProcessSampleGenoEff::ProcessSampleGenoEff(string bn, int pos, Database* pdb)

@@ -22,6 +22,8 @@ namespace PlatoLib
 {
 #endif
 
+string ProcessInteraction::stepname = ProcessInteraction::doRegister("interaction");
+
 void ProcessInteraction::FilterSummary(){
 }
 

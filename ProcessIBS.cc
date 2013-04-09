@@ -36,24 +36,9 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-string ProcessIBS::stepname = "ibs";
+string ProcessIBS::stepname = ProcessIBS::doRegister("ibs");
 
 //no filter summary since no filtering done
-#ifdef PLATOLIB
-ProcessIBS::ProcessIBS(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "IBS";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
 
 void ProcessIBS::FilterSummary(){
 }

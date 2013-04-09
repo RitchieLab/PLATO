@@ -58,6 +58,8 @@ ProcessLogReg::ProcessLogReg(string bn, int pos, Database* pdb)
 }
 #endif
 
+string ProcessLogReg::stepname = ProcessLogReg::doRegister("logreg");
+
 void ProcessLogReg::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");

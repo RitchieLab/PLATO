@@ -34,7 +34,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessCMH : public Process{
+class ProcessCMH : public ProcessImpl<ProcessCMH>{
 	static string stepname;
 
 private:
@@ -98,7 +98,7 @@ private:
 			run_start = -1;
 			run_end = -1;
 		};
-		~ProcessCMH(){};
+		virtual ~ProcessCMH(){};
 #ifdef PLATOLIB
 		ProcessCMH(string, int, Database*);
 #endif

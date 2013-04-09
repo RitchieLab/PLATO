@@ -31,7 +31,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessRunTDT : public Process{
+class ProcessRunTDT : public ProcessImpl<ProcessRunTDT>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -87,7 +87,7 @@ class ProcessRunTDT : public Process{
 #ifdef PLATOLIB
 		ProcessRunTDT(string, int, Database*);
 #endif
-		~ProcessRunTDT(){};
+		virtual ~ProcessRunTDT(){};
 		void PrintSummary();
 		void filter();
 		void process(DataSet*);

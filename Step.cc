@@ -10,19 +10,9 @@
 #include "Step.h"
 //#include "Process.h"
 using namespace Methods;
-#ifdef PLATOLIB
-using namespace PlatoLib;
-#endif
+
 string Step::getName(){
 	return name;
-}
-
-void Step::setProcess(Process* p){
-	myprocess = p;
-}
-
-void Step::setProcess(void* p){
-	myprocess = (Process*) p;
 }
 
 string Step::getThreshold(){

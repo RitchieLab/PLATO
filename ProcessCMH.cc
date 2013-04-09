@@ -43,7 +43,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessCMH::stepname = "cmh";
+string ProcessCMH::stepname = ProcessCMH::doRegister("cmh");
 #ifdef PLATOLIB
 ProcessCMH::ProcessCMH(string bn, int pos, Database* pdb)
 {

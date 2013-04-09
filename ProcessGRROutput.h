@@ -27,12 +27,8 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-class ProcessGRROutput : public Process{
+class ProcessGRROutput : public ProcessImpl<ProcessGRROutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -104,10 +100,8 @@ class ProcessGRROutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessGRROutput(string, int, Database*, string);
-#endif
-		~ProcessGRROutput(){};
+
+		virtual ~ProcessGRROutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();
@@ -134,14 +128,6 @@ class ProcessGRROutput : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-			void FixOutputName(int, string);
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

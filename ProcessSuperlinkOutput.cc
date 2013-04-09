@@ -38,7 +38,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessSuperlinkOutput::stepname = "output-superlink";
+string ProcessSuperlinkOutput::stepname = ProcessSuperlinkOutput::doRegister("output-superlink");
 
 #ifdef PLATOLIB
 ProcessSuperlinkOutput::ProcessSuperlinkOutput(string bn, int pos, Database* pdb, string projPath)

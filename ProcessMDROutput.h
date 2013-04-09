@@ -31,7 +31,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessMDROutput : public Process{
+class ProcessMDROutput : public ProcessImpl<ProcessMDROutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -106,7 +107,7 @@ class ProcessMDROutput : public Process{
 #ifdef PLATOLIB
 		ProcessMDROutput(string, int, Database*, string);
 #endif
-		~ProcessMDROutput(){};
+		virtual ~ProcessMDROutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();

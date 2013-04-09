@@ -30,7 +30,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessEpistasis : public Process{
+class ProcessEpistasis : public ProcessImpl<ProcessEpistasis>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -98,7 +99,7 @@ class ProcessEpistasis : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-		~ProcessEpistasis(){};
+		virtual ~ProcessEpistasis(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

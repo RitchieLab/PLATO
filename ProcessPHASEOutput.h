@@ -31,7 +31,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessPHASEOutput : public Process{
+class ProcessPHASEOutput : public ProcessImpl<ProcessPHASEOutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -106,7 +107,7 @@ class ProcessPHASEOutput : public Process{
 #ifdef PLATOLIB
 		ProcessPHASEOutput(string, int, Database*, string);
 #endif
-		~ProcessPHASEOutput(){};
+		virtual ~ProcessPHASEOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();

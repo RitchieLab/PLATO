@@ -52,6 +52,8 @@ ProcessPHASEOutput::ProcessPHASEOutput(string bn, int pos, Database* pdb, string
 }
 #endif
 
+string ProcessPHASEOutput::stepname = ProcessPHASEOutput::doRegister("output-phase");
+
 void ProcessPHASEOutput::FilterSummary(){}
 
 void ProcessPHASEOutput::PrintSummary(){

@@ -52,6 +52,8 @@ ProcessTPEDOutput::ProcessTPEDOutput(string bn, int pos, Database* pdb, string p
 }
 #endif
 
+string ProcessTPEDOutput::stepname = ProcessTPEDOutput::doRegister("output-tped");
+
 void ProcessTPEDOutput::FilterSummary(){}
 
 void ProcessTPEDOutput::PrintSummary(){

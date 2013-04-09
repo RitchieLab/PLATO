@@ -41,6 +41,8 @@ namespace PlatoLib
 {
 #endif
 
+string ProcessImputeOutput::stepname = ProcessImputeOutput::doRegister("output-impute");
+
 void ProcessImputeOutput::FilterSummary(){
 }
 

@@ -40,7 +40,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessMitoCheck::stepname = "mito-check";
+string ProcessMitoCheck::stepname = ProcessMitoCheck::doRegister("mito-check");
 #ifdef PLATOLIB
 ProcessMitoCheck::ProcessMitoCheck(string bn, int pos, Database* pdb, string projPath)
 {

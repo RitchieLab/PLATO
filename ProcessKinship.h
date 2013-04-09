@@ -31,7 +31,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessKinship : public Process{
+class ProcessKinship : public ProcessImpl<ProcessKinship>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -96,7 +97,7 @@ class ProcessKinship : public Process{
 #ifdef PLATOLIB
 		ProcessKinship(string, int, Database*, string);
 #endif
-		~ProcessKinship(){
+		virtual ~ProcessKinship(){
 		};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();

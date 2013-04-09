@@ -45,6 +45,8 @@ namespace PlatoLib
 {
 #endif
 
+string ProcessLD::stepname = ProcessLD::doRegister("ld");
+
 void ProcessLD::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");

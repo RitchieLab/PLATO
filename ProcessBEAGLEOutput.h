@@ -32,7 +32,9 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
-class ProcessBEAGLEOutput : public Process{
+class ProcessBEAGLEOutput : public ProcessImpl<ProcessBEAGLEOutput>{
+	static string stepname;
+
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -107,7 +109,7 @@ class ProcessBEAGLEOutput : public Process{
 #ifdef PLATOLIB
 		ProcessBEAGLEOutput(string, int, Database*, string);
 #endif
-		~ProcessBEAGLEOutput(){};
+		virtual ~ProcessBEAGLEOutput(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();

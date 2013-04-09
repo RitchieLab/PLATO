@@ -14,7 +14,7 @@
 
 #include "Process.h"
 
-class ProcessAlleleFrequency : public Process{
+class ProcessAlleleFrequency : public ProcessImpl<ProcessAlleleFrequency>{
 	static std::string stepname;
 	private:
 		Methods::DataSet* data_set;

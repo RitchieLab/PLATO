@@ -30,7 +30,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessBINOutput : public Process{
+class ProcessBINOutput : public ProcessImpl<ProcessBINOutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -102,7 +103,7 @@ class ProcessBINOutput : public Process{
 #ifdef PLATOLIB
 		ProcessBINOutput(string, int, Database*, string);
 #endif
-		~ProcessBINOutput();
+		virtual ~ProcessBINOutput();
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

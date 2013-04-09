@@ -52,6 +52,8 @@ ProcessPEDOutput::ProcessPEDOutput(string bn, int pos, Database* pdb, string pro
 }
 #endif
 
+string ProcessPEDOutput::stepname = ProcessPEDOutput::doRegister("output-ped");
+
 void ProcessPEDOutput::FilterSummary(){}
 
 void ProcessPEDOutput::PrintSummary(){

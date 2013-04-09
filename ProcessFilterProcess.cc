@@ -37,10 +37,7 @@
 #include <Helpers.h>
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
+string ProcessFilterProcess::stepname = ProcessFilterProcess::doRegister("filter-process");
 
 void ProcessFilterProcess::FilterSummary(){
 }
@@ -71,12 +68,3 @@ void ProcessFilterProcess::process(DataSet* ds){
 	filter.setOutputName(fcomp);
 	filter.calculate(data_set, options.getFilterProcessConfig());
 }
-#ifdef PLATOLIB
-void ProcessFilterProcess::dump2db(){}
-void ProcessFilterProcess::create_tables(){}
-void ProcessFilterProcess::run(DataSetObject* ds){}
-#endif
-
-#ifdef PLATOLIB
-}//end namespace PlatoLib
-#endif

@@ -47,7 +47,7 @@ namespace PlatoLib
 {
 #endif
 
-string ProcessMendelianErrors::stepname = "mendelian-error";
+string ProcessMendelianErrors::stepname = ProcessMendelianErrors::doRegister("mendelian-error");
 #ifdef PLATOLIB
 ProcessMendelianErrors::ProcessMendelianErrors(string bn, int pos, Database* pdb, string projPath)
 {

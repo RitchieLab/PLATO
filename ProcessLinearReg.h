@@ -26,12 +26,9 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessLinearReg : public Process{
+class ProcessLinearReg : public ProcessImpl<ProcessLinearReg>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -92,10 +89,7 @@ class ProcessLinearReg : public Process{
 			run_start = -1;
 			run_end = -1;
 		};
-#ifdef PLATOLIB
-		ProcessLinearReg(string, int, Database*);
-#endif
-		~ProcessLinearReg(){};
+		virtual ~ProcessLinearReg(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();
@@ -122,13 +116,6 @@ class ProcessLinearReg : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-				void run(DataSetObject*);
-				void dump2db();
-				void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

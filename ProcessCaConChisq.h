@@ -24,12 +24,8 @@
 #include <DataSet.h>
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessCaConChisq : public Process{
+class ProcessCaConChisq : public ProcessImpl<ProcessCaConChisq>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -97,7 +93,7 @@ class ProcessCaConChisq : public Process{
 		ProcessCaConChisq(string, int, Database*);
 #endif
 
-		~ProcessCaConChisq();
+		virtual ~ProcessCaConChisq();
 
 		int getOrigNumMarkers(){return orig_num_markers;};
 		int getOrigNumFamilies(){return orig_num_families;};

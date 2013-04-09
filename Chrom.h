@@ -26,7 +26,7 @@ class Chrom{
 	public:
 		Chrom(){};
 		Chrom(string);
-		~Chrom(){};
+		virtual ~Chrom(){};
 		void incPC(float);
 		std::string getChrom(){return chrom;};
 		PERCOUNT getPC(){return percent_counts;};

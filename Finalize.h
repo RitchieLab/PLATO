@@ -12,7 +12,7 @@ class Finalize{
 	public:
 		Finalize(){
 		};
-		~Finalize(){};
+		virtual ~Finalize(){};
 		void finish(std::vector<Methods::Marker*>*, std::vector<Methods::Sample*>*, std::vector<Methods::Family*>*);
 };
 #endif

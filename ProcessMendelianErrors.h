@@ -30,7 +30,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessMendelianErrors : public Process{
+class ProcessMendelianErrors : public ProcessImpl<ProcessMendelianErrors>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -71,7 +71,7 @@ class ProcessMendelianErrors : public Process{
 		vector<Marker*> good_markers;
 
 	public:
-		ProcessMendelianErrors() : Process(){
+		ProcessMendelianErrors() {
 			data_set = NULL;
 			markers = NULL;
 			samples = NULL;

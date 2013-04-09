@@ -24,12 +24,10 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessClusterMissing : public Process{
+class ProcessClusterMissing : public ProcessImpl<ProcessClusterMissing>{
+	static string stepname;
+
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -97,7 +95,7 @@ class ProcessClusterMissing : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-		~ProcessClusterMissing(){};
+		virtual ~ProcessClusterMissing(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

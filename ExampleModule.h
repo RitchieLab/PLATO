@@ -12,7 +12,7 @@
 //using namespace std;
 //using namespace Methods;
 
-class ExampleModule : public Process{
+class ExampleModule : public ProcessImpl<ExampleModule>{
 	private:
 		Methods::DataSet* data_set;
 		std::vector<Methods::Sample*>* samples;

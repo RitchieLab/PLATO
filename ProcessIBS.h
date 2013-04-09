@@ -24,12 +24,8 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessIBS : public Process{
+class ProcessIBS : public ProcessImpl<ProcessIBS>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -100,10 +96,8 @@ class ProcessIBS : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessIBS(string, int, Database*, string);
-#endif
-		~ProcessIBS(){};
+
+		virtual ~ProcessIBS(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();
@@ -141,13 +135,6 @@ class ProcessIBS : public Process{
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		void resize(int);
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

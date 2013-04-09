@@ -33,23 +33,8 @@
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-string ProcessLAPISOutput::stepname = "output-lapis";
-#ifdef PLATOLIB
-ProcessLAPISOutput::ProcessLAPISOutput(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Output Lapis";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
+string ProcessLAPISOutput::stepname = ProcessLAPISOutput::doRegister("output-lapis");
 
 void ProcessLAPISOutput::FilterSummary(){
 }

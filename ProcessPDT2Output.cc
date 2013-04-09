@@ -51,6 +51,8 @@ ProcessPDT2Output::ProcessPDT2Output(string bn, int pos, Database* pdb, string p
 }
 #endif
 
+string ProcessPDT2Output::stepname = ProcessPDT2Output::doRegister("output-pdt2");
+
 void ProcessPDT2Output::FilterSummary(){
 }
 

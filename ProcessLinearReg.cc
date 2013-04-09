@@ -37,25 +37,9 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-#ifdef PLATOLIB
-ProcessLinearReg::ProcessLinearReg(string bn, int pos, Database* pdb)
-{
-	name = "Linear Regression";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-}
-#endif
+string ProcessLinearReg::stepname = ProcessLinearReg::doRegister("linear-reg");
 
 void ProcessLinearReg::FilterSummary(){
 

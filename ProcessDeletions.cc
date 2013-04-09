@@ -37,23 +37,7 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-string ProcessDeletions::stepname="deletions";
-#ifdef PLATOLIB
-ProcessDeletions::ProcessDeletions(string bn, int pos, Database* pdb, string projPath)
-{
-	name = "Deletion";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-	projectPath = projPath;
-}
-#endif
+string ProcessDeletions::stepname=ProcessDeletions::doRegister("deletions");
 
 void ProcessDeletions::setThreshold(string thresh){
 	options.setUp(thresh);

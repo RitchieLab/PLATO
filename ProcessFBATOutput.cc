@@ -48,6 +48,8 @@ ProcessFBATOutput::ProcessFBATOutput(string bn, int pos, Database* pdb, string p
 }
 #endif
 
+string ProcessFBATOutput::stepname = ProcessFBATOutput::doRegister("output-fbat");
+
 void ProcessFBATOutput::FilterSummary(){}
 
 void ProcessFBATOutput::PrintSummary(){

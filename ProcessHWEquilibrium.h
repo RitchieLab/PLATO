@@ -26,12 +26,8 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessHWEquilibrium : public Process{
+class ProcessHWEquilibrium : public ProcessImpl<ProcessHWEquilibrium>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -122,10 +118,8 @@ class ProcessHWEquilibrium : public Process{
 			order = 0;
 			orig_num_markers = 0;
 		};
-#ifdef PLATOLIB
-		ProcessHWEquilibrium(string, int, Database*);
-#endif
-		~ProcessHWEquilibrium(){
+
+		virtual ~ProcessHWEquilibrium(){
 			//if(af){
 			//delete(af);
 		//	}
@@ -157,13 +151,6 @@ class ProcessHWEquilibrium : public Process{
 		void doFilter(Marker*, HWEquilibrium*);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
-		#ifdef PLATOLIB
-			void run(DataSetObject*);
-			void dump2db();
-			void create_tables();
-		#endif
+
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
 #endif

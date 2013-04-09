@@ -24,12 +24,8 @@
 
 using namespace std;
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
 
-class ProcessDeletions : public Process{
+class ProcessDeletions : public ProcessImpl<ProcessDeletions>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -65,7 +61,7 @@ class ProcessDeletions : public Process{
 		string projectPath;
 
 	public:
-		ProcessDeletions() : Process(){
+		ProcessDeletions(){
 			data_set = NULL;
 			markers = NULL;
 			samples = NULL;

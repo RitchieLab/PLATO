@@ -27,12 +27,7 @@
 using namespace std;
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-
-class ProcessHomozygous : public Process{
+class ProcessHomozygous : public ProcessImpl<ProcessHomozygous>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -95,10 +90,8 @@ class ProcessHomozygous : public Process{
 			_STRATIFY_ = false;
 			order = 0;
 		};
-#ifdef PLATOLIB
-		ProcessHomozygous(string, int, Database*, string);
-#endif
-		~ProcessHomozygous(){};
+
+		virtual ~ProcessHomozygous(){};
 		//void process(Connection*, Families*, Markers*);
 		void PrintSummary();
 		void filter();

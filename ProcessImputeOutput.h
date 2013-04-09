@@ -29,7 +29,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessImputeOutput : public Process{
+class ProcessImputeOutput : public ProcessImpl<ProcessImputeOutput>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -97,7 +98,7 @@ class ProcessImputeOutput : public Process{
 			_DBOUTPUT_ = false;
 			order = 0;
 		};
-		~ProcessImputeOutput(){};
+		virtual ~ProcessImputeOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

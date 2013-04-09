@@ -47,6 +47,8 @@ ProcessQTDTOutput::ProcessQTDTOutput(string bn, int pos, Database* pdb, string p
 }
 #endif
 
+string ProcessQTDTOutput::stepname = ProcessQTDTOutput::doRegister("output-qtdt");
+
 void ProcessQTDTOutput::FilterSummary(){}
 
 void ProcessQTDTOutput::PrintSummary(){

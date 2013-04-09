@@ -29,7 +29,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessPowerMarkerOutput : public Process{
+class ProcessPowerMarkerOutput : public ProcessImpl<ProcessPowerMarkerOutput>{
 	private:
 		DataSet* data_set;
 		static string stepname;
@@ -102,7 +102,7 @@ class ProcessPowerMarkerOutput : public Process{
 #ifdef PLATOLIB
 		ProcessPowerMarkerOutput(string, int, Database*, string);
 #endif
-		~ProcessPowerMarkerOutput(){};
+		virtual ~ProcessPowerMarkerOutput(){};
 //		void process(Connection*, Families*, Markers*);
 //		void process(Families*, Markers*);
 		void PrintSummary();

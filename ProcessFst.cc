@@ -35,31 +35,11 @@
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
+
 using namespace Methods;
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
+string ProcessFst::stepname = ProcessFst::doRegister("fst");
 
-string ProcessFst::stepname = "fst";
-
-#ifdef PLATOLIB
-ProcessFst::ProcessFst(string bn, int pos, Database* pdb)
-{
-        name = "Fst";
-        batchname = bn;
-        position = pos;
-        hasresults = false;
-        db = pdb;
-}
-#endif
 
 void ProcessFst::FilterSummary() {
 

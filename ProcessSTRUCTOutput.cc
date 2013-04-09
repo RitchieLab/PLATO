@@ -49,6 +49,8 @@ ProcessSTRUCTOutput::ProcessSTRUCTOutput(string bn, int pos, Database* pdb, stri
 }
 #endif
 
+string ProcessSTRUCTOutput::stepname = ProcessSTRUCTOutput::doRegister("output-structure");
+
 void ProcessSTRUCTOutput::FilterSummary(){}
 
 void ProcessSTRUCTOutput::PrintSummary(){

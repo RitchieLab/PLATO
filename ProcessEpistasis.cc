@@ -41,6 +41,8 @@ namespace PlatoLib
 {
 #endif
 
+string ProcessEpistasis::stepname = ProcessEpistasis::doRegister("epistasis");
+
 void ProcessEpistasis::FilterSummary(){
 }
 

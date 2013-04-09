@@ -43,6 +43,9 @@ using namespace Methods;
 namespace PlatoLib
 {
 #endif
+
+string ProcessMDRPDT::stepname = ProcessMDRPDT::doRegister("mdrpdt");
+
 void ProcessMDRPDT::FilterSummary(){
 
 	opts::printLog("Threshold:\t" + options.toString() + "\n");

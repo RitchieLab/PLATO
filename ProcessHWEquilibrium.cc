@@ -24,27 +24,9 @@
 #include <cdflib.h>
 #include <General.h>
 #include <Helpers.h>
-#ifdef PLATOLIB
-#include "Controller.h"
-#endif
 
 using namespace Methods;
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
-string ProcessHWEquilibrium::stepname = "hw";
-
-#ifdef PLATOLIB
-ProcessHWEquilibrium::ProcessHWEquilibrium(string bn, int pos, Database* pdb)
-{
-	name = "HWE";
-	batchname = bn;
-	position = pos;
-	hasresults = false;
-	db = pdb;
-}
-#endif
+string ProcessHWEquilibrium::stepname = ProcessHWEquilibrium::doRegister("hw");
 
 /*
  * Function: PrintSummary

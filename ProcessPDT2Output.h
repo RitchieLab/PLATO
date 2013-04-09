@@ -31,7 +31,8 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessPDT2Output : public Process{
+class ProcessPDT2Output : public ProcessImpl<ProcessPDT2Output>{
+	static string stepname;
 	private:
 		DataSet* data_set;
 		vector<Sample*>* samples;
@@ -106,7 +107,7 @@ class ProcessPDT2Output : public Process{
 #ifdef PLATOLIB
 		ProcessPDT2Output(string, int, Database*, string);
 #endif
-		~ProcessPDT2Output(){};
+		virtual ~ProcessPDT2Output(){};
 //		void process(Families*, Markers*);
 //		void process(Connection*, Families*, Markers*);
 		void PrintSummary();

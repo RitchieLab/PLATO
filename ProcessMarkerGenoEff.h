@@ -30,7 +30,7 @@ namespace PlatoLib
 {
 #endif
 
-class ProcessMarkerGenoEff : public Process{
+class ProcessMarkerGenoEff : public ProcessImpl<ProcessMarkerGenoEff>{
 	static string stepname;
 	private:
 		DataSet* data_set;
@@ -86,7 +86,7 @@ class ProcessMarkerGenoEff : public Process{
 #ifdef PLATOLIB
 		ProcessMarkerGenoEff(string, int, Database*);
 #endif
-		~ProcessMarkerGenoEff(){
+		virtual ~ProcessMarkerGenoEff(){
 		zeros.resize(0);
 		total.resize(0);
 		casezeros.resize(0);
