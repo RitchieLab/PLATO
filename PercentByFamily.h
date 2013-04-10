@@ -2,7 +2,6 @@
 #define PERCENTBYFAMILY_H
 
 #include "Process.h"
-#include <DataSet.h>
 
 class PercentByFamily : public ProcessImpl<PercentByFamily>{
 private:

@@ -38,8 +38,9 @@ public:
 protected:
 	virtual void process(Methods::DataSet*) = 0;
 	virtual void PrintSummary() = 0;
-	virtual void filter() = 0;
-	virtual void FilterSummary();
+	virtual void filter(){};
+
+	void FilterSummary();
 
 protected:
 	Methods::StepOptions options;

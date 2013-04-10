@@ -1,13 +1,13 @@
 /***************************************************************
-*		wasp - Genome Association Study Pipeline
-* Written by: Justin Giles
-*	      Vanderbilt University
-*	      Center for Human Genetics Research
-*
-*wasp.cc - Main class for wasp application
-*
-* See README file for complete overview.
-***************************************************************/
+ *		wasp - Genome Association Study Pipeline
+ * Written by: Justin Giles
+ *	      Vanderbilt University
+ *	      Center for Human Genetics Research
+ *
+ *wasp.cc - Main class for wasp application
+ *
+ * See README file for complete overview.
+ ***************************************************************/
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
@@ -21,7 +21,6 @@
 #include <Globals.h>
 #include <vector>
 #include <General.h>//"General.h"
-
 #include "ProcessFactory.h"
 #include "Process.h"
 
@@ -32,11 +31,8 @@ using namespace Methods;
 
 static string _WASPVER_ = "1.2.0";
 
-enum cmdArgs{
-	a_h,
-	a_S,
-	a_ped,
-	a_map,
+enum cmdArgs {
+	a_h, a_S, a_ped, a_map,
 	//new 12-06-2010
 	a_lgen_file,
 	a_compound_genotypes,
@@ -66,7 +62,7 @@ enum cmdArgs{
 	a_mdrped,
 	a_mdrmap,
 	a_flip,
-//	a_make_bin,
+	//	a_make_bin,
 	a_print_families,
 	a_zero_geno_file,
 	a_remaining,
@@ -104,7 +100,7 @@ static map<string, cmdArgs> s_mapcmdArgs;
  *Description:
  *Initializes the batch file options enumeration.
  */
-void Initialize(){
+void Initialize() {
 	srand((unsigned) time(0));
 
 	s_mapcmdArgs["-h"] = a_h;
@@ -138,7 +134,7 @@ void Initialize(){
 	s_mapcmdArgs["-pedinfo"] = a_pedinfo;
 	s_mapcmdArgs["-dog"] = a_dog;
 	s_mapcmdArgs["-flip"] = a_flip;
-//	s_mapcmdArgs["-make-bin"] = a_make_bin;
+	//	s_mapcmdArgs["-make-bin"] = a_make_bin;
 	s_mapcmdArgs["-mapdesc"] = a_mapdesc;
 	s_mapcmdArgs["-micro-sats"] = a_micro_sats;
 	s_mapcmdArgs["-no-summary"] = a_no_summary;
@@ -170,124 +166,127 @@ void Initialize(){
 	s_mapcmdArgs["-update-ids"] = a_update_ids;
 }
 
-int
-main (int argc, char* argv[])
-{
-	try{
-	Initialize();
-	int myrank;
-	myrank = 0;
-	vector<Process*> proc_order;
-	vector<string> usechroms;
-	vector<long> usembrange;
-	InputFilter cmd_filters;
+int main(int argc, char* argv[]) {
+	try {
+		Initialize();
+		int myrank;
+		myrank = 0;
+		vector<Process*> proc_order;
+		vector<string> usechroms;
+		vector<long> usembrange;
+		InputFilter cmd_filters;
 
+		//Parse command line arguments
+		//assume first argument is -h, -S or the batch file
+		if (argc >= 2) {
+			string arg = argv[1];
+			if (arg == "-h") {
+				print_help();
+				exit(1);
+			}
+			if (arg == "-S") {
+				print_steps();
+				exit(1);
+			}
+			if (arg == "-O") {
+				printOptions();
+				exit(1);
+			}
+			if (arg == "-SO") {
+				StepOptions printopts;
+				printopts.printOptions();
+				exit(1);
+			}
+			vector<string> arguments;
 
-	//Parse command line arguments
-	//assume first argument is -h, -S or the batch file
-	if(argc >= 2){
-	   	string arg = argv[1];
-	   	if(arg == "-h"){
-			print_help();
-			exit(1);
-		}
-		if(arg == "-S"){
-			print_steps();
-			exit(1);
-		}
-		if(arg == "-O"){
-			printOptions();
-			exit(1);
-		}
-		if(arg == "-SO"){
-			StepOptions printopts;
-			printopts.printOptions();
-			exit(1);
-		}
-		vector<string> arguments;
+			for (int i = 2; i < argc; i++) {
+				string list = "";
+				list.assign(argv[i]);
+				arguments.push_back(list);
+			}
+			vector<string>::iterator niter = find(arguments.begin(),
+					arguments.end(), "-noweb");
+			map<string, vector<string> > batchargs = getBatchArgs(arg);
+			if (niter == arguments.end()) {
+				webcheck(arguments, batchargs);
+			}
 
-		for(int i = 2; i < argc; i++){
-			string list = "";
-			list.assign(argv[i]);
-			arguments.push_back(list);
-		}
-		vector<string>::iterator niter = find(arguments.begin(), arguments.end(), "-noweb");
-		map<string, vector<string> > batchargs = getBatchArgs(arg);
-		if(niter == arguments.end()){
-			webcheck(arguments, batchargs);
-		}
-
-		for(unsigned int j = 0; j < arguments.size(); j++){
-			switch(s_mapcmdArgs[arguments[j]]){
-				case a_map_includes_ref:
-				{
+			for (unsigned int j = 0; j < arguments.size(); j++) {
+				switch (s_mapcmdArgs[arguments[j]]) {
+				case a_map_includes_ref: {
 					opts::_MAP_INCLUDES_REF_ = true;
 					break;
-			    }
-				case a_ped:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-ped option requires specifying a filename. (Ex: -ped pedinput.ped).  Halting!" << endl;
+				}
+				case a_ped: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-ped option requires specifying a filename. (Ex: -ped pedinput.ped).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-ped option requires specifying a filename. (Ex: -ped pedinput.ped).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-ped option requires specifying a filename. (Ex: -ped pedinput.ped).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-ped option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-ped option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 
 					opts::_PEDFILE_ = arguments[++j];
 					break;
 				}
-				//new 12-06-2010
-				case a_lgen_file:
-				{
-					if(j + 1 >= arguments.size())
-					{
-						cerr << "-lgen_file option requires specifying a filename. (Ex: -lgen-file lgeninput.lgen). Halting!" << endl;
+					//new 12-06-2010
+				case a_lgen_file: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-lgen_file option requires specifying a filename. (Ex: -lgen-file lgeninput.lgen). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() ==0)
-					{
-						cerr << "-lgen_file option requires specifying a filename. (Ex: -lgen-file lgeninput.lgen). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-lgen_file option requires specifying a filename. (Ex: -lgen-file lgeninput.lgen). Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-')
-					{
-						cerr << "-lgen option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-lgen option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_LGENFILE_ = arguments[++j];
 					break;
 				}
-				//new 12-09-2010
-				case a_compound_genotypes:
-				{
+					//new 12-09-2010
+				case a_compound_genotypes: {
 					opts::_COMPOUND_GENOTYPES_ = true;
 					break;
 				}
-				//new 12-10-2010
-				case a_reference:
-				{
-					if(j + 1 >= arguments.size())
-					{
-						cerr << "-reference option requires specifying a filename.  (Ex: -reference references.txt). Halting!" << endl;
+					//new 12-10-2010
+				case a_reference: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-reference option requires specifying a filename.  (Ex: -reference references.txt). Halting!"
+								<< endl;
 						exit(1);
 					}
 					string test = arguments[j + 1];
-					if(test.length() == 0)
-					{
-						cerr << "-reference option requires specifying a filename.  (Ex: -reference references.txt).  Halting!" << endl;
+					if (test.length() == 0) {
+						cerr
+								<< "-reference option requires specifying a filename.  (Ex: -reference references.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-')
-					{
-						cerr << "-reference option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-reference option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_REFERENCE_FILE_ = arguments[++j];
@@ -298,15 +297,18 @@ main (int argc, char* argv[])
 				case a_autoonly:
 					opts::_AUTOONLY_ = true;
 					break;
-				case a_missing_geno:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-missing-geno option requires specifying a missing code. (Ex: -missing-geno N). Halting!" << endl;
+				case a_missing_geno: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-missing-geno option requires specifying a missing code. (Ex: -missing-geno N). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-missing-geno option requires specifying a missing code. (Ex: -missing-geno N). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-missing-geno option requires specifying a missing code. (Ex: -missing-geno N). Halting!"
+								<< endl;
 						exit(1);
 					}
 					//if(test[0] == '-'){
@@ -317,157 +319,191 @@ main (int argc, char* argv[])
 					opts::_NOCALLMDR_ = opts::_NOCALL_;
 					break;
 				}
-				case a_pheno_missing:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-pheno-missing option requires specifying a missing code. (Ex: -pheno-missing -9). Halting!" << endl;
+				case a_pheno_missing: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-pheno-missing option requires specifying a missing code. (Ex: -pheno-missing -9). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-pheno-missing option requires specifying a missing code. (Ex: -pheno-missing -9). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-pheno-missing option requires specifying a missing code. (Ex: -pheno-missing -9). Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_PHENO_MISS_ = atoi(test.c_str());
 					j++;
 					break;
 				}
-				case a_covar_missing:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-covar-missing option requires specifying a missing code. (Ex: -covar-missing -9). Halting!" << endl;
+				case a_covar_missing: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-covar-missing option requires specifying a missing code. (Ex: -covar-missing -9). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-covar-missing option requires specifying a missing code. (Ex: -covar-missing -9). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-covar-missing option requires specifying a missing code. (Ex: -covar-missing -9). Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_COVAR_MISSING_ = test;
 					j++;
 					break;
 				}
-				case a_trait_missing:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-trait-missing option requires specifying a missing code. (Ex: -trait-missing -9). Halting!" << endl;
+				case a_trait_missing: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-trait-missing option requires specifying a missing code. (Ex: -trait-missing -9). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-trait-missing option requires specifying a missing code. (Ex: -trait-missing -9). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-trait-missing option requires specifying a missing code. (Ex: -trait-missing -9). Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_TRAIT_MISSING_ = test;
 					j++;
 					break;
 				}
-				case a_pedinfo:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-pedinfo option requires specifying a filename. (Ex: -pedinfo pedinfo.txt). Halting!" << endl;
+				case a_pedinfo: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-pedinfo option requires specifying a filename. (Ex: -pedinfo pedinfo.txt). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-pedinfo option requires specifying a filename. (Ex: -pedinfo pedinfo.txt). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-pedinfo option requires specifying a filename. (Ex: -pedinfo pedinfo.txt). Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-pedinfo option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-pedinfo option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_PEDINFO_ = arguments[++j];
 					break;
 				}
-				case a_samplebprangefilter:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-sample-bprange-filter option requires specifying a filename. (Ex: -sample-bprange-filter filter.txt). Halting!" << endl;
+				case a_samplebprangefilter: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-sample-bprange-filter option requires specifying a filename. (Ex: -sample-bprange-filter filter.txt). Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-sample-bprange-filter option requires specifying a filename. (Ex: -sample-bprange-filter filter.txt). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-sample-bprange-filter option requires specifying a filename. (Ex: -sample-bprange-filter filter.txt). Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-sample-bprange-filter option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-sample-bprange-filter option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_SAMPLEBPRANGEFILTER_ = arguments[++j];
 					break;
 				}
-				case a_tped:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-tped option requires specifying a filename. (Ex: -tped pedinput.ped).  Halting!" << endl;
+				case a_tped: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-tped option requires specifying a filename. (Ex: -tped pedinput.ped).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-tped option requires specifying a filename. (Ex: -tped pedinput.ped).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-tped option requires specifying a filename. (Ex: -tped pedinput.ped).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-tped option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-tped option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 
 					opts::_TPEDFILE_ = arguments[++j];
 					break;
 				}
-				case a_tfam:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-tfam option requires specifying a filename. (Ex: -tfam family.map).  Halting!" << endl;
+				case a_tfam: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-tfam option requires specifying a filename. (Ex: -tfam family.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-tfam option requires specifying a filename. (Ex: -tfam family.map).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-tfam option requires specifying a filename. (Ex: -tfam family.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-tfam option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-tfam option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 
 					opts::_FAMFILE_ = arguments[++j];
 					break;
 				}
-				case a_mdrped:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-mdrped option requires specifying a filename. (Ex: -mdrped pedinput.ped).  Halting!" << endl;
+				case a_mdrped: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-mdrped option requires specifying a filename. (Ex: -mdrped pedinput.ped).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-mdrped option requires specifying a filename. (Ex: -mdrped pedinput.ped).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-mdrped option requires specifying a filename. (Ex: -mdrped pedinput.ped).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-mdrped option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-mdrped option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 
 					opts::_MDRPEDFILE_ = arguments[++j];
 					break;
 				}
-				case a_mdrmap:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-mdrmap option requires specifying a filename. (Ex: -mdrmap mdrped.map).  Halting!" << endl;
+				case a_mdrmap: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-mdrmap option requires specifying a filename. (Ex: -mdrmap mdrped.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-mdrmap option requires specifying a filename. (Ex: -mdrmap mdrped.map).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-mdrmap option requires specifying a filename. (Ex: -mdrmap mdrped.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-mdrmap option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-mdrmap option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 
@@ -480,447 +516,568 @@ main (int argc, char* argv[])
 					opts::_CHRY_ = 40;
 					opts::_CHRXY_ = 41;
 					break;
-				case a_map:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!" << endl;
+				case a_map: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-map option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-map option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_MAPFILE_ = arguments[++j];
 					break;
 				}
-				case a_zero_geno_file:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-zero-geno-file option requires specifying a filename. (Ex: -zero-geno-file myzeros.txt).  Halting!" << endl;
+				case a_zero_geno_file: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-zero-geno-file option requires specifying a filename. (Ex: -zero-geno-file myzeros.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-zero-geno-file option requires specifying a filename. (Ex: -zero-geno-file myzeros.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-zero-geno-file option requires specifying a filename. (Ex: -zero-geno-file myzeros.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-zero-geno-file option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-zero-geno-file option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_ZEROGENOFILE_ = arguments[++j];
 					break;
 				}
-				case a_mapdesc:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-mapdesc option requires specifying a filename. (Ex: -mapdesc pedmap.desc).  Halting!" << endl;
+				case a_mapdesc: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-mapdesc option requires specifying a filename. (Ex: -mapdesc pedmap.desc).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-mapdesc option requires specifying a filename. (Ex: -mapdesc pedmap.desc).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-mapdesc option requires specifying a filename. (Ex: -mapdesc pedmap.desc).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-mapdesc option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-mapdesc option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_MAPDESC_ = arguments[++j];
 					break;
 				}
-				case a_sampdesc:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-sampdesc option requires specifying a filename. (Ex: -sampdesc sampleinfo.txt).  Halting!" << endl;
+				case a_sampdesc: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-sampdesc option requires specifying a filename. (Ex: -sampdesc sampleinfo.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-sampdesc option requires specifying a filename. (Ex: -sampdesc sampleinfo.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-sampdesc option requires specifying a filename. (Ex: -sampdesc sampleinfo.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-sampdesc option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-sampdesc option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_SAMPDESC_ = arguments[++j];
 					break;
 				}
-				case a_excsamples:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-excsamples option requires specifying a filename. (Ex: -excsamples excludelist.txt).  Halting!" << endl;
+				case a_excsamples: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-excsamples option requires specifying a filename. (Ex: -excsamples excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-excsamples option requires specifying a filename. (Ex: -excsamples excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-excsamples option requires specifying a filename. (Ex: -excsamples excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-excsamples option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-excsamples option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_EXCSAMPS_ = arguments[++j];
 					break;
 				}
-				case a_exccovs_name:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!" << endl;
+				case a_exccovs_name: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					if(test[0] == '-' || test[0] == ','){
-						cerr << "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!" << endl;
+					if (test[0] == '-' || test[0] == ',') {
+						cerr
+								<< "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					vector<string>* cov_use = new vector<string>;
+					vector<string>* cov_use = new vector<string> ;
 					General::Tokenize(test, (*cov_use), ",");
-					if(cov_use->size() == 0){
-						cerr << "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!" << endl;
+					if (cov_use->size() == 0) {
+						cerr
+								<< "-exccovs-name option requires specifying one or more covariates.  (Ex: -exccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
 					cmd_filters.add_covariate_list(cov_use);
-					cmd_filters.add_covariate_filter(InputFilter::ExcludeCovariateFilter);
+					cmd_filters.add_covariate_filter(
+							InputFilter::ExcludeCovariateFilter);
 					j++;
 					break;
 				}
-				case a_inccovs_name:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!" << endl;
+				case a_inccovs_name: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					if(test[0] == '-' || test[0] == ','){
-						cerr << "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!" << endl;
+					if (test[0] == '-' || test[0] == ',') {
+						cerr
+								<< "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					vector<string>* cov_use = new vector<string>;
+					vector<string>* cov_use = new vector<string> ;
 					General::Tokenize(test, (*cov_use), ",");
-					if(cov_use->size() == 0){
-						cerr << "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!" << endl;
+					if (cov_use->size() == 0) {
+						cerr
+								<< "-inccovs-name option requires specifying one or more covariates.  (Ex: -inccovs-name cov1,cov2,cov3). Halting!"
+								<< endl;
 						exit(0);
 					}
 					cmd_filters.add_covariate_list(cov_use);
-					cmd_filters.add_covariate_filter(InputFilter::IncludeCovariateFilter);
+					cmd_filters.add_covariate_filter(
+							InputFilter::IncludeCovariateFilter);
 					j++;
 					break;
 				}
-				case a_exctraits_name:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!" << endl;
+				case a_exctraits_name: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					if(test[0] == '-' || test[0] == ','){
-						cerr << "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!" << endl;
+					if (test[0] == '-' || test[0] == ',') {
+						cerr
+								<< "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					vector<string>* cov_use = new vector<string>;
+					vector<string>* cov_use = new vector<string> ;
 					General::Tokenize(test, (*cov_use), ",");
-					if(cov_use->size() == 0){
-						cerr << "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!" << endl;
+					if (cov_use->size() == 0) {
+						cerr
+								<< "-exctraits-name option requires specifying one or more traits.  (Ex: -exctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
 					cmd_filters.add_trait_list(cov_use);
-					cmd_filters.add_trait_filter(InputFilter::ExcludeTraitFilter);
+					cmd_filters.add_trait_filter(
+							InputFilter::ExcludeTraitFilter);
 					j++;
 					break;
 				}
-				case a_inctraits_name:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!" << endl;
+				case a_inctraits_name: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					if(test[0] == '-' || test[0] == ','){
-						cerr << "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!" << endl;
+					if (test[0] == '-' || test[0] == ',') {
+						cerr
+								<< "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
-					vector<string>* cov_use = new vector<string>;
+					vector<string>* cov_use = new vector<string> ;
 					General::Tokenize(test, (*cov_use), ",");
-					if(cov_use->size() == 0){
-						cerr << "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!" << endl;
+					if (cov_use->size() == 0) {
+						cerr
+								<< "-inctraits-name option requires specifying one or more traits.  (Ex: -inctraits-name trait1,trait2,trait3). Halting!"
+								<< endl;
 						exit(0);
 					}
 					cmd_filters.add_trait_list(cov_use);
-					cmd_filters.add_trait_filter(InputFilter::IncludeTraitFilter);
+					cmd_filters.add_trait_filter(
+							InputFilter::IncludeTraitFilter);
 					j++;
 					break;
 				}
-				case a_covar_file:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-covar-file option requires specifying a filename. (Ex: -covar-file covarfile.txt).  Halting!" << endl;
+				case a_covar_file: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-covar-file option requires specifying a filename. (Ex: -covar-file covarfile.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-covar-file option requires specifying a filename. (Ex: -covar-file covarfile.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-covar-file option requires specifying a filename. (Ex: -covar-file covarfile.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-covar-file option requires specifying a filename. (Ex: -covar-file covarfile.txt).  Halting!" << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-covar-file option requires specifying a filename. (Ex: -covar-file covarfile.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_COVFILE_ = arguments[++j];
 					break;
 				}
-				case a_trait_file:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-trait-file option requires specifying a filename. (Ex: -trait-file traitfile.txt).  Halting!" << endl;
+				case a_trait_file: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-trait-file option requires specifying a filename. (Ex: -trait-file traitfile.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-trait-file option requires specifying a filename. (Ex: -trait-file traitfile.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-trait-file option requires specifying a filename. (Ex: -trait-file traitfile.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-trait-file option requires specifying a filename. (Ex: -trait-file traitfile.txt).  Halting!" << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-trait-file option requires specifying a filename. (Ex: -trait-file traitfile.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_TRAITFILE_ = arguments[++j];
 					break;
 				}
-				case a_exccovs:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-exccovs option requires specifying a filename. (Ex: -exccovs excludelist.txt).  Halting!" << endl;
+				case a_exccovs: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-exccovs option requires specifying a filename. (Ex: -exccovs excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-exccovs option requires specifying a filename. (Ex: -exccovs excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-exccovs option requires specifying a filename. (Ex: -exccovs excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-exccovs option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-exccovs option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_EXCCOVS_ = arguments[++j];
 					break;
 				}
-				case a_inccovs:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-inccovs option requires specifying a filename. (Ex: -inccovs excludelist.txt).  Halting!" << endl;
+				case a_inccovs: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-inccovs option requires specifying a filename. (Ex: -inccovs excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-inccovs option requires specifying a filename. (Ex: -inccovs excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-inccovs option requires specifying a filename. (Ex: -inccovs excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-inccovs option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-inccovs option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_INCCOVS_ = arguments[++j];
 					break;
 				}
-				case a_exctraits:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-exctraits option requires specifying a filename. (Ex: -exctraits excludelist.txt).  Halting!" << endl;
+				case a_exctraits: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-exctraits option requires specifying a filename. (Ex: -exctraits excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-exctraits option requires specifying a filename. (Ex: -exctraits excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-exctraits option requires specifying a filename. (Ex: -exctraits excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-exctraits option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-exctraits option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_EXCTRAITS_ = arguments[++j];
 					break;
 				}
-				case a_inctraits:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-inctraits option requires specifying a filename. (Ex: -inctraits excludelist.txt).  Halting!" << endl;
+				case a_inctraits: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-inctraits option requires specifying a filename. (Ex: -inctraits excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-inctraits option requires specifying a filename. (Ex: -inctraits excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-inctraits option requires specifying a filename. (Ex: -inctraits excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-inctraits option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-inctraits option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_INCTRAITS_ = arguments[++j];
 					break;
 				}
-				case a_excmarkers:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-excmarkers option requires specifying a filename. (Ex: -excmarkers excludelist.txt).  Halting!" << endl;
+				case a_excmarkers: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-excmarkers option requires specifying a filename. (Ex: -excmarkers excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-excmarkers option requires specifying a filename. (Ex: -excmarkers excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-excmarkers option requires specifying a filename. (Ex: -excmarkers excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-excmarkers option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-excmarkers option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_EXCMARKERS_ = arguments[++j];
 					break;
 				}
-				case a_excfamilies:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-excfamilies option requires specifying a filename. (Ex: -excfamilies excludelist.txt).  Halting!" << endl;
+				case a_excfamilies: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-excfamilies option requires specifying a filename. (Ex: -excfamilies excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-excfamilies option requires specifying a filename. (Ex: -excfamilies excludelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-excfamilies option requires specifying a filename. (Ex: -excfamilies excludelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-excfamilies option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-excfamilies option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_EXCFAMILIES_ = arguments[++j];
 					break;
 				}
-				case a_incmarkers:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-incmarkers option requires specifying a filename. (Ex: -incmarkers includelist.txt).  Halting!" << endl;
+				case a_incmarkers: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-incmarkers option requires specifying a filename. (Ex: -incmarkers includelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-incmarkers option requires specifying a filename. (Ex: -incmarkers includelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-incmarkers option requires specifying a filename. (Ex: -incmarkers includelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-incmarkers option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-incmarkers option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_INCMARKERS_ = arguments[++j];
 					break;
 				}
-				case a_inccenters:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!" << endl;
+				case a_inccenters: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-map option requires specifying a filename. (Ex: -map pedmap.map).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-map option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-map option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_INCCENTERS_ = arguments[++j];
 					break;
 				}
-				case a_incsamples:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-incsamples option requires specifying a filename. (Ex: -incsamples includelist.txt).  Halting!" << endl;
+				case a_incsamples: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-incsamples option requires specifying a filename. (Ex: -incsamples includelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-incsamples option requires specifying a filename. (Ex: -incsamples includelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-incsamples option requires specifying a filename. (Ex: -incsamples includelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-incsamples option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-incsamples option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_INCSAMPLES_ = arguments[++j];
 					break;
 				}
-				case a_incfamilies:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-incfamilies option requires specifying a filename. (Ex: -incfamilies includelist.txt).  Halting!" << endl;
+				case a_incfamilies: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-incfamilies option requires specifying a filename. (Ex: -incfamilies includelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-incfamilies option requires specifying a filename. (Ex: -incfamilies includelist.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-incfamilies option requires specifying a filename. (Ex: -incfamilies includelist.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-incfamilies option missing file name?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-incfamilies option missing file name?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_INCFAMILIES_ = arguments[++j];
 					break;
 				}
-				case a_bin_input:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-bin-input option requires specifying a filename prefix. (Ex: -bin-input data).  Halting!" << endl;
+				case a_bin_input: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-bin-input option requires specifying a filename prefix. (Ex: -bin-input data).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-bin-input option requires specifying a filename prefix. (Ex: -bin-input data).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-bin-input option requires specifying a filename prefix. (Ex: -bin-input data).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-bin-input option missing filename prefix?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-bin-input option missing filename prefix?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_BINPREFIX_ = arguments[++j];
 					break;
 				}
-				case a_out:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-out option requires specifying a filename prefix. (Ex: -out run1).  Halting!" << endl;
+				case a_out: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-out option requires specifying a filename prefix. (Ex: -out run1).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-out option requires specifying a filename prefix. (Ex: -out run1).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-out option requires specifying a filename prefix. (Ex: -out run1).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-out option missing filename prefix?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-out option missing filename prefix?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_OUTPREFIX_ = arguments[++j];
@@ -930,186 +1087,217 @@ main (int argc, char* argv[])
 				case a_micro_sats:
 					opts::_MICROSATS_ = true;
 					break;
-				case a_flip:
-				{
+				case a_flip: {
 					opts::_FLIPSTRAND_ = true;
 
-					if(j + 1 >= arguments.size()){
-						cerr << "-flip option requires specifying a filename. (Ex: -flip strand_info.txt).  Halting!" << endl;
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-flip option requires specifying a filename. (Ex: -flip strand_info.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-flip option requires specifying a filename. (Ex: -flip strand_info.txt).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-flip option requires specifying a filename. (Ex: -flip strand_info.txt).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-flip option missing filename?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-flip option missing filename?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_FLIPFILE_ = arguments[++j];
 					break;
 				}
-				case a_chrom:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-chrom option requires specifying a chromosome. (Ex: -chrom 12).  Halting!" << endl;
+				case a_chrom: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-chrom option requires specifying a chromosome. (Ex: -chrom 12).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-chrom option requires specifying a chromosome. (Ex: -chrom 12).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-chrom option requires specifying a chromosome. (Ex: -chrom 12).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-chrom option missing value?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-chrom option missing value?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_CHROM_LIMIT_ = true;
 					string val = arguments[++j];
-					if(val != "X" && val != "x" && val != "Y" && val != "y"){
+					if (val != "X" && val != "x" && val != "Y" && val != "y") {
 						opts::_CHROM_ = atoi(val.c_str());
-					}
-					else if(val == "X" || val == "x"){
+					} else if (val == "X" || val == "x") {
 						opts::_CHROM_ = opts::_CHRX_;
-						vector<string>::iterator df = find(arguments.begin(), arguments.end(), "-dog");
-						if(df != arguments.end()){
+						vector<string>::iterator df = find(arguments.begin(),
+								arguments.end(), "-dog");
+						if (df != arguments.end()) {
 							opts::_CHROM_ = 39;
 						}
-					}
-					else if(val == "Y" || val == "y"){
+					} else if (val == "Y" || val == "y") {
 						opts::_CHROM_ = opts::_CHRY_;
-						vector<string>::iterator df = find(arguments.begin(), arguments.end(), "-dog");
-						if(df != arguments.end()){
+						vector<string>::iterator df = find(arguments.begin(),
+								arguments.end(), "-dog");
+						if (df != arguments.end()) {
 							opts::_CHROM_ = 40;
 						}
-					}
-					else if(val == "Xy" || val == "XY" || val == "xY" || val == "xy"){
+					} else if (val == "Xy" || val == "XY" || val == "xY" || val
+							== "xy") {
 						opts::_CHROM_ = opts::_CHRXY_;
-						vector<string>::iterator df = find(arguments.begin(), arguments.end(), "-dog");
-						if(df != arguments.end()){
+						vector<string>::iterator df = find(arguments.begin(),
+								arguments.end(), "-dog");
+						if (df != arguments.end()) {
 							opts::_CHROM_ = 41;
 						}
 					}
 					break;
 				}
-				case a_bp_min:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-bp-min option requires specifying a positive number. (Ex: -bp-min 1234567).  Halting!" << endl;
+				case a_bp_min: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-bp-min option requires specifying a positive number. (Ex: -bp-min 1234567).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-bp-min option requires specifying a positive number. (Ex: -bp-min 1234567).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-bp-min option requires specifying a positive number. (Ex: -bp-min 1234567).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-bp-min option missing value?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-bp-min option missing value?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_BP_LOW_LIMIT_ = true;
 					opts::_BP_LOW_ = atoi(arguments[++j].c_str());
 					break;
 				}
-				case a_bp_max:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-bp-max option requires specifying a value. (Ex: -bp-max 987654321).  Halting!" << endl;
+				case a_bp_max: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-bp-max option requires specifying a value. (Ex: -bp-max 987654321).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-bp-max option requires specifying a value. (Ex: -bp-max 987654321).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-bp-max option requires specifying a value. (Ex: -bp-max 987654321).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-bp-max option missing value?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-bp-max option missing value?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_BP_HIGH_LIMIT_ = true;
 					opts::_BP_HIGH_ = atoi(arguments[++j].c_str());
 					break;
 				}
-				case a_bp_space:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-bp-space option requires specifying a value. (Ex: -bp-space 1000000).  Halting!" << endl;
+				case a_bp_space: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-bp-space option requires specifying a value. (Ex: -bp-space 1000000).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-bp-space option requires specifying a value. (Ex: -bp-space 1000000).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-bp-space option requires specifying a value. (Ex: -bp-space 1000000).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-bp-space option missing value?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-bp-space option missing value?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_BP_SPACE_LIMIT_ = true;
 					opts::_BP_SPACE_ = atoi(arguments[++j].c_str());
 					break;
 				}
-				case a_threads:
-				{
+				case a_threads: {
 					opts::_THREADS_ = true;
 					break;
 				}
-				case a_numthreads:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-numthreads option requires specifying a value. (Ex: -numthreads 4).  Halting!" << endl;
+				case a_numthreads: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-numthreads option requires specifying a value. (Ex: -numthreads 4).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-numthreads option requires specifying a value. (Ex: -numthreads 4).  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-numthreads option requires specifying a value. (Ex: -numthreads 4).  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-numthreads option missing value?  Halting." << endl;
+					if (test[0] == '-') {
+						cerr << "-numthreads option missing value?  Halting."
+								<< endl;
 						exit(1);
 					}
 					opts::_THREADS_ = true;
 					opts::_NUMTHREADS_ = atoi(arguments[++j].c_str());
 					break;
 				}
-				case a_freq_file:
-				{
-					if(j + 1 >= arguments.size()){
-						cerr << "-freq-file option requires specifying a filename. (Ex: -freq-file mymaffile.txt.  Halting!" << endl;
+				case a_freq_file: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-freq-file option requires specifying a filename. (Ex: -freq-file mymaffile.txt.  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0){
-						cerr << "-freq-file option requires specifying a filename. (Ex: -freq-file mymaffile.txt.  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-freq-file option requires specifying a filename. (Ex: -freq-file mymaffile.txt.  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-'){
-						cerr << "-freq-file option requires specifying a filename. (Ex: -freq-file mymaffile.txt.  Halting!" << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-freq-file option requires specifying a filename. (Ex: -freq-file mymaffile.txt.  Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_FREQ_FILE_EXISTS_ = true;
 					opts::_FREQ_FILE_ = arguments[++j];
 					break;
 				}
-				//added 02-23-2011 to support new feature to update FamID and IndID based on file input
-				case a_update_ids:
-				{
-					if(j + 1 >= arguments.size())
-					{
-						cerr << "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!" << endl;
+					//added 02-23-2011 to support new feature to update FamID and IndID based on file input
+				case a_update_ids: {
+					if (j + 1 >= arguments.size()) {
+						cerr
+								<< "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!"
+								<< endl;
 						exit(1);
 					}
-					string test = arguments[j+1];
-					if(test.length() == 0)
-					{
-						cerr << "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!" << endl;
+					string test = arguments[j + 1];
+					if (test.length() == 0) {
+						cerr
+								<< "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!"
+								<< endl;
 						exit(1);
 					}
-					if(test[0] == '-')
-					{
-						cerr << "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!" << endl;
+					if (test[0] == '-') {
+						cerr
+								<< "-update-ids option requires specifying a filename. (Ex: -update-ids newIDsFile.txt.  Halting!"
+								<< endl;
 						exit(1);
 					}
 					opts::_ID_FILE_EXISTS_ = true;
@@ -1132,56 +1320,61 @@ main (int argc, char* argv[])
 					cerr << "Unknown argument: " << arguments[j] << endl;
 					exit(1);
 					break;
+				}
 			}
-		}
-		string logoutput = opts::_OUTPREFIX_ + "plato.log";
-//		ofstream log(logoutput.c_str());
-		opts::_LOG_.open(logoutput.c_str());
-		if(!opts::_LOG_){
-			cerr << "Error opening plato.log.  Exiting!\n";
+			string logoutput = opts::_OUTPREFIX_ + "plato.log";
+			//		ofstream log(logoutput.c_str());
+			opts::_LOG_.open(logoutput.c_str());
+			if (!opts::_LOG_) {
+				cerr << "Error opening plato.log.  Exiting!\n";
+				exit(1);
+			}
+			string args = "";
+			for (int j = 0; j < argc; j++) {
+				string t = argv[j];
+				args += t + " ";
+				//			log << argv[j] << " ";
+			}
+			args += "\n";
+			opts::printLog(args);
+			//		log << endl;
+			//		log.close();
+
+			if (opts::_PEDFILE_.length() == 0 && opts::_BINPREFIX_.length()
+					== 0 && opts::_TPEDFILE_.length() == 0
+					&& opts::_MDRPEDFILE_.length() == 0) {
+				opts::printLog(
+						"No pedfile, binary, transposed, or mdr-style input files specified.  Exiting!\n");
+				exit(1);
+			}
+			error_check();
+			//steps = initializeSteps();
+			if (!opts::_MAKEBIN_) {
+				parseInput(arg, proc_order);//, &steps);
+			}
+
+		} else {
+			usage();
 			exit(1);
 		}
-		string args = "";
-		for(int j = 0; j < argc; j++){
-			string t = argv[j];
-			args += t + " ";
-//			log << argv[j] << " ";
-		}
-		args += "\n";
-		opts::printLog(args);
-//		log << endl;
-//		log.close();
+		time_t curr = time(0);
+		string tdstamp = ctime(&curr);
+		opts::printLog("\nPlato started: " + tdstamp + "\n");
 
-		if(opts::_PEDFILE_.length() == 0 && opts::_BINPREFIX_.length() == 0 && opts::_TPEDFILE_.length() == 0
-				&& opts::_MDRPEDFILE_.length() == 0){
-			opts::printLog("No pedfile, binary, transposed, or mdr-style input files specified.  Exiting!\n");
-			exit(1);
+		//Begin batch file steps and reading in data
+		startProcess(proc_order, myrank, &cmd_filters);
+		for (int i = 0; i <= proc_order.size(); i++) {
+			delete proc_order[i];
 		}
-		error_check();
-		//steps = initializeSteps();
-		if(!opts::_MAKEBIN_){
-			parseInput(arg, proc_order);//, &steps);
-		}
-
-	}
-	else{
-		usage();
-		exit(1);
-	}
-	time_t curr = time(0);
-	string tdstamp = ctime(&curr);
-	opts::printLog("\nPlato started: " + tdstamp + "\n");
-
-	//Begin batch file steps and reading in data
-	startProcess(proc_order, myrank, &cmd_filters);
-	}catch(MethodException & ex){
+		proc_order.clear();
+	} catch (MethodException & ex) {
 		opts::printLog(string(ex.what()) + "\n");
 	}
 
 	time_t curr = time(0);
 	string tdstamp = ctime(&curr);
 	opts::printLog("\nPlato finished: " + tdstamp + "\n");
-    return 0;
+	return 0;
 }
 
 /*
@@ -1191,9 +1384,10 @@ main (int argc, char* argv[])
  *Performs basic error checking on completeness of command line arguments.
  *
  */
-void error_check(){
-	if((opts::_BP_LOW_LIMIT_ || opts::_BP_HIGH_LIMIT_) && !opts::_CHROM_LIMIT_){
-		opts::printLog("-chrom is required when specifying -bp-min and/or -bp-max.  Exiting!\n");
+void error_check() {
+	if ((opts::_BP_LOW_LIMIT_ || opts::_BP_HIGH_LIMIT_) && !opts::_CHROM_LIMIT_) {
+		opts::printLog(
+				"-chrom is required when specifying -bp-min and/or -bp-max.  Exiting!\n");
 		exit(0);
 	}
 }
@@ -1205,119 +1399,122 @@ void error_check(){
  *Outputs general help statement when -h option is used.
  *
  */
-void print_help(){
+void print_help() {
 	//int w = 5;
-	cout << "plato - PLatform for the Analysis, Translation, and Organization of large-scale data (Version: " << _WASPVER_ << ")" << endl << endl;
+	cout
+			<< "plato - PLatform for the Analysis, Translation, and Organization of large-scale data (Version: "
+			<< _WASPVER_ << ")" << endl << endl;
 	cout << "Center for Human Genetics Research" << endl;
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
-	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl << endl;
-/*
-	cout << "usage: plato <batchfile> [<option1> <option2>...]" << endl << endl;
-	cout << "   Special options: " << endl;
-	cout << "     -h                 Prints this help" << endl;
-	cout << "     -S                 Displays list of valid processing steps" << endl << endl;
-	cout << "   Options: " << endl;
-	cout << "     -ped {pedfile}     Specify pedfile <fam> <ind> <dad> <mom> <sex> <aff> <genotypes...>" << endl;
-	cout << "     -map {mapfile}     Specify mapfile <chrom> <rsid> <bploc>" << endl << endl;
-	cout << "     -tped {tpedfile}   Specify tpedfile <chr> <snp> <cm> <bploc> <genotypes...>" << endl;
-	cout << "     -tfam {famfile}    Specify family map file for transposed set" << endl;
-	cout << "              Format: <fam> <ind> <dad> <mom> <gend> <aff>" << endl;
-	cout << "     -bin-input {file_prefix} Read inputs in binary format (based on -make-bin output) (optional)" << endl;
-	cout << "     -micro-sats        Use if maker(s) have more than 2 alleles." << endl;
-	cout << "     -mapdesc {mapdescriptive_file} Specify more details about map file (optional)" << endl;
-	cout << "                                    Mapfile descriptor format: Chrom Marker Basepair_location Other_marker_id Enzyme" << endl;
-	cout << "     -sampdesc {sample_Descriptive_file} Specify more details about samples (optional)" << endl;
-	cout << "                                         Sample descriptor format: Family Ind Center Plate Well" << endl << endl;
-	cout << "     -excsamples {samplefile} File containing samples to exclude (optional)" << endl;
-	cout << "     -excmarkers {markerfile} File containing markers to exclude (optional)" << endl << endl;
-	cout << "     -incsamples {samplefile} File containing samples to include (optional)" << endl;
-	cout << "     -incmarkers {markerfile} File containing markers to include (optional)" << endl << endl;
-	cout << "     -make-bin {name}         Convert Ped/Map files into binary input file format with {name} as the file prefix (optional)" << endl;
-	cout << endl;
-	cout << "     -out {name}         Prepends all output files with {name} (optional)" << endl;
-	cout << endl;
-	cout << "     -freq-file {frequencyfile} File containing predefined minor allele frequencies (optional)" << endl;
-	cout << "                                Format: Marker_id Minor_allele_frequency" << endl;
-	cout << "     -flip {filename}  Specifies a list of markers to flip to the opposite strand (optional)" << endl;
-	cout << endl;
-	cout << "     -chrom {chrom}  Limit markers read to specified chromosome (optional)" << endl;
-	cout << "     -bp-min {number}  Specifies minimum chromosome specific base-pair location to load (optional)" << endl;
-	cout << "     -bp-max {number} Specifies maximum chromosome specific base-pair location to load (optional)" << endl;
-	cout << "     -bp-space {number} Specifies to load only markers spaced by {number} base-pair across all chromosomes. (optional)" << endl;
-	cout << endl;
-	cout << endl;
-	cout << "   Step specific options (to be used in the batch file):" << endl;
-	cout << "     -chrom {chrom}  Valid on all steps." << endl;
-	cout << "     -bp-min {number}  Valid on all steps." << endl;
-	cout << "     -bp-max {number}  Valid on all steps." << endl;
-	cout << "     -bp-space {number}  Valid on all steps." << endl;
-	cout << "     -thresh-markers-max {number}  Valid on marker-geno-eff, family-geno-eff, allele-freq, mendelian-error, hw, gender-error, tdt, chisquare.." << endl;
-	cout << "     -thresh-markers-min {number}  Valid on marker-geno-eff, family-geno-eff, allele-freq, mendelian-error, hw, gender-error, tdt, chisquare." << endl;
-	cout << "     -thresh-samples-max {chrom}  Valid on sample-geno-eff, mendelian-error." << endl;
-	cout << "     -thresh-samples-min {chrom}  Valid on sample-geno-eff, mendelian-error." << endl;
-	cout << "     -thresh-families-max {chrom}  Valid on mendelian-error." << endl;
-	cout << "     -thresh-families-min {chrom}  Valid on mendelian-error." << endl;
-	cout << "     -zero  Valid on mendelian-error." << endl;
-	cout << "     -zero-l2  Valid on mendelian-error." << endl;
-	cout << "     -zero-l2-fams Valid on mendelian-error." << endl;
-	cout << "     -penetrance-file {filename} Valid on output-superlink." << endl;
-	cout << "     -rm-mono  Valid on allele-freq." << endl;
-	cout << "     -rm-het-only Valid on allele-freq." << endl;
-	cout << "     -center-file {filename}  Valid on output-lapis." << endl;
-	cout << "     -out {fileprefix}  Valid on all steps." << endl;
-	cout << "     -covar-file {filename}" << endl;
-	cout << "     -covars-name {list of headers}" << endl;
-	cout << "     -covars-number {list of header numbers}" << endl;
-	cout << "     -trait-file {filename}" << endl;
-	cout << "     -traits-name {list of headers}" << endl;
-	cout << "     -traits-number {list of header numbers}" << endl;
-	cout << "     -covar-missing {missing value}" << endl;
-	cout << "     -trait-missing {missing value}" << endl;
-	cout << "     -group-file {filename}" << endl;
-	cout << "     -ped {filename}  Valid on concordance" << endl;
-	cout << "     -map {filename}  Valid on concordance" << endl;
-	cout << "     -tped {filename} Valid on concordance" << endl;
-	cout << "     -tfam {filename} Valid on concordance" << endl;
-	cout << "     -bin-input {fileprefix} Valid on concordance" << endl;
-	cout << "     -strat-file {filename}  Valid on output-structure." << endl;
-	cout << "     -parents-only  Valid on output-structure." << endl;
-	cout << "     -trio  Valid on output-phase." << endl;
-	cout << "     -disease {name}  Valid on output-beagle." << endl;
-	cout << "     -homozyg-zeros {number}  Valid on homozygous." << endl;
-	cout << "     -homozyg-span {number}  Valid on homozygous." << endl;
-	cout << "     -homozyg-seq-prob {number}  Valid on homozygous." << endl;
-	cout << "     -homozyg-wgha  Alternate homozygous span algorithm.  Valid on homozygous." << endl;
-	cout << "     -homozyg-min-samp {number}  Valid on homozygous." << endl;
-	cout << "     -ld-pairwise {number} {number} {number} Valid on ld." << endl;
-	cout << "     -ld-vif {number} {number} {number}  Valid on ld." << endl;
-	cout << "     -ld-chop  Valid on ld." << endl;
-	cout << "     -deletion-span {number}   Valid on deletions." << endl;
-	cout << "     -deletion {number}  Valid on deletions." << endl;
-	cout << "     -filter-overall  Valid on allele-freq." << endl;
-	cout << "     -filter-file  Valid on allele-freq." << endl;
-	cout << "     -parental    Provides further breakdown. Valid on allele-freq and hw." << endl;
-	cout << "     -gender      Provides further breakdown. Valid on allele-freq and hw." << endl;
-	cout << "     -casecontrol Provides further breakdown. Valid on allele-freq and hw." << endl;
-	cout << "     -all  Override overall calc to include all samples.  Valid on allele-freq and hw." << endl;
-	cout << "     -all-children  Override to include only all children.  Valid on allele-freq and hw." << endl;
-	cout << "     -random-child  Override to include one random child from each family." << endl;
-	cout << "                    Valid on allele-freq and hw." << endl;
-	cout << "     -unk-spouses   Override to use only spouses with unknown phenotype." << endl;
-	cout << "                    Valid on allele-freq and hw." << endl;
-	cout << "     -unaff-spouses-only  Override to use only spouses with unaffected phenotype." << endl;
-	cout << "                    Valid on allele-freq and hw." << endl;
-	cout << "     -no-summary    Disables production of marker, sample, family summary files." << endl;
-	cout << endl;
-	cout << endl << endl;
-	cout << "BATCH FILE FORMATTING:" << endl << endl;
-	cout << "The batch file consists of a list of steps and options for the process" << endl;
-	cout << "to follow in order of appearance in the file." << endl << endl;
-	cout << "Example batch file:" << endl;
-	cout << "marker-geno-eff -thresh-markers-min 90" << endl;
-	cout << "allele-freq -thresh-markers-min 0.1" << endl;
-	cout << endl;
-*/
+	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl
+			<< endl;
+	/*
+	 cout << "usage: plato <batchfile> [<option1> <option2>...]" << endl << endl;
+	 cout << "   Special options: " << endl;
+	 cout << "     -h                 Prints this help" << endl;
+	 cout << "     -S                 Displays list of valid processing steps" << endl << endl;
+	 cout << "   Options: " << endl;
+	 cout << "     -ped {pedfile}     Specify pedfile <fam> <ind> <dad> <mom> <sex> <aff> <genotypes...>" << endl;
+	 cout << "     -map {mapfile}     Specify mapfile <chrom> <rsid> <bploc>" << endl << endl;
+	 cout << "     -tped {tpedfile}   Specify tpedfile <chr> <snp> <cm> <bploc> <genotypes...>" << endl;
+	 cout << "     -tfam {famfile}    Specify family map file for transposed set" << endl;
+	 cout << "              Format: <fam> <ind> <dad> <mom> <gend> <aff>" << endl;
+	 cout << "     -bin-input {file_prefix} Read inputs in binary format (based on -make-bin output) (optional)" << endl;
+	 cout << "     -micro-sats        Use if maker(s) have more than 2 alleles." << endl;
+	 cout << "     -mapdesc {mapdescriptive_file} Specify more details about map file (optional)" << endl;
+	 cout << "                                    Mapfile descriptor format: Chrom Marker Basepair_location Other_marker_id Enzyme" << endl;
+	 cout << "     -sampdesc {sample_Descriptive_file} Specify more details about samples (optional)" << endl;
+	 cout << "                                         Sample descriptor format: Family Ind Center Plate Well" << endl << endl;
+	 cout << "     -excsamples {samplefile} File containing samples to exclude (optional)" << endl;
+	 cout << "     -excmarkers {markerfile} File containing markers to exclude (optional)" << endl << endl;
+	 cout << "     -incsamples {samplefile} File containing samples to include (optional)" << endl;
+	 cout << "     -incmarkers {markerfile} File containing markers to include (optional)" << endl << endl;
+	 cout << "     -make-bin {name}         Convert Ped/Map files into binary input file format with {name} as the file prefix (optional)" << endl;
+	 cout << endl;
+	 cout << "     -out {name}         Prepends all output files with {name} (optional)" << endl;
+	 cout << endl;
+	 cout << "     -freq-file {frequencyfile} File containing predefined minor allele frequencies (optional)" << endl;
+	 cout << "                                Format: Marker_id Minor_allele_frequency" << endl;
+	 cout << "     -flip {filename}  Specifies a list of markers to flip to the opposite strand (optional)" << endl;
+	 cout << endl;
+	 cout << "     -chrom {chrom}  Limit markers read to specified chromosome (optional)" << endl;
+	 cout << "     -bp-min {number}  Specifies minimum chromosome specific base-pair location to load (optional)" << endl;
+	 cout << "     -bp-max {number} Specifies maximum chromosome specific base-pair location to load (optional)" << endl;
+	 cout << "     -bp-space {number} Specifies to load only markers spaced by {number} base-pair across all chromosomes. (optional)" << endl;
+	 cout << endl;
+	 cout << endl;
+	 cout << "   Step specific options (to be used in the batch file):" << endl;
+	 cout << "     -chrom {chrom}  Valid on all steps." << endl;
+	 cout << "     -bp-min {number}  Valid on all steps." << endl;
+	 cout << "     -bp-max {number}  Valid on all steps." << endl;
+	 cout << "     -bp-space {number}  Valid on all steps." << endl;
+	 cout << "     -thresh-markers-max {number}  Valid on marker-geno-eff, family-geno-eff, allele-freq, mendelian-error, hw, gender-error, tdt, chisquare.." << endl;
+	 cout << "     -thresh-markers-min {number}  Valid on marker-geno-eff, family-geno-eff, allele-freq, mendelian-error, hw, gender-error, tdt, chisquare." << endl;
+	 cout << "     -thresh-samples-max {chrom}  Valid on sample-geno-eff, mendelian-error." << endl;
+	 cout << "     -thresh-samples-min {chrom}  Valid on sample-geno-eff, mendelian-error." << endl;
+	 cout << "     -thresh-families-max {chrom}  Valid on mendelian-error." << endl;
+	 cout << "     -thresh-families-min {chrom}  Valid on mendelian-error." << endl;
+	 cout << "     -zero  Valid on mendelian-error." << endl;
+	 cout << "     -zero-l2  Valid on mendelian-error." << endl;
+	 cout << "     -zero-l2-fams Valid on mendelian-error." << endl;
+	 cout << "     -penetrance-file {filename} Valid on output-superlink." << endl;
+	 cout << "     -rm-mono  Valid on allele-freq." << endl;
+	 cout << "     -rm-het-only Valid on allele-freq." << endl;
+	 cout << "     -center-file {filename}  Valid on output-lapis." << endl;
+	 cout << "     -out {fileprefix}  Valid on all steps." << endl;
+	 cout << "     -covar-file {filename}" << endl;
+	 cout << "     -covars-name {list of headers}" << endl;
+	 cout << "     -covars-number {list of header numbers}" << endl;
+	 cout << "     -trait-file {filename}" << endl;
+	 cout << "     -traits-name {list of headers}" << endl;
+	 cout << "     -traits-number {list of header numbers}" << endl;
+	 cout << "     -covar-missing {missing value}" << endl;
+	 cout << "     -trait-missing {missing value}" << endl;
+	 cout << "     -group-file {filename}" << endl;
+	 cout << "     -ped {filename}  Valid on concordance" << endl;
+	 cout << "     -map {filename}  Valid on concordance" << endl;
+	 cout << "     -tped {filename} Valid on concordance" << endl;
+	 cout << "     -tfam {filename} Valid on concordance" << endl;
+	 cout << "     -bin-input {fileprefix} Valid on concordance" << endl;
+	 cout << "     -strat-file {filename}  Valid on output-structure." << endl;
+	 cout << "     -parents-only  Valid on output-structure." << endl;
+	 cout << "     -trio  Valid on output-phase." << endl;
+	 cout << "     -disease {name}  Valid on output-beagle." << endl;
+	 cout << "     -homozyg-zeros {number}  Valid on homozygous." << endl;
+	 cout << "     -homozyg-span {number}  Valid on homozygous." << endl;
+	 cout << "     -homozyg-seq-prob {number}  Valid on homozygous." << endl;
+	 cout << "     -homozyg-wgha  Alternate homozygous span algorithm.  Valid on homozygous." << endl;
+	 cout << "     -homozyg-min-samp {number}  Valid on homozygous." << endl;
+	 cout << "     -ld-pairwise {number} {number} {number} Valid on ld." << endl;
+	 cout << "     -ld-vif {number} {number} {number}  Valid on ld." << endl;
+	 cout << "     -ld-chop  Valid on ld." << endl;
+	 cout << "     -deletion-span {number}   Valid on deletions." << endl;
+	 cout << "     -deletion {number}  Valid on deletions." << endl;
+	 cout << "     -filter-overall  Valid on allele-freq." << endl;
+	 cout << "     -filter-file  Valid on allele-freq." << endl;
+	 cout << "     -parental    Provides further breakdown. Valid on allele-freq and hw." << endl;
+	 cout << "     -gender      Provides further breakdown. Valid on allele-freq and hw." << endl;
+	 cout << "     -casecontrol Provides further breakdown. Valid on allele-freq and hw." << endl;
+	 cout << "     -all  Override overall calc to include all samples.  Valid on allele-freq and hw." << endl;
+	 cout << "     -all-children  Override to include only all children.  Valid on allele-freq and hw." << endl;
+	 cout << "     -random-child  Override to include one random child from each family." << endl;
+	 cout << "                    Valid on allele-freq and hw." << endl;
+	 cout << "     -unk-spouses   Override to use only spouses with unknown phenotype." << endl;
+	 cout << "                    Valid on allele-freq and hw." << endl;
+	 cout << "     -unaff-spouses-only  Override to use only spouses with unaffected phenotype." << endl;
+	 cout << "                    Valid on allele-freq and hw." << endl;
+	 cout << "     -no-summary    Disables production of marker, sample, family summary files." << endl;
+	 cout << endl;
+	 cout << endl << endl;
+	 cout << "BATCH FILE FORMATTING:" << endl << endl;
+	 cout << "The batch file consists of a list of steps and options for the process" << endl;
+	 cout << "to follow in order of appearance in the file." << endl << endl;
+	 cout << "Example batch file:" << endl;
+	 cout << "marker-geno-eff -thresh-markers-min 90" << endl;
+	 cout << "allele-freq -thresh-markers-min 0.1" << endl;
+	 cout << endl;
+	 */
 }
 
 /*
@@ -1326,11 +1523,11 @@ void print_help(){
  * outputs command line options
  *
  */
-void printOptions(){
+void printOptions() {
 	map<string, cmdArgs>::iterator iter;
 
 	cout << "Command line arguments:\n-------------------\n";
-	for(iter = s_mapcmdArgs.begin(); iter != s_mapcmdArgs.end(); iter++){
+	for (iter = s_mapcmdArgs.begin(); iter != s_mapcmdArgs.end(); iter++) {
 		cout << iter->first << endl;
 	}
 }
@@ -1342,24 +1539,24 @@ void printOptions(){
  *Description:
  *Outputs valid batch file steps and their descriptions when the -S command line argument is used
  */
-void print_steps(){
+void print_steps() {
 	unsigned int field = 0;
 
 	ProcessFactory& f = ProcessFactory::getFactory();
 
-	for(ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++){
-		if(s_iter->first.size() > field){
+	for (ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++) {
+		if (s_iter->first.size() > field) {
 			field = s_iter->first.size();
 		}
 	}
-	field+=5;
+	field += 5;
 	cout << left << setw(field) << "Step:" << "Description:" << endl;
 	cout << left << setw(field) << "----------" << "---------------" << endl;
 
-	for(ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++){
+	for (ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++) {
 
 		Process* p = f.Create((*s_iter).first);
-		cout << left << setw(field) << (*s_iter).first <<  p->getName() << endl;
+		cout << left << setw(field) << (*s_iter).first << p->getName() << endl;
 		delete p;
 		//cout << "\tThresh: " << mystep.getThreshold() << endl;
 	}
@@ -1370,15 +1567,19 @@ void print_steps(){
  *Description:
  *outputs general usage statement
  */
-void usage(){
-	cout << "plato - PLatform for the Analysis, Translation, and Organization of large-scale data (Version: " << _WASPVER_ << ")" << endl << endl;
+void usage() {
+	cout
+			<< "plato - PLatform for the Analysis, Translation, and Organization of large-scale data (Version: "
+			<< _WASPVER_ << ")" << endl << endl;
 	cout << "Center for Human Genetics Research" << endl;
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
-	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl << endl;
+	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl
+			<< endl;
 	cout << "usage: plato <batchfile> [<option1> <option2>....]" << endl
-		 << endl;
-	cout << "For a list of valid steps to be inserted into the batch file:" << endl;
+			<< endl;
+	cout << "For a list of valid steps to be inserted into the batch file:"
+			<< endl;
 	cout << "\t\t> plato -S" << endl << endl;
 	cout << "For help: " << endl;
 	cout << "\t\t> plato -h" << endl << endl;
@@ -1811,7 +2012,8 @@ void startProcess(vector<Process*>& order, int myrank, InputFilter* filters) {
 		if (opts::_THREADS_) {
 			//			thread_step_map[count] = o;
 			//			threads[count++] = new boost::thread(boost::bind(&runStep, current_step, &data_set));
-			threads_hash.push_back(new boost::thread(boost::bind(&runStep, current_step, &data_set)));
+			threads_hash.push_back(new boost::thread(boost::bind(&runStep,
+					current_step, &data_set)));
 			//			cout << "thread count " << count << endl;
 			count++;
 			if (count >= opts::_NUMTHREADS_) {
@@ -1880,35 +2082,29 @@ void startProcess(vector<Process*>& order, int myrank, InputFilter* filters) {
 
 }
 
-vector<vector<Process*> > optimize(vector<Process*>& order){
+vector<vector<Process*> > optimize(vector<Process*>& order) {
 	vector<Process*> nothread;
 	vector<Process*> yesthread;
 
 	vector<vector<Process*> > results;
 
-	opts::printLog("Optimizing processing order, thresholding and batch file rules will be maintained...\n");
+	opts::printLog(
+			"Optimizing processing order, thresholding and batch file rules will be maintained...\n");
 	bool thresh = false;
-	for(unsigned int o = 0; o < order.size(); o++){
+	for (unsigned int o = 0; o < order.size(); o++) {
 		StepOptions* options = order.at(o)->getOptions();
-		if(options->doTransform() ||
-				options->doThreshMarkersLow() ||
-				options->doThreshMarkersHigh() ||
-				options->doThreshSamplesLow() ||
-				options->doThreshSamplesHigh() ||
-				options->doThreshFamiliesHigh() ||
-				options->doThreshFamiliesLow() ||
-				options->doBpSpace() ||
-				options->doLDchop() ||
-				options->doRmMono() ||
-				options->doRmHetOnly() ||
-				options->doIncDisabledSamples() ||
-				options->doZeroDisabled() ||
-				thresh
-		){
+		if (options->doTransform() || options->doThreshMarkersLow()
+				|| options->doThreshMarkersHigh()
+				|| options->doThreshSamplesLow()
+				|| options->doThreshSamplesHigh()
+				|| options->doThreshFamiliesHigh()
+				|| options->doThreshFamiliesLow() || options->doBpSpace()
+				|| options->doLDchop() || options->doRmMono()
+				|| options->doRmHetOnly() || options->doIncDisabledSamples()
+				|| options->doZeroDisabled() || thresh) {
 			nothread.push_back(order.at(o));
 			thresh = true;
-		}
-		else{
+		} else {
 			yesthread.push_back(order.at(o));
 		}
 	}
@@ -1916,39 +2112,38 @@ vector<vector<Process*> > optimize(vector<Process*>& order){
 	results.push_back(yesthread);
 	results.push_back(nothread);
 
-
 	cout << "Threadable: \n";
-	for(int i = 0; i < (int)yesthread.size(); i++){
+	for (int i = 0; i < (int) yesthread.size(); i++) {
 		cout << yesthread[i]->getName() << "\n";
 	}
 	cout << "Un-Threadable: \n";
-	for(int i = 0; i < (int)nothread.size(); i++){
+	for (int i = 0; i < (int) nothread.size(); i++) {
 		cout << nothread[i]->getName() << "\n";
 	}
 
 	return results;
 }
 
-void runStep(Process* current_step, DataSet* data_set){
+void runStep(Process* current_step, DataSet* data_set) {
 	opts::printLog("Working on " + current_step->getName() + "\n");
-	try{
+	try {
 		StepOptions* step_options = current_step->getOptions();
 
-		if(step_options->doTransform()){
+		if (step_options->doTransform()) {
 			step_options->performTransforms(data_set);
 		}
 		current_step->run(data_set);
 
-		if(step_options->doTransform()){
+		if (step_options->doTransform()) {
 			step_options->undoTransforms(data_set);
 		}
-	}catch(MethodException & ex){
+	} catch (MethodException & ex) {
 		opts::printLog(ex.what());
 		exit(0);
-	}catch(std::exception & ex){
+	} catch (std::exception & ex) {
 		opts::printLog(ex.what());
 		exit(0);
-	}catch(...){
+	} catch (...) {
 		opts::printLog("Unknown exception caught!");
 		exit(0);
 	}
@@ -1962,34 +2157,33 @@ void runStep(Process* current_step, DataSet* data_set){
  * Description:
  * Places all steps and step options in a map to check against the web error checker
  */
-map<string, vector<string> > getBatchArgs(string f){
+map<string, vector<string> > getBatchArgs(string f) {
 	map<string, vector<string> > batchargs;
 
 	ifstream infile;
 	infile.open(f.c_str(), ios::in);
-	if(!infile){
+	if (!infile) {
 		cerr << "Error opening batch file: " << f << endl;
 		exit(1);
 	}
 	string line = "";
-	while(getline(infile, line)){
-		if(line == ""){
+	while (getline(infile, line)) {
+		if (line == "") {
 			continue;
 		}
-		while(line.length() > 0 && (line.at(line.length() - 1) == ' ' || line.at(line.length() - 1) == '\t')){
+		while (line.length() > 0 && (line.at(line.length() - 1) == ' '
+				|| line.at(line.length() - 1) == '\t')) {
 			line.erase(line.length() - 1);
 		}
 		vector<string> tokens = General::ParseDelimitedLine(line);
-		if(tokens.size() == 0){
+		if (tokens.size() == 0) {
 			continue;
-		}
-		else if(tokens[0] == "#"){
+		} else if (tokens[0] == "#") {
 			continue;
-		}
-		else{
+		} else {
 			string step = tokens[0];
 			batchargs[step].push_back("NA");
-			for(int i = 1; i < (int)tokens.size(); i++){
+			for (int i = 1; i < (int) tokens.size(); i++) {
 				batchargs[step].push_back(tokens[i]);
 			}
 		}
@@ -2007,62 +2201,61 @@ map<string, vector<string> > getBatchArgs(string f){
  *Description:
  *Parses batch file and sets up steps for processing.
  */
-void parseInput(const string& file, vector<Process*>& proc_list){
+void parseInput(const string& file, vector<Process*>& proc_list) {
 	ifstream inFile;
 
 	const char* temp = file.c_str();
 	inFile.open(temp, ios::in);
-	if(!inFile){
+	if (!inFile) {
 		cerr << "Error opening batch file: " << file << endl;
 		exit(1);
 	}
 
-//	string step;
-//	string thresh;
+	//	string step;
+	//	string thresh;
 	int count = 0;
 	string line;
 	map<string, int> allsteps;
-	while(getline(inFile, line)){
-		if(line == ""){
+	while (getline(inFile, line)) {
+		if (line == "") {
 			continue;
 		}
 		count++;
 		bool overwrite = true;
 		//remove white space at end of line (command to process)
-		while(line.length() > 0 && (line.at(line.length() - 1) == ' ' || line.at(line.length() - 1) == '\t')){
+		while (line.length() > 0 && (line.at(line.length() - 1) == ' '
+				|| line.at(line.length() - 1) == '\t')) {
 			line.erase(line.length() - 1);
 		}
 		map<string, int>::iterator found = allsteps.find(line);
 		//if the command is a duplicate
-		if(found != allsteps.end()){
+		if (found != allsteps.end()) {
 			overwrite = false;
 		}
 		allsteps[line]++;
 		vector<string> tokens = General::ParseDelimitedLine(line);
-		if(tokens.size() == 0){
+		if (tokens.size() == 0) {
 			continue;
-		}
-		else if(tokens[0][0] == '#'){
+		} else if (tokens[0][0] == '#') {
 			continue;
-		}
-		else{
+		} else {
 			string step = tokens[0];
 			string thresh = "";
-			for(unsigned int i = 1; i < tokens.size(); i++){
+			for (unsigned int i = 1; i < tokens.size(); i++) {
 				thresh += tokens[i] + " ";
 			}
 			Process* p = ProcessFactory::getFactory().Create(step);
-			if (p){
+			if (p) {
 				p->setOrder(count);
 				p->setThreshold(thresh);
 				p->setOverwrite(overwrite);
-			}else{
+			} else {
 				opts::printLog("Step: " + step + " not recognized.  Exiting.\n");
 				inFile.close();
 				exit(1);
 			}
 
-			if(p->hasIncExc()){
+			if (p->hasIncExc()) {
 				opts::_KEEP_EXC_SAMPLES_ = true;
 			}
 			proc_list.push_back(p);
@@ -2078,23 +2271,25 @@ void parseInput(const string& file, vector<Process*>& proc_list){
  *Flips the strand of the specified markers
  *
  */
-void flipStrand(vector<Marker*>* markers){
-	if(opts::_FLIPFILE_.length() > 0){
+void flipStrand(vector<Marker*>* markers) {
+	if (opts::_FLIPFILE_.length() > 0) {
 		map<string, int> exclude;
 		opts::printLog("Flipping markers found in: " + opts::_FLIPFILE_ + "\n");
 		ifstream einput;
 		einput.open(opts::_FLIPFILE_.c_str(), ios::in);
-		if(!einput){
-			opts::printLog("Error opening marker strand flip file: " + opts::_FLIPFILE_ + "\n");
+		if (!einput) {
+			opts::printLog("Error opening marker strand flip file: "
+					+ opts::_FLIPFILE_ + "\n");
 			exit(1);
 		}
 		string probe = "";
 		string line = "";
 
-		while(getline(einput, line)){
+		while (getline(einput, line)) {
 			vector<string> tokens = General::ParseDelimitedLine(line);
-			if(tokens.size() != 1){
-				opts::printLog("Strand flip markers column size != 1: " + line + " Skipping line!!\n");
+			if (tokens.size() != 1) {
+				opts::printLog("Strand flip markers column size != 1: " + line
+						+ " Skipping line!!\n");
 				continue;
 			}
 			exclude[tokens[0]] = 1;
@@ -2104,61 +2299,48 @@ void flipStrand(vector<Marker*>* markers){
 
 		int msize = markers->size();
 
-		for(int m = 0; m < msize; m++){
+		for (int m = 0; m < msize; m++) {
 			Marker* mark = (*markers)[m];
-			if(!mark->isMicroSat()){
-				map<string, int>::iterator found = exclude.find(mark->getProbeID());
-    	        if(found != exclude.end()){
+			if (!mark->isMicroSat()) {
+				map<string, int>::iterator found = exclude.find(
+						mark->getProbeID());
+				if (found != exclude.end()) {
 					string a1 = mark->getAllele1();
 					string a2 = mark->getAllele2();
 
-					if(a1 == "A"){
+					if (a1 == "A") {
 						mark->resetAllele1("T");
-					}
-					else if(a1 == "C"){
+					} else if (a1 == "C") {
 						mark->resetAllele1("G");
-					}
-					else if(a1 == "G"){
+					} else if (a1 == "G") {
 						mark->resetAllele1("C");
-					}
-					else if(a1 == "T"){
+					} else if (a1 == "T") {
 						mark->resetAllele1("A");
-					}
-					else if(a1 == "1"){
+					} else if (a1 == "1") {
 						mark->resetAllele1("4");
-					}
-					else if(a1 == "2"){
+					} else if (a1 == "2") {
 						mark->resetAllele1("3");
-					}
-					else if(a1 == "3"){
+					} else if (a1 == "3") {
 						mark->resetAllele1("2");
-					}
-					else if(a1 == "4"){
+					} else if (a1 == "4") {
 						mark->resetAllele1("1");
 					}
 
-					if(a2 == "A"){
+					if (a2 == "A") {
 						mark->resetAllele2("T");
-					}
-					else if(a2 == "C"){
+					} else if (a2 == "C") {
 						mark->resetAllele2("G");
-					}
-					else if(a2 == "G"){
+					} else if (a2 == "G") {
 						mark->resetAllele2("C");
-					}
-					else if(a2 == "T"){
+					} else if (a2 == "T") {
 						mark->resetAllele2("A");
-					}
-					else if(a2 == "1"){
+					} else if (a2 == "1") {
 						mark->resetAllele2("4");
-					}
-					else if(a2 == "2"){
+					} else if (a2 == "2") {
 						mark->resetAllele2("3");
-					}
-					else if(a2 == "3"){
+					} else if (a2 == "3") {
 						mark->resetAllele2("2");
-					}
-					else if(a2 == "4"){
+					} else if (a2 == "4") {
 						mark->resetAllele2("1");
 					}
 				}
@@ -2167,7 +2349,6 @@ void flipStrand(vector<Marker*>* markers){
 	}
 
 }
-
 
 /*
  *Function: printFamilies
@@ -2179,42 +2360,45 @@ void printFamilies(vector<Family*>* families) {
 	int fsize = families->size();
 
 	string fname = opts::_OUTPREFIX_ + "family_structure.txt";
-	ofstream fout (fname.c_str());
-	if(!fout.is_open()) {
+	ofstream fout(fname.c_str());
+	if (!fout.is_open()) {
 		opts::printLog("Unable to open " + fname + "\n");
 		exit(1);
 	}
 
 	fname = opts::_OUTPREFIX_ + "family_data.txt";
-	ofstream fdout (fname.c_str());
-	if(!fdout.is_open()) {
+	ofstream fdout(fname.c_str());
+	if (!fdout.is_open()) {
 		opts::printLog("Unable to open " + fname + "\n");
 		exit(1);
 	}
 
-	for(int f = 0; f < fsize; f++) {
+	for (int f = 0; f < fsize; f++) {
 		Family* fam = (*families)[f];
-		if(fam->isEnabled()) {
+		if (fam->isEnabled()) {
 			fout << "Family: " << fam->getFamID() << endl;
-			fout << "----------------------------------------------------------" << endl;
+			fout
+					<< "----------------------------------------------------------"
+					<< endl;
 			vector<Sample*>* founders = fam->getFounders();
 			int size = founders->size();
-			if(size> 0) {
-				for(int fs = 0; fs < size; fs++) {
+			if (size > 0) {
+				for (int fs = 0; fs < size; fs++) {
 					Sample* founder = (*founders)[fs];
-					if(founder->isEnabled() || (founder->isExcluded() && opts::_KEEP_EXC_SAMPLES_)) {
+					if (founder->isEnabled() || (founder->isExcluded()
+							&& opts::_KEEP_EXC_SAMPLES_)) {
 						fout << "Founder: " << founder->getInd() << endl;
 						fout << descendTree(founder, 0) << endl;
 					}
 				}
-			}
-			else {
+			} else {
 				fout << "No Founders...\n";
 				vector<Sample*>* samps = fam->getSamples();
 				int ssize = samps->size();
-				for(int ss = 0; ss < ssize; ss++) {
+				for (int ss = 0; ss < ssize; ss++) {
 					Sample* samp = (*samps)[ss];
-					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)) {
+					if (samp->isEnabled() || (samp->isExcluded()
+							&& opts::_KEEP_EXC_SAMPLES_)) {
 						fout << descendTree(samp, 0) << endl;
 					}
 				}
@@ -2223,58 +2407,64 @@ void printFamilies(vector<Family*>* families) {
 		}
 	}
 
-	fdout << "FamID\tMultigenerational?\tMutigen_with_affecteds\tTotal_Generations\tTotal_Num_Affected\tGeneration1-N_Affected Counts\n";
+	fdout
+			<< "FamID\tMultigenerational?\tMutigen_with_affecteds\tTotal_Generations\tTotal_Num_Affected\tGeneration1-N_Affected Counts\n";
 	//output summary levels & affecteds
-	for(int f = 0; f < fsize; f++){
+	for (int f = 0; f < fsize; f++) {
 		Family* fam = (*families)[f];
-		if(fam->isEnabled()){
+		if (fam->isEnabled()) {
 			map<int, vector<Sample*> > levels;
 			fdout << fam->getFamID();
 			vector<Sample*>* founders = fam->getFounders();
 			int size = founders->size();
-			if(size > 0){
+			if (size > 0) {
 				//vector<int> levels(size);
-				for(int fs = 0; fs < size; fs++){
+				for (int fs = 0; fs < size; fs++) {
 					Sample* founder = (*founders)[fs];
-					if(founder->isEnabled() || (founder->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
+					if (founder->isEnabled() || (founder->isExcluded()
+							&& opts::_KEEP_EXC_SAMPLES_)) {
 						//levels[fs] = descendTree3(founder, 0);
-						map<int, vector<Sample*> > levelstemp = descendTree3(founder, 1);
+						map<int, vector<Sample*> > levelstemp = descendTree3(
+								founder, 1);
 						//if(founder->getPheno() == 2){// && !founder->isFlagged()){
 						map<int, vector<Sample*> >::iterator titer;
-						for(titer = levelstemp.begin(); titer != levelstemp.end(); titer++){
+						for (titer = levelstemp.begin(); titer
+								!= levelstemp.end(); titer++) {
 							vector<Sample*> mysamps = titer->second;
-							for(unsigned int ms = 0; ms < mysamps.size(); ms++){
+							for (unsigned int ms = 0; ms < mysamps.size(); ms++) {
 								levels[titer->first].push_back(mysamps[ms]);
 							}
 						}
 						levels[1].push_back(founder);
-//							founder->setFlag(true);
+						//							founder->setFlag(true);
 						//}
 					}
 				}
 				//sort(levels.begin(), levels.end());
 				//fdout << "\t" << levels[levels.size() - 1];
-			}
-			else{
+			} else {
 				vector<Sample*>* samps = fam->getSamples();
 				int ssize = samps->size();
 				//vector<int> levels(ssize);
 				//map<int, int> levels;
-				for(int ss = 0; ss < ssize; ss++){
+				for (int ss = 0; ss < ssize; ss++) {
 					Sample* samp = (*samps)[ss];
-					if(samp->isEnabled() || (samp->isExcluded() && opts::_KEEP_EXC_SAMPLES_)){
+					if (samp->isEnabled() || (samp->isExcluded()
+							&& opts::_KEEP_EXC_SAMPLES_)) {
 						//levels[ss] = descendTree3(samp, 0);
-						map<int, vector<Sample*> > levelstemp = descendTree3(samp, 1);
+						map<int, vector<Sample*> > levelstemp = descendTree3(
+								samp, 1);
 						//if(samp->getPheno() == 2){// && !samp->isFlagged()){
 						map<int, vector<Sample*> >::iterator titer;
-						for(titer = levelstemp.begin(); titer != levelstemp.end(); titer++){
+						for (titer = levelstemp.begin(); titer
+								!= levelstemp.end(); titer++) {
 							vector<Sample*> mysamps = titer->second;
-							for(unsigned int ms = 0; ms < mysamps.size(); ms++){
+							for (unsigned int ms = 0; ms < mysamps.size(); ms++) {
 								levels[titer->first].push_back(mysamps[ms]);
 							}
 						}
 						levels[1].push_back(samp);
-//							samp->setFlag(true);
+						//							samp->setFlag(true);
 						//}
 					}
 				}
@@ -2282,88 +2472,92 @@ void printFamilies(vector<Family*>* families) {
 				//sort(levels.begin(), levels.end());
 				//fdout << "\t" << levels[levels.size() - 1];
 			}
-//			vector<Sample*>* fsamps = fam->getSamples();
+			//			vector<Sample*>* fsamps = fam->getSamples();
 			int affected = 0;
-//			for(int s = 0; s < fsamps->size(); s++){
-//				if((*fsamps)[s]->getPheno() == 2 && (*fsamps)[s]->isFlagged()){
-					//affected++;
-//					(*fsamps)[s]->setFlag(false);
-//				}
-//			}
+			//			for(int s = 0; s < fsamps->size(); s++){
+			//				if((*fsamps)[s]->getPheno() == 2 && (*fsamps)[s]->isFlagged()){
+			//affected++;
+			//					(*fsamps)[s]->setFlag(false);
+			//				}
+			//			}
 			map<int, vector<Sample*> >::iterator iter = levels.end();
-			if(levels.size() > 1){
+			if (levels.size() > 1) {
 				fdout << "\tY";
-			}
-			else{
+			} else {
 				fdout << "\tN";
 			}
-			for(iter = levels.begin(); iter != levels.end(); iter++){
+			for (iter = levels.begin(); iter != levels.end(); iter++) {
 				vector<Sample*> mysamps = iter->second;
 				map<Sample*, bool> newsamps;
-				for(unsigned int ms = 0; ms < mysamps.size(); ms++){
+				for (unsigned int ms = 0; ms < mysamps.size(); ms++) {
 					newsamps[mysamps[ms]] = mysamps[ms]->getAffected();
 				}
 				map<Sample*, bool>::iterator niter;
-				for(niter = newsamps.begin(); niter != newsamps.end(); niter++){
+				for (niter = newsamps.begin(); niter != newsamps.end(); niter++) {
 
-					if(niter->second){
+					if (niter->second) {
 						bool useme = true;
 						map<int, vector<Sample*> >::iterator tempiter;
-						for(tempiter = levels.begin(); tempiter != levels.end(); tempiter++){
-							if(tempiter->first > iter->first){
+						for (tempiter = levels.begin(); tempiter
+								!= levels.end(); tempiter++) {
+							if (tempiter->first > iter->first) {
 								vector<Sample*> findsamples = tempiter->second;
-								vector<Sample*>::iterator findme = find(findsamples.begin(), findsamples.end(), niter->first);
-								if(findme != findsamples.end()){
+								vector<Sample*>::iterator findme = find(
+										findsamples.begin(), findsamples.end(),
+										niter->first);
+								if (findme != findsamples.end()) {
 									useme = false;
 									break;
 								}
 							}
 						}
-						if(useme)
+						if (useme)
 							affected++;
 					}
 				}
 			}
 			string affcounts = "";
 			int numlevelsofaff = 0;
-			for(iter = levels.begin(); iter != levels.end(); iter++){
+			for (iter = levels.begin(); iter != levels.end(); iter++) {
 				int laffected = 0;
 				vector<Sample*> mysamps = iter->second;
 				map<Sample*, bool> newsamps;
-				for(unsigned int ms = 0; ms < mysamps.size(); ms++){
+				for (unsigned int ms = 0; ms < mysamps.size(); ms++) {
 					newsamps[mysamps[ms]] = mysamps[ms]->getAffected();
 				}
 				bool incme = false;
 				map<Sample*, bool>::iterator niter;
-				for(niter = newsamps.begin(); niter != newsamps.end(); niter++){
-					if(niter->second){
+				for (niter = newsamps.begin(); niter != newsamps.end(); niter++) {
+					if (niter->second) {
 						bool useme = true;
 						map<int, vector<Sample*> >::iterator tempiter;
-						for(tempiter = levels.begin(); tempiter != levels.end(); tempiter++){
-							if(tempiter->first > iter->first){
+						for (tempiter = levels.begin(); tempiter
+								!= levels.end(); tempiter++) {
+							if (tempiter->first > iter->first) {
 								vector<Sample*> findsamples = tempiter->second;
-								vector<Sample*>::iterator findme = find(findsamples.begin(), findsamples.end(), niter->first);
-								if(findme != findsamples.end()){
+								vector<Sample*>::iterator findme = find(
+										findsamples.begin(), findsamples.end(),
+										niter->first);
+								if (findme != findsamples.end()) {
 									useme = false;
 									break;
 								}
 							}
 						}
-						if(useme){
+						if (useme) {
 							laffected++;
-							if(!incme){
+							if (!incme) {
 								numlevelsofaff++;
 								incme = true;
 							}
 						}
 					}
 				}
-				affcounts += "\t" + getString<int>(laffected);
+				affcounts += "\t" + getString<int> (laffected);
 			}
-			if(numlevelsofaff > 1){
+			if (numlevelsofaff > 1) {
 				fdout << "\tY";
-			}
-			else{
+			} else {
 				fdout << "\tN";
 			}
 			fdout << "\t" << levels.size();
@@ -2383,30 +2577,35 @@ void printFamilies(vector<Family*>* families) {
  *Description:
  *Recursively moves through pedigree until the child leaves are found to find structure
  */
-string descendTree(Sample* sample, int level){
+string descendTree(Sample* sample, int level) {
 	string infospace = "     ";
-	for(int i = 0; i < (level * 2); i++){
+	for (int i = 0; i < (level * 2); i++) {
 		infospace += "     ";
 	}
 	vector<Sample*>* children = sample->getChildren();
-	if(children->size() == 0){
-		string v = infospace + "->Ind: " + sample->getInd() + "\n" + infospace + "->Mom: " + sample->getMomID() + "\n" + infospace + "->Dad: " + sample->getDadID() + "\n";
-		if(sample->getSib() != NULL){
+	if (children->size() == 0) {
+		string v = infospace + "->Ind: " + sample->getInd() + "\n" + infospace
+				+ "->Mom: " + sample->getMomID() + "\n" + infospace + "->Dad: "
+				+ sample->getDadID() + "\n";
+		if (sample->getSib() != NULL) {
 			v += infospace + "->Sibling: " + sample->getSib()->getInd() + "\n";
 		}
-	   	v += infospace + "->Children: 0\n";
+		v += infospace + "->Children: 0\n";
 		return v;
 	}
 	int csize = children->size();
 
 	string val = "";
-	string v = infospace + "->Ind: " + sample->getInd() + "\n" + infospace + "->Mom: " + sample->getMomID() + "\n" + infospace + "->Dad: " + sample->getDadID() + "\n";
-	if(sample->getSib() != NULL){
+	string v = infospace + "->Ind: " + sample->getInd() + "\n" + infospace
+			+ "->Mom: " + sample->getMomID() + "\n" + infospace + "->Dad: "
+			+ sample->getDadID() + "\n";
+	if (sample->getSib() != NULL) {
 		v += infospace + "->Sibling: " + sample->getSib()->getInd() + "\n";
 	}
-	v += infospace + "->Children: " + getString<int>(sample->getChildren()->size()) + "\n";
+	v += infospace + "->Children: " + getString<int> (
+			sample->getChildren()->size()) + "\n";
 	val += v;
-	for(int c = 0; c < csize; c++){
+	for (int c = 0; c < csize; c++) {
 		string temp = descendTree((*children)[c], (level + 1));
 
 		val += temp;
@@ -2414,44 +2613,40 @@ string descendTree(Sample* sample, int level){
 	return val;
 }
 
-
 /*
  *Function: descendTree3
  *Description: returns # of levels
  *Recursively moves through pedigree until the child leaves are found to find structure
  */
-map<int, vector<Sample*> > descendTree3(Sample* sample, int level){
+map<int, vector<Sample*> > descendTree3(Sample* sample, int level) {
 	map<int, vector<Sample*> > values;
 
 	vector<Sample*>* children = sample->getChildren();
-	if(children->size() == 0){
+	if (children->size() == 0) {
 		return values;
 		//return level;
 	}
 	int csize = children->size();
 	vector<int> levels(csize);
-	for(int c = 0; c < csize; c++){
-		map<int, vector<Sample*> > tempvalues = descendTree3((*children)[c], (level + 1));
+	for (int c = 0; c < csize; c++) {
+		map<int, vector<Sample*> > tempvalues = descendTree3((*children)[c],
+				(level + 1));
 		map<int, vector<Sample*> >::iterator iter;
-		for(iter = tempvalues.begin(); iter != tempvalues.end(); iter++){
+		for (iter = tempvalues.begin(); iter != tempvalues.end(); iter++) {
 			vector<Sample*> samps = iter->second;
-			for(unsigned int is = 0; is < samps.size(); is++){
+			for (unsigned int is = 0; is < samps.size(); is++) {
 				values[iter->first].push_back(samps[is]);
 			}
 		}
-//		if((*children)[c]->getPheno() == 2){// && !(*children)[c]->isFlagged()){
-			values[(level + 1)].push_back((*children)[c]);
-			//(*children)[c]->setFlag(true);
-//		}
+		//		if((*children)[c]->getPheno() == 2){// && !(*children)[c]->isFlagged()){
+		values[(level + 1)].push_back((*children)[c]);
+		//(*children)[c]->setFlag(true);
+		//		}
 	}
-//	sort(levels.begin(), levels.end());
-//	level = levels[levels.size() - 1];
+	//	sort(levels.begin(), levels.end());
+	//	level = levels[levels.size() - 1];
 	return values;
 }
-
-
-
-
 
 /*
  *Function: compileOutputs
@@ -2459,84 +2654,85 @@ map<int, vector<Sample*> > descendTree3(Sample* sample, int level){
  *Compiles all QC & analysis outputs into single marker, sample, and family files
  *Performed when all steps are complete.
  */
-void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<Sample*>* samples){
+void compileOutputs(vector<Marker*>* markers, vector<Family*>* families,
+		vector<Sample*>* samples) {
 	opts::printLog("Compiling QC and Analysis output files...\n");
 
-
 	map<string, vector<string> > filenames = opts::getFilenames();
-	if(filenames["Marker"].size() > 0){
+	if (filenames["Marker"].size() > 0) {
 		map<Marker*, vector<string> > marker_output;
 		vector<string> all_columns;
 		map<string, Marker*> snpmap;
-		for(unsigned int i = 0; i < markers->size(); i++){
+		for (unsigned int i = 0; i < markers->size(); i++) {
 			Marker* mark = (*markers)[i];
-			string chr = getString<int>(mark->getChrom());
-			string bp = getString<int>(mark->getBPLOC());
+			string chr = getString<int> (mark->getChrom());
+			string bp = getString<int> (mark->getBPLOC());
 			snpmap[chr + "#" + bp] = mark;
 		}
 
 		cout << "Markers initialized...\n";
 
-		for(unsigned int i = 0; i < filenames["Marker"].size(); i++){
+		for (unsigned int i = 0; i < filenames["Marker"].size(); i++) {
 			string file = filenames["Marker"][i];
 			string step = opts::filesteps[file];
 
-			for(unsigned int j = 0; j < opts::fileheaders[file].size(); j++){
+			for (unsigned int j = 0; j < opts::fileheaders[file].size(); j++) {
 				cout << "Pushing " << file << " : " << j << endl;
-				all_columns.push_back("(" + file + ")" + opts::fileheaders[file][j]);
+				all_columns.push_back("(" + file + ")"
+						+ opts::fileheaders[file][j]);
 			}
 		}
 		string outfile = opts::_OUTPREFIX_ + "marker_summary.txt";
-		opts::printLog("Working on compiling SNP information...[" + outfile + "]\n");
-		for(unsigned int i = 0; i < filenames["Marker"].size(); i++){
+		opts::printLog("Working on compiling SNP information...[" + outfile
+				+ "]\n");
+		for (unsigned int i = 0; i < filenames["Marker"].size(); i++) {
 			string filename = filenames["Marker"][i];
 			string step = opts::filesteps[filename];
 			vector<string> filecols = opts::fileheaders[filename];
 
 			opts::printLog("\tParsing " + filename + "\n");
 
-
 			ifstream input;
 			input.open(filename.c_str(), ios::in);
 
-			if(!input){
+			if (!input) {
 				cerr << "Error opening file: " << filename << endl;
 				exit(1);
 			}
 
 			string header = "";
-		   	getline(input, header);
+			getline(input, header);
 
 			vector<string> columns;
 			General::Tokenize(header, columns, "\t");
 			int chrloc = -1;
 			int bploc = -1;
-			for(unsigned int l = 0; l < columns.size(); l++){
-				if(columns[l] == "Chrom"){
+			for (unsigned int l = 0; l < columns.size(); l++) {
+				if (columns[l] == "Chrom") {
 					chrloc = l;
 				}
-				if(columns[l] == "bploc"){
+				if (columns[l] == "bploc") {
 					bploc = l;
 				}
-				if(chrloc > -1 && bploc > -1){
+				if (chrloc > -1 && bploc > -1) {
 					break;
 				}
 			}
 			string line;
-			while(getline(input, line)){
+			while (getline(input, line)) {
 				int count = 0;
 				vector<string> elems;
 				string token;
-				istringstream isstream (line);
-				while(getline(isstream, token, '\t')){
+				istringstream isstream(line);
+				while (getline(isstream, token, '\t')) {
 					elems.push_back(token);
 				}
 
 				//General::Tokenize(line, elems, "\t");
-				if(elems.size() == 0){
+				if (elems.size() == 0) {
 					continue;
 				}
-				if(elems.size() != columns.size()){
+				if (elems.size() != columns.size()) {
 					cout << "Error on line: " << count << endl;
 					exit(1);
 				}
@@ -2545,29 +2741,34 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 				string key = elems[chrloc] + "#" + elems[bploc];
 
 				Marker* itermark = snpmap[key];//(*markers)[count];
-///				while(itermark->getChrom() != chrom && itermark->getBPLOC() != bploc){
-///					if(count + 1 >= markers->size()){
-///						itermark = NULL;
-///						break;
-///					}
-///					itermark = (*markers)[++count];
-///				}
+				///				while(itermark->getChrom() != chrom && itermark->getBPLOC() != bploc){
+				///					if(count + 1 >= markers->size()){
+				///						itermark = NULL;
+				///						break;
+				///					}
+				///					itermark = (*markers)[++count];
+				///				}
 				//vector<Marker*>::iterator itermark = find_if(markers->begin(), markers->end(), FindMarkerByChromBploc(chrom, bp));
-				if(itermark == NULL){
-					cout << "Cannot find marker with chrom = " << chrom << " and bploc = " << bp << endl;
+				if (itermark == NULL) {
+					cout << "Cannot find marker with chrom = " << chrom
+							<< " and bploc = " << bp << endl;
 					exit(1);
 				}
 				Marker* mark = itermark;
-				map<Marker*, vector<string> >::iterator data = marker_output.find(mark);
-				if(data == marker_output.end()){
+				map<Marker*, vector<string> >::iterator data =
+						marker_output.find(mark);
+				if (data == marker_output.end()) {
 					vector<string> mydata;
 					mydata.resize(all_columns.size(), "N/A");
 					marker_output[mark] = mydata;
 				}
-				for(unsigned int j = 0; j < filecols.size(); j++){
-					vector<string>::iterator realcol = find(columns.begin(), columns.end(), filecols[j]);
-					vector<string>::iterator allloc = find(all_columns.begin(), all_columns.end(), "(" +filename+")"+filecols[j]);
-					if(realcol != columns.end()){
+				for (unsigned int j = 0; j < filecols.size(); j++) {
+					vector<string>::iterator realcol = find(columns.begin(),
+							columns.end(), filecols[j]);
+					vector<string>::iterator allloc = find(all_columns.begin(),
+							all_columns.end(), "(" + filename + ")"
+									+ filecols[j]);
+					if (realcol != columns.end()) {
 						int myloc = realcol - columns.begin();
 						int myallloc = allloc - all_columns.begin();
 						marker_output[mark][myallloc] = elems[myloc];
@@ -2580,103 +2781,107 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 		}
 		ofstream out(outfile.c_str());
 		out << "Chrom\trsID\tProbeID\tbploc";
-		for(unsigned int i = 0; i < all_columns.size(); i++){
+		for (unsigned int i = 0; i < all_columns.size(); i++) {
 			out << "\t" << all_columns[i];
 		}
 		out << "\n";
 		map<Marker*, vector<string> >::iterator iter;
-		for(iter = marker_output.begin(); iter != marker_output.end(); iter++){
+		for (iter = marker_output.begin(); iter != marker_output.end(); iter++) {
 			Marker* mark = iter->first;
 			vector<string> data = iter->second;
-			out << mark->getChrom() << "\t"
-				<< mark->getRSID() << "\t"
-				<< mark->getProbeID() << "\t"
-				<< mark->getBPLOC();
-			for(unsigned int i = 0; i < data.size(); i++){
+			out << mark->getChrom() << "\t" << mark->getRSID() << "\t"
+					<< mark->getProbeID() << "\t" << mark->getBPLOC();
+			for (unsigned int i = 0; i < data.size(); i++) {
 				out << "\t" << data[i];
 			}
 			out << "\n";
 		}
 		out.close();
 	}
-	if(filenames["Family"].size() > 0){
+	if (filenames["Family"].size() > 0) {
 		map<Family*, vector<string> > family_output;
 		vector<string> all_columns;
-		for(unsigned int i = 0; i < filenames["Family"].size(); i++){
+		for (unsigned int i = 0; i < filenames["Family"].size(); i++) {
 			string file = filenames["Family"][i];
 			string step = opts::filesteps[file];
 
-			for(unsigned int j = 0; j < opts::fileheaders[file].size(); j++){
-				all_columns.push_back("(" + file + ")" + opts::fileheaders[file][j]);
+			for (unsigned int j = 0; j < opts::fileheaders[file].size(); j++) {
+				all_columns.push_back("(" + file + ")"
+						+ opts::fileheaders[file][j]);
 			}
 		}
 		string outfile = opts::_OUTPREFIX_ + "family_summary.txt";
-		opts::printLog("Working on compiling Family information...[" + outfile + "]\n");
-		for(unsigned int i = 0; i < filenames["Family"].size(); i++){
+		opts::printLog("Working on compiling Family information...[" + outfile
+				+ "]\n");
+		for (unsigned int i = 0; i < filenames["Family"].size(); i++) {
 			string filename = filenames["Family"][i];
 			string step = opts::filesteps[filename];
 			vector<string> filecols = opts::fileheaders[filename];
 
 			opts::printLog("\tParsing " + filename + "\n");
 
-
 			ifstream input;
 			input.open(filename.c_str(), ios::in);
 
-			if(!input){
+			if (!input) {
 				cerr << "Error opening file: " << filename << endl;
 				exit(1);
 			}
 
 			string header = "";
-		   	getline(input, header);
+			getline(input, header);
 
 			vector<string> columns;
 			General::Tokenize(header, columns, "\t");
 			int famloc = -1;
-			for(unsigned int l = 0; l < columns.size(); l++){
-				if(columns[l] == "FamID"){
+			for (unsigned int l = 0; l < columns.size(); l++) {
+				if (columns[l] == "FamID") {
 					famloc = l;
 				}
-				if(famloc > -1){
+				if (famloc > -1) {
 					break;
 				}
 			}
-			if(famloc < 0){
+			if (famloc < 0) {
 				cout << "FamID column not found!\n";
 				exit(1);
 			}
 			string line;
 			int count = 1;
-			while(getline(input, line)){
+			while (getline(input, line)) {
 				count++;
 				vector<string> elems;
 				string token;
-				istringstream isstream (line);
-				while(getline(isstream, token, '\t')){
+				istringstream isstream(line);
+				while (getline(isstream, token, '\t')) {
 					elems.push_back(token);
 				}
 				//General::Tokenize(line, elems, "\t");
-				if(elems.size() == 0){
+				if (elems.size() == 0) {
 					continue;
 				}
 				string famid = elems[famloc];
-				vector<Family*>::iterator iterfam = find_if(families->begin(), families->end(), FindFamily(famid));
-				if(iterfam == families->end()){
+				vector<Family*>::iterator iterfam = find_if(families->begin(),
+						families->end(), FindFamily(famid));
+				if (iterfam == families->end()) {
 					cout << "Cannot find family with famid = " << famid << endl;
 					exit(1);
 				}
 				Family* fam = *iterfam;
-				map<Family*, vector<string> >::iterator data = family_output.find(fam);
-				if(data == family_output.end()){
+				map<Family*, vector<string> >::iterator data =
+						family_output.find(fam);
+				if (data == family_output.end()) {
 					vector<string> mydata;
 					mydata.resize(all_columns.size(), "N/A");
 					family_output[fam] = mydata;
 				}
-				for(unsigned int j = 0; j < filecols.size(); j++){
-					vector<string>::iterator realcol = find(columns.begin(), columns.end(), filecols[j]);
-					vector<string>::iterator allloc = find(all_columns.begin(), all_columns.end(), "(" +filename+")"+filecols[j]);
-					if(realcol != columns.end()){
+				for (unsigned int j = 0; j < filecols.size(); j++) {
+					vector<string>::iterator realcol = find(columns.begin(),
+							columns.end(), filecols[j]);
+					vector<string>::iterator allloc = find(all_columns.begin(),
+							all_columns.end(), "(" + filename + ")"
+									+ filecols[j]);
+					if (realcol != columns.end()) {
 						int myloc = realcol - columns.begin();
 						int myallloc = allloc - all_columns.begin();
 						family_output[fam][myallloc] = elems[myloc];
@@ -2688,102 +2893,108 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 		}
 		ofstream out(outfile.c_str());
 		out << "FamID\tNumInds";
-		for(unsigned int i = 0; i < all_columns.size(); i++){
+		for (unsigned int i = 0; i < all_columns.size(); i++) {
 			out << "\t" << all_columns[i];
 		}
 		out << "\n";
 		map<Family*, vector<string> >::iterator iter;
-		for(iter = family_output.begin(); iter != family_output.end(); iter++){
+		for (iter = family_output.begin(); iter != family_output.end(); iter++) {
 			Family* fam = iter->first;
 			vector<string> data = iter->second;
-			out << fam->getFamID() << "\t"
-				<< fam->getSamples()->size();
-			for(unsigned int i = 0; i < data.size(); i++){
+			out << fam->getFamID() << "\t" << fam->getSamples()->size();
+			for (unsigned int i = 0; i < data.size(); i++) {
 				out << "\t" << data[i];
 			}
 			out << "\n";
 		}
 		out.close();
 	}
-	if(filenames["Sample"].size() > 0){
-	map<Sample*, vector<string> > sample_output;
+	if (filenames["Sample"].size() > 0) {
+		map<Sample*, vector<string> > sample_output;
 		vector<string> all_columns;
-		for(unsigned int i = 0; i < filenames["Sample"].size(); i++){
+		for (unsigned int i = 0; i < filenames["Sample"].size(); i++) {
 			string file = filenames["Sample"][i];
 			string step = opts::filesteps[file];
 
-			for(unsigned int j = 0; j < opts::fileheaders[file].size(); j++){
-				all_columns.push_back("(" + file + ")" + opts::fileheaders[file][j]);
+			for (unsigned int j = 0; j < opts::fileheaders[file].size(); j++) {
+				all_columns.push_back("(" + file + ")"
+						+ opts::fileheaders[file][j]);
 			}
 		}
 		string outfile = opts::_OUTPREFIX_ + "sample_summary.txt";
-		opts::printLog("Working on compiling Sample information...[" + outfile + "]\n");
-		for(unsigned int i = 0; i < filenames["Sample"].size(); i++){
+		opts::printLog("Working on compiling Sample information...[" + outfile
+				+ "]\n");
+		for (unsigned int i = 0; i < filenames["Sample"].size(); i++) {
 			string filename = filenames["Sample"][i];
 			string step = opts::filesteps[filename];
 			vector<string> filecols = opts::fileheaders[filename];
 
 			opts::printLog("\tParsing " + filename + "\n");
 
-
 			ifstream input;
 			input.open(filename.c_str(), ios::in);
 
-			if(!input){
+			if (!input) {
 				cerr << "Error opening file: " << filename << endl;
 				exit(1);
 			}
 
 			string header = "";
-		   	getline(input, header);
+			getline(input, header);
 
 			vector<string> columns;
 			General::Tokenize(header, columns, "\t");
 			int famloc = -1;
 			int indloc = -1;
-			for(unsigned int l = 0; l < columns.size(); l++){
-				if(columns[l] == "FamID"){
+			for (unsigned int l = 0; l < columns.size(); l++) {
+				if (columns[l] == "FamID") {
 					famloc = l;
 				}
-				if(columns[l] == "IndID"){
+				if (columns[l] == "IndID") {
 					indloc = l;
 				}
-				if(famloc > -1 && indloc > -1){
+				if (famloc > -1 && indloc > -1) {
 					break;
 				}
 			}
 			string line;
 			int count = 1;
-			while(getline(input, line)){
+			while (getline(input, line)) {
 				count++;
 				vector<string> elems;
 				string token;
-				istringstream isstream (line);
-				while(getline(isstream, token, '\t')){
+				istringstream isstream(line);
+				while (getline(isstream, token, '\t')) {
 					elems.push_back(token);
 				}
 				//General::Tokenize(line, elems, "\t");
-				if(elems.size() == 0){
+				if (elems.size() == 0) {
 					continue;
 				}
 				string famid = elems[famloc];
 				string indid = elems[indloc];
-				vector<Sample*>::iterator itersamp = find_if(samples->begin(), samples->end(), FindSampleByFamAndID(famid, indid));
-				if(itersamp == samples->end()){
-					cout << "Cannot find sample with famid = " << famid << " and indid = " << indid << endl;
+				vector<Sample*>::iterator itersamp = find_if(samples->begin(),
+						samples->end(), FindSampleByFamAndID(famid, indid));
+				if (itersamp == samples->end()) {
+					cout << "Cannot find sample with famid = " << famid
+							<< " and indid = " << indid << endl;
 					exit(1);
 				}
 				Sample* samp = *itersamp;
-				map<Sample*, vector<string> >::iterator data = sample_output.find(samp);
-				if(data == sample_output.end()){
+				map<Sample*, vector<string> >::iterator data =
+						sample_output.find(samp);
+				if (data == sample_output.end()) {
 					vector<string> mydata;
 					mydata.resize(all_columns.size(), "N/A");
 					sample_output[samp] = mydata;
 				}
-				for(unsigned int j = 0; j < filecols.size(); j++){
-					vector<string>::iterator realcol = find(columns.begin(), columns.end(), filecols[j]);
-					vector<string>::iterator allloc = find(all_columns.begin(), all_columns.end(), "(" +filename+")"+filecols[j]);
-					if(realcol != columns.end()){
+				for (unsigned int j = 0; j < filecols.size(); j++) {
+					vector<string>::iterator realcol = find(columns.begin(),
+							columns.end(), filecols[j]);
+					vector<string>::iterator allloc = find(all_columns.begin(),
+							all_columns.end(), "(" + filename + ")"
+									+ filecols[j]);
+					if (realcol != columns.end()) {
 						int myloc = realcol - columns.begin();
 						int myallloc = allloc - all_columns.begin();
 						sample_output[samp][myallloc] = elems[myloc];
@@ -2795,109 +3006,112 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 		}
 		ofstream out(outfile.c_str());
 		out << "FamID\tIndID\tSex\tAffection_Status";
-		for(unsigned int i = 0; i < all_columns.size(); i++){
+		for (unsigned int i = 0; i < all_columns.size(); i++) {
 			out << "\t" << all_columns[i];
 		}
 		out << "\n";
 		map<Sample*, vector<string> >::iterator iter;
-		for(iter = sample_output.begin(); iter != sample_output.end(); iter++){
+		for (iter = sample_output.begin(); iter != sample_output.end(); iter++) {
 			Sample* samp = iter->first;
 			vector<string> data = iter->second;
-			out << samp->getFamID() << "\t"
-				<< samp->getInd() << "\t";
-			if(samp->getSex()){
+			out << samp->getFamID() << "\t" << samp->getInd() << "\t";
+			if (samp->getSex()) {
 				out << "M\t";
-			}
-			else{
+			} else {
 				out << "F\t";
 			}
 			out << samp->getPheno();
 
-			for(unsigned int i = 0; i < data.size(); i++){
+			for (unsigned int i = 0; i < data.size(); i++) {
 				out << "\t" << data[i];
 			}
 			out << "\n";
 		}
 		out.close();
 	}
-	if(filenames["Batch"].size() > 0){
+	if (filenames["Batch"].size() > 0) {
 		map<string, vector<string> > batch_output;
 		vector<string> all_columns;
-		for(unsigned int i = 0; i < filenames["Batch"].size(); i++){
+		for (unsigned int i = 0; i < filenames["Batch"].size(); i++) {
 			string file = filenames["Batch"][i];
 			string step = opts::filesteps[file];
 
-			for(unsigned int j = 0; j < opts::fileheaders[file].size(); j++){
-				all_columns.push_back("(" + file + ")" + opts::fileheaders[file][j]);
+			for (unsigned int j = 0; j < opts::fileheaders[file].size(); j++) {
+				all_columns.push_back("(" + file + ")"
+						+ opts::fileheaders[file][j]);
 			}
 		}
 		string outfile = opts::_OUTPREFIX_ + "batch_summary.txt";
-		opts::printLog("Working on compiling Batch information...[" + outfile + "]\n");
-		for(unsigned int i = 0; i < filenames["Batch"].size(); i++){
+		opts::printLog("Working on compiling Batch information...[" + outfile
+				+ "]\n");
+		for (unsigned int i = 0; i < filenames["Batch"].size(); i++) {
 			string filename = filenames["Batch"][i];
 			string step = opts::filesteps[filename];
 			vector<string> filecols = opts::fileheaders[filename];
 
 			opts::printLog("\tParsing " + filename + "\n");
 
-
 			ifstream input;
 			input.open(filename.c_str(), ios::in);
 
-			if(!input){
+			if (!input) {
 				cerr << "Error opening file: " << filename << endl;
 				exit(1);
 			}
 
 			string header = "";
-		   	getline(input, header);
+			getline(input, header);
 
 			vector<string> columns;
 			General::Tokenize(header, columns, "\t");
 			int famloc = -1;
-			for(unsigned int l = 0; l < columns.size(); l++){
-				if(columns[l] == "Batch"){
+			for (unsigned int l = 0; l < columns.size(); l++) {
+				if (columns[l] == "Batch") {
 					famloc = l;
 				}
-				if(famloc > -1){
+				if (famloc > -1) {
 					break;
 				}
 			}
-			if(famloc < 0){
+			if (famloc < 0) {
 				cout << "Batch column not found!\n";
 				exit(1);
 			}
 			string line;
 			int count = 1;
-			while(getline(input, line)){
+			while (getline(input, line)) {
 				count++;
 				vector<string> elems;
 				string token;
-				istringstream isstream (line);
-				while(getline(isstream, token, '\t')){
+				istringstream isstream(line);
+				while (getline(isstream, token, '\t')) {
 					elems.push_back(token);
 				}
 				//General::Tokenize(line, elems, "\t");
-				if(elems.size() == 0){
+				if (elems.size() == 0) {
 					continue;
 				}
 				string batchid = elems[famloc];
-//				vector<>::iterator iterfam = find_if(families->begin(), families->end(), FindFamily(famid));
-//				if(iterfam == families->end()){
-//					cout << "Cannot find family with famid = " << famid << endl;
-//					exit(1);
-//				}
-//				Family* fam = *iterfam;
-				map<string, vector<string> >::iterator data = batch_output.find(batchid);
-				if(data == batch_output.end()){
+				//				vector<>::iterator iterfam = find_if(families->begin(), families->end(), FindFamily(famid));
+				//				if(iterfam == families->end()){
+				//					cout << "Cannot find family with famid = " << famid << endl;
+				//					exit(1);
+				//				}
+				//				Family* fam = *iterfam;
+				map<string, vector<string> >::iterator data =
+						batch_output.find(batchid);
+				if (data == batch_output.end()) {
 					vector<string> mydata;
 					mydata.resize(all_columns.size(), "N/A");
 					batch_output[batchid] = mydata;
 				}
-				for(unsigned int j = 0; j < filecols.size(); j++){
-					vector<string>::iterator realcol = find(columns.begin(), columns.end(), filecols[j]);
-					vector<string>::iterator allloc = find(all_columns.begin(), all_columns.end(), "(" +filename+")"+filecols[j]);
-					if(realcol != columns.end()){
+				for (unsigned int j = 0; j < filecols.size(); j++) {
+					vector<string>::iterator realcol = find(columns.begin(),
+							columns.end(), filecols[j]);
+					vector<string>::iterator allloc = find(all_columns.begin(),
+							all_columns.end(), "(" + filename + ")"
+									+ filecols[j]);
+					if (realcol != columns.end()) {
 						int myloc = realcol - columns.begin();
 						int myallloc = allloc - all_columns.begin();
 						batch_output[batchid][myallloc] = elems[myloc];
@@ -2909,16 +3123,16 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 		}
 		ofstream out(outfile.c_str());
 		out << "Batch";
-		for(unsigned int i = 0; i < all_columns.size(); i++){
+		for (unsigned int i = 0; i < all_columns.size(); i++) {
 			out << "\t" << all_columns[i];
 		}
 		out << "\n";
 		map<string, vector<string> >::iterator iter;
-		for(iter = batch_output.begin(); iter != batch_output.end(); iter++){
+		for (iter = batch_output.begin(); iter != batch_output.end(); iter++) {
 			string batchid = iter->first;
 			vector<string> data = iter->second;
 			out << batchid;
-			for(unsigned int i = 0; i < data.size(); i++){
+			for (unsigned int i = 0; i < data.size(); i++) {
 				out << "\t" << data[i];
 			}
 			out << "\n";
@@ -2927,10 +3141,6 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 	}
 
 }
-
-
-
-
 
 //////////////////////////////////////////////////////////////////
 // Borrowed from Plink v0.99s                                   //
@@ -2942,178 +3152,179 @@ void compileOutputs(vector<Marker*>* markers, vector<Family*>* families, vector<
 #define  IP_ADDR    "160.129.37.40"
 #define  GET_STRING "GET /plato/files/version.txt HTTP/1.1\nHost: chgr.mc.vanderbilt.edu\nConnection: close\n\n"
 
-
-void webcheck(vector<string> a, map<string, vector<string> > b)
-{
+void webcheck(vector<string> a, map<string, vector<string> > b) {
 
 #ifdef SKIP
 	opts::printLog("Web-check not implemented on this system...\n");
-  return;
+	return;
 #else
 
-  opts::printLog("Web-based version check ( -noweb to skip )\n");
+	opts::printLog("Web-based version check ( -noweb to skip )\n");
 
-  vector<string> tokens = socketConnection(
-					    IP_ADDR,
-					    PORT_NUM,
-					    GET_STRING);
+	vector<string> tokens = socketConnection(IP_ADDR, PORT_NUM, GET_STRING);
 
-  bool print = false;
-  bool print2 = false;
-  bool version_okay = true;
-  vector<string>::iterator fiter;
-  map<string, vector<string> >::iterator siter;
+	bool print = false;
+	bool print2 = false;
+	bool version_okay = true;
+	vector<string>::iterator fiter;
+	map<string, vector<string> >::iterator siter;
 
-  for (unsigned int i=0; i<tokens.size(); i++)
-    {
+	for (unsigned int i = 0; i < tokens.size(); i++) {
 
-      if (tokens[i]=="END") break;
+		if (tokens[i] == "END")
+			break;
 
-      if (tokens[i]=="END-MESSAGE")
-	{
-	  print2=false;
-	  continue;
-	}
-
-      if (tokens[i]=="WARN")
-	{
-	  if ( i < tokens.size()-1 )
-	    {
-	      i++;
-		  fiter = find(a.begin(), a.end(), tokens[i]);
-	      if ( fiter != a.end())
-		{
-		  opts::printLog("\n*** ALERT ***\n*** A warning flag has been set for: "+tokens[i]+
-			   "\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
+		if (tokens[i] == "END-MESSAGE") {
+			print2 = false;
+			continue;
 		}
-	    }
-	  continue;
-	}
 
-	  if(tokens[i] == "WARNSTEP"){
-	  	if(i < tokens.size() - 1){
-			i++;
-			siter = b.find(tokens[i]);
-			if(siter != b.end()){
-				opts::printLog("\n*** ALERT ***\n*** A warning flag has been set for STEP: " + tokens[i] +
-						"\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
+		if (tokens[i] == "WARN") {
+			if (i < tokens.size() - 1) {
+				i++;
+				fiter = find(a.begin(), a.end(), tokens[i]);
+				if (fiter != a.end()) {
+					opts::printLog(
+							"\n*** ALERT ***\n*** A warning flag has been set for: "
+									+ tokens[i]
+									+ "\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
+				}
+			}
+			continue;
+		}
+
+		if (tokens[i] == "WARNSTEP") {
+			if (i < tokens.size() - 1) {
+				i++;
+				siter = b.find(tokens[i]);
+				if (siter != b.end()) {
+					opts::printLog(
+							"\n*** ALERT ***\n*** A warning flag has been set for STEP: "
+									+ tokens[i]
+									+ "\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
+				}
+			}
+			continue;
+		}
+
+		if (tokens[i] == "WARNSTEPOPTION") {
+			if (i < tokens.size() - 1) {
+				i++;
+				for (siter = b.begin(); siter != b.end(); siter++) {
+					vector<string> second = siter->second;
+					fiter = find(second.begin(), second.end(), tokens[i]);
+					if (fiter != second.end()) {
+						opts::printLog(
+								"\n*** ALERT ***\n*** A warning flag has been set for STEP OPTION: "
+										+ tokens[i]
+										+ "\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
+						break;
+					}
+				}
+			}
+			continue;
+		}
+
+		if (tokens[i] == "FATAL") {
+			if (i < tokens.size() - 1) {
+				i++;
+				fiter = find(a.begin(), a.end(), tokens[i]);
+				if (fiter != a.end()) {
+					opts::printLog(
+							"A serious warning flag has been set for: "
+									+ tokens[i]
+									+ "\nPlato has been instructed to stop"
+									+ "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
+					exit(1);
+				}
+			}
+			continue;
+		}
+
+		if (tokens[i] == "FATALSTEP") {
+			if (i < tokens.size() - 1) {
+				i++;
+				siter = b.find(tokens[i]);
+				if (siter != b.end()) {
+					opts::printLog(
+							"A serious warning flag has been set for STEP: "
+									+ tokens[i]
+									+ "\nPlato has been instructed to stop"
+									+ "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
+					exit(1);
+				}
+			}
+			continue;
+		}
+
+		if (tokens[i] == "FATALSTEPOPTION") {
+			if (i < tokens.size() - 1) {
+				i++;
+				for (siter = b.begin(); siter != b.end(); siter++) {
+					vector<string> second = siter->second;
+					fiter = find(second.begin(), second.end(), tokens[i]);
+					if (fiter != second.end()) {
+						opts::printLog(
+								"A serious warning flag has been set for STEP OPTION: "
+										+ tokens[i]
+										+ "\nPlato has been instructed to stop"
+										+ "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
+						exit(1);
+					}
+				}
+			}
+			continue;
+		}
+
+		if (tokens[i] == "MESSAGE-ALL") {
+			print2 = true;
+			continue;
+		}
+
+		// Display any other messages
+		// Either conditional on old version (print)
+		// or a broadcast to all users (print2)
+
+		if ((print && !version_okay) || print2) {
+			if (tokens[i] == "\\n")
+				opts::printLog("\n");
+			else
+				opts::printLog(tokens[i] + " ");
+		}
+
+		// Check version code
+		if (tokens[i] == "WASPVER") {
+			print = true;
+			if (i < tokens.size() - 1) {
+				float currver = atof(_WASPVER_.c_str());
+				float webver = atof(tokens[i + 1].c_str());
+				if (currver >= webver)//tokens[i+1] >= _WASPVER_)
+					opts::printLog(" OK, v" + _WASPVER_ + " is current\n");
+				else {
+					opts::printLog("\n\n          *** UPDATE REQUIRED ***\n\n");
+					opts::printLog("\tThis version        : " + _WASPVER_
+							+ "\n");
+					opts::printLog("\tMost recent version : " + tokens[i + 1]
+							+ "\n\n");
+					opts::printLog(
+							"Please upgrade your version of PLATO as soon as possible!\n");
+					opts::printLog(
+							"  (visit the above website for free download)\n\n");
+					version_okay = false;
+				}
+
+				// Skip the version number
+				i++;
 			}
 		}
-		continue;
-	  }
 
-	  if(tokens[i] == "WARNSTEPOPTION"){
-		  if(i < tokens.size() - 1){
-			  i++;
-			  for(siter = b.begin(); siter != b.end(); siter++){
-				  vector<string> second = siter->second;
-				  fiter = find(second.begin(), second.end(), tokens[i]);
-				  if(fiter != second.end()){
-						opts::printLog("\n*** ALERT ***\n*** A warning flag has been set for STEP OPTION: " + tokens[i] +
-							"\n*** See http://chgr.mc.vanderbilt.edu/plato/\n");
-				  	break;
-				  }
-			  }
-		  }
-		  continue;
-	  }
-
-      if (tokens[i]=="FATAL")
-	{
-	  if ( i < tokens.size()-1 )
-	    {
-	      i++;
-		  fiter = find(a.begin(), a.end(), tokens[i]);
-	      if ( fiter != a.end()){
-		opts::printLog("A serious warning flag has been set for: "+tokens[i]+
-		    "\nPlato has been instructed to stop"+
- 	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
-		  	exit(1);
-		  }
-	    }
-	  continue;
 	}
 
-	  if(tokens[i] == "FATALSTEP"){
-	  	if(i < tokens.size() - 1){
-			i++;
-			siter = b.find(tokens[i]);
-			if(siter != b.end()){
-		opts::printLog("A serious warning flag has been set for STEP: "+tokens[i]+
-		    "\nPlato has been instructed to stop"+
- 	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
-		  	exit(1);
-			}
-		}
-		continue;
-	  }
+	// did we get the information we needed?
+	if (!print)
+		opts::printLog(" problem connecting to web\n");
 
-	  if(tokens[i] == "FATALSTEPOPTION"){
-		  if(i < tokens.size() - 1){
-			  i++;
-			  for(siter = b.begin(); siter != b.end(); siter++){
-				  vector<string> second = siter->second;
-				  fiter = find(second.begin(), second.end(), tokens[i]);
-				  if(fiter != second.end()){
-		opts::printLog("A serious warning flag has been set for STEP OPTION: "+tokens[i]+
-		    "\nPlato has been instructed to stop"+
- 	            "\nPlease see http://chgr.mc.vanderbilt.edu/plato/\n");
-		  	exit(1);
-				  }
-			  }
-		  }
-		  continue;
-	  }
-
-      if (tokens[i]=="MESSAGE-ALL")
-	{
-	  print2=true;
-	  continue;
-	}
-
-      // Display any other messages
-      // Either conditional on old version (print)
-      // or a broadcast to all users (print2)
-
-      if ( ( print && !version_okay) || print2 )
-	{
-	  if (tokens[i]=="\\n")
-	    opts::printLog("\n");
-	  else
-	    opts::printLog(tokens[i]+" ");
-	}
-
-      // Check version code
-      if (tokens[i]=="WASPVER")
-	{
-	  print=true;
-	  if ( i < tokens.size() - 1)
-	    {
-		  float currver = atof(_WASPVER_.c_str());
-		  float webver = atof(tokens[i+1].c_str());
-	      if (currver >= webver)//tokens[i+1] >= _WASPVER_)
-		opts::printLog(" OK, v"+_WASPVER_+" is current\n");
-	      else
-		{
-		  opts::printLog("\n\n          *** UPDATE REQUIRED ***\n\n");
-		  opts::printLog("\tThis version        : "+_WASPVER_+"\n");
-		  opts::printLog("\tMost recent version : "+tokens[i+1]+"\n\n");
-		  opts::printLog("Please upgrade your version of PLATO as soon as possible!\n");
-		  opts::printLog("  (visit the above website for free download)\n\n");
-		  version_okay=false;
-		}
-
-	      // Skip the version number
-	      i++;
-	    }
-	}
-
-    }
-
-  // did we get the information we needed?
-  if (!print) opts::printLog(" problem connecting to web\n");
-
-  opts::printLog("\n");
+	opts::printLog("\n");
 #endif
 }
 

@@ -11,39 +11,21 @@
 *File: ProcessBEAGLEOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <iomanip>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessBEAGLEOutput.h"
+#include <BEAGLEOutput.h>
 #include <General.h>
 #include <Helpers.h>
 
-using namespace Methods;
+using std::string;
+using std::vector;
 
-string ProcessBEAGLEOutput::stepname = ProcessBEAGLEOutput::doRegister("output-beagle");
+using Methods::DataSet;
+using Methods::BEAGLEOutput;
+using Methods::Helpers;
+using Methods::Sample;
 
-//define the PlatoLib namespace for use with Plato as a library
 
-/*
- *Function: FilterSummary
- *Description:
- *Not used.
- */
-void ProcessBEAGLEOutput::FilterSummary(){
-}
+const string ProcessBEAGLEOutput::stepname = ProcessBEAGLEOutput::doRegister("output-beagle");
 
 /*
  * Function: PrintSummary
@@ -57,14 +39,6 @@ void ProcessBEAGLEOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 
-}
-
-/*
- * Function: filter
- * Description:
- * not used
- */
-void ProcessBEAGLEOutput::filter(){
 }
 
 /*

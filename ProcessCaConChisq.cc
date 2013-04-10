@@ -14,25 +14,41 @@
 *File: ProcessCaConChisq.cc
 **********************************************************************************/
 
+#include "ProcessCaConChisq.h"
 
 #include <iostream>
-#include <fstream>
-//#include "Chrom.h"
-//#include <ChiSquareAllelic.h>
-//#include <ChiSquareArmitage.h>
-//#include <FisherExact.h>
-//#include "helper.h"
-#include <cdflib.h>
-#include <General.h>
+
 #include <Options.h>
+#include <CaConChisq.h>
 #include <Helpers.h>
 #include <MethodException.h>
-#include "ProcessCaConChisq.h"
-using namespace Methods;
+#include <MultComparison.h>
+
+/*
+#include <StepOptions.h>
+#include <DataSet.h>
+
+
+#include <fstream>
+#include <cdflib.h>
+#include <General.h>
+*/
+
+
+
+using Methods::opts;
+using Methods::DataSet;
+using Methods::CaConChisq;
+using Methods::MethodException;
+using Methods::MultComparison;
+using Methods::Helpers;
+using Methods::Sample;
+
+using std::ofstream;
+using std::string;
+using std::vector;
 
 string ProcessCaConChisq::stepname = ProcessCaConChisq::doRegister("chisquare");
-
-ProcessCaConChisq::~ProcessCaConChisq(){};
 
 /*
  * Function: PrintSummary
@@ -240,63 +256,6 @@ void ProcessCaConChisq::PrintSummary(){
 }
 
 /*
- * Function: FilterSummary
- * Description:
- * Outputs remaining marker count
- */
-void ProcessCaConChisq::FilterSummary(){
-    //string pfname = opts::_OUTPREFIX_ + "post_casecontrol_chisquare_filter_summary_" + getStringInt(order) + ".txt";
-	//ofstream myoutput (pfname.c_str());
-	//if(!myoutput){
-	//	cerr << "Error opening post_casecontrol_chisquare_filter_summary.txt!  Exiting!" << endl;
-	//	exit(1);
-	//}
-    //myoutput.precision(4);
-
-
-	opts::printLog("Options:\t" + options.toString() + "\n");
-    //myoutput << "Threshold:\t" << threshold << endl;
-	opts::printLog("Markers Passed:\t" + getString<int>((opts::_MARKERS_WORKING_ - orig_num_markers)) + " (" +
-	        getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-	        "%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-    //myoutput << "Markers Passed:\t" << (opts::_MARKERS_WORKING_ - orig_num_markers) << " (" <<
-	//        ((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0 <<
-	//        "%) of " << opts::_MARKERS_WORKING_ << endl;
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-//    myoutput << "Families Passed:\t" << families->getSize() << " (" <<
-//	        ((float)families->getSize() / (float)orig_num_families) * 100.0 <<
-//	        "%) of " << orig_num_families << endl;
-//    myoutput << "Individuals Passed:\t" << families->getNumInds() << " (" <<
-//	        ((float) families->getNumInds() / (float) orig_num_individuals) * 100.0 <<
-//	        "%) of " << orig_num_individuals << endl;
-    //myoutput.close();
-
-	resize(0);
-}
-
-/*
- * Function: resize
- * Description:
- * Resizes result vectors to specified count
- */
-void ProcessCaConChisq::resize(int i){
-	chi_geno.resize(i);
-	chi_allele.resize(i);
-	pval_geno.resize(i);
-	pval_allele.resize(i);
-	ci_l.resize(i);
-	ci_u.resize(i);
-	chi_arm.resize(i);
-	pval_arm.resize(i);
-	pval_allele_exact.resize(i);
-	pval_geno_exact.resize(i);
-	odds_ratio.resize(i);
-	geno_df.resize(i);
-	allele_df.resize(i);
-	arm_df.resize(i);
-}
-
-/*
  * Function: filter
  * Description:
  * Filters markers based on the armitage pvalue
@@ -335,7 +294,7 @@ void ProcessCaConChisq::process(DataSet* ds){
 	data_set = ds;
 	good_markers = Helpers::findValidMarkers(data_set->get_markers(), &options);
 
-	resize(good_markers.size());//ds->num_loci());
+	//resize(good_markers.size());//ds->num_loci());
 	CaConChisq chisq(data_set);
 	chisq.setOptions(options);
 
