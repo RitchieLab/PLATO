@@ -16,30 +16,16 @@
 *File: PartialOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessClusterMissing.h"
-#include "Chrom.h"
-#include <General.h>
-using namespace Methods;
+#include <ClusterMissing.h>
+#include <Options.h>
 
-string ProcessClusterMissing::stepname = ProcessClusterMissing::doRegister("cluster-missing");
+using std::string;
+using Methods::ClusterMissing;
+using Methods::DataSet;
+using Methods::opts;
 
-void ProcessClusterMissing::FilterSummary(){
-}
+const string ProcessClusterMissing::stepname = ProcessClusterMissing::doRegister("cluster-missing");
 
 void ProcessClusterMissing::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -49,8 +35,6 @@ void ProcessClusterMissing::PrintSummary(){
 	}
 
 }
-
-void ProcessClusterMissing::filter(){}
 
 void ProcessClusterMissing::process(DataSet* ds){
 	data_set = ds;

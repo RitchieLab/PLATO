@@ -37,7 +37,7 @@ public:
 
 protected:
 	virtual void process(Methods::DataSet*) = 0;
-	virtual void PrintSummary() = 0;
+	virtual void PrintSummary(){};
 	virtual void filter(){};
 
 	void FilterSummary();

@@ -12,55 +12,16 @@
 *File: Deletions.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include "Globals.h"
-#include <string>
-#include <list>
-#include <map>
-#include <algorithm>
-#include <bitset>
 #include "ProcessDeletions.h"
-#include "Chrom.h"
-#include <General.h>
-#include <Helpers.h>
+#include <iostream>
+#include <Deletions.h>
 
-using namespace std;
-using namespace Methods;
+using std::cout;
+using std::string;
+using Methods::DataSet;
+using Methods::Deletions;
 
-string ProcessDeletions::stepname=ProcessDeletions::doRegister("deletions");
-
-void ProcessDeletions::setThreshold(string thresh){
-	options.setUp(thresh);
-}
-
-/*
- * Function: FilterSummary
- * Description:
- * Outputs remaining markers and families
- */
-void ProcessDeletions::FilterSummary(){
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-        getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-        "%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::printLog("Families Passed:\t" + getString<int>(opts::_FAMILIES_WORKING_ - orig_num_families) + " (" +
-        getString<float>(((float)(opts::_FAMILIES_WORKING_ - orig_num_families) / (float)opts::_FAMILIES_WORKING_) * 100.0) +
-        "%) of " + getString<int>(opts::_FAMILIES_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-	opts::_FAMILIES_WORKING_ -= orig_num_families;
-
-}
-
+const string ProcessDeletions::stepname=ProcessDeletions::doRegister("deletions");
 
 /*
  * Function: PrintSummary
@@ -89,18 +50,8 @@ void ProcessDeletions::process(DataSet* ds){
 	dels.setOverwrite(this->overwrite);
 
 	dels.calculate();
-
-
 }
 
-
-void ProcessDeletions::filter_markers(){
-	return;
-}
-
-void ProcessDeletions::filter(){
-	return;
-}
 
 
 

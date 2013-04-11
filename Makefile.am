@@ -113,7 +113,6 @@ ProcessTPEDOutput.cc \
 ProcessTPEDOutput.h \
 sockets.cpp \
 sockets.h \
-Vars.h \
 wasp.cc \
 wasp.h \
 ProcessInteraction.h \

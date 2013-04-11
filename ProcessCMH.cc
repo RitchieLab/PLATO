@@ -16,40 +16,27 @@
 *File: LD.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
 #include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <MultComparison.h>
+
 #include "ProcessCMH.h"
+#include <MultComparison.h>
 #include <Options.h>
-#include <General.h>
 #include <Helpers.h>
-using namespace Methods;
+#include <CMH.h>
+#include <vector>
 
+using Methods::CMH;
+using Methods::DataSet;
+using Methods::opts;
+using Methods::Marker;
+using Methods::MultComparison;
 
-string ProcessCMH::stepname = ProcessCMH::doRegister("cmh");
+using std::string;
+using std::getString;
+using std::ofstream;
+using std::vector;
 
-void ProcessCMH::FilterSummary(){
-
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessCMH::stepname = ProcessCMH::doRegister("cmh");
 
 void ProcessCMH::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -62,8 +49,6 @@ void ProcessCMH::PrintSummary(){
 		data_set->get_sample(m)->setFlag(false);
 	}
 }
-
-void ProcessCMH::filter(){}
 
 void ProcessCMH::doFilter(Methods::Marker* mark, double value){
 	if(options.doThreshMarkersLow() || options.doThreshMarkersHigh()){
@@ -103,7 +88,6 @@ void ProcessCMH::process(DataSet* ds){
 
 
 	cmh.setOptions(options);
-	cmh.setRank(rank);
 	cmh.resetDataSet(data_set);
 
 	string f = opts::_OUTPREFIX_ + "cmh" + options.getOut() + ".txt";
