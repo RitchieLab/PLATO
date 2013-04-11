@@ -17,30 +17,35 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessIBS.h"
-#include <General.h>
+#include <iostream>
+#include <vector>
+#include <IBS.h>
+#include <map>
 #include <Helpers.h>
-using namespace Methods;
-string ProcessIBS::stepname = ProcessIBS::doRegister("ibs");
+#include <Family.h>
+#include <Options.h>
+#include <MethodException.h>
+#include <General.h>
 
-//no filter summary since no filtering done
+using std::string;
+using std::vector;
+using std::map;
+using std::ofstream;
 
-void ProcessIBS::FilterSummary(){
-}
+using Methods::Marker;
+using Methods::Sample;
+using Methods::Helpers;
+using Methods::IBS;
+using Methods::DataSet;
+using Methods::opts;
+using Methods::Family;
+using Methods::MethodException;
+using Methods::General;
+using Methods::FindFamily;
+using Methods::FindSampleByFamAndID;
+
+const string ProcessIBS::stepname = ProcessIBS::doRegister("ibs");
 
 //print summary not used except to reset flags
 void ProcessIBS::PrintSummary(){
@@ -52,10 +57,17 @@ void ProcessIBS::PrintSummary(){
 
 }
 
-//no filtering
-void ProcessIBS::filter(){
+void ProcessIBS::setThreshold(std::string s) {
+	options.setUp(s);
+	if (options.getDoIBSPairs()) {
+		options.readIBSPairsFile(options.getIBSPairsFile());
+	}
+	if (options.getDoIBSTrioPairs()) {
+		options.readIBSTrioPairsFile(options.getIBSTrioPairsFile());
+	}
+	//	threshold = 0;
 }
-void ProcessIBS::resize(int i){}
+
 
 //main process
 void ProcessIBS::process(DataSet* ds){

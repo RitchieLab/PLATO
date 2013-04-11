@@ -17,29 +17,20 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessImputeOutput.h"
+#include <ImputeOutput.h>
 #include <General.h>
 #include <Helpers.h>
-using namespace Methods;
+#include <vector>
 
-string ProcessImputeOutput::stepname = ProcessImputeOutput::doRegister("output-impute");
+using std::vector;
+using std::string;
+using Methods::Helpers;
+using Methods::ImputeOutput;
+using Methods::Sample;
+using Methods::DataSet;
 
-void ProcessImputeOutput::FilterSummary(){
-}
+const string ProcessImputeOutput::stepname = ProcessImputeOutput::doRegister("output-impute");
 
 void ProcessImputeOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -48,9 +39,6 @@ void ProcessImputeOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 
-}
-
-void ProcessImputeOutput::filter(){
 }
 
 

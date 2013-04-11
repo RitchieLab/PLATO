@@ -25,7 +25,7 @@ public:
 	bool hasIncExc(){return options.doIncExcludedSamples();}
 	void setOrder(int o){order = o;}
 	void setOverwrite(bool b){overwrite = b;}
-	void setThreshold(std::string s){threshold = std::atof(s.c_str());}
+	virtual void setThreshold(std::string s){options.setUp(s);}
 
 	const std::string& getName(){return name;}
 	void setMarkerList(){_MARKERLIST_ = true;};
