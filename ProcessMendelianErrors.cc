@@ -33,7 +33,6 @@
 #include <algorithm>
 #include <bitset>
 #include "ProcessMendelianErrors.h"
-#include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
 

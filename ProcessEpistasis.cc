@@ -15,32 +15,14 @@
 *
 *File: PartialOutput.cc
 **********************************************************************************/
-
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessEpistasis.h"
-#include "Chrom.h"
-#include <General.h>
-using namespace Methods;
+#include <Epistasis.h>
 
+using Methods::DataSet;
+using Methods::Epistasis;
+using std::string;
 
-string ProcessEpistasis::stepname = ProcessEpistasis::doRegister("epistasis");
-
-void ProcessEpistasis::FilterSummary(){
-}
+const string ProcessEpistasis::stepname = ProcessEpistasis::doRegister("epistasis");
 
 void ProcessEpistasis::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -48,10 +30,7 @@ void ProcessEpistasis::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-
 }
-
-void ProcessEpistasis::filter(){}
 
 void ProcessEpistasis::process(DataSet* ds){
 	data_set = ds;

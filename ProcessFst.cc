@@ -15,43 +15,29 @@
  *
  *File: LD.cc
  **********************************************************************************/
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <MultComparison.h>
 #include "ProcessFst.h"
+
+#include <iostream>
+
+#include <Fst.h>
 #include <Options.h>
-#include <General.h>
+#include <MethodException.h>
+//#include <General.h>
 #include <Helpers.h>
 
-using namespace Methods;
+//#include <MultComparison.h>
+using std::string;
+using std::vector;
+using std::ofstream;
+using Methods::Fst;
+using Methods::DataSet;
+using Methods::opts;
+using Methods::MethodException;
+using Methods::Helpers;
+using Methods::Marker;
 
-string ProcessFst::stepname = ProcessFst::doRegister("fst");
 
-
-void ProcessFst::FilterSummary() {
-
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int> (
-			opts::_MARKERS_WORKING_ - orig_num_markers) + " (" + getString<
-			float> (((float) (opts::_MARKERS_WORKING_ - orig_num_markers)
-			/ (float) opts::_MARKERS_WORKING_) * 100.0) + "%) of " + getString<
-			int> (opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessFst::stepname = ProcessFst::doRegister("fst");
 
 void ProcessFst::PrintSummary() {
 	int msize = data_set->num_loci();
@@ -60,13 +46,9 @@ void ProcessFst::PrintSummary() {
 	}
 }
 
-void ProcessFst::filter() {}
-
-void ProcessFst::resize(int i){}
-
 void ProcessFst::doFilter(Methods::Marker* mark, double value) {
 	if (options.doThreshMarkersLow() || options.doThreshMarkersHigh()) {
-		if (mark->isEnabled()){// && !mark->isFlagged()) {
+		if (mark->isEnabled()) {// && !mark->isFlagged()) {
 			bool inc = false;
 			if (options.doThreshMarkersLow() && Helpers::dLess(value,
 					options.getThreshMarkersLow())) {
@@ -90,16 +72,16 @@ void ProcessFst::process(DataSet* ds) {
 
 	//check if new covariate file is listed...or covariate name.
 	//create vector of covariate indexes to use if specified.
-		string fname = opts::_OUTPREFIX_ + "fst" + options.getOut() + ".txt";
-		if (!overwrite) {
-			fname += "." + getString<int> (order);
-		}
-		ofstream eout(fname.c_str());
-		if (!eout) {
-			opts::printLog("Error opening " + fname + "!  Exiting!\n");
-			throw MethodException("");
-		}
-		eout.precision(4);
+	string fname = opts::_OUTPREFIX_ + "fst" + options.getOut() + ".txt";
+	if (!overwrite) {
+		fname += "." + getString<int> (order);
+	}
+	ofstream eout(fname.c_str());
+	if (!eout) {
+		opts::printLog("Error opening " + fname + "!  Exiting!\n");
+		throw MethodException("");
+	}
+	eout.precision(4);
 	//    DataSet* trimmed_data = new DataSet();
 	//    trimmed_data->set_markers(ds->get_markers());
 	//    trimmed_data->set_covariates(ds->get_covariates());
@@ -117,27 +99,29 @@ void ProcessFst::process(DataSet* ds) {
 	Fst fst;
 	fst.set_parameters(&options);
 	fst.resetDataSet(ds);
-//	int prev_base = 0;
-//	int prev_chrom = -1;
+	//	int prev_base = 0;
+	//	int prev_chrom = -1;
 
-	vector<int> good_markers = Helpers::findValidMarkersIndexes(ds->get_markers(), &options);
+	vector<int> good_markers = Helpers::findValidMarkersIndexes(
+			ds->get_markers(), &options);
 	int msize = good_markers.size();
 
-		eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
-			opts::addFile("Marker", stepname, fname);
+	eout << "Chrom\trsID\tProbeID\tbploc\tFSTWC\tFSTRH\n";//\tFSTHM\n";
+	opts::addFile("Marker", stepname, fname);
 
-			opts::addHeader(fname, "FSTWC");
-			opts::addHeader(fname, "FSTRH");
+	opts::addHeader(fname, "FSTWC");
+	opts::addHeader(fname, "FSTRH");
 	//		opts::addHeader(fname, "FSTHM");
 
-		for (int m = 0; m < (int) msize; m++){//ds->num_loci(); m++) {
-			Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
-			if (mark->isEnabled()){// && isValidMarker(mark, &options, prev_base,prev_chrom)) {
-				fst.calculate(good_markers[m]);
-				eout << mark->toString() << "\t" << fst.getFst() << "\t" << fst.getFstRH()// << "\t" << fst.getFstHM()
-						<< endl;
-			}
+	for (int m = 0; m < (int) msize; m++) {//ds->num_loci(); m++) {
+		Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
+		if (mark->isEnabled()) {// && isValidMarker(mark, &options, prev_base,prev_chrom)) {
+			fst.calculate(good_markers[m]);
+			eout << mark->toString() << "\t" << fst.getFst() << "\t"
+					<< fst.getFstRH()// << "\t" << fst.getFstHM()
+					<< endl;
 		}
+	}
 
 	if (options.doMultCompare()) {
 		/*		string fcomp = opts::_OUTPREFIX_ + "Fst_comparisons" + options.getOut() + ".txt";

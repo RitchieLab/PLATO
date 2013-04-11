@@ -27,7 +27,6 @@
 #include <fstream>
 #include <math.h>
 #include "ProcessMitoCheck.h"
-#include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
 

@@ -14,8 +14,6 @@
 
 
 #include "PercentByFamily.h"
-#include "Chrom.h"
-#include <General.h>
 #include <Helpers.h>
 
 using std::string;

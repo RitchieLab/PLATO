@@ -11,29 +11,18 @@
 *File: GRROutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessGRROutput.h"
-#include <General.h>
+#include <GRROutput.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessGRROutput::stepname = ProcessGRROutput::doRegister("output-grr");
+using Methods::GRROutput;
+using Methods::DataSet;
+using std::string;
+using std::vector;
+using Methods::Sample;
+using Methods::Helpers;
 
-void ProcessGRROutput::FilterSummary(){}
+const string ProcessGRROutput::stepname = ProcessGRROutput::doRegister("output-grr");
 
 void ProcessGRROutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -41,9 +30,6 @@ void ProcessGRROutput::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-}
-
-void ProcessGRROutput::filter(){
 }
 
 void ProcessGRROutput::process(DataSet* ds){

@@ -16,24 +16,27 @@
 **********************************************************************************/
 
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
 #include "ProcessGenderCheck.h"
-#include "Chrom.h"
-#include <General.h>
+
+#include <iostream>
+
+#include <Options.h>
+#include <GenderCheck.h>
 #include <Helpers.h>
+#include <MethodException.h>
 
-using namespace Methods;
+using std::string;
+using std::ofstream;
+using std::vector;
+using std::map;
+using std::getString;
+using Methods::opts;
+using Methods::GenderCheck;
+using Methods::Helpers;
+using Methods::MethodException;
+using Methods::DataSet;
 
-
-
-string ProcessGenderCheck::stepname = ProcessGenderCheck::doRegister("gender-error");
-
-void ProcessGenderCheck::setThreshold(string thresh){
-	options.setUp(thresh);
-}
+const string ProcessGenderCheck::stepname = ProcessGenderCheck::doRegister("gender-error");
 
 /*
  * Function: PrintSummary
@@ -187,25 +190,6 @@ void ProcessGenderCheck::PrintSummary(){
 }
 
 /*
- * Function: FilterSummary
- * Description:
- * Outputs remaining marker and sample counts
- */
-void ProcessGenderCheck::FilterSummary(){
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-        getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-        "%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::printLog("Individuals Passed:\t" + getString<int>(opts::_SAMPLES_WORKING_ - orig_num_samples) + " (" +
-	    getString<float>(((float) (opts::_SAMPLES_WORKING_ - orig_num_samples) / (float) opts::_SAMPLES_WORKING_) * 100.0) +
-	    "%) of " + getString<int>(opts::_SAMPLES_WORKING_) + "\n");
-
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-	opts::_SAMPLES_WORKING_ -= orig_num_samples;
-
-}
-
-/*
  * Function: filter
  * Description:
  * Performs filtering based on marker and sample error counts
@@ -252,9 +236,6 @@ void ProcessGenderCheck::filter(){
 			}
 		}
 	}
-}
-
-void ProcessGenderCheck::filter_markers(){
 }
 
 /*

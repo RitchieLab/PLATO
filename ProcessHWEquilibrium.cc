@@ -16,17 +16,27 @@
 **********************************************************************************/
 
 
-#include <iostream>
-#include <fstream>
-#include <algorithm>
 #include "ProcessHWEquilibrium.h"
-#include "Chrom.h"
-#include <cdflib.h>
-#include <General.h>
-#include <Helpers.h>
 
-using namespace Methods;
-string ProcessHWEquilibrium::stepname = ProcessHWEquilibrium::doRegister("hw");
+#include <AlleleFrequency.h>
+#include <Options.h>
+#include <iostream>
+#include <Helpers.h>
+#include <MethodException.h>
+
+using std::string;
+using std::vector;
+using std::ofstream;
+using std::getString;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::HWEquilibrium;
+using Methods::Marker;
+using Methods::opts;
+using Methods::AlleleFrequency;
+using Methods::MethodException;
+
+const string ProcessHWEquilibrium::stepname = ProcessHWEquilibrium::doRegister("hw");
 
 /*
  * Function: PrintSummary
@@ -62,11 +72,6 @@ void ProcessHWEquilibrium::FilterSummary(){
 
 }
 
-void ProcessHWEquilibrium::filter()
-{
-	return;
-}//end method filter
-
 /*
  * Function: doFilter
  * Description:
@@ -99,7 +104,7 @@ void ProcessHWEquilibrium::doFilter(Marker* mark, HWEquilibrium* hwe){
 void ProcessHWEquilibrium::process(DataSet* ds){
 	data_set = ds;
 
-	useoverall = false;
+	bool useoverall = false;
 	if(options.doRandomChild() || options.doAll() || options.doAllChildren()){
 		useoverall = true;
 	}

@@ -40,7 +40,7 @@ protected:
 	virtual void PrintSummary(){};
 	virtual void filter(){};
 
-	void FilterSummary();
+	virtual void FilterSummary();
 
 protected:
 	Methods::StepOptions options;

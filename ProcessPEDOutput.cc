@@ -32,7 +32,6 @@
 #include <algorithm>
 #include <map>
 #include "ProcessPEDOutput.h"
-#include "Chrom.h"
 #include <General.h>
 #include <Helpers.h>
 using namespace Methods;

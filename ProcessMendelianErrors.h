@@ -15,7 +15,6 @@
 #include <Family.h>
 #include <Marker.h>
 #include <Sample.h>
-#include "Chrom.h"
 #include <Globals.h>
 #include <Options.h>
 #include <StepOptions.h>

@@ -30,7 +30,6 @@
 #include <cstdlib>
 #include <ctime>
 #include "ProcessAlleleFrequency.h"
-#include "Chrom.h"
 #include <General.h>
 #include "Helpers.h"
 

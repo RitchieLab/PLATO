@@ -16,31 +16,17 @@
 *File: PartialOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessFilterProcess.h"
-#include "Chrom.h"
-#include <General.h>
+#include <FilterProcess.h>
+#include <Options.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessFilterProcess::stepname = ProcessFilterProcess::doRegister("filter-process");
+using std::string;
+using Methods::DataSet;
+using Methods::FilterProcess;
+using Methods::opts;
 
-void ProcessFilterProcess::FilterSummary(){
-}
+const string ProcessFilterProcess::stepname = ProcessFilterProcess::doRegister("filter-process");
 
 void ProcessFilterProcess::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -50,10 +36,6 @@ void ProcessFilterProcess::PrintSummary(){
 	}
 
 }
-
-void ProcessFilterProcess::filter(){
-}
-
 
 void ProcessFilterProcess::process(DataSet* ds){
 	data_set = ds;

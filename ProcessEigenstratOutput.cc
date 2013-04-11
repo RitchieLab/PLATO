@@ -16,32 +16,18 @@
 *File: PartialOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessEigenstratOutput.h"
-#include "Chrom.h"
-#include <General.h>
+#include <EigenstratOutput.h>
+#include <DataSet.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessEigenstratOutput::stepname = ProcessEigenstratOutput::doRegister("output-eigenstrat");
+using Methods::DataSet;
+using Methods::Sample;
+using Methods::Helpers;
+using Methods::EigenstratOutput;
+using std::string;
 
-void ProcessEigenstratOutput::FilterSummary(){}
-
-void ProcessEigenstratOutput::filter(){}
+const string ProcessEigenstratOutput::stepname = ProcessEigenstratOutput::doRegister("output-eigenstrat");
 
 void ProcessEigenstratOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -82,5 +68,3 @@ void ProcessEigenstratOutput::process(DataSet* ds){
 		ped.calculate(data_set);
 	}
 }//end method process(DataSet*)
-
-

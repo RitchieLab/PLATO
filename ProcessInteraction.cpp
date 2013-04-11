@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <map>
 #include "ProcessInteraction.h"
-#include "Chrom.h"
 #include <General.h>
 using namespace Methods;
 

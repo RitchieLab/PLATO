@@ -13,41 +13,24 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessHomozygous.h"
 #include <Options.h>
-#include <General.h>
+#include <Homozygous.h>
+#include <MethodException.h>
 #include <Helpers.h>
-#include <cdflib.h>
 
-using namespace Methods;
+using std::string;
+using std::ofstream;
+using std::getString;
 
+using Methods::opts;
+using Methods::Marker;
+using Methods::Homozygous;
+using Methods::MethodException;
+using Methods::DataSet;
+using Methods::Helpers;
 
-
-string ProcessHomozygous::stepname = ProcessHomozygous::doRegister("homozygous");
-
-
-void ProcessHomozygous::FilterSummary(){
-
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-}
+const string ProcessHomozygous::stepname = ProcessHomozygous::doRegister("homozygous");
 
 void ProcessHomozygous::PrintSummary(){
 	if(options.doHomozygPermute()){
@@ -88,10 +71,6 @@ void ProcessHomozygous::PrintSummary(){
 	}
 
 }
-
-void ProcessHomozygous::resize(int i){}
-
-void ProcessHomozygous::filter(){}
 
 void ProcessHomozygous::process(DataSet* ds){
 	data_set = ds;

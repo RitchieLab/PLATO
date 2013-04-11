@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <MultComparison.h>
 #include "ProcessRunTDT.h"
-#include "Chrom.h"
 #include <General.h>
 //#include "ChiSquare.h"
 #include <Helpers.h>

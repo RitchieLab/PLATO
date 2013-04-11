@@ -19,14 +19,10 @@ AM_LDFLAGS=$(BOOST_LDFLAGS)
 bin_PROGRAMS=plato
 
 plato_SOURCES= cdflib.h \
-Chrom.cc \
-Chrom.h \
 dcdflib.cpp \
+ipmpar.c \
 Finalize.cc \
 Finalize.h \
-ipmpar.c \
-Percent.cc \
-Percent.h \
 PercentByFamily.cc \
 PercentByFamily.h \
 ProcessAlleleFrequency.cc \
@@ -111,8 +107,6 @@ ProcessSuperlinkOutput.cc \
 ProcessSuperlinkOutput.h \
 ProcessTPEDOutput.cc \
 ProcessTPEDOutput.h \
-sockets.cpp \
-sockets.h \
 wasp.cc \
 wasp.h \
 ProcessInteraction.h \
