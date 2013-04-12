@@ -1,26 +1,11 @@
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessInteraction.h"
-#include <General.h>
-using namespace Methods;
+#include <Interactions.h>
 
+using std::string;
+using Methods::DataSet;
+using Methods::Interactions;
 
-string ProcessInteraction::stepname = ProcessInteraction::doRegister("interaction");
-
-void ProcessInteraction::FilterSummary(){
-}
+const string ProcessInteraction::stepname = ProcessInteraction::doRegister("interaction");
 
 void ProcessInteraction::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -29,8 +14,6 @@ void ProcessInteraction::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessInteraction::filter(){}
 
 void ProcessInteraction::process(DataSet* ds){
 

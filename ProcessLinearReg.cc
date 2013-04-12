@@ -17,39 +17,34 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <LinearRegression.h>
-#include <MultComparison.h>
 #include "ProcessLinearReg.h"
+#include <LinearRegression.h>
+
+#include <iostream>
+#include <vector>
+#include <map>
+
 #include <Options.h>
-#include <General.h>
+#include <MultComparison.h>
 #include <Helpers.h>
-using namespace Methods;
+#include <MethodException.h>
+//#include <General.h>
 
-string ProcessLinearReg::stepname = ProcessLinearReg::doRegister("linear-reg");
+//using namespace Methods;
+using std::string;
+using std::ofstream;
+using std::vector;
+using std::map;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::LinearRegression;
+using Methods::MultComparison;
+using Methods::opts;
+using Methods::Helpers;
+using Methods::Sample;
+using Methods::MethodException;
 
-void ProcessLinearReg::FilterSummary(){
-
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessLinearReg::stepname = ProcessLinearReg::doRegister("linear-reg");
 
 void ProcessLinearReg::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -57,10 +52,6 @@ void ProcessLinearReg::PrintSummary(){
 		data_set->get_locus(m)->setFlag(false);
 	}
 
-}
-
-void ProcessLinearReg::filter()
-{
 }
 
 void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
@@ -215,7 +206,7 @@ void ProcessLinearReg::process(DataSet* ds){
 						//do not display this information if the current label belongs to a covariate...
 						//this is an inefficient way to do this, but quick to implement
 						vector<string>* covariatesList = ds->get_covariates();
-						std::vector<string>::iterator covIterator = std::find_if((*covariatesList).begin(), (*covariatesList).end(), FindString(labels[l]));
+						std::vector<string>::iterator covIterator = std::find_if((*covariatesList).begin(), (*covariatesList).end(), Methods::FindString(labels[l]));
 						if(covIterator == (*covariatesList).end())
 						{
 							lrsvout << "\t" << pvals[l] << "\t" << coefs[l] << "\t" << lr.getCalcMissing();

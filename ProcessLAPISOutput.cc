@@ -12,32 +12,18 @@
 *File: LAPISOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <iomanip>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <time.h>
 #include "ProcessLAPISOutput.h"
-#include <General.h>
+#include <vector>
+#include <LAPISOutput.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessLAPISOutput::stepname = ProcessLAPISOutput::doRegister("output-lapis");
+using Methods::Helpers;
+using Methods::LAPISOutput;
+using std::string;
+using Methods::Sample;
+using Methods::DataSet;
 
-void ProcessLAPISOutput::FilterSummary(){
-}
+const string ProcessLAPISOutput::stepname = ProcessLAPISOutput::doRegister("output-lapis");
 
 void ProcessLAPISOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,8 +33,6 @@ void ProcessLAPISOutput::PrintSummary(){
 	}
 
 }
-
-void ProcessLAPISOutput::filter(){}
 
 void ProcessLAPISOutput::process(DataSet* ds){
 	data_set = ds;

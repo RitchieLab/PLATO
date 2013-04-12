@@ -17,41 +17,33 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <MultComparison.h>
 #include "ProcessLogReg.h"
+#include <LogisticRegression.h>
+#include <iostream>
+#include <vector>
+#include <map>
+
 #include <Options.h>
-#include <General.h>
+#include <MultComparison.h>
 #include <Helpers.h>
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
-using namespace Methods;
+#include <MethodException.h>
+#include <InputFilter.h>
 
-string ProcessLogReg::stepname = ProcessLogReg::doRegister("logreg");
+using std::string;
+using std::ofstream;
+using std::vector;
+using std::map;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::LogisticRegression;
+using Methods::MultComparison;
+using Methods::opts;
+using Methods::Helpers;
+using Methods::Sample;
+using Methods::MethodException;
+using Methods::InputFilter;
 
-void ProcessLogReg::FilterSummary(){
-
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+string const ProcessLogReg::stepname = ProcessLogReg::doRegister("logreg");
 
 void ProcessLogReg::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -59,10 +51,6 @@ void ProcessLogReg::PrintSummary(){
 		data_set->get_locus(m)->setFlag(false);
 	}
 
-}
-
-void ProcessLogReg::filter()
-{
 }
 
 void ProcessLogReg::doFilter(Methods::Marker* mark, double value){

@@ -16,43 +16,29 @@
  *File: LD.cc
  **********************************************************************************/
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <MultComparison.h>
 #include "ProcessKinship.h"
+#include <iostream>
+#include <map>
+#include <vector>
+#include <Kinship.h>
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
-using namespace Methods;
+#include <MethodException.h>
 
-string ProcessKinship::stepname = ProcessKinship::doRegister("kinship");
+using std::string;
+using std::ofstream;
+using std::map;
+using std::vector;
+using std::getString;
+using Methods::General;
+using Methods::Kinship;
+using Methods::Sample;
+using Methods::opts;
+using Methods::DataSet;
+using Methods::MethodException;
 
-void ProcessKinship::FilterSummary() {
-
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int> (
-			opts::_MARKERS_WORKING_ - orig_num_markers) + " (" + getString<
-			float> (((float) (opts::_MARKERS_WORKING_ - orig_num_markers)
-			/ (float) opts::_MARKERS_WORKING_) * 100.0) + "%) of " + getString<
-			int> (opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessKinship::stepname = ProcessKinship::doRegister("kinship");
 
 void ProcessKinship::PrintSummary() {
 	int msize = data_set->num_loci();
@@ -60,30 +46,6 @@ void ProcessKinship::PrintSummary() {
 		data_set->get_locus(m)->setFlag(false);
 	}
 
-}
-
-void ProcessKinship::filter() {
-}
-
-void ProcessKinship::doFilter(Methods::Marker* mark, double value) {
-	if (options.doThreshMarkersLow() || options.doThreshMarkersHigh()) {
-		if (mark->isEnabled() && !mark->isFlagged()) {
-			bool inc = false;
-			if (options.doThreshMarkersLow() && Helpers::dLess(value,
-					options.getThreshMarkersLow())) {
-				mark->setEnabled(false);
-				inc = true;
-			}
-			if (options.doThreshMarkersHigh() && Helpers::dGreater(value,
-					options.getThreshMarkersHigh())) {
-				mark->setEnabled(false);
-				inc = true;
-			}
-			if (inc) {
-				orig_num_markers++;
-			}
-		}
-	}
 }
 
 void ProcessKinship::process(DataSet* ds) {

@@ -16,41 +16,32 @@
 *File: LD.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessMDR.h"
-#include <Options.h>
-#include <General.h>
+#include <MDR.h>
+
+#include <iostream>
+#include <vector>
+#include <map>
+
 #include <Helpers.h>
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
-using namespace Methods;
+#include <Options.h>
+#include <MethodException.h>
 
-string ProcessMDR::stepname = ProcessMDR::doRegister("mdr");
+using std::string;
+using std::ofstream;
+using std::vector;
+using std::map;
+using std::getString;
 
-void ProcessMDR::FilterSummary(){
+using Methods::DataSet;
+using Methods::MDR;
+using Methods::Sample;
+using Methods::opts;
+using Methods::MethodException;
+using Methods::Marker;
+using Methods::Helpers;
 
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessMDR::stepname = ProcessMDR::doRegister("mdr");
 
 void ProcessMDR::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -58,8 +49,6 @@ void ProcessMDR::PrintSummary(){
 		data_set->get_locus(m)->setFlag(false);
 	}
 }
-
-void ProcessMDR::filter(){}
 
 
 void ProcessMDR::process(DataSet* ds){

@@ -17,29 +17,23 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessMDROutput.h"
+#include <MDROutput.h>
+
+#include <vector>
+
 #include <General.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessMDROutput::stepname = ProcessMDROutput::doRegister("output-mdr");
+using std::vector;
+using std::string;
 
-void ProcessMDROutput::FilterSummary(){
-}
+using Methods::MDROutput;
+using Methods::Sample;
+using Methods::Helpers;
+using Methods::DataSet;
+
+const string ProcessMDROutput::stepname = ProcessMDROutput::doRegister("output-mdr");
 
 void ProcessMDROutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,9 +41,6 @@ void ProcessMDROutput::PrintSummary(){
 	for(int i = 0; i < msize; i++){
 		data_set->get_locus(i)->setFlag(false);
 	}
-}
-
-void ProcessMDROutput::filter(){
 }
 
 void ProcessMDROutput::process(DataSet* ds){

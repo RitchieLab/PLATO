@@ -14,38 +14,29 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessMarkerGenoEff.h"
+#include <MarkerGenoEff.h>
+
+#include <iostream>
+
 #include <Options.h>
 #include <General.h>
 #include <Helpers.h>
+#include <MethodException.h>
 
-using namespace Methods;
+using std::string;
+using std::vector;
+using std::map;
+using std::ofstream;
 
-string ProcessMarkerGenoEff::stepname = ProcessMarkerGenoEff::doRegister("marker-geno-eff");
+using Methods::opts;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::MarkerGenoEff;
+using Methods::Sample;
+using Methods::MethodException;
 
-
-void ProcessMarkerGenoEff::FilterSummary(){
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessMarkerGenoEff::stepname = ProcessMarkerGenoEff::doRegister("marker-geno-eff");
 
 //generate output files
 void ProcessMarkerGenoEff::PrintSummary(){

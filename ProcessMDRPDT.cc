@@ -17,40 +17,29 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessMDRPDT.h"
-#include <Options.h>
-#include <General.h>
+#include <MDRPDT.h>
+
+#include <iostream>
+#include <vector>
+#include <map>
+
 #include <Helpers.h>
-//#include "Markers.h"
-//#include "Chrom.h"
-//#include "Families.h"
-using namespace Methods;
+#include <Options.h>
+#include <MethodException.h>
 
-string ProcessMDRPDT::stepname = ProcessMDRPDT::doRegister("mdrpdt");
+using std::string;
+using std::ofstream;
+using std::vector;
 
-void ProcessMDRPDT::FilterSummary(){
+using Methods::DataSet;
+using Methods::MDRPDT;
+using Methods::opts;
+using Methods::MethodException;
+using Methods::Marker;
+using Methods::Helpers;
 
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-
-}
+const string ProcessMDRPDT::stepname = ProcessMDRPDT::doRegister("mdrpdt");
 
 void ProcessMDRPDT::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -58,9 +47,6 @@ void ProcessMDRPDT::PrintSummary(){
 		data_set->get_locus(m)->setFlag(false);
 	}
 
-}
-
-void ProcessMDRPDT::filter(){
 }
 
 void ProcessMDRPDT::doFilter(Methods::Marker* mark, double value){
