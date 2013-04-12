@@ -9,6 +9,8 @@ class ProcessGenderCheck : public ProcessImpl<ProcessGenderCheck>{
 private:
 	static const std::string stepname;
 
+	int orig_num_samples;
+
 	std::vector<int> merrors;
 	std::vector<int> shets;
 	std::vector<int> mtotal;
@@ -19,7 +21,7 @@ private:
 	std::vector<Methods::Marker*> good_markers;
 
 public:
-	ProcessGenderCheck(){name="Gender Correctness (using X-chromosome markers)";}
+	ProcessGenderCheck() : orig_num_samples(0) {name="Gender Correctness (using X-chromosome markers)";}
 	virtual ~ProcessGenderCheck(){};
 
 protected:

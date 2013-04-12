@@ -16,34 +16,30 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include "Globals.h"
-#include <string>
-#include <list>
-#include <map>
-#include <algorithm>
-#include <bitset>
 #include "ProcessMendelianErrors.h"
-#include <General.h>
+#include <MendelianErrors.h>
+
+#include <iostream>
+
+#include <Options.h>
 #include <Helpers.h>
+#include <MethodException.h>
 
-using namespace std;
-using namespace Methods;
+using std::string;
+using std::ofstream;
+using std::getString;
+using std::vector;
+using std::map;
 
-string ProcessMendelianErrors::stepname = ProcessMendelianErrors::doRegister("mendelian-error");
+using Methods::Marker;
+using Methods::Sample;
+using Methods::opts;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::MethodException;
+using Methods::MendelianErrors;
 
-void ProcessMendelianErrors::setThreshold(string thresh){
-	options.setUp(thresh);
-}
+const string ProcessMendelianErrors::stepname = ProcessMendelianErrors::doRegister("mendelian-error");
 
 void ProcessMendelianErrors::FilterSummary(){
 	opts::printLog("Options:\t" + options.toString() + "\n");

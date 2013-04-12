@@ -1,30 +1,29 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <math.h>
-#include <cmath>
-#include <unistd.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <fenv.h>
-#include <algorithm>
-#include <MultComparison.h>
 #include "ProcessRunTDT.h"
-#include <General.h>
-//#include "ChiSquare.h"
+#include <RunTDT.h>
+
+#include <iostream>
+#include <map>
+
+#include <MultComparison.h>
 #include <Helpers.h>
-#include <cdflib.h>
+#include <Options.h>
+#include <Sample.h>
+#include <MethodException.h>
 
-using namespace std;
-using namespace Methods;
+using std::string;
+using std::getString;
+using std::map;
+using std::vector;
 
-string ProcessRunTDT::stepname = ProcessRunTDT::doRegister("tdt");
+using Methods::opts;
+using Methods::MethodException;
+using Methods::Helpers;
+using Methods::MultComparison;
+using Methods::RunTDT;
+using Methods::Sample;
+using Methods::DataSet;
+
+const string ProcessRunTDT::stepname = ProcessRunTDT::doRegister("tdt");
 
 void ProcessRunTDT::PrintSummary(){
 	string fname1 = opts::_OUTPREFIX_ + "tdt" + options.getOut() + ".txt";//getString<int>(order) + ".txt";
@@ -275,18 +274,6 @@ void ProcessRunTDT::filter()
 		}
 	}
 }//end method filter()
-
-void ProcessRunTDT::setThreshold(string thresh){
-	options.setUp(thresh);
-}
-
-void ProcessRunTDT::FilterSummary(){
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-	    getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-        "%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-    opts::_MARKERS_WORKING_ -= orig_num_markers;
-}
 
 void ProcessRunTDT::process(DataSet* ds)
 {

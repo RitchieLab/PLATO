@@ -16,29 +16,27 @@
 *File: PartialOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessTPEDOutput.h"
-#include <General.h>
+#include <TPEDOutput.h>
+
+#include <vector>
+
+#include <Options.h>
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessTPEDOutput::stepname = ProcessTPEDOutput::doRegister("output-tped");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
+using Methods::opts;
 
-void ProcessTPEDOutput::FilterSummary(){}
+using Methods::TPEDOutput;
+
+const string ProcessTPEDOutput::stepname = ProcessTPEDOutput::doRegister("output-tped");
 
 void ProcessTPEDOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,8 +45,6 @@ void ProcessTPEDOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessTPEDOutput::filter(){}
 
 void ProcessTPEDOutput::process(DataSet* ds)
 {

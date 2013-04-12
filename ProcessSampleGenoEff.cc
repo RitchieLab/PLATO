@@ -1,29 +1,22 @@
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <vector>
-#include <list>
-#include <map>
 #include "ProcessSampleGenoEff.h"
-#include <Sample.h>
-#include <Family.h>
-//#include "Chrom.h"
+#include <SampleGenoEff.h>
+
+#include <iostream>
 #include <Options.h>
-#include <General.h>
 #include <Helpers.h>
+#include <MethodException.h>
 
-using namespace Methods;
+using std::string;
+using std::ofstream;
+using std::getString;
 
-string ProcessSampleGenoEff::stepname = ProcessSampleGenoEff::doRegister("sample-geno-eff");
+using Methods::opts;
+using Methods::SampleGenoEff;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::MethodException;
 
+const string ProcessSampleGenoEff::stepname = ProcessSampleGenoEff::doRegister("sample-geno-eff");
 
 void ProcessSampleGenoEff::process(DataSet* ds){
 	data_set = ds;

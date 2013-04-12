@@ -16,30 +16,25 @@
 *File: PHASEOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <iomanip>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessPHASEOutput.h"
-#include <General.h>
+#include <PHASEOutput.h>
+
+#include <vector>
+
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessPHASEOutput::stepname = ProcessPHASEOutput::doRegister("output-phase");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
 
-void ProcessPHASEOutput::FilterSummary(){}
+using Methods::PHASEOutput;
+
+const string ProcessPHASEOutput::stepname = ProcessPHASEOutput::doRegister("output-phase");
 
 void ProcessPHASEOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -48,8 +43,6 @@ void ProcessPHASEOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessPHASEOutput::filter(){}
 
 void ProcessPHASEOutput::process(DataSet* ds)
 {

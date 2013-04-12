@@ -1,18 +1,14 @@
 #ifndef PROCESSALLELEFREQUENCY_H
 #define PROCESSALLELEFREQUENCY_H
 
+#include "Process.h"
+
 #include <string>
 #include <vector>
 #include <map>
 
-#include <Sample.h>
-#include <Marker.h>
-#include <Family.h>
 #include <AlleleFrequency.h>
-#include <DataSet.h>
-#include <StepOptions.h>
 
-#include "Process.h"
 
 class ProcessAlleleFrequency : public ProcessImpl<ProcessAlleleFrequency>{
 private:
@@ -70,36 +66,16 @@ private:
 	std::map<std::string, int> m_geno_counts_con, m_geno_counts_conm, m_geno_counts_conf;
 
 public:
-		ProcessAlleleFrequency(){name="Allele Frequencies";}
+	ProcessAlleleFrequency(){name="Allele Frequencies";}
+	virtual ~ProcessAlleleFrequency(){};
 
-		virtual ~ProcessAlleleFrequency(){};
+protected:
+	virtual void process(Methods::DataSet*);
+	virtual void PrintSummary();
 
-		void process(Methods::DataSet*);
-		void processtest();
-		void PrintSummary();
-		void filter();
-		void setThreshold(std::string s){
-			options.setUp(s);
-			//threshold = std::atof(s.c_str());
-		};
-		void setOptions(Methods::StepOptions o){
-			options = o;
-		};
-		void setOrder(int o){order = o;};
-		void FilterSummary();
-		int getOrigNumMarkers(){return orig_num_markers;};
-		int getOrigNumFamilies(){return orig_num_families;};
-
-//		void updateFamsMarks(Families* f, Markers* m){
-//		    families = f;
-//		    markers = m;
-        void setMarkerList(){_MARKERLIST_ = true;};
-		void setStratify(){_STRATIFY_ = true;};
-
-		void initializeCounts(int);
-		void doFilter(Methods::Marker*, Methods::AlleleFrequency*);
-		void setOverwrite(bool v){overwrite = v;};
-		bool hasIncExc(){return options.doIncExcludedSamples();};
+private:
+	void processtest();
+	void doFilter(Methods::Marker*, Methods::AlleleFrequency*);
 
 };
 

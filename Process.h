@@ -1,14 +1,8 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <vector>
 #include <string>
-#include <map>
 
-#include <Sample.h>
-#include <Family.h>
-#include <Marker.h>
-#include <DataSet.h>
 #include <StepOptions.h>
 #include <Options.h>
 
@@ -17,7 +11,7 @@
 class Process{
 
 public:
-	Process(){options.setCovarMissing(Methods::opts::_COVAR_MISSING_); options.setTraitMissing(Methods::opts::_TRAIT_MISSING_);}
+	Process();
 	virtual ~Process(){}
 
 	void run(Methods::DataSet*);
@@ -44,31 +38,16 @@ protected:
 
 protected:
 	Methods::StepOptions options;
+	Methods::DataSet* data_set;
 
 	std::string name;
-	int position;
-	float threshold;
-	int orig_num_markers;
-	int orig_num_families;
-	int orig_num_samples;
 	bool overwrite;
 	int order;
 
+	int orig_num_markers;
+
 	bool _MARKERLIST_;
 	bool _STRATIFY_;
-
-	Methods::DataSet* data_set;
-	std::vector<Methods::Sample*>* samples;
-	std::vector<Methods::Marker*>* markers;
-	std::vector<Methods::Family*>* families;
-	std::vector<int>* marker_map;
-
-	std::vector<int> fzeros;
-	std::vector<int> ftotal;
-	std::vector<int> mzeros;
-	std::vector<int> mtotal;
-	std::vector< std::map<std::string, int> > enzyme_zeros;
-	std::vector< std::map<std::string, int> > enzyme_total;
 };
 
 template <class T>

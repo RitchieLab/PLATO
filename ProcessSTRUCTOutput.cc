@@ -14,29 +14,36 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <iomanip>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessSTRUCTOutput.h"
-#include <General.h>
+#include <STRUCTOutput.h>
+
+#include <vector>
+
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
+#include <Options.h>
 
-string ProcessSTRUCTOutput::stepname = ProcessSTRUCTOutput::doRegister("output-structure");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
+using Methods::opts;
 
-void ProcessSTRUCTOutput::FilterSummary(){}
+using Methods::STRUCTOutput;
+
+const string ProcessSTRUCTOutput::stepname = ProcessSTRUCTOutput::doRegister("output-structure");
+
+void ProcessSTRUCTOutput::setThreshold(string s){
+	options.setUp(s);
+	if(options.getStratFile().length() == 0 && !(options.haveStratification())){
+		opts::printLog("STRUCTURE Output step requires the step option of '-strat-file <filenam>' to specify a stratification file.\n");
+		exit(1);
+	}
+	//threshold = 0;
+}
 
 void ProcessSTRUCTOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -45,8 +52,6 @@ void ProcessSTRUCTOutput::PrintSummary(){
 		data_set->get_locus(m)->setFlag(false);
 	}
 }
-
-void ProcessSTRUCTOutput::filter(){}
 
 void ProcessSTRUCTOutput::process(DataSet* ds)
 {

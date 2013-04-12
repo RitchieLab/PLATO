@@ -22,32 +22,27 @@
 **********************************************************************************/
 
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
 #include "ProcessMitoCheck.h"
-#include <General.h>
+#include <MitoCheck.h>
+
+#include <iostream>
 #include <Helpers.h>
+#include <Options.h>
+#include <MethodException.h>
 
-using namespace Methods;
+using std::string;
+using std::vector;
+using std::ofstream;
 
-string ProcessMitoCheck::stepname = ProcessMitoCheck::doRegister("mito-check");
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::MitoCheck;
+using Methods::opts;
+using Methods::Sample;
+using Methods::Helpers;
+using Methods::MethodException;
 
-void ProcessMitoCheck::Tokenize(const string& str, vector<string>& tokens, const string& delimiter){
-    string::size_type lastPos = str.find_first_not_of(delimiter, 0);
-    string::size_type pos = str.find_first_of(delimiter, lastPos);
-
-    while(string::npos != pos || string::npos != lastPos){
-        tokens.push_back(str.substr(lastPos, pos - lastPos));
-        lastPos = str.find_first_not_of(delimiter, pos);
-        pos = str.find_first_of(delimiter, lastPos);
-    }
-}
-
-void ProcessMitoCheck::setThreshold(string thresh){
-	options.setUp(thresh);
-}
+const string ProcessMitoCheck::stepname = ProcessMitoCheck::doRegister("mito-check");
 
 void ProcessMitoCheck::PrintSummary(){
 	int msize = good_markers.size();//data_set->num_loci();
@@ -192,7 +187,8 @@ void ProcessMitoCheck::PrintSummary(){
 					}
 				}
 				if(mom->getAone(loc)){
-					if(mom->getAtwo(loc) && !mom->getAmissing(loc)){
+#include <iostream>
+		if(mom->getAtwo(loc) && !mom->getAmissing(loc)){
 						ma1 = mark->getAllele2();
 						ma2 = mark->getAllele2();
 					}
@@ -304,26 +300,6 @@ void ProcessMitoCheck::filter()
 		}
 	}
 }//end method filter()
-
-void ProcessMitoCheck::filter_markers(){
-
-
-/*	MKR* mymarkers = markers->getList();
-	MKR::iterator m_iter;
-
-ofstream myoutput ("gender_errors_markers.txt", ios::out | ios::app);
-	for(m_iter = mymarkers->begin(); m_iter != mymarkers->end();){
-		myoutput << m_iter->second.getChrom() << "\t" <<  m_iter->second.getRSID() << "\t" << m_iter->second.getBPLOC() << "\t" << m_iter->second.getMitoErrors() << endl;
-		if(m_iter->second.getMitoErrors() > marker_thresh){
-			mymarkers->erase(m_iter++);
-		}
-		else{
-			++m_iter;
-		}
-	}
-	myoutput.close();
-*/
-}
 
 void ProcessMitoCheck::process(DataSet* ds){
 	data_set = ds;

@@ -13,31 +13,50 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <iomanip>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
-#include <time.h>
 #include "ProcessSuperlinkOutput.h"
-#include <General.h>
+#include <SuperlinkOutput.h>
+
+#include <vector>
+
+#include <Options.h>
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessSuperlinkOutput::stepname = ProcessSuperlinkOutput::doRegister("output-superlink");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
+using Methods::opts;
 
+using Methods::SuperlinkOutput;
 
-void ProcessSuperlinkOutput::FilterSummary(){}
+const string ProcessSuperlinkOutput::stepname = ProcessSuperlinkOutput::doRegister("output-superlink");
+
+void ProcessSuperlinkOutput::setThreshold(string s){
+	options.setUp(s);
+//			if(options.havePenetrance()){
+//				options.readPenetranceFile(options.getPenetranceFile());
+//			}
+//			else{
+//				opts::printLog(stepname + " requires a penetrance file to be included using the -penetrance-file option!\n");
+//				exit(1);
+//			}
+			cout << "ProcessSuperlinkOutput.h setThreshold \n";
+			if(options.getPenetranceFile().length() == 0 && !(options.havePenetrance()))
+			{
+				opts::printLog(stepname + " requires a penetrance file to be included using the -penetrance-file option!\n");
+				exit(1);
+			}
+			if (!(options.havePenetrance()))
+			{
+				options.readPenetranceFile(options.getPenetranceFile());
+			}
+			//threshold = 0;
+		};
+
 
 void ProcessSuperlinkOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -46,8 +65,6 @@ void ProcessSuperlinkOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessSuperlinkOutput::filter(){}
 
 void ProcessSuperlinkOutput::process(DataSet* ds)
 {

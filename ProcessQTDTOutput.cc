@@ -12,29 +12,25 @@
 *File: QTDTOutput.cc
 **********************************************************************************/
 
-
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessQTDTOutput.h"
-#include <General.h>
+#include <QTDTOutput.h>
+
+#include <vector>
+
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessQTDTOutput::stepname = ProcessQTDTOutput::doRegister("output-qtdt");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
 
-void ProcessQTDTOutput::FilterSummary(){}
+using Methods::QTDTOutput;
+
+const string ProcessQTDTOutput::stepname = ProcessQTDTOutput::doRegister("output-qtdt");
 
 void ProcessQTDTOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -43,8 +39,6 @@ void ProcessQTDTOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessQTDTOutput::filter(){}
 
 void ProcessQTDTOutput::process(DataSet* ds)
 {

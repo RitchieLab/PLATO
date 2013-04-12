@@ -1,99 +1,39 @@
 #ifndef PROCESSRUNTDT_H
 #define PROCESSRUNTDT_H
 
-#include <stdio.h>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <vector>
-#include <list>
-#include <map>
-#include <Marker.h>
-#include <Family.h>
-#include <Globals.h>
 #include "Process.h"
-#include <Sample.h>
-//#include "TDTProcess.h"
-#include <Options.h>
-#include <StepOptions.h>
-#include <RunTDT.h>
-#include <DataSet.h>
-#include <MethodException.h>
-
-using namespace std;
-using namespace Methods;
+#include <vector>
+#include <Marker.h>
 
 class ProcessRunTDT : public ProcessImpl<ProcessRunTDT>{
-	static string stepname;
-	private:
-		DataSet* data_set;
-		vector<Sample*>* samples;
-		vector<Family*>* families;
-		vector<Marker*>* markers;
-		vector<int>* marker_map;
-	//	StepOptions options;
-//		Markers* markers;
-//		Families* families;
-//		TDTProcess* TDT;
-		int rank;
-		float threshold;
-		bool _DBOUTPUT_;
-		bool _MARKERLIST_;
-		bool _STRATIFY_;
-		bool overwrite;
-		int orig_num_markers;
-		int orig_num_families;
-		int orig_num_individuals;
-		int order;
 
-		vector<double> chi;
-		vector<long double> pval;
-		vector<int> fams_used;
-		vector<float> maf;
-		vector<double> trans;
-		vector<double> untrans;
+private:
+	static const std::string stepname;
+	std::vector<double> chi;
+	std::vector<long double> pval;
+	std::vector<int> fams_used;
+	std::vector<float> maf;
+	std::vector<double> trans;
+	std::vector<double> untrans;
 
-		//by group variables
-		vector<vector<double> > gchi;
-		vector<vector<long double> > gpval;
-		vector<vector<int> > gfams_used;
-		vector<vector<float> > gmaf;
-		vector<vector<double> > gtrans;
-		vector<vector<double> > guntrans;
+	//by group variables
+	std::vector<std::vector<double> > gchi;
+	std::vector<std::vector<long double> > gpval;
+	std::vector<std::vector<int> > gfams_used;
+	std::vector<std::vector<float> > gmaf;
+	std::vector<std::vector<double> > gtrans;
+	std::vector<std::vector<double> > guntrans;
 
-		vector<Marker*> good_markers;
+	std::vector<Methods::Marker*> good_markers;
 
-	public:
-		ProcessRunTDT(){
-			data_set = NULL;
-			families = NULL;
-			markers = NULL;
-			samples = NULL;
-			marker_map = NULL;
-			//TDT = NULL;
-			rank = 0;
-			threshold = 0;
-			orig_num_markers = 0;
-			order = 0;
-		};
-		virtual ~ProcessRunTDT(){};
-		void PrintSummary();
-		void filter();
-		void process(DataSet*);
-		void setThreshold(string s);
-		void FilterSummary();
-		void setRank(int r){rank = r;};
-		int getRank(){return rank;};
-        void setOrder(int o){order = o;};
-		void setDBOUT(){_DBOUTPUT_ = true;};
+public:
+	ProcessRunTDT(){name="TDT";};
+	virtual ~ProcessRunTDT(){};
 
-		void setMarkerList(){_MARKERLIST_ = true;};
-		void setStratify(){_STRATIFY_ = true;};
-		void setOverwrite(bool v){overwrite = v;};
-		bool hasIncExc(){return options.doIncExcludedSamples();};
+
+protected:
+	virtual void PrintSummary();
+	virtual void filter();
+	virtual void process(Methods::DataSet*);
 };
 #endif

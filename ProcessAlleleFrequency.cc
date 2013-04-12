@@ -12,59 +12,30 @@
  *File: ProcessAlleleFrequency.cc
  **********************************************************************************/
 
-#include <unistd.h>
-#include <sstream>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <map>
-#include <algorithm>
-#include <cstdlib>
-#include <ctime>
 #include "ProcessAlleleFrequency.h"
-#include <General.h>
-#include "Helpers.h"
 
+#include <iostream>
 
-
-//TODO:  did not import the Vars.h or Vars.cpp, instead replaced
-//			Vars::LOCUS_TABLE with "LOCI" in 10 places
-
-
-
-//create a namespace to use when using Plato as a library
-using namespace Methods;
+#include <Options.h>
+#include <MethodException.h>
+#include <Helpers.h>
 
 using std::string;
 using std::map;
 using std::vector;
+using std::ofstream;
+using std::getString;
+
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
+using Methods::opts;
+using Methods::AlleleFrequency;
+using Methods::Helpers;
+using Methods::MethodException;
+
 
 const string ProcessAlleleFrequency::stepname = ProcessAlleleFrequency::doRegister("allele-freq");
-
-/*
- *Function: FilterSummary
- *Description:
- *Outputs total markers remaining after filtering
- *
- */
-void ProcessAlleleFrequency::FilterSummary() {
-
-	opts::printLog("Options:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int> (
-			opts::_MARKERS_WORKING_ - orig_num_markers) + " (" + getString<
-			float> (((float) (opts::_MARKERS_WORKING_ - orig_num_markers)
-			/ (float) opts::_MARKERS_WORKING_) * 100.0) + "%) of " + getString<
-			int> (opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
-}
 
 /*
  *Function: PrintSummary
@@ -80,15 +51,6 @@ void ProcessAlleleFrequency::PrintSummary() {
 	for (int m = 0; m < msize; m++) {
 		data_set->get_locus(m)->setFlag(false);
 	}
-	return;
-}
-
-/*
- *Function: filter
- *Description:
- *Not used.
- */
-void ProcessAlleleFrequency::filter() {
 	return;
 }
 
@@ -261,83 +223,6 @@ void ProcessAlleleFrequency::doFilter(Marker* mark, AlleleFrequency* af) {
 	}
 }
 
-
-
-
-/*
- *Function: initializeCounts
- *Description:
- *Sets counts to the specified value (usually 0)
- *
- */
-void ProcessAlleleFrequency::initializeCounts(int v) {
-	a1_count = a2_count = a1_homo_count = a2_homo_count = a12_count = v;
-	a1_countM = a2_countM = a1_homo_countM = a2_homo_countM = a12_countM = v;
-	a1_countF = a2_countF = a1_homo_countF = a2_homo_countF = a12_countF = v;
-	a1_countP = a2_countP = a1_homo_countP = a2_homo_countP = a12_countP = v;
-	a1_countPM = a2_countPM = a1_homo_countPM = a2_homo_countPM = a12_countPM
-			= v;
-	a1_countPF = a2_countPF = a1_homo_countPF = a2_homo_countPF = a12_countPF
-			= v;
-	a1_countC = a2_countC = a1_homo_countC = a2_homo_countC = a12_countC = v;
-	a1_countCM = a2_countCM = a1_homo_countCM = a2_homo_countCM = a12_countCM
-			= v;
-	a1_countCF = a2_countCF = a1_homo_countCF = a2_homo_countCF = a12_countCF
-			= v;
-	a1_countCa = a2_countCa = a1_homo_countCa = a2_homo_countCa = a12_countCa
-			= v;
-	a1_countCaM = a2_countCaM = a1_homo_countCaM = a2_homo_countCaM
-			= a12_countCaM = v;
-	a1_countCaF = a2_countCaF = a1_homo_countCaF = a2_homo_countCaF
-			= a12_countCaF = v;
-	a1_countCon = a2_countCon = a1_homo_countCon = a2_homo_countCon
-			= a12_countCon = v;
-	a1_countConM = a2_countConM = a1_homo_countConM = a2_homo_countConM
-			= a12_countConM = v;
-	a1_countConF = a2_countConF = a1_homo_countConF = a2_homo_countConF
-			= a12_countConF = v;
-
-	ga1_count.clear();
-	ga2_count.clear();
-	ga1_homo_count.clear();
-	ga2_homo_count.clear();
-	ga12_count.clear();
-
-	gm_allele_counts_o.clear();
-	gm_geno_counts_o.clear();
-
-	m_allele_counts_o.clear();
-	m_allele_counts_om.clear();
-	m_allele_counts_of.clear();
-	m_geno_counts_o.clear();
-	m_geno_counts_om.clear();
-	m_geno_counts_of.clear();
-	m_allele_counts_p.clear();
-	m_allele_counts_pm.clear();
-	m_allele_counts_pf.clear();
-	m_geno_counts_p.clear();
-	m_geno_counts_pm.clear();
-	m_geno_counts_pf.clear();
-	m_allele_counts_c.clear();
-	m_allele_counts_cm.clear();
-	m_allele_counts_cf.clear();
-	m_geno_counts_c.clear();
-	m_geno_counts_cm.clear();
-	m_geno_counts_cf.clear();
-	m_allele_counts_ca.clear();
-	m_allele_counts_cam.clear();
-	m_allele_counts_caf.clear();
-	m_geno_counts_ca.clear();
-	m_geno_counts_cam.clear();
-	m_geno_counts_caf.clear();
-	m_allele_counts_con.clear();
-	m_allele_counts_conm.clear();
-	m_allele_counts_conf.clear();
-	m_geno_counts_con.clear();
-	m_geno_counts_conm.clear();
-	m_geno_counts_conf.clear();
-
-}
 
 /*
  *Function: processtest
@@ -1806,6 +1691,5 @@ void ProcessAlleleFrequency::process(DataSet* ds)
 
 	cout << "Calling processtest()\n";
 	processtest();
-	return;
 
 }

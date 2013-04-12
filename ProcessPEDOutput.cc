@@ -17,28 +17,25 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessPEDOutput.h"
-#include <General.h>
+#include <PEDOutput.h>
+
+#include <vector>
+
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessPEDOutput::stepname = ProcessPEDOutput::doRegister("output-ped");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
 
-void ProcessPEDOutput::FilterSummary(){}
+using Methods::PEDOutput;
+
+const string ProcessPEDOutput::stepname = ProcessPEDOutput::doRegister("output-ped");
 
 void ProcessPEDOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,8 +44,6 @@ void ProcessPEDOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessPEDOutput::filter(){}
 
 void ProcessPEDOutput::process(DataSet* ds)
 {

@@ -17,28 +17,25 @@
 **********************************************************************************/
 
 
-#include <stdio.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <math.h>
-#ifndef MAC
-#include <malloc.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <string>
-#include <list>
-#include <algorithm>
-#include <map>
 #include "ProcessPowerMarkerOutput.h"
-#include <General.h>
+#include <PowerMarkerOutput.h>
+
+#include <vector>
+
+#include <Marker.h>
+#include <Sample.h>
 #include <Helpers.h>
-using namespace Methods;
 
-string ProcessPowerMarkerOutput::stepname = ProcessPowerMarkerOutput::doRegister("output-powermarker");
+using std::string;
+using std::vector;
+using Methods::Helpers;
+using Methods::DataSet;
+using Methods::Marker;
+using Methods::Sample;
 
-void ProcessPowerMarkerOutput::FilterSummary(){}
+using Methods::PowerMarkerOutput;
+
+const string ProcessPowerMarkerOutput::stepname = ProcessPowerMarkerOutput::doRegister("output-powermarker");
 
 void ProcessPowerMarkerOutput::PrintSummary(){
 	int msize = data_set->num_loci();
@@ -47,8 +44,6 @@ void ProcessPowerMarkerOutput::PrintSummary(){
 		data_set->get_locus(i)->setFlag(false);
 	}
 }
-
-void ProcessPowerMarkerOutput::filter(){}
 
 void ProcessPowerMarkerOutput::process(DataSet* ds)
 {
