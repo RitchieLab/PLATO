@@ -25,8 +25,6 @@ void Interactions::calculate(DataSet* ds){
   lrt_threshold = options.getLRTPval();
   
   // create appropriate type of regression calculator
-  
-//  if (opts::_BINTRAIT_)
   if(PhenoBinary())
 	{
 	  regressor = new LogisticRegression;  
@@ -115,10 +113,23 @@ void Interactions::SetCovariates(){
   }
   else{
     // convert string numbers to numbers
-    for(unsigned int i =0; i<use_covs.size(); i++)
-      covars.push_back(atoi(use_covs[i].c_str())-1);
+    for(unsigned int i =0; i<use_covs.size(); i++){
+			if(use_covs.at(i).find('-') != string::npos){
+				vector<string> range;
+				General::Tokenize(use_covs.at(i), range, "-");
+				int start = atoi(range[0].c_str())-1;
+				int last = atoi(range[1].c_str())-1;
+				for(int j=start; j<=last; j++){
+					covars.push_back(j);
+				}
+			}
+			else{
+	      covars.push_back(atoi(use_covs[i].c_str())-1);
+	    }
+    }
   }
-  
+
+
 }
 
 
@@ -207,12 +218,11 @@ void Interactions::CalculateExhaustive(ostream& inter_out){
 /// 
 void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out){
 
-  // output results -- can add checks throughout for thresholds
-
-  // get snp1 results
+  // get snp1 and snp2 results
   UniRegression snp1_results, snp2_results;
   snp1_results = GetSingleRegression(snp1.loc_index);
   snp2_results = GetSingleRegression(snp2.loc_index);
+
   
   vector<unsigned int> snps;
   bool snp1_invalid = isnan(snp1_results.p_value);
@@ -382,10 +392,10 @@ bool Interactions::getMarker(string name, MarkerInfo & m, ostream& epi_log){
 	  return false;
 	}  
 	
-	if(opts::_CHRX_ == m.marker->getChrom()){
-	  epi_log << name << " is on Chr X and is skipped!" << endl;
-	  return false;
-	}
+// 	if(opts::_CHRX_ == m.marker->getChrom()){
+// 	  epi_log << name << " is on Chr X and is skipped!" << endl;
+// 	  return false;
+// 	}
 
   return true;
 }
@@ -409,10 +419,10 @@ bool Interactions::getMarker(int index, MarkerInfo & m, ostream& epi_log){
 	  return false;
 	}  
 	
-	if(opts::_CHRX_ == m.marker->getChrom()){
-	  epi_log <<  m.marker->getRSID() << " is on Chr X and is skipped!" << endl;
-	  return false;
-	}
+// 	if(opts::_CHRX_ == m.marker->getChrom()){
+// 	  epi_log <<  m.marker->getRSID() << " is on Chr X and is skipped!" << endl;
+// 	  return false;
+// 	}
 
   return true;
 }
@@ -422,11 +432,21 @@ bool Interactions::getMarker(int index, MarkerInfo & m, ostream& epi_log){
 ///
 void Interactions::openOutput(ofstream & out, bool isLinearReg){
 
-  // check for overwriting existing file
-  string fname = opts::_OUTPREFIX_ + "interaction" + options.getOut() + ".txt";
-  if(!overwrite)
+	string fname;
+	// check for overwriting existing file
+  if(opts::_OUTPREFIX_.length() > 0)
   {
-      fname += "." + getString<int>(order);
+  	fname = opts::_OUTPREFIX_ + "interaction.txt";
+	}
+  else
+  {
+  	fname = "interaction" + options.getOut() + ".txt";
+	}
+	
+  
+	if(!overwrite)
+  {
+    fname += "." + getString<int>(order);
   }  
   out.open(fname.c_str());
   if(!out)

@@ -2373,6 +2373,7 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 		//exit(1);
 		throw MethodException("Error opening covariate file: " + cov_file + "\n");
 	}
+
 	int count = 0;
 	int numcovs = 0;
 	vector<int> goodlocs;
@@ -2559,7 +2560,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
         }
     }
     in.close();
-
 }
 
 void StepOptions::readTraits(vector<Sample*>* samps){

@@ -6,6 +6,8 @@
 #include <gsl/gsl_cdf.h>
 #include <cmath>
 
+#include <sstream>
+
 namespace Methods{
 
 ///
@@ -107,13 +109,15 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   int curr_column;
   bool any_missing;
 
+
   for(currInd=0; currInd < numInds; currInd++)
   {
     curr_column=0;
     any_missing=false;
     // ignore individuals that are not enabled  
-    if(!(*set)[currInd]->isEnabled())
+    if(!(*set)[currInd]->isEnabled() || skipInd.find(currInd) != skipInd.end()){
 		  continue;
+		}
 		
 		// add phenotype from indicated trait
 		row.at(curr_column++) = Y[currInd];
@@ -122,7 +126,6 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
     {
       if((*set)[currInd]->get_genotype(converted_loci.at(i)) != missingValue)
         row.at(curr_column++) = geno_convert.at(ref_alleles.at(i)).at((*set)[currInd]->get_genotype(converted_loci.at(i)));
-// row.at(curr_column++)=(*set)[currInd]->get_genotype(converted_loci.at(i));
       else
       {
         any_missing = true;
@@ -144,10 +147,10 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
         break;
       } 
 	  }
-
     
-    if(!any_missing)
+    if(!any_missing){
       analysis_matrix.push_back(row);
+    }
   }
 
   // total number of cases will equal the number of analysis matrix rows
@@ -155,6 +158,7 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   
   /// now that the analysis matrix has been constructed can do calculation
   calculate_linreg(analysis_matrix);
+
 }
 
 
@@ -215,7 +219,6 @@ void LinRegression::calculate_linreg(vector<vector<double> >& analysis_matrix){
     coefficients.push_back(gsl_vector_get(c,i));
     stderr = sqrt(COV(i,i));
     tval = gsl_vector_get(c,i)/stderr;
-//     pval = tval<0?2*(1-gsl_cdf_tdist_P(-tval,n-4)):2*(1-gsl_cdf_tdist_P(tval,n-4));
     pval = tval<0?2*(1-gsl_cdf_tdist_P(-tval,df)):2*(1-gsl_cdf_tdist_P(tval,df));
     
     std_errors.push_back(stderr);
@@ -365,6 +368,7 @@ void LinRegression::resetDataSet(DataSet* ds){
 void LinRegression::setDependent() {
 
   Y.clear();
+  skipInd.clear();
   if(options->getUsePheno()){
     int index = options->getPhenoLoc();
     if (options->getPhenoName() != "") {
@@ -372,11 +376,15 @@ void LinRegression::setDependent() {
 		}   
 		for (int i = 0; i < set->num_inds(); i++){
 		  Y.push_back(set->get_sample(i)->getPheno(index));
+		  if(Y[i] == missingCoValue)
+		  	skipInd.insert(i);
 		}
   }
   else{
     for (int i = 0; i < set->num_inds(); i++){
       Y.push_back(set->get_sample(i)->getPheno());
+     	if(Y[i] == missingCoValue)
+		  	skipInd.insert(i);
     }
   }
   

@@ -7,6 +7,7 @@
 #include "Regression.h"
 // #include "StepOptions.h"
 #include "MethodException.h"
+#include <set>
 
 ///
 /// Linear regression in method library. Utilizes GSL
@@ -83,7 +84,7 @@ class LinRegression: public Regression{
     }
     
   private:
-    
+
     void prepare_input(vector<unsigned int>& loci, vector<unsigned int>& covars);
     void calculate_linreg(vector<vector<double> >& analysis_matrix);
     vector<unsigned int> convert_loc_order(vector<unsigned int>& loci);
@@ -103,6 +104,7 @@ class LinRegression: public Regression{
     map<string, ModelTypes> ModelTypeMap;
     vector<vector<unsigned int> >geno_convert;
     vector<Marker*> * markers;
+    std::set<int> skipInd;
     vector<double> Y;
 
 };
