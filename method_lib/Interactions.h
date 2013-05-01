@@ -71,6 +71,14 @@ namespace Methods{
   
     struct UniRegression{
       double p_value, beta, se, ngenotypes, maf;
+      bool valid;
+    };
+    
+    struct ComplexResults{
+    	double lrt_p_value;
+	  	double red_p_value, red_rsq, red_llr, full_p_value,
+  	  full_rsq, full_llr, likelihood_ratio;
+  		vector<double> red_coeff_p, red_beta, red_se, full_coeff_p, full_beta, full_se;
     };
     
     void setOverwrite(bool v){overwrite = v;}
@@ -80,26 +88,36 @@ namespace Methods{
   private:
   
     void CalculateBioFile(ostream& inter_out, string biofiltername);
+    void CalculateGXEFile(ostream& inter_out, string gxefilename);
     void CalculateExhaustive(ostream& out);
+    void CalculateGXE(ofstream& inter_out);
     void SetCovariates();
+    void setGXECovars();
     
     bool PhenoBinary();
     map<int, UniRegression> uni_results;
+    map<int, UniRegression> cov_results;
     
     void CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out);
+    void CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter_out);
+    void CalculateComplexResults(ComplexResults& results, vector<unsigned int>& modsnps,
+    	vector<unsigned int>& modcovars);
+    void OutputPair(ComplexResults& complex, UniRegression& var1, UniRegression& var2,
+			ostream& inter_out);
     double GetLLRPValue(double llr);
-    UniRegression GetSingleRegression(int snp_index);
+    UniRegression& GetSingleRegression(int snp_index);
+    UniRegression& GetSingleEnvRegression(int env_index);
     
     bool getMarker(string name, MarkerInfo & m, ostream& epi_log);
     bool getMarker(int index, MarkerInfo & m, ostream& epi_log);
     
     double calcMAF(int marker_index);
     
-    void openOutput(ofstream & out, bool isLinearReg);
+    void openOutput(ofstream & out, bool isLinearReg, bool isGXE);
     
     void openLog(ofstream& epi_log);
     
-    vector<unsigned int> covars;
+    vector<unsigned int> covars, gXecovars, modelCovars;
   
 		DataSet* data_set;
 		Regression * regressor;

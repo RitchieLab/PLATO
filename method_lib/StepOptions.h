@@ -132,9 +132,11 @@ class StepOptions {
 		bool do_covs;
 		bool do_covs_number;
 		bool do_covs_name;
+		bool do_gxe, do_gxe_number, do_gxe_name;
 		string cov_file;
 		vector<string> cov_map;
 		vector<string> cov_use;
+		vector<string> gxe_use;
 		map<string, vector<double> > covs;
 		bool do_traits;
 		bool do_traits_number;
@@ -322,11 +324,11 @@ class StepOptions {
     bool lrt_pval_filter;
 
     //athena/biofilter comparison input
-    string bio_comparison_file;
+    string bio_comparison_file, gxe_list_file;
     int bio_offset_begin;
     int bio_offset_end;
     bool bio_file_binary;
-    map<string, vector<string> > bio_pairs;
+    map<string, vector<string> > bio_pairs, gxe_pairs;
 
     //eigenstrat options
     bool qtl;
@@ -428,6 +430,8 @@ class StepOptions {
 			s_pheno_index,
 			s_pheno_missing,
 			s_loci,
+			s_gxe_number,
+			s_gxe_name,
 
 			//insert cluster missing here
 			s_max_cluster_size,
@@ -550,6 +554,8 @@ class StepOptions {
 		    s_bio_offset_end,
 		    s_bio_file_binary,
 
+				s_gxe_file,
+
 		    //autosome_only
 		    s_autosome_only,
 
@@ -595,6 +601,9 @@ class StepOptions {
 			mdr_map_file = "";
 			bin_prefix = "";
 			do_covs = false;
+			do_gxe = false;
+			do_gxe_name = false;
+			do_gxe_number =false;
 			do_traits = false;
 			do_covs_file = false;
 			do_traits_file = false;
@@ -704,6 +713,8 @@ class StepOptions {
 			bio_offset_end = -1;
 			bio_file_binary = false;
 
+			gxe_list_file = "";
+
 			//autosome_only
 			autosome_only = false;
 
@@ -796,6 +807,8 @@ class StepOptions {
 			s_ArgVals["-covar-file"] = s_covar_file;
 			s_ArgVals["-covars-name"] = s_covars_name;
 			s_ArgVals["-covars-number"] = s_covars_number;
+			s_ArgVals["-gxe-name"] = s_gxe_name;
+			s_ArgVals["-gxe-number"] = s_gxe_number;			
 			s_ArgVals["-trait-file"] = s_trait_file;
 			s_ArgVals["-traits-name"] = s_traits_name;
 			s_ArgVals["-traits-number"] = s_traits_number;
@@ -935,6 +948,8 @@ class StepOptions {
 			s_ArgVals["-bio-file-begin"] = s_bio_offset_begin;
 			s_ArgVals["-bio-file-end"] = s_bio_offset_end;
 			s_ArgVals["-bio-file-binary"] = s_bio_file_binary;
+
+			s_ArgVals["-gxe-list-file"] = s_gxe_file;
 
 			//autosome only
 			s_ArgVals["-auto-only"] = s_autosome_only;
@@ -1091,8 +1106,12 @@ class StepOptions {
 		///get/set biofilter input files
 		void readBioTextFile(string file);
 		map<string, vector<string> > getBioPairs(){return bio_pairs;}
+		void readGXETextFile(string file);
+		map<string, vector<string> > getGXEPairs(){return gxe_pairs;}
 		void setBioSnpFile(string s){bio_comparison_file = s;}
 		string getBioSnpFile(){return bio_comparison_file;}
+		void setGXEFile(string s){gxe_list_file=s;}
+		string getGXEFile(){return gxe_list_file;}
 		void setBioOffsetBegin(int s){bio_offset_begin = s;}
 		int getBioOffsetBegin(){return bio_offset_begin;}
 		void setBioOffsetEnd(int s){bio_offset_end = s;}
@@ -1562,6 +1581,12 @@ class StepOptions {
 		//use covars by number
 		bool doCovarsNumber(){return do_covs_number;};
 		void setDoCovarsNumber(bool b){do_covs_number = b;};
+		bool doGXE(){return do_gxe;};
+		void setDoGXE(bool b){do_gxe = b;};
+		bool doGXEName(){return do_gxe_name;};
+		void setDoGXEName(bool b){do_gxe_name = b;};
+		bool doGXENumber(){return do_gxe_number;};
+		void setDoGXENumber(bool b){do_gxe_number = b;};		
 		//set/get covar file
 		bool doCovarsFile(){return do_covs_file;};
 		void setDoCovarsFile(bool b){do_covs_file = b; setDoCovars(true);};
@@ -1579,6 +1604,9 @@ class StepOptions {
 		//get/set covariates to use
 		vector<string> getCovars(){return cov_use;};
 		void setCovars(vector<string> s){cov_use = s;};
+		//get/set GXE variables to use (from covariates file)
+		vector<string> getGXEcovars(){return gxe_use;}
+		void setGXEcovars(vector<string> s){gxe_use = s;}
 		//get/set covariate map
 		vector<string> getCovarMap(){return cov_map;};
 		void setCovarMap(vector<string> s){cov_map = s;};

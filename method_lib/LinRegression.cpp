@@ -32,7 +32,7 @@ LinRegression::LinRegression(DataSet* ds){
 /// Initialize starting variables
 ///
 void LinRegression::initialize(){
-  snp_interaction  = 0;
+  model_interaction  = 0;
   r2 = adjusted_r2 = likelihood = lrt_pval = 0.0;
   f_pval = 1.0;
 
@@ -99,7 +99,7 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   unsigned int num_covars = covars.size();
   unsigned int num_loci = loci.size();
   
-  int n_vars =  num_loci + num_covars + snp_interaction;
+  int n_vars =  num_loci + num_covars + model_interaction;
   
   vector<vector<double> > analysis_matrix;
   
@@ -132,12 +132,6 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
         break;
       }
     }
-    
-    // add interaction when needed 
-    if(snp_interaction){
-      row.at(curr_column) = row[curr_column-1] * row[curr_column-2];
-      curr_column++;
-    }
 		
 	  for(unsigned int i=0; i<num_covars; i++){
 	    if((*set)[currInd]->getCovariate(covars.at(i)) != missingCoValue)
@@ -147,6 +141,15 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
         break;
       } 
 	  }
+	  
+	  // add interaction when needed and swap the third input column with last one
+	  // first positioin in row is the output value
+    if(model_interaction){
+//       row.at(curr_column) = row[curr_column-1] * row[curr_column-2];
+      row.back() = row.at(3);
+      row.at(3) = row[1] * row[2];
+      curr_column++;
+    }
     
     if(!any_missing){
       analysis_matrix.push_back(row);
@@ -327,10 +330,7 @@ vector<unsigned int> LinRegression::convert_loc_order(vector<unsigned int>& loci
 void LinRegression::set_parameters(StepOptions* o){
   options = o;
   setModelType(options->getLRModelType());
-  
-  
   setDependent();
-  
 }
 
 

@@ -642,7 +642,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
   unsigned int currInd, currValue, i;
   for(currInd=0; currInd < numInds; currInd++)
   {
-	  if(!(*set)[currInd]->isEnabled())
+	  if(!(*set)[currInd]->isEnabled() || skipInd.find(i) != skipInd.end())
 		  continue;
     currValue = 0;
     bool any_missing = false;
@@ -658,12 +658,11 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
         break;
       }
     }
-    // assuming only 2 loci
-    if(includeInteractions){
-      row.at(currValue) = row.at(0) * row.at(1);
-      currValue++;
-    }
-    
+
+//     if(includeInteractions){
+//       row.at(currValue) = row.at(0) * row.at(1);
+//       currValue++;
+//     }    
     
     for(i=0; i < numCovars; i++)
     {
@@ -687,7 +686,13 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
     if(!any_missing)
     {
-      row.at(currValue) = ((*set)[currInd]->getAffected());
+    	// for interactions swap the first 2 values
+    	if(includeInteractions){
+	    	row.back() = row[2];
+  	  	row[2] = row[0] * row[1];
+  	  }
+//       row.at(currValue) = ((*set)[currInd]->getAffected());
+      row.at(currValue) = Y[currInd];
       summary_data.push_back(row);
       includedCells.push_back(summary_data.size()-1);
       ngenotypes++;
@@ -695,7 +700,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
   }
 
   calculateLR(summary_data, false, includedCells);
-
 }
 
 ///
@@ -735,6 +739,38 @@ void LogisticRegression::set_parameters(StepOptions* options){
     setIncludeInteractions(options->getLRIncludeInteractions());
     setMaximumIterations(options->getLRMaximumIterations());
     setModelType(options->getLRModelType());
+    // set phenotype/trait values
+    setDependent(options);
+}
+
+
+///
+/// Set trait values 
+///
+///
+void LogisticRegression::setDependent(StepOptions* options) {
+
+  Y.clear();
+  skipInd.clear();
+  if(options->getUsePheno()){
+    int index = options->getPhenoLoc();
+    if (options->getPhenoName() != "") {
+		  index = set->get_trait_index(options->getPhenoName());
+		}   
+		for (int i = 0; i < set->num_inds(); i++){
+		  Y.push_back(set->get_sample(i)->getPheno(index));
+		  if(Y[i] == missingCoValue)
+		  	skipInd.insert(i);
+		}
+  }
+  else{
+    for (int i = 0; i < set->num_inds(); i++){
+      Y.push_back(set->get_sample(i)->getPheno()-1);
+     	if(Y[i] < 0 || Y[i] > 1)
+		  	skipInd.insert(i);
+    }
+  }
+  
 }
 
 
