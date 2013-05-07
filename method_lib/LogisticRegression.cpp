@@ -611,7 +611,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned int>& covars, vector<unsigned int> & traits)
 {
-
   unsigned int numLoci = loci.size();
   unsigned int numCovars = covars.size();
   unsigned int numTraits = traits.size();
@@ -659,11 +658,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
       }
     }
 
-//     if(includeInteractions){
-//       row.at(currValue) = row.at(0) * row.at(1);
-//       currValue++;
-//     }    
-    
     for(i=0; i < numCovars; i++)
     {
       if((*set)[currInd]->getCovariate(covars.at(i)) != missingCoValue)
@@ -688,17 +682,17 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     {
     	// for interactions swap the first 2 values
     	if(includeInteractions){
-	    	row.back() = row[2];
+	    	row[row_size-2] = row[2];
   	  	row[2] = row[0] * row[1];
+  	  	currValue++;
   	  }
-//       row.at(currValue) = ((*set)[currInd]->getAffected());
       row.at(currValue) = Y[currInd];
       summary_data.push_back(row);
       includedCells.push_back(summary_data.size()-1);
       ngenotypes++;
     }
   }
-
+  
   calculateLR(summary_data, false, includedCells);
 }
 
@@ -745,7 +739,7 @@ void LogisticRegression::set_parameters(StepOptions* options){
 
 
 ///
-/// Set trait values 
+/// Set trait values and individuals who will be skipped
 ///
 ///
 void LogisticRegression::setDependent(StepOptions* options) {
@@ -757,19 +751,26 @@ void LogisticRegression::setDependent(StepOptions* options) {
     if (options->getPhenoName() != "") {
 		  index = set->get_trait_index(options->getPhenoName());
 		}   
+		std::set<int> values;
 		for (int i = 0; i < set->num_inds(); i++){
 		  Y.push_back(set->get_sample(i)->getPheno(index));
-		  if(Y[i] == missingCoValue)
-		  	skipInd.insert(i);
+			values.insert(Y[i]);
 		}
+  	if(values.find(2) != values.end())
+			for(vector<int>::iterator yIter=Y.begin(); yIter != Y.end(); ++yIter){
+				*yIter -= 1;
+			}           
   }
   else{
     for (int i = 0; i < set->num_inds(); i++){
       Y.push_back(set->get_sample(i)->getPheno()-1);
-     	if(Y[i] < 0 || Y[i] > 1)
-		  	skipInd.insert(i);
     }
   }
+
+	for (int i = 0; i < set->num_inds(); i++){
+		if(Y[i] < 0 || Y[i] > 1)
+			skipInd.insert(i);
+	}
   
 }
 

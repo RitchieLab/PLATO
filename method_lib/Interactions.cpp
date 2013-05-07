@@ -121,7 +121,14 @@ void Interactions::SetCovariates(){
   if(options.doCovarsName()){
     // convert to indexes and add to covars
     for(unsigned int i =0; i<use_covs.size(); i++){
-      covars.push_back(data_set->get_covariate_index(use_covs[i]));
+// cout << " covar index = " << data_set->get_covariate_index(use_covs[i]) << endl;
+			int index = data_set->get_covariate_index(use_covs[i]);
+			if(index != -1){
+	      covars.push_back(data_set->get_covariate_index(use_covs[i]));
+	    }
+	    else{
+	    	throw MethodException("\nERROR: " + use_covs[i] + " not found in covariate file\n\n");
+	    }
     }
   }
   else{
@@ -245,15 +252,13 @@ void Interactions::CalculateBioFile(ostream& inter_out, string biofiltername){
     
     string snp1 = bio_iter->first;
 
-    vector<string> snp2_list = bio_iter->second;
-    
+    vector<string> snp2_list = bio_iter->second;   
     if(!getMarker(snp1, mark1, epi_log))
       continue;
     
     
     for(vector<string>::iterator snp2_iter=snp2_list.begin(); snp2_iter != snp2_list.end();
-      snp2_iter++){
-      
+      snp2_iter++){    
       if(!getMarker(*snp2_iter, mark2, epi_log))
         continue;
       
