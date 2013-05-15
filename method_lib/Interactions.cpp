@@ -121,7 +121,6 @@ void Interactions::SetCovariates(){
   if(options.doCovarsName()){
     // convert to indexes and add to covars
     for(unsigned int i =0; i<use_covs.size(); i++){
-// cout << " covar index = " << data_set->get_covariate_index(use_covs[i]) << endl;
 			int index = data_set->get_covariate_index(use_covs[i]);
 			if(index != -1){
 	      covars.push_back(data_set->get_covariate_index(use_covs[i]));

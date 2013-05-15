@@ -169,6 +169,7 @@ void ProcessLogReg::process(DataSet* ds)
 	#endif
 
 	LogisticRegression lr;
+	lr.resetDataSet(ds);
 	lr.set_parameters(&options);
 	ds->set_missing_covalues(-99999);
 	map<string, vector<Sample*> > groups = options.getGroups();
