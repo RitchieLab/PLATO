@@ -464,7 +464,7 @@ void ProcessLogReg::process(DataSet* ds)
 				lrout << endl;
 				#endif
 			}
-exit(1);
+
 			#ifdef PLATOLIB
 			buffer += covs.size();
 			for(int c = 0; c < (int)traits.size(); c++)
