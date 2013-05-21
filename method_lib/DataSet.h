@@ -21,7 +21,7 @@ class DataSet{
     DataSet();
     DataSet(vector<Sample*>* samps, vector<Family*>* fams, vector<Marker*>* marks,
       vector<int>* mark_map);
-    ~DataSet(){};
+    ~DataSet();
     /// Add data information to dataset
     void add_info(vector<Sample*>* samps, vector<Family*>* fams, vector<Marker*>* marks,
       vector<int>* mark_map);
@@ -231,6 +231,7 @@ class DataSet{
 	bool binary_trait;
 	bool quant_trait;
 	bool alternate_pheno;
+	bool recreated_fams;
 	int pheno_loc;
 
     map<string, int> marker_name_map;

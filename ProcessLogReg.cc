@@ -251,7 +251,8 @@ void ProcessLogReg::process(DataSet* ds)
 
 	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++)
 	{
-		DataSet* tempds = new DataSet();
+		DataSet* tempds = new DataSet;
+
 		tempds->set_markers(ds->get_markers());
 		tempds->set_samples(&group_iter->second);
 		tempds->recreate_family_vector();
@@ -496,7 +497,7 @@ void ProcessLogReg::process(DataSet* ds)
 				Controller::execute_sql(myQuery, sql);
 			}
 			#endif
-
+			delete tempds;
 		}//end group_iter
 #ifndef PLATOLIB
 	if(options.doOutputSynthView()){
