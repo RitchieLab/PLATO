@@ -420,6 +420,7 @@ void ProcessLogReg::process(DataSet* ds)
 					lrout << group_iter->first << "\t";
 				}
 				lrout << mark->getReferent() << "\t" << ds->get_covariate_name(covs[c]);
+				lrout << "\t" << nmiss;
 				lrout << "\t" << coefs[buffer + c];
 				lrout << "\t" << exp(coefs[buffer + c]);
 				#endif
@@ -463,7 +464,7 @@ void ProcessLogReg::process(DataSet* ds)
 				lrout << endl;
 				#endif
 			}
-
+exit(1);
 			#ifdef PLATOLIB
 			buffer += covs.size();
 			for(int c = 0; c < (int)traits.size(); c++)

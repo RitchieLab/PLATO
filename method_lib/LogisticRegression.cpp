@@ -34,7 +34,7 @@ void LogisticRegression::initialize(){
   maxIterations = 20;
   modType = Additive;
   defaultComboInterval = 10000;
-  includeInteractions = true;
+  includeInteractions = false;
   coeff_intercept = 0.0;
   missingCoValue = -99999;
 
@@ -611,6 +611,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
 ///
 void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned int>& covars, vector<unsigned int> & traits)
 {
+
   unsigned int numLoci = loci.size();
   unsigned int numCovars = covars.size();
   unsigned int numTraits = traits.size();
@@ -693,6 +694,8 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
   }
   
+// exit(1);
+
   calculateLR(summary_data, false, includedCells);
 }
 
@@ -756,10 +759,11 @@ void LogisticRegression::setDependent(StepOptions* options) {
 		  Y.push_back(set->get_sample(i)->getPheno(index));
 			values.insert(Y[i]);
 		}
-  	if(values.find(2) != values.end())
+  	if(values.find(2) != values.end()){
 			for(vector<int>::iterator yIter=Y.begin(); yIter != Y.end(); ++yIter){
 				*yIter -= 1;
-			}           
+			}
+		}
   }
   else{
     for (int i = 0; i < set->num_inds(); i++){
