@@ -374,8 +374,13 @@ void ProcessLogReg::process(DataSet* ds)
 				#else
 				if(se > 0)
 				{
-					pvalue = Helpers::p_from_chi(zz, df);
-					lrout << "\t" << pvalue;
+					if(!isinf(zz)){
+						pvalue = Helpers::p_from_chi(zz, df);
+						lrout << "\t" << pvalue;
+					}
+					else{
+						lrout << "\tinf";
+					}
 				}
 				else{
 					lrout << "\tnan";
@@ -445,8 +450,13 @@ void ProcessLogReg::process(DataSet* ds)
 				sql += (isnan(pvalue) || isinf(pvalue)) ? "NULL" : getString<double>(pvalue);
 				#else
 				if(se > 0){
-					pvalue = Helpers::p_from_chi(zz, df);
-					lrout << "\t" << pvalue;
+					if(!isinf(zz)){
+						pvalue = Helpers::p_from_chi(zz, df);
+						lrout << "\t" << pvalue;
+					}
+					else{
+						lrout << "\tinf";
+					}
 				}
 				else{
 					lrout << "\tnan";
