@@ -1,7 +1,8 @@
 #ifndef INTERACTIONS_H
 #define INTERACTIONS_H
 
-#ifndef MAC
+#include "config.h"
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
 #include <vector>

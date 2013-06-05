@@ -1,3 +1,16 @@
+== Version 1.2.1 ==
+
+New Feature:
+1. Added GXE regression testing in interaction method. 
+
+Bug Fixes:
+1.  Fixed memory leak in logistic regression.
+2.  Fixed crash when using named phenotypes from traits file in logistic regression.
+3.  Output columns in logistic regression now align propery with headers.
+
+Compilation Fix:
+1.  Changed macro for malloc.h inclusion to HAVE_MALLOC_H for compiling on systems without malloc.h ( such as Macs ).
+
 == Version 1.2 ==
 
 New Features:

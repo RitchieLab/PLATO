@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 #include <math.h>
-#ifndef MAC
+#include "config.h"
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
 #include <stdlib.h>
