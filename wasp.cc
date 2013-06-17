@@ -30,7 +30,7 @@ using namespace Methods;
 using namespace PlatoLib;
 #endif
 
-static string _WASPVER_ = "1.2.1";
+static string _WASPVER_ = "1.2.2";
 //enum for batch file step switch
 enum StepValue{
 					   e_examplemodule,    //examplemodule
@@ -1329,7 +1329,7 @@ void print_help(){
 	cout << "Center for Human Genetics Research" << endl;
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
-	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl << endl;
+	cout << "!!!!  visit http://ritchielab.psu.edu/ritchielab/project-plato/ !!!!" << endl << endl;
 /*
 	cout << "usage: plato <batchfile> [<option1> <option2>...]" << endl << endl;
 	cout << "   Special options: " << endl;
@@ -1489,7 +1489,7 @@ void usage(){
 	cout << "Center for Human Genetics Research" << endl;
 	cout << "Vanderbilt University Medical Center" << endl << endl;
 	cout << "!!!!  For most up-to-date options and details  !!!!" << endl;
-	cout << "!!!!  visit http://chgr.mc.vanderbilt.edu/plato !!!!" << endl << endl;
+	cout << "!!!!  visit http://ritchielab.psu.edu/ritchielab/project-plato !!!!" << endl << endl;
 	cout << "usage: plato <batchfile> [<option1> <option2>....]" << endl
 		 << endl;
 	cout << "For a list of valid steps to be inserted into the batch file:" << endl;

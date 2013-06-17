@@ -3106,7 +3106,6 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 
 	int ssize = samples->size();
 	int msize = markers->size();
-
 	if(ind_major){
 		for(int s = 0; s < ssize; s++){
 			Methods::Sample* samp = (*samples).at(s);
@@ -3123,10 +3122,10 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 				int c = 0;
 				while(c < 7 && m < msize)
 				{
-					Methods::Marker* mark = (*markers).at(m);
+					Methods::Marker* mark = (*markers)[(*marker_map).at(m)];
 					if(mark->isEnabled())
 					{
-						int mloc = (*markers).at(m)->getLoc();
+						int mloc = m;
 						samp->addAone(mloc, b[c++]);
 						samp->addAtwo(mloc, b[c++]);
 						if(samp->getAone(mloc) && !samp->getAtwo(mloc))
@@ -3146,8 +3145,8 @@ void Helpers::readBinM(vector<Methods::Sample*>* samples, vector<Methods::Family
 	}
 	else{//SNP_MAJOR
 		for(int m = 0; m < msize; m++){
-			Methods::Marker* mark = (*markers).at(m);
-			int mloc = mark->getLoc();
+			Methods::Marker* mark = (*markers)[(*marker_map).at(m)];
+			int mloc=m;
 			for(int s = 0; s < ssize;){
 				char ch[1];
 				BIT.read(ch, 1);
