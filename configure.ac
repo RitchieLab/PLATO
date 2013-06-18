@@ -1,7 +1,7 @@
 # Ritchie Lab configure.ac template
 
 AC_PREREQ(2.59)
-AC_INIT(PLATO, 1.2.1, software@ritchielab.psu.edu)
+AC_INIT(PLATO, 1.2.2, software@ritchielab.psu.edu)
 
 # Checks for --enable-debug added
 AX_CHECK_ENABLE_DEBUG

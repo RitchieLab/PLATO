@@ -3,7 +3,7 @@
 #include "LogRegFilter.h"
 #include <math.h>
 #include <ComboGenerator.h>
-#include <ChiSquare.h>
+#include <gsl/gsl_cdf.h>
 
 using namespace Methods;
 namespace Filters{
@@ -113,7 +113,7 @@ Filter::ProcessEstimate LogRegFilter::estimate_run_time(double num_models, DataS
       gen.GenerateCombinations();
       df = int(gen.ComboList.size());
     }
-      pthresh = ChiSquare::pfromchi(pThreshold, df);  
+    pthresh = 1-gsl_cdf_chisq_P(pThreshold,df);
   }
   time_estimate.num_models = num_models * pthresh;
   
