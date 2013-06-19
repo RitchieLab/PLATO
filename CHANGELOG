@@ -1,3 +1,9 @@
+== Version 1.2.2 ==
+
+Bug Fixes:
+
+1.  Fixed error in reading plink binary format files for case where the files were not in chromosomal position order.
+
 == Version 1.2.1 ==
 
 New Feature:
