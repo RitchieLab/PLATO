@@ -34,7 +34,7 @@ void LogisticRegression::initialize(){
   maxIterations = 20;
   modType = Additive;
   defaultComboInterval = 10000;
-  includeInteractions = true;
+  includeInteractions = false;
   coeff_intercept = 0.0;
   missingCoValue = -99999;
 
@@ -642,7 +642,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
   unsigned int currInd, currValue, i;
   for(currInd=0; currInd < numInds; currInd++)
   {
-	  if(!(*set)[currInd]->isEnabled())
+	  if(!(*set)[currInd]->isEnabled() || skipInd.find(i) != skipInd.end())
 		  continue;
     currValue = 0;
     bool any_missing = false;
@@ -658,13 +658,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
         break;
       }
     }
-    // assuming only 2 loci
-    if(includeInteractions){
-      row.at(currValue) = row.at(0) * row.at(1);
-      currValue++;
-    }
-    
-    
+
     for(i=0; i < numCovars; i++)
     {
       if((*set)[currInd]->getCovariate(covars.at(i)) != missingCoValue)
@@ -687,15 +681,22 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
     }
     if(!any_missing)
     {
-      row.at(currValue) = ((*set)[currInd]->getAffected());
+    	// for interactions swap the first 2 values
+    	if(includeInteractions){
+	    	row[row_size-2] = row[2];
+  	  	row[2] = row[0] * row[1];
+  	  	currValue++;
+  	  }
+      row.at(currValue) = Y[currInd];
       summary_data.push_back(row);
       includedCells.push_back(summary_data.size()-1);
       ngenotypes++;
     }
   }
+  
+// exit(1);
 
   calculateLR(summary_data, false, includedCells);
-
 }
 
 ///
@@ -735,6 +736,46 @@ void LogisticRegression::set_parameters(StepOptions* options){
     setIncludeInteractions(options->getLRIncludeInteractions());
     setMaximumIterations(options->getLRMaximumIterations());
     setModelType(options->getLRModelType());
+    // set phenotype/trait values
+    setDependent(options);
+}
+
+
+///
+/// Set trait values and individuals who will be skipped
+///
+///
+void LogisticRegression::setDependent(StepOptions* options) {
+
+  Y.clear();
+  skipInd.clear();
+  if(options->getUsePheno()){
+    int index = options->getPhenoLoc();
+    if (options->getPhenoName() != "") {
+		  index = set->get_trait_index(options->getPhenoName());
+		}   
+		std::set<int> values;
+		for (int i = 0; i < set->num_inds(); i++){
+		  Y.push_back(set->get_sample(i)->getPheno(index));
+			values.insert(Y[i]);
+		}
+  	if(values.find(2) != values.end()){
+			for(vector<int>::iterator yIter=Y.begin(); yIter != Y.end(); ++yIter){
+				*yIter -= 1;
+			}
+		}
+  }
+  else{
+    for (int i = 0; i < set->num_inds(); i++){
+      Y.push_back(set->get_sample(i)->getPheno()-1);
+    }
+  }
+
+	for (int i = 0; i < set->num_inds(); i++){
+		if(Y[i] < 0 || Y[i] > 1)
+			skipInd.insert(i);
+	}
+  
 }
 
 

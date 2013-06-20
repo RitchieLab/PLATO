@@ -3,7 +3,6 @@
 
 #include "Process.h"
 
-
 class ProcessFBATOutput : public ProcessImpl<ProcessFBATOutput>{
 private:
 	static const std::string stepname;

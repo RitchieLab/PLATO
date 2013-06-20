@@ -29,7 +29,7 @@
 using namespace std;
 using namespace Methods;
 
-static string _WASPVER_ = "1.2.0";
+static string _WASPVER_ = "1.2.2";
 
 enum cmdArgs {
 	a_h, a_S, a_ped, a_map,

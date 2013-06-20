@@ -1,6 +1,6 @@
 //ArmitageFilter.cpp
 #include "ArmitageFilter.h"
-#include <ChiSquare.h>
+#include <gsl/gsl_cdf.h>
 
 using namespace Methods;
 
@@ -92,8 +92,7 @@ void ArmitageFilter::analyze(ResultSet & resultList, DataSet & dataset){
 
         int df = num_cols * num_rows;
       
-//        currResult->analysisScores.back() = perm.get_p_value(currResult->analysisScores.back());
-        currResult->analysisScores.back() = ChiSquare::pfromchi(currResult->analysisScores.back(), df);
+	currResult->analysisScores.back() = 1-gsl_cdf_chisq_P(currResult->analysisScores.back(),df);
         if(currResult->analysisScores.back() > threshold){
           resultList.erase(currResult++);
         }
@@ -140,7 +139,7 @@ Filter::ProcessEstimate ArmitageFilter::estimate_run_time(double num_models, Dat
   float pthresh = threshold;
   if(use_raw_score){
     int df = 2; // usual degrees of freedom based on 3 X 2 table
-    ChiSquare::pfromchi(threshold, df);
+    pthresh=1-gsl_cdf_chisq_P(threshold,df);
   }
   time_estimate.num_models = num_models * pthresh;
   

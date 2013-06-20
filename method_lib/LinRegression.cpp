@@ -6,6 +6,8 @@
 #include <gsl/gsl_cdf.h>
 #include <cmath>
 
+#include <sstream>
+
 namespace Methods{
 
 ///
@@ -30,7 +32,7 @@ LinRegression::LinRegression(DataSet* ds){
 /// Initialize starting variables
 ///
 void LinRegression::initialize(){
-  snp_interaction  = 0;
+  model_interaction  = 0;
   r2 = adjusted_r2 = likelihood = lrt_pval = 0.0;
   f_pval = 1.0;
 
@@ -97,7 +99,7 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   unsigned int num_covars = covars.size();
   unsigned int num_loci = loci.size();
   
-  int n_vars =  num_loci + num_covars + snp_interaction;
+  int n_vars =  num_loci + num_covars + model_interaction;
   
   vector<vector<double> > analysis_matrix;
   
@@ -107,13 +109,15 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   int curr_column;
   bool any_missing;
 
+
   for(currInd=0; currInd < numInds; currInd++)
   {
     curr_column=0;
     any_missing=false;
     // ignore individuals that are not enabled  
-    if(!(*set)[currInd]->isEnabled())
+    if(!(*set)[currInd]->isEnabled() || skipInd.find(currInd) != skipInd.end()){
 		  continue;
+		}
 		
 		// add phenotype from indicated trait
 		row.at(curr_column++) = Y[currInd];
@@ -122,18 +126,11 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
     {
       if((*set)[currInd]->get_genotype(converted_loci.at(i)) != missingValue)
         row.at(curr_column++) = geno_convert.at(ref_alleles.at(i)).at((*set)[currInd]->get_genotype(converted_loci.at(i)));
-// row.at(curr_column++)=(*set)[currInd]->get_genotype(converted_loci.at(i));
       else
       {
         any_missing = true;
         break;
       }
-    }
-    
-    // add interaction when needed 
-    if(snp_interaction){
-      row.at(curr_column) = row[curr_column-1] * row[curr_column-2];
-      curr_column++;
     }
 		
 	  for(unsigned int i=0; i<num_covars; i++){
@@ -144,10 +141,19 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
         break;
       } 
 	  }
-
+	  
+	  // add interaction when needed and swap the third input column with last one
+	  // first positioin in row is the output value
+    if(model_interaction){
+//       row.at(curr_column) = row[curr_column-1] * row[curr_column-2];
+      row.back() = row.at(3);
+      row.at(3) = row[1] * row[2];
+      curr_column++;
+    }
     
-    if(!any_missing)
+    if(!any_missing){
       analysis_matrix.push_back(row);
+    }
   }
 
   // total number of cases will equal the number of analysis matrix rows
@@ -155,6 +161,7 @@ void LinRegression::prepare_input(vector<unsigned int>& loci, vector<unsigned in
   
   /// now that the analysis matrix has been constructed can do calculation
   calculate_linreg(analysis_matrix);
+
 }
 
 
@@ -215,7 +222,6 @@ void LinRegression::calculate_linreg(vector<vector<double> >& analysis_matrix){
     coefficients.push_back(gsl_vector_get(c,i));
     stderr = sqrt(COV(i,i));
     tval = gsl_vector_get(c,i)/stderr;
-//     pval = tval<0?2*(1-gsl_cdf_tdist_P(-tval,n-4)):2*(1-gsl_cdf_tdist_P(tval,n-4));
     pval = tval<0?2*(1-gsl_cdf_tdist_P(-tval,df)):2*(1-gsl_cdf_tdist_P(tval,df));
     
     std_errors.push_back(stderr);
@@ -324,10 +330,7 @@ vector<unsigned int> LinRegression::convert_loc_order(vector<unsigned int>& loci
 void LinRegression::set_parameters(StepOptions* o){
   options = o;
   setModelType(options->getLRModelType());
-  
-  
   setDependent();
-  
 }
 
 
@@ -365,6 +368,7 @@ void LinRegression::resetDataSet(DataSet* ds){
 void LinRegression::setDependent() {
 
   Y.clear();
+  skipInd.clear();
   if(options->getUsePheno()){
     int index = options->getPhenoLoc();
     if (options->getPhenoName() != "") {
@@ -372,11 +376,15 @@ void LinRegression::setDependent() {
 		}   
 		for (int i = 0; i < set->num_inds(); i++){
 		  Y.push_back(set->get_sample(i)->getPheno(index));
+		  if(Y[i] == missingCoValue)
+		  	skipInd.insert(i);
 		}
   }
   else{
     for (int i = 0; i < set->num_inds(); i++){
       Y.push_back(set->get_sample(i)->getPheno());
+     	if(Y[i] == missingCoValue)
+		  	skipInd.insert(i);
     }
   }
   

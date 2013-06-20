@@ -331,6 +331,7 @@ private:
 	bool binary_trait;
 	bool quant_trait;
 	bool alternate_pheno;
+	bool recreated_fams;
 	int pheno_loc;
 
 	map<string, int> marker_name_map;

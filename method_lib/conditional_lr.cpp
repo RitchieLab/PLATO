@@ -1,5 +1,4 @@
 //conditional_lr.cpp
-
 /// Functions converted from fortran
 #include <iostream>
 using namespace std;

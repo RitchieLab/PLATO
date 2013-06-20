@@ -2,6 +2,15 @@
 #include "Helpers.h"
 #include "DataSet.h"
 namespace Methods{
+
+DataSet::~DataSet(){
+	if(recreated_fams){
+		for(vector<Family*>::iterator f_iter=families.begin(); f_iter != families.end(); ++f_iter){
+			delete *f_iter;
+		}
+	}
+}
+
 ///
 /// returns number of enabled samples
 ///
@@ -14,6 +23,7 @@ int DataSet::num_enabled_inds(){
 	}
 	return count;
 }
+
 
 ///
 /// returns number of enabled affected
@@ -186,6 +196,7 @@ void DataSet::recreate_family_vector(){
 	if(families.size() > 0){
 		families.clear();
 	}
+	recreated_fams=true;
 	vector<Family*>::iterator f_iter;
 	for(unsigned int i = 0; i < samples.size(); i++){
 		Sample* samp = samples.at(i);
@@ -270,6 +281,7 @@ void DataSet::initialize(){
   missing_covalue = -99999;
   alternate_pheno = false;
   pheno_loc = -1;
+  recreated_fams=false;
 }
 
 ///

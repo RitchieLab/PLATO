@@ -23,19 +23,19 @@ void Interactions::calculate(DataSet* ds){
   ofstream inter_out;
   
   lrt_threshold = options.getLRTPval();
+  string gxeFile = options.getGXEFile();
+  bool isGXE = !options.getGXEcovars().empty() || gxeFile != "";
   
   // create appropriate type of regression calculator
-  
-//  if (opts::_BINTRAIT_)
   if(PhenoBinary())
 	{
-	  regressor = new LogisticRegression;  
-	  openOutput(inter_out, false);
+	  regressor = new LogisticRegression;
+	  openOutput(inter_out, false, isGXE);
 	}
 	else
 	{
 	  regressor = new LinRegression;
-	  openOutput(inter_out, true);
+	  openOutput(inter_out, true, isGXE);
 	}
 	
 	// set covariates if used in model
@@ -43,16 +43,26 @@ void Interactions::calculate(DataSet* ds){
 	
 	regressor->resetDataSet(data_set);
 	regressor->set_parameters(&options);
-	
-  // check if lists are from bio file or exhaustive and run calculation
-  if(options.getBioSnpFile() != "")
-	{
-	
-	  CalculateBioFile(inter_out, options.getBioSnpFile());
+
+  // check if this is a GXE analysis
+  if(options.getGXEcovars().empty() and gxeFile == ""){
+  	// check if lists are from bio file or exhaustive and run calculation
+	  if(options.getBioSnpFile() != "")
+		{
+	  	CalculateBioFile(inter_out, options.getBioSnpFile());
+		}
+		else
+		{
+		  CalculateExhaustive(inter_out);
+		}
 	}
-	else
-	{
-	  CalculateExhaustive(inter_out);
+	else{
+		if(gxeFile==""){
+			CalculateGXE(inter_out);
+		}
+		else{
+			CalculateGXEFile(inter_out, gxeFile);
+		}
 	}
   
   // free memory
@@ -78,6 +88,9 @@ bool Interactions::PhenoBinary(){
     int index = options.getPhenoLoc();
     if(options.getPhenoName() != ""){
       index = data_set->get_trait_index(options.getPhenoName());
+      if(index==-1){
+      	throw MethodException("The phenotype " + options.getPhenoName() + " is not found in traits file\n");
+      }
     }
     for(int i=0; i<data_set->num_inds(); i++){
       stringstream ss;
@@ -94,9 +107,7 @@ bool Interactions::PhenoBinary(){
         return false;
     }
   }
-
   return true;
-
 }
 
 
@@ -110,15 +121,110 @@ void Interactions::SetCovariates(){
   if(options.doCovarsName()){
     // convert to indexes and add to covars
     for(unsigned int i =0; i<use_covs.size(); i++){
-      covars.push_back(data_set->get_covariate_index(use_covs[i]));
+			int index = data_set->get_covariate_index(use_covs[i]);
+			if(index != -1){
+	      covars.push_back(data_set->get_covariate_index(use_covs[i]));
+	    }
+	    else{
+	    	throw MethodException("\nERROR: " + use_covs[i] + " not found in covariate file\n\n");
+	    }
     }
   }
   else{
     // convert string numbers to numbers
-    for(unsigned int i =0; i<use_covs.size(); i++)
-      covars.push_back(atoi(use_covs[i].c_str())-1);
+    for(unsigned int i =0; i<use_covs.size(); i++){
+			if(use_covs.at(i).find('-') != string::npos){
+				vector<string> range;
+				General::Tokenize(use_covs.at(i), range, "-");
+				int start = atoi(range[0].c_str())-1;
+				int last = atoi(range[1].c_str())-1;
+				for(int j=start; j<=last; j++){
+					covars.push_back(j);
+				}
+			}
+			else{
+	      covars.push_back(atoi(use_covs[i].c_str())-1);
+	    }
+    }
+  }
+}
+
+
+///
+/// Take gene-environment pairings from GXE file
+/// @param inter_out ostream to write to 
+/// @param gxefilename name of the GXE file
+///
+void Interactions::CalculateGXEFile(ostream& inter_out, string gxefilename){
+  
+  ofstream epi_log;
+  openLog(epi_log);
+  
+  // retrieve the GxE pairs
+  // it is gene as the map key
+  options.readGXETextFile(gxefilename);
+  map<string, vector<string> > pairs = options.getGXEPairs();
+  
+  MarkerInfo mark;
+  // all models will have same covariates 
+	modelCovars.push_back(0);
+	modelCovars.insert(modelCovars.end(), covars.begin(), covars.end());
+  uni_results.clear(); // clear any previous single SNP results
+  int envIndex;
+  
+  map<string, vector<string> >::iterator endIter = pairs.end();
+  for(map<string, vector<string> >::iterator gxeIter = pairs.begin(); gxeIter != endIter; 
+    gxeIter++){
+    
+    string snp = gxeIter->first;
+
+    vector<string>& envs = gxeIter->second;
+    
+    if(!getMarker(snp, mark, epi_log))
+      continue;
+    
+    
+    for(vector<string>::iterator envIter=envs.begin(); envIter != envs.end();
+      envIter++){
+      envIndex = data_set->get_covariate_index(*envIter);
+    	modelCovars.front() = envIndex;
+			CalculateGXEPair(mark, envIndex, inter_out);
+    }
   }
   
+  epi_log.close();
+}
+
+
+
+///
+/// Sets covariate indexes from options
+///
+void Interactions::setGXECovars(){
+	vector<string> gxe_covars = options.getGXEcovars();
+
+	if(options.doGXEName()){
+    // convert to indexes and add to covars
+    for(unsigned int i =0; i<gxe_covars.size(); i++){
+      gXecovars.push_back(data_set->get_covariate_index(gxe_covars[i]));
+    }
+  }
+	else{
+    for(unsigned int i =0; i<gxe_covars.size(); i++){
+			if(gxe_covars.at(i).find('-') != string::npos){
+				vector<string> range;
+				General::Tokenize(gxe_covars.at(i), range, "-");
+				int start = atoi(range[0].c_str())-1;
+				int last = atoi(range[1].c_str())-1;
+				for(int j=start; j<=last; j++){
+					gXecovars.push_back(j);
+				}
+			}
+			else{
+	      gXecovars.push_back(atoi(gxe_covars[i].c_str())-1);
+	    }
+    }		
+	}
 }
 
 
@@ -145,15 +251,13 @@ void Interactions::CalculateBioFile(ostream& inter_out, string biofiltername){
     
     string snp1 = bio_iter->first;
 
-    vector<string> snp2_list = bio_iter->second;
-    
+    vector<string> snp2_list = bio_iter->second;   
     if(!getMarker(snp1, mark1, epi_log))
       continue;
     
     
     for(vector<string>::iterator snp2_iter=snp2_list.begin(); snp2_iter != snp2_list.end();
-      snp2_iter++){
-      
+      snp2_iter++){    
       if(!getMarker(*snp2_iter, mark2, epi_log))
         continue;
       
@@ -166,6 +270,82 @@ void Interactions::CalculateBioFile(ostream& inter_out, string biofiltername){
   }
   
   epi_log.close();
+}
+
+
+///
+/// Calculate all pairwise combinations of the environmental factors (covariates)
+/// and the SNPs
+///
+void Interactions::CalculateGXE(ofstream& inter_out){
+	vector<int> good_indexes = Helpers::findValidMarkersIndexes(data_set->get_markers(), &options);
+	ofstream epi_log;
+	openLog(epi_log);
+	
+	MarkerInfo mark;
+	uni_results.clear();
+	cov_results.clear();
+	
+	setGXECovars();
+	vector<unsigned int>::iterator endIter = gXecovars.end();
+	vector<int>::iterator snpsEnd = good_indexes.end();
+
+	// all models will have same covariates 
+	modelCovars.push_back(0);
+	modelCovars.insert(modelCovars.end(), covars.begin(), covars.end());
+
+	for(vector<int>::iterator snpIter = good_indexes.begin(); snpIter != snpsEnd; ++snpIter){	
+		if(!getMarker(*snpIter, mark, epi_log)){
+				continue;
+		}
+		for(vector<unsigned int>::iterator cIter = gXecovars.begin(); cIter != endIter; ++cIter){
+			// environmental factor will be first in the covariate list
+			modelCovars.front() = *cIter;
+			CalculateGXEPair(mark, *cIter, inter_out);
+		}
+	}
+	
+	epi_log.close();
+}
+
+
+///
+/// Calculate the single SNP model, covariatae model, the reduced model and the full model for the GXE pair
+/// @param snp MarkerInfo marker
+/// @param environ Index of the covariate for this environmental factor
+/// @param inter_out output stream
+/// 
+void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter_out){
+	// get snp1 and snp2 results
+  UniRegression snp_results, covar_results;
+  snp_results = GetSingleRegression(snp.loc_index);
+  covar_results = GetSingleEnvRegression(environ);
+  
+  // continue HERE 
+  vector<unsigned int> snps, covariates;
+  snp_results.valid = !isnan(snp_results.p_value);
+  covar_results.valid = !isnan(covar_results.p_value);
+  snps.push_back(snp.loc_index);
+  
+  ComplexResults results;
+  if(snp_results.valid and covar_results.valid){
+  	CalculateComplexResults(results, snps, modelCovars);
+  	if(results.lrt_p_value > lrt_threshold){
+    	return;
+  	}
+  }
+  
+  string sep=" ";
+  string invalid = "NA";
+  string environName = data_set->get_covariate_name(environ);
+  
+  inter_out << snp.marker->getRSID() << "_" << environName << sep <<
+    snp.marker->getRSID() << sep << environName << sep <<
+    snp.marker->getChrom() << ":" << snp.marker->getBPLOC() << sep <<
+    snp_results.maf << sep << snp_results.ngenotypes << sep <<
+    covar_results.ngenotypes << sep;  
+
+  OutputPair(results, snp_results, covar_results, inter_out);  
 }
 
 
@@ -193,95 +373,71 @@ void Interactions::CalculateExhaustive(ostream& inter_out){
       
     }
   }
-  
   epi_log.close();
-  
 }
 
 
 ///
-/// Calculate the single SNP models, the reduced model and the full model for the pair
-/// of SNPs passed into this function.
-/// @param snp1 MarkerInfo first marker
-/// @param snp2 MarkerInfo second marker
-/// 
-void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out){
+/// Calculates full and reduced models and stores in the results parameter
+/// @param results ComplexResults to store analysis
+/// @param modsnps Indexes for model snps
+/// @param modcovars Indexes for model covariates
+///
+void Interactions::CalculateComplexResults(ComplexResults& results, vector<unsigned int>& modsnps,
+	vector<unsigned int>& modcovars){
 
-  // output results -- can add checks throughout for thresholds
-
-  // get snp1 results
-  UniRegression snp1_results, snp2_results;
-  snp1_results = GetSingleRegression(snp1.loc_index);
-  snp2_results = GetSingleRegression(snp2.loc_index);
-  
-  vector<unsigned int> snps;
-  bool snp1_invalid = isnan(snp1_results.p_value);
-  bool snp2_invalid = isnan(snp2_results.p_value);
-  if(!snp1_invalid)
-    snps.push_back(snp1.loc_index);
-  if(!snp2_invalid)
-    snps.push_back(snp2.loc_index);
-
-  double lrt_p_value = 1.0;
-  double red_p_value, red_rsq, red_llr, full_p_value,
-    full_rsq, full_llr, likelihood_ratio;
-  vector<double> red_coeff_p, red_beta, red_se, full_coeff_p, full_beta, full_se;
-  
-  if(!snps.empty()){
   // calculate reduced model
   regressor->setIncludeInteractions(false);
-  regressor->calculate(snps, covars);
-  red_coeff_p = regressor->getCoeffPValues();
-  red_beta = regressor->getCoefficients();
-  red_se = regressor->getCoeffStandardErr();
-  red_p_value = regressor->getOverallP();
-  red_rsq = regressor->adjusted_rsquared();
-  red_llr = regressor->getLLR();
+  regressor->calculate(modsnps, modcovars);
+  results.red_coeff_p = regressor->getCoeffPValues();
+  results.red_beta = regressor->getCoefficients();
+  results.red_se = regressor->getCoeffStandardErr();
+  results.red_p_value = regressor->getOverallP();
+  results.red_rsq = regressor->adjusted_rsquared();
+  results.red_llr = regressor->getLLR();
  
-  // calculate full model
-  if(snp1_invalid || snp2_invalid)
-    regressor->setIncludeInteractions(false);
-  else
-    regressor->setIncludeInteractions(true);
-  regressor->calculate(snps, covars);
-  full_coeff_p = regressor->getCoeffPValues();
-  full_beta = regressor->getCoefficients();
-  full_se = regressor->getCoeffStandardErr();
-  full_p_value = regressor->getOverallP();
-  full_rsq = regressor->adjusted_rsquared();
-  full_llr = regressor->getLLR();
+  regressor->setIncludeInteractions(true);
+  regressor->calculate(modsnps, modcovars);
+  results.full_coeff_p = regressor->getCoeffPValues();
+  results.full_beta = regressor->getCoefficients();
+  results.full_se = regressor->getCoeffStandardErr();
+  results.full_p_value = regressor->getOverallP();
+  results.full_rsq = regressor->adjusted_rsquared();
+  results.full_llr = regressor->getLLR();
 
-  likelihood_ratio = -2 * (red_llr - full_llr);
+  results.likelihood_ratio = -2 * (results.red_llr - results.full_llr);
 
-  lrt_p_value = GetLLRPValue(likelihood_ratio);
-  }
-  
-  if(lrt_p_value > lrt_threshold){
-    return;
-  }
+  results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
+	
+}
 
-  string sep=" ";
+
+
+///
+/// Outputs results to the stream passed
+/// @param complex
+/// @param var1
+/// @param var2
+/// @param inter_out
+///
+void Interactions::OutputPair(ComplexResults& complex, UniRegression& var1, UniRegression& var2,
+	ostream& inter_out){
+	
+	string sep=" ";
   string invalid = "NA";
-  inter_out << snp1.marker->getRSID() << "_" << snp2.marker->getRSID() << sep <<
-    snp1.marker->getRSID() << sep << snp2.marker->getRSID() << sep <<
-    snp1.marker->getChrom() << ":" << snp1.marker->getBPLOC() << sep <<
-    snp1_results.maf << sep << snp1_results.ngenotypes << sep <<
-    snp2.marker->getChrom() << ":" << snp2.marker->getBPLOC() << sep <<
-    snp2_results.maf<< sep << snp2_results.ngenotypes << sep;
-  
-   if(!snp1_invalid && !snp2_invalid)
-     inter_out << snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
-      snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
-      red_coeff_p[0] << sep << red_beta[0] << sep << red_se[0] << sep <<
-      red_coeff_p[1] << sep << red_beta[1] << sep << red_se[1] << sep <<
-      full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
-      full_coeff_p[1] << sep << full_beta[1] << sep << full_se[1] << sep <<
-      full_coeff_p[2] << sep << full_beta[2] << sep << full_se[2] << sep <<
-      red_p_value << sep << red_rsq << sep << 
-      full_p_value << sep << full_rsq << sep <<
-      full_rsq - red_rsq << sep <<
-      lrt_p_value << endl;    
-    else if(snp1_invalid && snp2_invalid)
+   if(var1.valid && var2.valid)
+     inter_out << var1.p_value << sep << var1.beta << sep << var1.se << sep <<
+      var2.p_value << sep << var2.beta << sep << var2.se << sep <<
+      complex.red_coeff_p[0] << sep << complex.red_beta[0] << sep << complex.red_se[0] << sep <<
+      complex.red_coeff_p[1] << sep << complex.red_beta[1] << sep << complex.red_se[1] << sep <<
+      complex.full_coeff_p[0] << sep << complex.full_beta[0] << sep << complex.full_se[0] << sep <<
+      complex.full_coeff_p[1] << sep << complex.full_beta[1] << sep << complex.full_se[1] << sep <<
+      complex.full_coeff_p[2] << sep << complex.full_beta[2] << sep << complex.full_se[2] << sep <<
+      complex.red_p_value << sep << complex.red_rsq << sep << 
+      complex.full_p_value << sep << complex.full_rsq << sep <<
+      complex.full_rsq - complex.red_rsq << sep <<
+      complex.lrt_p_value << endl;    
+    else if(!var1.valid && !var2.valid)
       inter_out << invalid << sep << invalid<< sep << invalid<< sep <<
       invalid << sep << invalid << sep << invalid << sep <<
       invalid << sep << invalid<< sep << invalid << sep <<
@@ -293,30 +449,73 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
       invalid<< sep << invalid<< sep <<
       invalid << sep <<
       invalid << endl;
-    else if(snp1_invalid)
+    else if(!var1.valid)
      inter_out << invalid << sep << invalid << sep << invalid << sep <<
-      snp2_results.p_value << sep << snp2_results.beta << sep << snp2_results.se << sep <<
+      var2.p_value << sep << var2.beta << sep << var2.se << sep <<
       invalid << sep << invalid<< sep << invalid << sep <<
-      red_coeff_p[0] << sep << red_beta[0] << sep << red_se[0] << sep <<
+      invalid << sep << invalid << sep << invalid << sep <<
       invalid<< sep << invalid << sep << invalid << sep <<
-      full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
-      red_p_value << sep << red_rsq << sep << 
-      full_p_value << sep << full_rsq << sep <<
-      full_rsq - red_rsq << sep <<
-      lrt_p_value << endl;    
-    else //snp2 invalid
-      inter_out << snp1_results.p_value << sep << snp1_results.beta << sep << snp1_results.se << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
-      red_coeff_p[0] << sep << red_beta[0] << sep << red_se[0] << sep <<
+      invalid << sep << invalid << sep << 
+      invalid << sep << invalid << sep <<
+      invalid << sep <<
+      invalid << endl;    
+    else //var 2 invalid
+      inter_out << var1.p_value << sep << var1.beta << sep << var1.se << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
-      full_coeff_p[0] << sep << full_beta[0] << sep << full_se[0] << sep <<
+      invalid<< sep << invalid << sep << invalid << sep <<
       invalid << sep << invalid << sep << invalid << sep <<
       invalid << sep << invalid<< sep << invalid << sep <<
-      red_p_value << sep << red_rsq << sep << 
-      full_p_value << sep << full_rsq << sep <<
-      full_rsq - red_rsq << sep <<
-      lrt_p_value << endl;
+      invalid << sep << invalid << sep << invalid << sep <<
+      invalid << sep << invalid<< sep << invalid << sep <<
+      invalid << sep << invalid << sep << 
+      invalid << sep << invalid << sep <<
+      invalid << sep <<
+      invalid << endl;
+}
+
+
+///
+/// Calculate the single SNP models, the reduced model and the full model for the pair
+/// of SNPs passed into this function.
+/// @param snp1 MarkerInfo first marker
+/// @param snp2 MarkerInfo second marker
+/// 
+void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out){
+
+  // get snp1 and snp2 results
+  UniRegression snp1_results, snp2_results;
+  snp1_results = GetSingleRegression(snp1.loc_index);
+  snp2_results = GetSingleRegression(snp2.loc_index);
+
+  vector<unsigned int> snps;  
+	snp1_results.valid = !isnan(snp1_results.p_value);
+  snp2_results.valid = !isnan(snp2_results.p_value);  
+  
+  if(snp1_results.valid)
+    snps.push_back(snp1.loc_index);
+  if(snp2_results.valid)
+    snps.push_back(snp2.loc_index);
+  
+  ComplexResults results;
+  if(snp1_results.valid and snp2_results.valid){
+	  CalculateComplexResults(results, snps, covars);
+  	  if(results.lrt_p_value > lrt_threshold){
+    		return;
+		  }
+	}
+  
+  string sep=" ";
+  string invalid = "NA";
+  inter_out << snp1.marker->getRSID() << "_" << snp2.marker->getRSID() << sep <<
+    snp1.marker->getRSID() << sep << snp2.marker->getRSID() << sep <<
+    snp1.marker->getChrom() << ":" << snp1.marker->getBPLOC() << sep <<
+    snp1_results.maf << sep << snp1_results.ngenotypes << sep <<
+    snp2.marker->getChrom() << ":" << snp2.marker->getBPLOC() << sep <<
+    snp2_results.maf<< sep << snp2_results.ngenotypes << sep;
+    
+  OutputPair(results, snp1_results, snp2_results, inter_out);
 }
 
 
@@ -324,17 +523,41 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
 /// Calculate p value for likelihood ratio test
 ///
 double Interactions::GetLLRPValue(double llr){
-//   return gsl_cdf_chisq_P(llr,1);
   return  gsl_cdf_chisq_Q(llr,1);
+}
+
+
+///
+///  Calculates single covariate regression when necessary
+///  @param env_index locus index for the snp
+///
+Interactions::UniRegression& Interactions::GetSingleEnvRegression(int env_index){
+  if(cov_results.find(env_index) == cov_results.end())
+  {
+    regressor->setIncludeInteractions(false);
+    vector<unsigned int> snps;
+    
+    UniRegression results;
+    regressor->calculate(snps, modelCovars);
+    
+    results.p_value = (regressor->getCoeffPValues())[0];
+    results.beta = (regressor->getCoefficients())[0];
+    results.se = ( regressor->getCoeffStandardErr())[0];
+    results.ngenotypes = regressor->getNumGenotypes();
+
+    cov_results[env_index] = results;
+  }
+
+  return cov_results[env_index];
 }
 
 
 
 ///
 /// Calculates single SNP when necessary
-///  @param snp1 locus index for the snp
+/// @param snp_index
 ///
-Interactions::UniRegression Interactions::GetSingleRegression(int snp_index){
+Interactions::UniRegression& Interactions::GetSingleRegression(int snp_index){
   if(uni_results.find(snp_index) == uni_results.end())
   {
     regressor->setIncludeInteractions(false);
@@ -354,6 +577,7 @@ Interactions::UniRegression Interactions::GetSingleRegression(int snp_index){
   }
 
   return uni_results[snp_index];
+	
 }
 
 
@@ -381,12 +605,6 @@ bool Interactions::getMarker(string name, MarkerInfo & m, ostream& epi_log){
 	  epi_log << name << " is disabled!" << endl;
 	  return false;
 	}  
-	
-	if(opts::_CHRX_ == m.marker->getChrom()){
-	  epi_log << name << " is on Chr X and is skipped!" << endl;
-	  return false;
-	}
-
   return true;
 }
 
@@ -407,11 +625,6 @@ bool Interactions::getMarker(int index, MarkerInfo & m, ostream& epi_log){
 	if(!m.marker->isEnabled()){
 	  epi_log << m.marker->getRSID() << " is disabled!" << endl;
 	  return false;
-	}  
-	
-	if(opts::_CHRX_ == m.marker->getChrom()){
-	  epi_log <<  m.marker->getRSID() << " is on Chr X and is skipped!" << endl;
-	  return false;
 	}
 
   return true;
@@ -420,13 +633,23 @@ bool Interactions::getMarker(int index, MarkerInfo & m, ostream& epi_log){
 ///
 /// Opens output and applies headers to output
 ///
-void Interactions::openOutput(ofstream & out, bool isLinearReg){
+void Interactions::openOutput(ofstream & out, bool isLinearReg, bool isGXE){
 
-  // check for overwriting existing file
-  string fname = opts::_OUTPREFIX_ + "interaction" + options.getOut() + ".txt";
-  if(!overwrite)
+	string fname;
+	// check for overwriting existing file
+  if(opts::_OUTPREFIX_.length() > 0)
   {
-      fname += "." + getString<int>(order);
+  	fname = opts::_OUTPREFIX_ + "interaction.txt";
+	}
+  else
+  {
+  	fname = "interaction" + options.getOut() + ".txt";
+	}
+	
+  
+	if(!overwrite)
+  {
+    fname += "." + getString<int>(order);
   }  
   out.open(fname.c_str());
   if(!out)
@@ -444,8 +667,11 @@ void Interactions::openOutput(ofstream & out, bool isLinearReg){
   string sep = " ";
   
   out << "Model_ID" << sep << "Var1_ID" << sep << "Var2_ID" << sep << "Var1_Pos" << 
-    sep << "Var1_MAF" << sep << "Var1_#" << sep << "Var2_Pos" << sep << "Var2_MAF" <<
-    sep << "Var2_#" << sep << "Uni_Var1_P" << sep << "Uni_Var1_beta" << sep <<
+    sep << "Var1_MAF" << sep << "Var1_#";
+  if(!isGXE){
+   out << sep<< "Var2_Pos" << sep << "Var2_MAF";
+  }
+  out << sep << "Var2_#" << sep << "Uni_Var1_P" << sep << "Uni_Var1_beta" << sep <<
     "Uni_Var1_SE" << sep << "Uni_Var2_P" << sep << "Uni_Var2_beta" << sep << 
     "Uni_Var2_SE" << sep << "Red_Var1_P" << sep << "Red_Var1_beta" << sep <<
     "Red_Var1_SE" << sep << "Red_Var2_P" << sep << "Red_Var2_beta" << sep <<
@@ -508,7 +734,18 @@ double Interactions::calcMAF(int marker_index){
 /// @return ostream
 ///
 void Interactions::openLog(ofstream& epi_log){
-  string fname = opts::_OUTPREFIX_ + "interaction" + options.getOut() + ".txt";
+  string fname;
+  
+	if(opts::_OUTPREFIX_.length() > 0)
+  {
+  	fname = opts::_OUTPREFIX_ + "interaction";
+	}
+  else
+  {
+  	fname = "interaction" + options.getOut();
+	}
+	
+  
   if(!overwrite)
   {
         fname += "." + getString<int>(order);

@@ -131,6 +131,7 @@ void ProcessLogReg::process(DataSet* ds)
 //	trimmed_data->set_affection_vectors();
 
 	LogisticRegression lr;
+	lr.resetDataSet(ds);
 	lr.set_parameters(&options);
 	ds->set_missing_covalues(-99999);
 	map<string, vector<Sample*> > groups = options.getGroups();
@@ -189,7 +190,8 @@ void ProcessLogReg::process(DataSet* ds)
 
 	for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++)
 	{
-		DataSet* tempds = new DataSet();
+		DataSet* tempds = new DataSet;
+
 		tempds->set_markers(ds->get_markers());
 		tempds->set_samples(&group_iter->second);
 		tempds->recreate_family_vector();
@@ -267,8 +269,13 @@ void ProcessLogReg::process(DataSet* ds)
 				//cout << "pre-p_from_chi: " << se << " : " << Z << " : " << zz << " : " << df << endl;
 				if(se > 0)
 				{
-					pvalue = Helpers::p_from_chi(zz, df);
-					lrout << "\t" << pvalue;
+					if(!isinf(zz)){
+						pvalue = Helpers::p_from_chi(zz, df);
+						lrout << "\t" << pvalue;
+					}
+					else{
+						lrout << "\tinf";
+					}
 				}
 				else{
 					lrout << "\tnan";
@@ -301,6 +308,7 @@ void ProcessLogReg::process(DataSet* ds)
 					lrout << group_iter->first << "\t";
 				}
 				lrout << mark->getReferent() << "\t" << ds->get_covariate_name(covs[c]);
+				lrout << "\t" << nmiss;
 				lrout << "\t" << coefs[buffer + c];
 				lrout << "\t" << exp(coefs[buffer + c]);
 
@@ -317,8 +325,13 @@ void ProcessLogReg::process(DataSet* ds)
 //				int code = 1, status;
 				//cdfchi(&code, &p, &pvalue, &zz, &df, &status, &bound);
 				if(se > 0){
-					pvalue = Helpers::p_from_chi(zz, df);
-					lrout << "\t" << pvalue;
+					if(!isinf(zz)){
+						pvalue = Helpers::p_from_chi(zz, df);
+						lrout << "\t" << pvalue;
+					}
+					else{
+						lrout << "\tinf";
+					}
 				}
 				else{
 					lrout << "\tnan";
@@ -332,7 +345,7 @@ void ProcessLogReg::process(DataSet* ds)
 				lrout << endl;
 			}
 
-
+			delete tempds;
 		}//end group_iter
 	if(options.doOutputSynthView()){
 		lrsvout << endl;

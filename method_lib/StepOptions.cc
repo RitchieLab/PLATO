@@ -293,6 +293,15 @@ void StepOptions::setUp(string s){
 						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
 					}
 					break;
+				case s_gxe_file:
+					if(i + 1 < (int) tokens.size()){
+						string val = tokens.at(++i);
+						if(val.size() == 0){
+							throw MethodException("File name required for: " + tokens.at(i-1) + "\n");
+						}
+						gxe_list_file = val;
+					}
+					break;				
 				//biofilter
 				case s_bio_comparison_file:
 					if(i + 1 < (int) tokens.size()){
@@ -916,6 +925,48 @@ void StepOptions::setUp(string s){
 							do_covs = true;
 							do_covs_name = true;
 							if(cov_use.size() == 0){
+								throw("oops...");
+							}
+
+						}catch(...){
+							opts::printLog(val + " is not a valid value for line: " + options + "\n");
+							throw MethodException(val + " is not a valid value for line: " + options + "\n");
+						}
+					}
+					else{
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
+					}
+					break;
+				case s_gxe_number:
+					if(i + 1 < (int)tokens.size()){
+						string val = tokens.at(++i);
+						try{
+							General::Tokenize(val, gxe_use, ",");
+							do_gxe = true;
+							do_gxe_number = true;
+							if(gxe_use.size() == 0){
+								throw("oops...");
+							}
+
+						}catch(...){
+							opts::printLog(val + " is not a valid value for line: " + options + "\n");
+							throw MethodException(val + " is not a valid value for line: " + options + "\n");
+						}
+					}
+					else{
+						opts::printLog(tokens.at(i) + " requires a value on line: " + options + "\n");
+						throw MethodException(tokens.at(i) + " requires a value on line: " + options + "\n");
+					}
+					break;
+				case s_gxe_name:
+					if(i + 1 < (int)tokens.size()){
+						string val = tokens.at(++i);
+						try{
+							General::Tokenize(val, gxe_use, ",");
+							do_gxe = true;
+							do_gxe_name = true;
+							if(gxe_use.size() == 0){
 								throw("oops...");
 							}
 
@@ -2373,6 +2424,7 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
 		//exit(1);
 		throw MethodException("Error opening covariate file: " + cov_file + "\n");
 	}
+
 	int count = 0;
 	int numcovs = 0;
 	vector<int> goodlocs;
@@ -2559,7 +2611,6 @@ void StepOptions::readCovariates(vector<Sample*>* samps){
         }
     }
     in.close();
-
 }
 
 void StepOptions::readTraits(vector<Sample*>* samps){
@@ -3012,6 +3063,43 @@ void StepOptions::readIBSTrioPairsFile(string file){
 		in.close();
 	}
 }
+
+
+void StepOptions::readGXETextFile(string file){
+	gxe_pairs.clear();
+	
+	ifstream in(file.c_str(), ios::in);
+	if(!in){
+		opts::printLog("Error opening GXE list file: " + file + "\n");
+		throw MethodException("Error opening GXE list file: " + file + "\n");
+	}	
+	string header, line, tok;
+	getline(in, header);
+	int count = 1;
+	
+	while(getline(in,line)){
+		count += 1;
+		if(line=="" || line[0]=='#')
+			continue;
+		
+		stringstream ss(line);
+		vector<string> elems;
+		while(ss >> tok){
+			elems.push_back(tok);
+		}
+		if(elems.size() < 2){
+			opts::printLog("Line:: " + getString<int>(count) + " has incorrect number of columns.  Expecting at least 2!\n");
+			in.close();
+			throw MethodException("Line:: " + getString<int>(count) + " has incorrect number of columns.  Expecting at least 2!\n");
+		}
+		gxe_pairs[elems[0]].push_back(elems[1]);		
+	}
+
+	if(in.is_open()){
+		in.close();
+	}	
+}
+
 
 void StepOptions::readBioTextFile(string file){
 	int line_length = 30;

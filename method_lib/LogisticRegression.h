@@ -8,6 +8,7 @@
 #include "FlatIndex.h"
 // #include "StepOptions.h"
 #include "MethodException.h"
+#include<set>
 
 ///
 /// Calculates logistic regression in method library
@@ -102,6 +103,7 @@ class LogisticRegression: public Regression{
     void initialize_interactions();
     void set_model();
     double norm(double z);
+    void setDependent(StepOptions* options);
     void summarize_data(vector<unsigned int> & genos);
     void initialize_summary(unsigned int currModelSize);
     unsigned int ix(int j,int k,int nCols);
@@ -132,6 +134,9 @@ class LogisticRegression: public Regression{
     vector<vector<double> > summary_data;
     vector<vector<vector<unsigned int> > > interaction_lists;
     double PiD2;
+    
+    std::set<int> skipInd;
+    vector<int> Y;
 
 };
 };
