@@ -133,6 +133,7 @@ class StepOptions {
 		bool do_covs_number;
 		bool do_covs_name;
 		bool do_gxe, do_gxe_number, do_gxe_name;
+		bool do_covars_only;
 		string cov_file;
 		vector<string> cov_map;
 		vector<string> cov_use;
@@ -432,6 +433,7 @@ class StepOptions {
 			s_loci,
 			s_gxe_number,
 			s_gxe_name,
+			s_run_covars_only,
 
 			//insert cluster missing here
 			s_max_cluster_size,
@@ -602,6 +604,7 @@ class StepOptions {
 			bin_prefix = "";
 			do_covs = false;
 			do_gxe = false;
+			do_covars_only = false;
 			do_gxe_name = false;
 			do_gxe_number =false;
 			do_traits = false;
@@ -813,6 +816,7 @@ class StepOptions {
 			s_ArgVals["-traits-name"] = s_traits_name;
 			s_ArgVals["-traits-number"] = s_traits_number;
 			s_ArgVals["-covar-missing"] = s_covar_missing;
+			s_ArgVals["-run-covars-only"] = s_run_covars_only;
 			s_ArgVals["-trait-missing"] = s_trait_missing;
 			s_ArgVals["-loci"] = s_loci;
 			s_ArgVals["-pheno"] = s_pheno;
@@ -1590,6 +1594,9 @@ class StepOptions {
 		//set/get covar file
 		bool doCovarsFile(){return do_covs_file;};
 		void setDoCovarsFile(bool b){do_covs_file = b; setDoCovars(true);};
+		//set run only covars
+		void setRunCovarsOnly(){do_covars_only=true;}
+		bool runCovarsOnly(){return do_covars_only;}
 		//set/get trait file
 		bool doTraitsFile(){return do_traits_file;};
 		void setDoTraitsFile(bool b){do_traits_file = b; setDoTraits(true);};

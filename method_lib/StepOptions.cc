@@ -301,7 +301,10 @@ void StepOptions::setUp(string s){
 						}
 						gxe_list_file = val;
 					}
-					break;				
+					break;
+				case s_run_covars_only:
+						do_covars_only = true;
+					break;						
 				//biofilter
 				case s_bio_comparison_file:
 					if(i + 1 < (int) tokens.size()){

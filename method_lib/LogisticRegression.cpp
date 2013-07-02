@@ -693,8 +693,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
       ngenotypes++;
     }
   }
-  
-// exit(1);
 
   calculateLR(summary_data, false, includedCells);
 }

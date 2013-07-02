@@ -56,6 +56,9 @@ class ProcessLogReg : public Process{
 		int run_start;
 		int run_end;
 		string defaultinsert;
+		double _zt;
+		int _nmiss;
+		vector<double> _chis, _pvals;
 
 	public:
 		ProcessLogReg(){
@@ -75,6 +78,8 @@ class ProcessLogReg : public Process{
 			run_chr = 0;
 			run_start = -1;
 			run_end = -1;
+			_zt = 0.0;
+			_nmiss=0;
 		};
 		ProcessLogReg(float thresh) : threshold(thresh){
 			data_set = NULL;
@@ -88,10 +93,12 @@ class ProcessLogReg : public Process{
 			_DBOUTPUT_ = false;
 			_MARKERLIST_ = false;
 			_STRATIFY_ = false;
+			_zt = 0.0;
 			order = 0;
 			run_chr = 0;
 			run_start = -1;
 			run_end = -1;
+			_nmiss=0;
 		};
 #ifdef PLATOLIB
 		ProcessLogReg(string, int, Database*);
@@ -119,6 +126,13 @@ class ProcessLogReg : public Process{
         void setOrder(int o){order = o;};
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
+		void outputResult(ostream& lrout, ostream& lrsvout, LogisticRegression& lr,
+			vector<unsigned int>& model, vector<unsigned int>& covs,  string groupName,
+			int modelnum, DataSet* ds, Marker* mark);
+		DataSet* getTempDataSet(DataSet* ds, map<string, vector<Sample*> >::iterator group_iter);
+		void addCovsTraits(vector<unsigned int>& covs, vector<unsigned int>& traits,
+			DataSet* tempds, bool cov_use, InputFilter& ct_filter, DataSet* tempds);
+		void setCovariates(vector<unsigned int>& covars);
 		#ifdef PLATOLIB
 			void run(DataSetObject*);
 			void dump2db();
