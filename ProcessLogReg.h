@@ -131,7 +131,7 @@ class ProcessLogReg : public Process{
 			int modelnum, DataSet* ds, Marker* mark);
 		DataSet* getTempDataSet(DataSet* ds, map<string, vector<Sample*> >::iterator group_iter);
 		void addCovsTraits(vector<unsigned int>& covs, vector<unsigned int>& traits,
-			DataSet* tempds, bool cov_use, InputFilter& ct_filter, DataSet* tempds);
+			DataSet* ds, bool cov_use, InputFilter& ct_filter, DataSet* tempds);
 		void setCovariates(vector<unsigned int>& covars);
 		#ifdef PLATOLIB
 			void run(DataSetObject*);
