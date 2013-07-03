@@ -38,6 +38,9 @@ class LogisticRegression: public Regression{
 
     /// returns the overall model p value
     double getOverallP(){return overallPvalue;}
+    
+    /// returns overall chi square score
+    double getOverallScore(){return chisquare;}
 
     /// returns the log likelihood ratio
     double getLLR(){return LLR;}
@@ -116,7 +119,7 @@ class LogisticRegression: public Regression{
 
     vector<double> coefficients, standard_errors, coeff_pvalues;
     double coeffPvalue, LLR, overallPvalue, coeff_intercept, missingCoValue,
-      pseudo_r2;
+      pseudo_r2, chisquare;
     bool fullInteraction, includeInteractions;
 
     ModelTypes modType;

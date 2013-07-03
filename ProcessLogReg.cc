@@ -172,11 +172,10 @@ void ProcessLogReg::outputResult(ostream& lrout, ostream& lrsvout, LogisticRegre
 				}
 				if(mark)
 					lrout << mark->getReferent() << "\t";
-				if(mark || c > 0)
-					lrout << ds->get_covariate_name(covs[c]);
-				else
-					lrout << "-";
-				lrout << "\t" << _nmiss;
+					
+				lrout << ds->get_covariate_name(covs[c]);
+
+				lrout << "\t";
 				lrout << "\t" << coefs[buffer + c];
 				lrout << "\t" << exp(coefs[buffer + c]);
 
@@ -206,6 +205,25 @@ void ProcessLogReg::outputResult(ostream& lrout, ostream& lrsvout, LogisticRegre
 
 				lrout << endl;
 			}
+			
+			if(mark)
+				lrout << mark->toString() << "\t";
+			else
+				lrout << ds->get_covariate_name(covs[0]) << "\t";
+				
+			if(options.doGroupFile()){
+					lrout << groupName << "\t";
+			}
+			lrout << "overall";
+			lrout << "\t" << _nmiss;
+			lrout << "\t-----";
+			lrout << "\t-----";
+			lrout << "\t-----\t-----\t-----";
+			lrout << "\t" << lr.getOverallScore();
+			lrout << "\t" << lr.getOverallP() << endl;
+			
+			
+			
 }
 
 DataSet* ProcessLogReg::getTempDataSet(DataSet* ds, map<string, vector<Sample*> >::iterator group_iter){

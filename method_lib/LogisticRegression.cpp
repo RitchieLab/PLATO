@@ -337,7 +337,8 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
     j=nColumns;
     coeffPvalue = norm(fabs(Par.at(j)/SEP.at(j)));
     // calculate overall p value
-    overallPvalue = ChiSq(fabs(LLn-LL), nColumns);
+    chisquare = fabs(LLn-LL);
+    overallPvalue = ChiSq(chisquare, nColumns);
 
     coeff_intercept = Par.at(0);
     // adjust coefficients so that the zero index is now first coefficient
