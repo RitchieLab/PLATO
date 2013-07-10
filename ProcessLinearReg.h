@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "config.h"
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -120,7 +119,12 @@ class ProcessLinearReg : public Process{
 		void setStratify(){_STRATIFY_ = true;};
 		//void process(Families*, Markers*);
 		void process(DataSet*);
+		void processEnvironmental(ostream& lrout);
         void setOrder(int o){order = o;};
+    void addCovsTraits(vector<unsigned int>& covs, vector<unsigned int>& traits,
+			DataSet* ds, bool cov_use, InputFilter& ct_filter, DataSet* tempds);
+		DataSet* getTempDataSet(DataSet* ds, map<string, vector<Sample*> >::iterator group_iter);
+		void setCovariates(vector<unsigned int>& covars);
 		void setOverwrite(bool v){overwrite = v;};
 		bool hasIncExc(){return options.doIncExcludedSamples();};
 		#ifdef PLATOLIB

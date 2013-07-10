@@ -22,7 +22,6 @@
 #include <sstream>
 #include <fstream>
 #include <math.h>
-#include "config.h"
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -33,6 +32,7 @@
 #include <algorithm>
 #include <map>
 #include <LinearRegression.h>
+#include <LinRegression.h>
 #include <MultComparison.h>
 #include "ProcessLinearReg.h"
 #include <Options.h>
@@ -106,6 +106,242 @@ void ProcessLinearReg::doFilter(Methods::Marker* mark, double value){
 }
 
 
+DataSet* ProcessLinearReg::getTempDataSet(DataSet* ds, map<string, vector<Sample*> >::iterator group_iter){
+		DataSet* tempds = new DataSet;
+
+		tempds->set_markers(ds->get_markers());
+		tempds->set_samples(&group_iter->second);
+		tempds->recreate_family_vector();
+		tempds->set_affection_vectors();
+		tempds->set_marker_map(ds->get_marker_map());
+		tempds->set_covariates(ds->get_covariates());
+		tempds->set_covariate_map(ds->get_covariate_map());
+		tempds->set_traits(ds->get_traits());
+		tempds->set_trait_map(ds->get_trait_map());
+		return tempds;	
+}
+
+
+void ProcessLinearReg::addCovsTraits(vector<unsigned int>& covs, vector<unsigned int>& traits,
+	DataSet* ds, bool cov_use, InputFilter& ct_filter, DataSet* tempds){
+	
+	if(cov_use)
+	{
+		for(int c = 0; c < ds->num_covariates(); c++)
+		{
+			bool use = true;
+			for(int f = 0; f < ct_filter.num_covariate_filters(); f++)
+			{
+				use = ct_filter.run_covariate_filter(f, tempds->get_covariate_name(c));
+			}
+			if(use){
+				covs.push_back(c);
+			}
+		}
+	}
+
+	#ifdef PLATOLIB
+	if(trait_use){
+		for(int c = 0; c < tempds->num_traits(); c++){
+			bool use = true;
+			for(int f = 0; f < ct_filter.num_trait_filters(); f++){
+				use = ct_filter.run_trait_filter(f, tempds->get_trait_name(c));
+			}
+			if(use){
+				traits.push_back(c);
+			}
+		}
+	}
+	#endif
+}
+
+
+///
+/// Set covariates for use in regression models
+///
+void ProcessLinearReg::setCovariates(vector<unsigned int>& covars){
+  vector<string> use_covs = options.getCovars();
+
+  if(options.doCovarsName()){
+    // convert to indexes and add to covars
+    for(unsigned int i =0; i<use_covs.size(); i++){
+			int index = data_set->get_covariate_index(use_covs[i]);
+			if(index != -1){
+	      covars.push_back(data_set->get_covariate_index(use_covs[i]));
+	    }
+	    else{
+	    	throw MethodException("\nERROR: " + use_covs[i] + " not found in covariate file\n\n");
+	    }
+    }
+  }
+  else{
+    // convert string numbers to numbers
+    for(unsigned int i =0; i<use_covs.size(); i++){
+			if(use_covs.at(i).find('-') != string::npos){
+				vector<string> range;
+				General::Tokenize(use_covs.at(i), range, "-");
+				int start = atoi(range[0].c_str())-1;
+				int last = atoi(range[1].c_str())-1;
+				for(int j=start; j<=last; j++){
+					covars.push_back(j);
+				}
+			}
+			else{
+	      covars.push_back(atoi(use_covs[i].c_str())-1);
+	    }
+    }
+  }
+}
+
+
+void ProcessLinearReg::processEnvironmental(ostream& lrout)
+{
+
+	if(options.doGroupFile()){
+		opts::printLog("Reading group information [" + options.getGroupFile() + "]\n");
+		options.readGroups(data_set->get_samples());
+	}
+
+    lrout.precision(4);
+
+ 		lrout << "Variable\t";
+	  if(options.doGroupFile()){
+  	  lrout << "GRP\t";
+    }
+    lrout << "Test\tNMISS\tBETA\tOR\tSE\tL" << getString<double>(options.getCI()*100) 
+    	<< "\t" << "U" << getString<double>(options.getCI()*100) << "\tSTAT\tPvalue\n";
+
+
+	LinRegression lr;
+	lr.resetDataSet(data_set);
+	lr.set_parameters(&options);
+	data_set->set_missing_covalues(-99999);
+	map<string, vector<Sample*> > groups = options.getGroups();
+	map<string, vector<Sample*> >::iterator group_iter;
+	if(groups.size() == 0){
+		groups["GROUP_1"] = *(data_set->get_samples());
+	}
+	
+	int prev_base = 0;
+	int prev_chrom = -1;
+
+	lr.setModelType(options.getLRModelType());
+
+	double zt = Helpers::ltqnorm(1.0 - (1.0 - options.getCI()) / 2.0);
+	InputFilter ct_filter;
+
+	vector<string> use_covs = options.getCovars();
+	vector<string> use_traits = options.getTraits();
+	if(options.doCovarsName()){
+		ct_filter.add_covariate_list(&use_covs);
+		ct_filter.add_covariate_filter(InputFilter::IncludeCovariateFilter);
+	}
+	bool cov_use = false;
+
+	int numCovars = data_set->num_covariates();
+	vector<unsigned int> addCovars;
+	setCovariates(addCovars);
+	set<unsigned int> covarMap;
+	vector<unsigned int>::iterator iter;
+	for(iter = addCovars.begin(); iter != addCovars.end(); iter++){
+		covarMap.insert(*iter);
+	}
+		
+	vector<string>* get_covariates();
+	int nmiss;
+	double missingCoValue = data_set->get_missing_covalue();
+	for(int c=0; c < numCovars; c++){
+		for(group_iter = groups.begin(); group_iter != groups.end(); group_iter++)
+		{
+			DataSet* tempds = getTempDataSet(data_set, group_iter);
+			lr.resetDataSet(tempds);				
+			nmiss = 0;
+			for(int s = 0; s < tempds->num_inds(); s++)
+			{
+				Sample* samp = tempds->get_sample(s);
+				if(samp->isEnabled() && !samp->getCovariate(c) != missingCoValue && (samp->getPheno() == 1 || samp->getPheno() == 2))
+				{
+					nmiss++;
+				}
+			}
+				
+			vector<unsigned int> model;
+			vector<unsigned int> covs;
+			vector<unsigned int> traits;
+			covs.push_back(c);
+			if(!addCovars.empty()){
+				if(covarMap.find(c) == covarMap.end()){
+					covs.insert(covs.end(), addCovars.begin(), addCovars.end());
+				}
+				else{
+					for(vector<unsigned int>::iterator iter=addCovars.begin(); iter!=addCovars.end();
+						iter++){
+						if(*iter != c)
+						{
+							covs.push_back(*iter);
+						}
+					}
+				}
+			}	
+				
+			addCovsTraits(covs,traits,data_set,cov_use,ct_filter,tempds);
+			lr.calculate(model, covs);			
+			
+			vector<double> coefs = lr.getCoefficients();
+			vector<double> ses = lr.getCoeffStandardErr();
+			
+			for(int c=0; c < (int)covs.size(); c++)
+			{
+				lrout << data_set->get_covariate_name(covs[0]) << "\t";
+				if(options.doGroupFile()){
+					lrout <<  group_iter->first << "\t";
+				}
+				lrout << data_set->get_covariate_name(covs[c]);
+				lrout << "\t" << nmiss;
+				lrout << "\t" << coefs[c];
+				lrout << "\t" << exp(coefs[c]);
+				double se = ses[c];
+				double Z = coefs[c] / se;
+				lrout << "\t" << se
+					<< "\t" << exp(coefs[c] - zt * se)
+					<< "\t" << exp(coefs[c] + zt * se)
+					<< "\t" << Z;	
+				double zz = Z*Z;
+				double pvalue, df = 1;
+				if(se > 0){
+					if(!isinf(zz)){
+						pvalue = Helpers::p_from_chi(zz, df);
+						lrout << "\t" << pvalue;
+					}
+					else{
+						lrout << "\tinf";
+					}
+				}
+				else{
+					lrout << "\tnan";
+				}
+				lrout << "\n";				
+			}
+			
+			lrout << data_set->get_covariate_name(covs[0]) << "\t";	
+			if(options.doGroupFile()){
+					lrout << group_iter->first << "\t";
+			}
+			lrout << "overall";
+			lrout << "\t" << nmiss;
+			lrout << "\t-----";
+			lrout << "\t-----";
+			lrout << "\t-----\t-----\t-----\t";
+			lrout << lr.getOverallScore();
+			lrout << "\t" << lr.getOverallP() << endl;			
+			
+			delete tempds;			
+		}
+	}
+
+}
+
+
 void ProcessLinearReg::process(DataSet* ds){
 	data_set = ds;
 
@@ -143,7 +379,16 @@ void ProcessLinearReg::process(DataSet* ds){
         throw MethodException("");
     }
     lrout.precision(4);
+#endif
 
+	// run only environmental variables (in covariate file)
+	if(options.runCovarsOnly()){
+		processEnvironmental(lrout);
+		lrout.close();
+		return;
+	}
+	
+#ifndef PLATOLIB
     //MEMORY_LEAK
     lrout << "Chrom\trsID\tProbeID\tBPLOC\t";
     if(options.doGroupFile()){
@@ -280,6 +525,7 @@ void ProcessLinearReg::process(DataSet* ds){
 				chis[i] = lr.getStatistic();
 				main_pvals[i] = pvals[1];
 				#endif
+				delete tempds;
 			}//end loop through Groups
 #ifndef PLATOLIB
 			if(options.doOutputSynthView()){

@@ -63,6 +63,9 @@ class LinRegression: public Regression{
     /// Get p value for model
     double getOverallP(){return f_pval;}
     
+    /// Get overall score
+    double getOverallScore(){return f_statistic;}
+    
     /// Get r-squared for model
     double getRSquared(){return r2;}
     
@@ -97,7 +100,8 @@ class LinRegression: public Regression{
     DataSet* set;
     int n_vars, n_inds, model_interaction, ngenotypes;
     vector<double> coefficients, std_errors, tt_vals, coeff_pvals;
-    double f_pval, r2, adjusted_r2, likelihood, lrt_pval, missingCoValue, coeff_intercept;
+    double f_pval, r2, adjusted_r2, likelihood, lrt_pval, missingCoValue, coeff_intercept,
+    	f_statistic;
     unsigned int missingValue;
     
     ModelTypes modType;

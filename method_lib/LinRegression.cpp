@@ -43,6 +43,7 @@ void LinRegression::initialize(){
   modType = Additive;
   missingValue = 3;
   missingCoValue = -99999;
+  f_statistic = 0.0;
   
   set_model();
   
@@ -260,10 +261,10 @@ void LinRegression::calculate_linreg(vector<vector<double> >& analysis_matrix){
   double p = n_vars-1;
   double fnumerator = ymeansum /p;
   double fdenominator = yactualsum / df;
-  double fstatistic = fnumerator / fdenominator;
+  f_statistic = fnumerator / fdenominator;
   
   // fstat p-value can be used as measure of overall model p-value
-  f_pval = 1-gsl_cdf_fdist_P(fstatistic,p,df);
+  f_pval = 1-gsl_cdf_fdist_P(f_statistic,p,df);
   
   // calculate the log-likelihood
   // calculate squared sum of residuals
