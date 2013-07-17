@@ -34,8 +34,8 @@
 #include "Chrom.h"
 #include <General.h>
 #include "Helpers.h"
-#include <sqlite3.h>
 #ifdef PLATOLIB
+#include <sqlite3.h>
 #include <libsqlitewrapped.h>
 #include "Controller.h"
 #endif
