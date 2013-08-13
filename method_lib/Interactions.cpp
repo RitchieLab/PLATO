@@ -755,6 +755,9 @@ void Interactions::openLog(ofstream& epi_log){
   epi_log.open(logname.c_str());
   
   epi_log << "LRT threshold is " << lrt_threshold << endl;
+  for(vector<unsigned int>::iterator iter=covars.begin(); iter != covars.end(); ++iter){
+	epi_log << "Covariate included: " << data_set->get_covariate_name(*iter) << endl;
+  }  
   
   if(!epi_log)
 	{
