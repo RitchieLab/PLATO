@@ -111,13 +111,12 @@ bool Interactions::PhenoBinary(){
 }
 
 
-
 ///
 /// Set covariates for use in regression models
 ///
 void Interactions::SetCovariates(){
   vector<string> use_covs = options.getCovars();
-
+	
   if(options.doCovarsName()){
     // convert to indexes and add to covars
     for(unsigned int i =0; i<use_covs.size(); i++){
@@ -404,11 +403,10 @@ void Interactions::CalculateComplexResults(ComplexResults& results, vector<unsig
   results.full_p_value = regressor->getOverallP();
   results.full_rsq = regressor->adjusted_rsquared();
   results.full_llr = regressor->getLLR();
-
-  results.likelihood_ratio = -2 * (results.red_llr - results.full_llr);
-
+//   results.likelihood_ratio = -2 * (results.red_llr - results.full_llr);
+	results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
+  results.likelihood_ratio = -(results.red_llr - results.full_llr);
   results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
-	
 }
 
 

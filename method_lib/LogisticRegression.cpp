@@ -3,6 +3,8 @@
 #include "LogisticRegression.h"
 #include "ComboGenerator.h"
 #include "Helpers.h"
+
+
 namespace Methods{
 ///
 /// Constructor
@@ -327,7 +329,7 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
 
   if(isnan(LL)){
     overallPvalue = coeffPvalue = 1.0;
-    LLR = 0.0;
+    LLR = LLn;
   }
   else{
     // calculate coefficient p value

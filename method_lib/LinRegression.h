@@ -73,7 +73,7 @@ class LinRegression: public Regression{
     double adjusted_rsquared(){return adjusted_r2;}
     
     /// Get log-likelihood for model
-    double getLLR(){return likelihood;}
+    double getLLR(){return 2*likelihood;}
     
     /// return # of genotypes used in calculation
     int getNumGenotypes(){ return ngenotypes;}
