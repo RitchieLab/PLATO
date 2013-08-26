@@ -426,8 +426,12 @@ void ProcessLogReg::process(DataSet* ds)
 				}	
 				
 				addCovsTraits(covs,traits,ds,cov_use,ct_filter,tempds);
-				lr.calculate(model, covs, traits);			
+				try{
+					lr.calculate(model, covs, traits);
+				}
+				catch(MethodException& me){}			
 				outputResult(lrout, lrsvout, lr, model, covs, group_iter->first, c, ds, NULL);
+
 				delete tempds;			
 			}
 		}
@@ -464,12 +468,14 @@ void ProcessLogReg::process(DataSet* ds)
 				model.push_back(good_markers[m]);
 				addCovsTraits(covs, traits, ds,cov_use,ct_filter,tempds);
 
+				try{
 				if(covs.size() == 0){
 					lr.calculate(model);
 				}
 				else{
 					lr.calculate(model, covs, traits);
 				}
+				}catch(MethodException& me){}
 
 				outputResult(lrout, lrsvout, lr, model, covs, group_iter->first, m, ds, mark);
 
@@ -526,7 +532,9 @@ void ProcessLogReg::process(DataSet* ds)
 
 		MultComparison mc(options);
 		vector<int> tcnt;
-		mc.calculate(_chis, tcnt);
+		try{
+			mc.calculate(_chis, tcnt);
+		}catch(MethodException& me){}
 
 		prev_base = 0;
 		prev_chrom = -1;

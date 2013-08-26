@@ -187,7 +187,7 @@ void Interactions::CalculateGXEFile(ostream& inter_out, string gxefilename){
       envIter++){
       envIndex = data_set->get_covariate_index(*envIter);
     	modelCovars.front() = envIndex;
-			CalculateGXEPair(mark, envIndex, inter_out);
+			CalculateGXEPair(mark, envIndex, inter_out,epi_log);
     }
   }
   
@@ -264,10 +264,10 @@ void Interactions::CalculateBioFile(ostream& inter_out, string biofiltername){
 			  epi_log << snp1 << " " << *snp2_iter << " ---> " << "Snps have same index!" << endl;
 				continue;        
       }
-      CalculatePair(mark1, mark2, inter_out);
+      CalculatePair(mark1, mark2, inter_out, epi_log);
     }
   }
-  
+
   epi_log.close();
 }
 
@@ -300,7 +300,7 @@ void Interactions::CalculateGXE(ofstream& inter_out){
 		for(vector<unsigned int>::iterator cIter = gXecovars.begin(); cIter != endIter; ++cIter){
 			// environmental factor will be first in the covariate list
 			modelCovars.front() = *cIter;
-			CalculateGXEPair(mark, *cIter, inter_out);
+			CalculateGXEPair(mark, *cIter, inter_out,epi_log);
 		}
 	}
 	
@@ -314,7 +314,8 @@ void Interactions::CalculateGXE(ofstream& inter_out){
 /// @param environ Index of the covariate for this environmental factor
 /// @param inter_out output stream
 /// 
-void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter_out){
+void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter_out,
+	ostream& epi_log){
 	// get snp1 and snp2 results
   UniRegression snp_results, covar_results;
   snp_results = GetSingleRegression(snp.loc_index);
@@ -327,6 +328,7 @@ void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter
   snps.push_back(snp.loc_index);
   
   ComplexResults results;
+  try{
   if(snp_results.valid and covar_results.valid){
   	CalculateComplexResults(results, snps, modelCovars);
   	if(results.lrt_p_value > lrt_threshold){
@@ -345,6 +347,9 @@ void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter
     covar_results.ngenotypes << sep;  
 
   OutputPair(results, snp_results, covar_results, inter_out);  
+  }catch(MethodException& me){
+  	epi_log << snp.marker->getRSID() + " " + data_set->get_covariate_name(environ) + me.what() << endl;
+  }
 }
 
 
@@ -368,8 +373,7 @@ void Interactions::CalculateExhaustive(ostream& inter_out){
     for(vector<int>::iterator snp2_iter = snp1_iter+1; snp2_iter != good_indexes.end(); ++snp2_iter){
       if(!getMarker(*snp2_iter, mark2, epi_log))
         continue;
-      CalculatePair(mark1, mark2, inter_out);
-      
+      CalculatePair(mark1, mark2, inter_out, epi_log);
     }
   }
   epi_log.close();
@@ -405,6 +409,7 @@ void Interactions::CalculateComplexResults(ComplexResults& results, vector<unsig
   results.full_llr = regressor->getLLR();
 //   results.likelihood_ratio = -2 * (results.red_llr - results.full_llr);
 	results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
+cout << "red=" << results.red_llr << " full=" << results.full_llr << endl;
   results.likelihood_ratio = -(results.red_llr - results.full_llr);
   results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
 }
@@ -480,7 +485,8 @@ void Interactions::OutputPair(ComplexResults& complex, UniRegression& var1, UniR
 /// @param snp1 MarkerInfo first marker
 /// @param snp2 MarkerInfo second marker
 /// 
-void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out){
+void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out,
+	ostream& epi_log){
 
   // get snp1 and snp2 results
   UniRegression snp1_results, snp2_results;
@@ -497,6 +503,7 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
     snps.push_back(snp2.loc_index);
   
   ComplexResults results;
+  try{
   if(snp1_results.valid and snp2_results.valid){
 	  CalculateComplexResults(results, snps, covars);
   	  if(results.lrt_p_value > lrt_threshold){
@@ -514,6 +521,11 @@ void Interactions::CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& in
     snp2_results.maf<< sep << snp2_results.ngenotypes << sep;
     
   OutputPair(results, snp1_results, snp2_results, inter_out);
+  }
+  catch(MethodException& me){
+  		epi_log << snp1.marker->getRSID() + " " +  snp2.marker->getRSID() << me.what() << endl;
+  }
+  
 }
 
 

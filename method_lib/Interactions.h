@@ -99,8 +99,10 @@ namespace Methods{
     map<int, UniRegression> uni_results;
     map<int, UniRegression> cov_results;
     
-    void CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out);
-    void CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter_out);
+    void CalculatePair(MarkerInfo& snp1, MarkerInfo& snp2, ostream& inter_out, 
+    	ostream& epi_log);
+    void CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter_out, 
+    	ostream& epi_log);
     void CalculateComplexResults(ComplexResults& results, vector<unsigned int>& modsnps,
     	vector<unsigned int>& modcovars);
     void OutputPair(ComplexResults& complex, UniRegression& var1, UniRegression& var2,

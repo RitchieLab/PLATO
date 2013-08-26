@@ -414,7 +414,9 @@ void Epistasis::evalBioFile(ofstream &EPI)
 							model.push_back((unsigned int)s1->getLoc());
 							model.push_back((unsigned int)s2->getLoc());
 							logr.setFullInteraction(true);
-							logr.calculate(model);
+							try{
+								logr.calculate(model);
+							}catch(MethodException& me){}
 
 							b = logr.getCoefficients();
 							vector<double> ses = logr.getCoeffStandardErr();
@@ -1132,6 +1134,7 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 						model.push_back((unsigned int)e2);
 
 						logr.setFullInteraction(true);
+						try{
 						if(covs.size() > 0)
 						{
 							logr.calculate(model, covs, traits);
@@ -1140,6 +1143,8 @@ void Epistasis::process(vector<Sample*>* ss, vector<Family*>* f, vector<Marker*>
 						{
 							logr.calculate(model);
 						}
+						}
+						catch(MethodException& me){}
 
 						b = logr.getCoefficients();
 						vector<double> ses = logr.getCoeffStandardErr();

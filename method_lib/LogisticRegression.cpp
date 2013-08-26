@@ -329,7 +329,8 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
 
   if(isnan(LL)){
     overallPvalue = coeffPvalue = 1.0;
-    LLR = LLn;
+		LLR=0;
+		throw MethodException(" did not converge and produce meaningful value");
   }
   else{
     // calculate coefficient p value
@@ -354,11 +355,10 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
     // http://statistics.ats.ucla.edu/stat/mult_pkg/faq/general/Psuedo_RSquareds.htm
     // using McFadden's method from page
     pseudo_r2 = 1 - LL/LLn;
-
     // calculate log-likelihood 
     LLR = LLn-LL;
-  }
 
+  }
 }
 
 
