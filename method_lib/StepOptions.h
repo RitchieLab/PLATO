@@ -1047,7 +1047,7 @@ class StepOptions {
 			lr_fullInteraction = false;
 			lr_includeInteractions = false;
 			lr_modType = "ADDITIVE";
-			lr_maxIterations = 20;
+			lr_maxIterations = 25;
 			// Conditional logistic regression default values
 			cond_lr = false;
 			cond_lr_fullInteraction = true;

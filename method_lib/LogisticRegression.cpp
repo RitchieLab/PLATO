@@ -33,7 +33,7 @@ void LogisticRegression::initialize(){
   missingValue = maxLocusValue+1;
   LociComboLimit = 10;
   LociComboMin = 1;
-  maxIterations = 20;
+  maxIterations = 25;
   modType = Additive;
   defaultComboInterval = 10000;
   includeInteractions = false;
@@ -327,9 +327,9 @@ void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary
     Par.at(0) = Par.at(0) - Par.at(j) * xM.at(j);
   }
 
-  if(isnan(LL)){
+  if(isnan(LL) || numIterations > maxIterations){
     overallPvalue = coeffPvalue = 1.0;
-		LLR=0;
+		LLR=0;	
 		throw MethodException(" did not converge and produce meaningful value");
   }
   else{

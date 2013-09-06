@@ -318,6 +318,7 @@ void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter
 	ostream& epi_log){
 	// get snp1 and snp2 results
   UniRegression snp_results, covar_results;
+	try{
   snp_results = GetSingleRegression(snp.loc_index);
   covar_results = GetSingleEnvRegression(environ);
   
@@ -328,7 +329,7 @@ void Interactions::CalculateGXEPair(MarkerInfo& snp, int environ, ostream& inter
   snps.push_back(snp.loc_index);
   
   ComplexResults results;
-  try{
+
   if(snp_results.valid and covar_results.valid){
   	CalculateComplexResults(results, snps, modelCovars);
   	if(results.lrt_p_value > lrt_threshold){
