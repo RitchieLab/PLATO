@@ -408,8 +408,6 @@ void Interactions::CalculateComplexResults(ComplexResults& results, vector<unsig
   results.full_p_value = regressor->getOverallP();
   results.full_rsq = regressor->adjusted_rsquared();
   results.full_llr = regressor->getLLR();
-//   results.likelihood_ratio = -2 * (results.red_llr - results.full_llr);
-	results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
   results.likelihood_ratio = -(results.red_llr - results.full_llr);
   results.lrt_p_value = GetLLRPValue(results.likelihood_ratio);
 }

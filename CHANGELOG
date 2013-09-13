@@ -1,3 +1,9 @@
+== Version 1.2.4 ==
+
+Bug Fix:
+
+1.  Fixed bug in GXE regression testing in the interaction method.  It was reporting incorrect likelihood ratio test p-values when logistic regression was used.  
+
 == Version 1.2.3 ==
 
 Bug Fixes:
