@@ -1,3 +1,9 @@
+== Version 1.2.5 ==
+
+Bug Fix:
+
+1.  Fixed bug in logreg analysis step (logistic regression) where PLATO was ignoring covariates and excluding them from analysis for SNPs. -run-covars-only was working properly with covariates.
+
 == Version 1.2.4 ==
 
 Bug Fix:

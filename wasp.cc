@@ -30,7 +30,7 @@ using namespace Methods;
 using namespace PlatoLib;
 #endif
 
-static string _WASPVER_ = "1.2.2";
+static string _WASPVER_ = "1.2.5";
 //enum for batch file step switch
 enum StepValue{
 					   e_examplemodule,    //examplemodule
