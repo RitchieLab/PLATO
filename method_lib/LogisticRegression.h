@@ -99,6 +99,8 @@ class LogisticRegression: public Regression{
 	  /// returns the pseudo rsquared
 	  double adjusted_rsquared(){return pseudo_r2;}
 
+		void setDependent(StepOptions* options);
+
   private:
     DataSet* set;
 
@@ -106,7 +108,7 @@ class LogisticRegression: public Regression{
     void initialize_interactions();
     void set_model();
     double norm(double z);
-    void setDependent(StepOptions* options);
+
     void summarize_data(vector<unsigned int> & genos);
     void initialize_summary(unsigned int currModelSize);
     unsigned int ix(int j,int k,int nCols);

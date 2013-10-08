@@ -221,10 +221,8 @@ void ProcessLogReg::outputResult(ostream& lrout, ostream& lrsvout, LogisticRegre
 			lrout << "\t-----\t-----\t-----";
 			lrout << "\t" << lr.getOverallScore();
 			lrout << "\t" << lr.getOverallP() << endl;
-			
-			
-			
 }
+
 
 DataSet* ProcessLogReg::getTempDataSet(DataSet* ds, map<string, vector<Sample*> >::iterator group_iter){
 		DataSet* tempds = new DataSet;
@@ -245,7 +243,6 @@ DataSet* ProcessLogReg::getTempDataSet(DataSet* ds, map<string, vector<Sample*> 
 
 void ProcessLogReg::addCovsTraits(vector<unsigned int>& covs, vector<unsigned int>& traits,
 	DataSet* ds, bool cov_use, InputFilter& ct_filter, DataSet* tempds){
-	
 	if(cov_use)
 	{
 		for(int c = 0; c < ds->num_covariates(); c++)
@@ -336,6 +333,7 @@ void ProcessLogReg::process(DataSet* ds)
 	lr.resetDataSet(ds);
 	lr.set_parameters(&options);
 	ds->set_missing_covalues(-99999);
+// 	lr.setDependent(&options);
 	map<string, vector<Sample*> > groups = options.getGroups();
 	map<string, vector<Sample*> >::iterator group_iter;
 	if(groups.size() == 0){
@@ -373,6 +371,7 @@ void ProcessLogReg::process(DataSet* ds)
 
 	vector<string> use_covs = options.getCovars();
 	vector<string> use_traits = options.getTraits();
+
 	if(options.doCovarsName()){
 		ct_filter.add_covariate_list(&use_covs);
 		ct_filter.add_covariate_filter(InputFilter::IncludeCovariateFilter);
@@ -437,6 +436,10 @@ void ProcessLogReg::process(DataSet* ds)
 		}
 	}
 	else{
+		// set dependent 
+		// set covariates
+		vector<unsigned int> covs;
+		setCovariates(covs);
 		for(int m = 0; m < (int)good_markers.size(); m++){//(int)ds->num_loci(); m++){
 			Marker* mark = ds->get_locus(good_markers[m]);//ds->get_locus(m);
 			if(mark->isEnabled()){// && isValidMarker(mark, &options, prev_base, prev_chrom)){
@@ -463,10 +466,9 @@ void ProcessLogReg::process(DataSet* ds)
 				}
 				#endif
 				vector<unsigned int> model;
-				vector<unsigned int> covs;
 				vector<unsigned int> traits;
 				model.push_back(good_markers[m]);
-				addCovsTraits(covs, traits, ds,cov_use,ct_filter,tempds);
+// 				addCovsTraits(covs, traits, ds,cov_use,ct_filter,tempds);
 
 				try{
 				if(covs.size() == 0){

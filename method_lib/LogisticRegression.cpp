@@ -152,8 +152,6 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, DataSet* dataset)
 
 
 void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary_data, vector<int>& includedCells){
-
-
    unsigned int nRows = includedCells.size();
   // number of coefficients is equal to the main effects + the interactions
   unsigned int nColumns = data.at(0).size()-2;
