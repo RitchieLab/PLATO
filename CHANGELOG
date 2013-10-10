@@ -2,13 +2,13 @@
 
 Bug Fix:
 
-1.  Fixed bug in logreg analysis step (logistic regression) where PLATO was ignoring covariates and excluding them from analysis for SNPs. -run-covars-only was working properly with covariates.
+1.  Fixed bug in logreg analysis step (logistic regression) where PLATO was ignoring covariates and excluding them from analysis for SNPs. -run-covars-only was working properly with covariates.  This corrected an issue introduced in 1.2.3.
 
 == Version 1.2.4 ==
 
 Bug Fix:
 
-1.  Fixed bug in GXE regression testing in the interaction method.  It was reporting incorrect likelihood ratio test p-values when logistic regression was used.  
+1.  Fixed bug in GXE regression testing in the interaction method.  It was reporting incorrect likelihood ratio test p-values when logistic regression was used.
 
 == Version 1.2.3 ==
 
