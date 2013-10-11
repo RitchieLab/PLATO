@@ -643,7 +643,7 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, vector<unsigned i
   unsigned int currInd, currValue, i;
   for(currInd=0; currInd < numInds; currInd++)
   {
-	  if(!(*set)[currInd]->isEnabled() || skipInd.find(i) != skipInd.end())
+	  if(!(*set)[currInd]->isEnabled() || skipInd.find(currInd) != skipInd.end())
 		  continue;
     currValue = 0;
     bool any_missing = false;
@@ -771,10 +771,11 @@ void LogisticRegression::setDependent(StepOptions* options) {
   }
 
 	for (int i = 0; i < set->num_inds(); i++){
-		if(Y[i] < 0 || Y[i] > 1)
+		if(Y[i] < 0 || Y[i] > 1 || !set->get_sample(i)->isEnabled()){
 			skipInd.insert(i);
+		}
 	}
-  
+
 }
 
 

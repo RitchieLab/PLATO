@@ -100,6 +100,8 @@ class LogisticRegression: public Regression{
 	  double adjusted_rsquared(){return pseudo_r2;}
 
 		void setDependent(StepOptions* options);
+		
+		int indsAnalyzed(){return int(summary_data.size());}
 
   private:
     DataSet* set;

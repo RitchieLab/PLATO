@@ -292,6 +292,7 @@ void ProcessLogReg::process(DataSet* ds)
     if(!overwrite){
         fname += "." + getString<int>(order);
     }
+    std::replace(fname.begin(), fname.end(), ',', '_');
     ofstream lrout (fname.c_str());
     if(!lrout){
         opts::printLog("Error opening " + fname + "!  Exiting!\n");
@@ -333,7 +334,6 @@ void ProcessLogReg::process(DataSet* ds)
 	lr.resetDataSet(ds);
 	lr.set_parameters(&options);
 	ds->set_missing_covalues(-99999);
-// 	lr.setDependent(&options);
 	map<string, vector<Sample*> > groups = options.getGroups();
 	map<string, vector<Sample*> >::iterator group_iter;
 	if(groups.size() == 0){
@@ -429,6 +429,7 @@ void ProcessLogReg::process(DataSet* ds)
 					lr.calculate(model, covs, traits);
 				}
 				catch(MethodException& me){}			
+				_nmiss = lr.indsAnalyzed();
 				outputResult(lrout, lrsvout, lr, model, covs, group_iter->first, c, ds, NULL);
 
 				delete tempds;			
@@ -478,7 +479,8 @@ void ProcessLogReg::process(DataSet* ds)
 					lr.calculate(model, covs, traits);
 				}
 				}catch(MethodException& me){}
-
+				
+				_nmiss = lr.indsAnalyzed();
 				outputResult(lrout, lrsvout, lr, model, covs, group_iter->first, m, ds, mark);
 
 				delete tempds;
