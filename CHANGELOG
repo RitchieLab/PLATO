@@ -1,3 +1,9 @@
+== Version 1.2.6 ==
+
+Compilation Fix:
+
+1. Fixed bugs with detection and customization of BOOST libraries.
+
 == Version 1.2.5 ==
 
 Bug Fix:
