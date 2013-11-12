@@ -17,13 +17,8 @@ class Family;
 class DataSet{
 
 public:
-	// Default ctor just fine!
-
 	~DataSet();
-	/*!
-	 * Defines a const iterator over a deque of T* pointers coupled with a
-	 * vector<bool> that determines if the individual element is enabled.
-	 */
+
 	template <class T>
 	class const_iterator : public boost::iterator_facade<const_iterator<T>, T* const, boost::forward_traversal_tag>{
 
@@ -42,7 +37,6 @@ public:
 		std::deque<T*>::const_iterator _itr;
 		const std::deque<T*>::const_iterator _end;
 	};
-
 	template <class T>
 	class iterator : public boost::iterator_facade<iterator<T>, T*, boost::forward_traversal_tag>{
 
@@ -69,6 +63,9 @@ public:
 	typedef iterator<Sample> sample_iterator;
 	typedef iterator<Marker> marker_iterator;
 	typedef iterator<Family> family_iterator;
+
+	void setBiallelic(bool enabled=true);
+	void setPhased(bool enabled=true);
 
 	void setMarkerEnabled(unsigned int pos, bool enabled=true);
 	void setSampleEnabled(unsigned int pos, bool enabled=true);
