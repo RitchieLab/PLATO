@@ -3,13 +3,14 @@
 
 #include <deque>
 #include <vector>
+#include <string>
 
 namespace Methods{
 
 class Sample;
 
 class Family{
-	Family(){_founder.push_back(true);}// default ctor is fine for now
+	Family(const std::string& fid) : _fam_id(fid) {_founder.push_back(true);}
 
 private:
 	Family(const Family& o);
@@ -22,6 +23,7 @@ public:
 	void setEnabled(bool enabled=true){_founder[0] = enabled;}
 
 	bool isEnabled() const {return _founder[0];}
+	const std::string& getFamID() const {return _fam_id;}
 
 
 private:
@@ -30,6 +32,9 @@ private:
 	std::deque<Sample*> _members;
 	// 1st bit is if the family is enabled as a whole
 	std::vector<bool> _founder;
+
+	std::string _fam_id;
+
 };
 
 }

@@ -5,6 +5,7 @@
 
 using std::string;
 using std::find;
+using std::vector;
 
 namespace Methods{
 
@@ -13,9 +14,10 @@ Marker::Marker(const string& chr, unsigned int loc, const string& id, unsigned i
 	_ref_idx = _alt_idx = static_cast<unsigned char>(-1);
 }
 
-bool Marker::addAllele(const string& allele){
-	bool to_ret = false;
-	if(find(_alleles.begin(), _alleles.end(), allele) == _alleles.end()){
+unsigned int Marker::addAllele(const string& allele){
+	vector<string>::const_iterator allele_itr = find(_alleles.begin(), _alleles.end(), allele);
+	unsigned int idx = allele_itr - _alleles.begin();
+	if(allele_itr == _alleles.end()){
 		_alleles.push_back(allele);
 		if(_alleles.size() == 1){
 			_ref_idx = 0;
@@ -23,7 +25,7 @@ bool Marker::addAllele(const string& allele){
 			_alt_idx = 1;
 		}
 	}
-	return to_ret;
+	return idx;
 }
 
 bool Marker::setRefAllele(const string& allele){

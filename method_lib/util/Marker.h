@@ -12,10 +12,10 @@ public:
 	Marker(const std::string& chrom, unsigned int loc, const std::string id, unsigned int idx);
 
 	/*!
-	 * Adds an allele to the Marker.  Returns true if the given allele was not
-	 * already added to the Marker. (Note: runs in O(n) time)
+	 * Adds an allele to the Marker.  Returns the index of the given allele.
+	 * (Note: runs in O(n) time)
 	 */
-	bool addAllele(const std::string& allele);
+	unsigned int addAllele(const std::string& allele);
 	/*!
 	 * Sets the given allele as the referent allele.  Returns false if the given
 	 * allele is not found in the Marker

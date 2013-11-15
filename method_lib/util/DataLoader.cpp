@@ -7,345 +7,455 @@
 
 #include "DataLoader.h"
 
-#include <stdexcept>
+#include "DataSet.h"
+#include "Family.h"
+#include "Sample.h"
+#include "Marker.h"
 
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <map>
+
+using std::multimap;
+using std::map;
 using std::string;
+using std::ifstream;
+using std::stringstream;
+
+namespace Methods{
+
+void DataLoader::readMap(const string& fn){
+
+	DataSet& dataset = *ds_ptr;
+
+	ifstream input(fn);
+
+    if(!input.is_open()){
+    	throw std::invalid_argument("Error opening map file: " + fn);
+    }
+
+	string line;
+
+    while(getline(input, line)){
+
+    	stringstream s(line);
+
+    	Marker* newMarker=parseMap(s);
+
+    	// We return -1 if it's a line to ignore
+    	if(newMarker != reinterpret_cast<Marker*>(-1)){
+    		_marker_incl.push_back(newMarker != 0);
+    	}
+
+    }
+
+    input.close();
+
+}
 
 void DataLoader::readPed(const string& fn){
-	map<string, vector<string> > descinfo;
-	vector<string> exclude;
-	vector<string> inccenters;
-	vector<string> sinclude;
-	vector<string> fexclude;
-	vector<string> finclude;
-	vector<string> descheaders;
+	// a listing of ID -> mother's ID (and father's ID, accordingly)
+	map<string, string> mom_map;
+	map<string, string> dad_map;
 
-    FILE* input;
-    input = fopen(fn.c_str(), "r");
-	if(!input){
-		throw std::invalid_argument("Error opening pedfile: " + fn + ".");
+	// a listing of ID -> samples
+	map<string, Sample*> id_map;
+
+	// a multiset of family ID -> individual ID
+	multimap<string, string> family_map;
+
+    ifstream input(fn);
+
+	if(!input.is_open()){
+		throw std::invalid_argument("Error opening pedfile: " + fn);
 	}
 
-	int onind = -1;
-    while(!feof(input)){
-		onind++;
-        Methods::Sample* samp = new Sample();
-        int f = 0;
-        string temp = "";
-        if(readString(input, &temp)){
-           samp->setFamID(temp);
-              f++;
-             temp = "";
-         }
+	string line;
 
-		string ftemp = samp->getFamID();
-		if(samp->getFamID() == ""){
-			delete(samp);
+	int lineno = -1;
+	while(getline(input, line)){
+		++lineno;
+
+		stringstream s(line);
+
+		string fid;
+		s >> fid;
+
+		// skip empty lines and those beginning with #
+		if(fid.length() == 0 || fid[0] == '#'){
 			continue;
 		}
-        if(ftemp.at(0) == '#'){
-			delete(samp);
-			while(fgetc(input) != '\n' && !feof(input)){}
-            continue;
-        }
-        string sex = "";
-        string pheno = "";
-        if(readString(input, &temp)){
-            samp->setInd(temp);
-            f++;
-            temp = "";
-        }
-		samp->setEnabled(true);
 
-		if(exclude.size() > 0){
-			vector<string>::iterator found = find(exclude.begin(), exclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found != exclude.end()){
-				if(!opts::_KEEP_EXC_SAMPLES_){
-					delete(samp);
-					while(fgetc(input) != '\n' && !feof(input)){}
-					continue;
-				}
-				else{
-					samp->setEnabled(false);
-					samp->setExcluded(true);
-				}
+		string iid;
+		string dad_id;
+		string mom_id;
+		string sex;
+		string pheno;
+
+		if(_ped_fid){
+			s >> iid;
+		}else{
+			iid = fid;
+			fid = "";
+		}
+
+		if(_ped_parents){
+			s >> dad_id;
+			s >> mom_id;
+		}
+
+		if(_ped_gender){
+			s >> sex;
+		}
+
+		if(_ped_pheno){
+			s >> pheno;
+		}
+
+		bool use = true;
+
+		// check for filters at this point, before we add the sample
+		if(use){
+			Sample* samp;
+			if(_ped_fid){
+				samp = ds_ptr->addSample(fid, iid, _marker_incl.count());
+				family_map.insert(fid, iid);
+			}else{
+				samp = ds_ptr->addSample(iid, _marker_incl.count());
 			}
-		}
-		if(sinclude.size() > 0){
-			vector<string>::iterator found = find(sinclude.begin(), sinclude.end(), samp->getFamID() + " " + samp->getInd());
-			if(found == sinclude.end()){
-				if(!opts::_KEEP_EXC_SAMPLES_){
-					delete(samp);
-					while(fgetc(input) != '\n' && !feof(input)){}
-					continue;
-				}
-				else{
-					samp->setEnabled(false);
-					samp->setExcluded(true);
-				}
+
+			if(_ped_gender){
+				if(sex == "1"){
+					samp->setGender(true);
+				}else if(sex == "2"){
+					samp->setGender(false);
+				}// anything other than 1/2 is unknown gender
 			}
-		}
-        if(readString(input, &temp)){
-            samp->setDadID(temp);
-            f++;
-            temp = "";
-        }
-        if(readString(input, &temp)){
-            samp->setMomID(temp);
-            f++;
-            temp = "";
-        }
-        if(readString(input, &sex)) f++;
-        if(readString(input, &pheno)) f++;
 
-        if(sex == "1"){
-            samp->setSex(true);
-        }
-        else if(sex == "2"){
-            samp->setSex(false);
-        }
-
-		if(pheno == "2"){
-			samp->setAffected(true);
-		}
-		else{
-			samp->setAffected(false);
-		}
-		float mypheno = atof(pheno.c_str());
-		samp->setPheno(mypheno);
-        if(opts::pedinfo.size() > 0){
-            map<string, Methods::Sample*>::iterator sfind = opts::pedinfo.find(samp->getFamID() + "#" + samp->getInd());
-            if(sfind != opts::pedinfo.end()){
-				Methods::Sample* sfound = sfind->second;
-                samp->setDadID(sfound->getDadID());
-                samp->setMomID(sfound->getMomID());
-                samp->setSex(sfound->getSex());
-                samp->setPheno(sfound->getPheno());
-            }
-        }
-		if(samp->getPheno() != 0.0f && samp->getPheno() != 1.0f && samp->getPheno() != 2.0f){
-			opts::_BINTRAIT_ = false;
-		}
-
-		string center = "";
-		if(opts::_SAMPDESC_.length() > 0 && descinfo.size() > 0){
-			vector<string> tokens = descinfo[samp->getFamID() + " " + samp->getInd()];
-			for(unsigned int i = 2; i < descheaders.size(); i++){
-				if(tokens.size() == descheaders.size()){
-					samp->assignDetail(descheaders.at(i), tokens.at(i));
-				}
-				else{
-					samp->assignDetail(descheaders.at(i), "NA");
+			if(_ped_pheno){
+				if(pheno == (_ped_control1 ? "1" : "0")){
+					samp->setAffected(false);
+				}else if(pheno == (_ped_control1 ? "2" : "1")){
+					samp -> setAffected(true);
 				}
 			}
 
-		}
-        samp->resizeAlleles(markers->size());
+			if(_ped_parents){
+				mom_map[iid] = mom_id;
+				dad_map[iid] = dad_id;
+			}
 
-        int gn = 0;
-        int i = 0;
-        bool linedone = false;
-        //bool fatal = false;
-
-        string fmsg;
-        while(!linedone){
-            string one = "";
-            string two = "";
-
-            while(1)
-            {
-                char ch = fgetc(input);
-
-                if(ch == '/' || ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(input))
-                {
-                    if(ch == '\n' || ch == '\r' || feof(input))
-                    {
-                        linedone = true;
-                    }
-
-                    if(one.length() > 0)
-                    {
-                        gn++;
-                        break;
-                    }
-                    if(ch == '\n' || ch == '\r' || feof(input))
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    one += ch;
-                }
-            }
-            if(!linedone)
-            {
-                while(1)
-                {
-                    char ch = fgetc(input);
-                    if(ch == '/' || ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || feof(input))
-                    {
-                        if(ch == '\n' || ch == '\r' || feof(input))
-                        {
-                            linedone = true;
-                        }
-                        if(two.length() > 0)
-                        {
-                            gn++;
-                            break;
-                        }
-                        if(ch == '\n' || ch == '\r' || feof(input))
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        two += ch;
-                    }
-                }
-                if(linedone && one.length() == 0 && two.length() == 0)
-                {
-                    break;
-                }
-
-				if(i > (int)markers->size()){
-					string text = "Problem with line: ";
-					text += getString<int>(onind + 1);
-					text += " in file: " + opts::_PEDFILE_ + "\n";
-					text += "Expecting ";
-					text += getString<int>((2 * markers->size()) + 6);
-					text += " columns but found ";
-					text += getString<int>(f + gn);
-					text += "\n";
-					throw MethodException(text);
-				}
-				Methods::Marker* m = (*markers)[(*marker_map).at(i)];
-				if(m->isEnabled()){
-					int oldallelecount = m->getNumAlleles();
-	                if(one != "0"){
-						//new
-						if(m->getAlleleLoc(one) < 0){
-							m->addAllele(one);
+			if (_ped_genotype) {
+				// Now, load up the genotypes
+				DataSet::marker_iterator mi = ds_ptr->beginMarker();
+				DataSet::marker_iterator mi_end = ds_ptr->endMarker();
+				for (int i = 0; i < _marker_incl.size(); i++) {
+					string g1, g2;
+					s >> g1;
+					s >> g2;
+					if (_marker_incl[i]) {
+						if (mi == mi_end) {
+							//This is a problem!!
+							throw std::logic_error("Error: marker not loaded!");
 						}
 
-        	        }
+						parseSample(*mi, samp, g1, g2);
 
-            	    if(two != one){
-                	    if(two != "0"){
-							//new
-							if(m->getAlleleLoc(two) < 0){
-								m->addAllele(two);
+						// Advance the marker
+						++mi;
+					}
+				}
+				if (mi != mi_end) {
+					throw std::logic_error("Error: not enough markers!");
+				}
+			}
+
+		}
+
+		_sample_incl.push_back(use);
+
+	}
+
+	input.close();
+
+	// If we had family IDs, add them now
+	multimap<string, string>::const_iterator fam_itr = family_map.begin();
+	Family* curr_fam_ptr = 0;
+	while(fam_itr != family_map.end()){
+		// Make sure the sample was created first
+		map<string, Sample*>::const_iterator samp_itr = id_map.find((*fam_itr).second);
+
+		if (samp_itr != id_map.end()){
+			if(!curr_fam_ptr || curr_fam_ptr->getFamID() != (*fam_itr).first) {
+				curr_fam_ptr = ds_ptr->addFamily((*fam_itr).first);
+			}
+
+			// Check for founder status of the current ID.
+			map<string, string>::const_iterator mom_itr = mom_map.find((*fam_itr).second);
+			map<string, string>::const_iterator dad_itr = dad_map.find((*fam_itr).second);
+
+			//If both are not found, then we have a founder!
+			if((mom_itr == mom_map.end() || id_map.find((*mom_itr).second) == id_map.end) &&
+			   (dad_itr == dad_map.end() || id_map.find((*dad_itr).second) == id_map.end)){
+				curr_fam_ptr->addFounder((*samp_itr).second);
+			}else{
+				curr_fam_ptr->addNonFounder((*samp_itr).second);
+			}
+		}
+		++fam_itr;
+	}
+
+	// If we had parental information, add it here
+	map<string, string>::const_iterator mom_itr = mom_map.begin();
+	while(mom_itr != mom_map.end()){
+		// Get the mother and child samples from the ID map
+		map<string, Sample*>::const_iterator mom_id_itr = id_map.find((*mom_itr).second);
+		map<string, Sample*>::const_iterator kid_id_itr = id_map.find((*mom_itr).first);
+
+		if(mom_id_itr != id_map.end() && kid_id_itr != id_map.end()){
+			(*mom_id_itr).second->addChild((*kid_id_itr).second);
+			(*kid_id_itr).second->addMother((*mom_id_itr).second);
+		}
+		++mom_itr;
+	}
+
+	map<string, string>::const_iterator dad_itr = dad_map.begin();
+	while(dad_itr != dad_map.end()){
+		// Get the mother and child samples from the ID map
+		map<string, Sample*>::const_iterator dad_id_itr = id_map.find((*dad_itr).second);
+		map<string, Sample*>::const_iterator kid_id_itr = id_map.find((*dad_itr).first);
+
+		if(dad_id_itr != id_map.end() && kid_id_itr != id_map.end()){
+			(*dad_id_itr).second->addChild((*kid_id_itr).second);
+			(*kid_id_itr).second->addFather((*dad_id_itr).second);
+		}
+		++dad_itr;
+	}
+}
+
+void DataLoader::readBinPed(const string& fn){
+
+	ifstream BIT(fn, std::ios::in | std::ios::binary);
+
+	if(!BIT.good()){
+		throw std::invalid_argument("Error opening genotype bitfile: " + fn);
+	}
+
+	unsigned char byte_val;
+	unsigned short magic;
+	//header
+	BIT.read(&magic, 2);
+
+	bool snp_major = false;
+	if(magic == 27675){
+		BIT.read(&byte_val, 1);
+		snp_major = static_cast<bool>(byte_val);
+	} else {
+		//throw std::invalid_argument("Incorrect magic number in Binary PED file: " + fn);
+		// Maybe just warn here - assume v0.99 BED
+		BIT.seekg(0);
+	}
+
+	const unsigned char GENO_1 = 1;
+	const unsigned char GENO_2 = 2;
+
+	if(snp_major){
+		// OK, pad the sample size to a multiple of 4 (just "ignore" those samples)
+		while(_sample_incl.size() % 4 != 0){
+			_sample_incl.push_back(false);
+		}
+		for(int m = 0; m < _marker_incl.size(); m++){
+			if(!_marker_incl[m]){
+				// If I'm not including this marker, seek the appropriate number
+				// of bytes.
+				BIT.seekg(_sample_incl.size() / 4, BIT.cur);
+			} else {
+				DataSet::sample_iterator si = ds_ptr->sampleBegin();
+				// I KNOW that _sample_incl.size() is a multiple of 4!
+				for (int s = 0; s * 4 < _sample_incl.size(); s++) {
+					char ch;
+					BIT.read(&ch, 1);
+					if (!BIT.good()) {
+						throw std::logic_error(
+								"Problem with the bed file - unexpected EOF.");
+					}
+
+					for (int i = 0; i < 4; i++) {
+						if (_sample_incl[s * 4 + i]) {
+							if (si == ds_ptr->sampleEnd()) {
+								throw std::logic_error(
+										"Problem with the bed file - not enough samples.");
+							}
+							if ((ch & GENO_2) && !(ch & GENO_1)) {
+								(*si)->appendMissingGenotype;
+							} else {
+								(*si)->appendGenotype((ch & GENO_2) >> 1, ch
+										& GENO_1);
 							}
 
-                    	}
-	                }
-
-
-					if(m->getNumAlleles() <= 2){
-   		 	            if(one == m->getAllele1() && two == m->getAllele1()){
-   	    	     	        samp->addAone(i, false);
-   	     		            samp->addAtwo(i, false);
-		                }
-	    	            else if(one != "0" && two != "0" && one != two){
-	        	            samp->addAone(i, false);
- 		           	        samp->addAtwo(i, true);
-	                	}
-		                else if(one == m->getAllele2() && two == m->getAllele2()){
-	    	                samp->addAone(i, true);
-	        	            samp->addAtwo(i, true);
-	            	    }
-	                	else if(one == "0" || two == "0"){
-		                    samp->addAone(i, true);
-	    	                samp->addAtwo(i, false);
-	        	        }
-					}
-					else if(opts::_MICROSATS_){
-						samp->addMicroSat(i);
-						int loc1 = m->getAlleleLoc(one);
-						int loc2 = m->getAlleleLoc(two);
-
-						samp->addAbone(i, loc1);
-						samp->addAbtwo(i, loc2);
-						if(oldallelecount <= 2){
-							remapSamples(samples, markers, marker_map, i);
+							++si;
 						}
+						// shift bits two places and go again!
+						ch >>= 2;
 					}
-					else if(m->getNumAlleles() > 2 && !opts::_MICROSATS_){
-						opts::printLog("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-						throw MethodException("More than 2 unique alleles found for map location: " + getString<int>(i) + ", line: " + getString<int>(onind + 1) + ".  Microsatellites not specified.\n");
-					}
-				}
-				else{
-					samp->addAone(i,true);
-					samp->addAtwo(i, false);
-				}
-    	    	i++;
-				if(i > (int)markers->size()){
-					string text = "Problem with line: ";
-					text += getString<int>(onind + 1);
-					text += " in file: " + opts::_PEDFILE_ + "\n";
-					text += "Expecting ";
-					text += getString<int>((2 * markers->size()) + 6);
-					text += " columns but found ";
-					text += getString<int>(f + gn);
-					text += "\n";
-					throw MethodException(text);
-				}
-            }/*end !linedone*/
-        }/*end while(1)*/
-		if(gn != (int)(2* markers->size())){
-					string text = "Problem with line: ";
-					text += getString<int>(onind + 1);
-					text += " in file: " + opts::_PEDFILE_ + "\n";
-					text += "Expecting ";
-					text += getString<int>(((2 * markers->size()) + 6));
-					text += " columns but found ";
-					text += getString<int>((f + gn));
-					text += "\n";
-					throw MethodException(text);
-		}
-
-        vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(),FindFamily(samp->getFamID()));
-
-        if(f_iter != (*families).end()){
-            (*f_iter)->AddInd(samp);
-            samp->setFamily((*f_iter));
-        }
-        else{
-            Methods::Family* fam = new Family();
-            fam->setFamID(samp->getFamID());
-            fam->AddInd(samp);
-			fam->setCenter(center);
-			fam->setEnabled(true);
-            samp->setFamily(fam);
-            families->push_back(fam);
-			fam->setLoc((families->size() - 1));
-        }
-		if(fexclude.size() > 0){
-			vector<string>::iterator found = find(fexclude.begin(), fexclude.end(), samp->getFamID());
-			if(found != fexclude.end()){
-				samp->setEnabled(false);
-				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
 				}
 			}
 		}
-		if(finclude.size() > 0){
-			vector<string>::iterator found = find(finclude.begin(), finclude.end(), samp->getFamID());
-			if(found == finclude.end()){
-				samp->setEnabled(false);
-				vector<Methods::Family*>::iterator f_iter = find_if(families->begin(), families->end(), FindFamily(samp->getFamID()));
-				if(f_iter != (*families).end()){
-					(*f_iter)->setEnabled(false);
+	} else {
+		while(_marker_incl.size() % 4 != 0){
+			_marker_incl.push_back(false);
+		}
+		DataSet::sample_iterator si = ds_ptr->sampleBegin();
+		// OK, must be individual-major then!
+		for (int s = 0; s < _sample_incl.size(); s++) {
+			if(!_sample_incl[s]){
+				BIT.seekg(_marker_incl.size() / 4, BIT.cur);
+			} else {
+				if (si == ds_ptr->sampleEnd()) {
+					throw std::logic_error("Problem with the bed file - not enough samples.");
+				}
+
+				// I KNOW that _marker_incl.size() is a multiple of 4!
+				for (int m = 0; m * 4 < _marker_incl.size(); s++) {
+					char ch;
+					BIT.read(&ch, 1);
+					if (!BIT.good()) {
+						throw std::logic_error("Problem with the bed file - unexpected EOF.");
+					}
+
+					for (int i = 0; i < 4; i++) {
+						if (_marker_incl[m * 4 + i]) {
+							if ((ch & GENO_2) && !(ch & GENO_1)) {
+								(*si)->appendMissingGenotype;
+							} else {
+								(*si)->appendGenotype((ch & GENO_2) >> 1, ch & GENO_1);
+							}
+						}
+						// shift bits two places and go again!
+						ch >>= 2;
+					}
+				}
+				++si;
+			}
+		}
+
+	}
+
+	BIT.close();
+
+}
+
+void DataLoader::readTPed(const string& fn){
+	// We'll assume that we've already read the "tfam", which is really just a
+	// "ped" with no genotype information.
+    ifstream input(fn);
+
+	if(!input.is_open()){
+		throw std::invalid_argument("Error opening pedfile: " + fn);
+	}
+
+	string line;
+
+	int lineno = -1;
+	while(getline(input, line)){
+		++lineno;
+
+		stringstream s(line);
+		Marker* newMarker = parseMap(s);
+
+		if(newMarker != reinterpret_cast<Marker*>(-1)){
+			_marker_incl.push_back(newMarker != 0);
+
+			if(newMarker){
+				DataSet::sample_iterator si = ds_ptr->beginSample();
+				for(int i=0; i<_sample_incl.size(); i++){
+					// now, go through and parse each sample.
+					string g1, g2;
+					s >> g1;
+					s >> g2;
+					if(!s.good()){
+						throw std::logic_error("Error: not enough samples in TPed");
+					}
+
+					if(_sample_incl[i]){
+						if(si == ds_ptr->endSample()){
+							throw std::logic_error("Error: too many samples in TPed");
+						}
+
+						parseSample(newMarker, *si, g1, g2);
+						++si;
+					}
 				}
 			}
 		}
-        samples->push_back(samp);
-		samp->setLoc((samples->size() - 1));
-    }/*end while(eof)*/
 
-    fclose(input);
+
+	}
+}
+
+Marker* DataLoader::parseMap(stringstream& ss) {
+	string chr;
+	ss >> chr;
+
+	// skip empty lines or those that begin with "#"
+	if (chr.size() == 0 || chr[0] == '#') {
+		return reinterpret_cast<Marker*>(-1);
+	}
+	string id;
+	int bploc;
+	int distance;
+	string ref;
+	string alt;
+
+	ss >> id;
+	if (_map_distance) {
+		ss >> distance;
+	}
+	ss >> bploc;
+	if (_map_ref) {
+		ss >> ref;
+	}
+	if (_map_alt) {
+		ss >> alt;
+	}
+
+	// If location is negative, exclude the marker
+	bool use = bploc > 0;
+
+	// check for other conditions of use here!
+
+	Marker* m = 0;
+	if (use) {
+		m = dataset.addMarker(chr, static_cast<unsigned int> (bploc),
+				id);
+
+		if (_map_ref) {
+			m->addAllele(ref);
+			m->setRefAllele(ref);
+		}
+		if (_map_alt) {
+			m->addAllele(alt);
+			m->setAltAllele(alt);
+		}
+	}
+	return m;
+}
+
+void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const string& g2){
+
+	if (g1 == _ped_missing_geno || g2 == _ped_missing_geno) {
+		samp->appendMissingGenotype();
+	} else {
+		unsigned char g_idx1 =
+				static_cast<unsigned char> (m->addAllele(g1));
+		unsigned char g_idx2 =
+				static_cast<unsigned char> (m->addAllele(g2));
+
+		samp->appendGenotype(g1, g2);
+	}
+
+}
+
 }
 

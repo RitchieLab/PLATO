@@ -28,6 +28,7 @@ private:
 
 public:
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2) = 0;
+	virtual void appendMissingGenotype() = 0;
 	virtual bool isMissing(unsigned int pos) const = 0;
 	virtual std::pair<unsigned char, unsigned char> getGeno(unsigned int pos) const = 0;
 
@@ -36,7 +37,7 @@ public:
 	bool addChild(const Sample* child) {return _children.insert(child).second;}
 
 	void setFounder(bool founder){_founder = founder;}
-	void setAffected(bool affected){_affected = affected;}
+	void setAffected(bool affected){_affected_known = true; _affected = affected;}
 	void setGender(bool is_male){_sex_known = true; _male = is_male;}
 
 	void addTrait(float trait){ _traits.push_back(trait);}
@@ -46,9 +47,11 @@ public:
 	float getPhenotype() const {return getTrait(_pheno_pos);}
 
 	bool isFounder() const {return _founder;}
+	bool isGenderKnown() const {return _sex_known;}
 	bool isMale() const {return _sex_known && _male;}
 	bool isFemale() const {return _sex_known && !_male;}
-	bool isAffected() const {return _affected;}
+	bool isAffected() const {return _affected_known && _affected;}
+	bool isAffectedKnown() const {return _affected_known;}
 
 	friend class DataSet;
 
@@ -65,6 +68,7 @@ private:
 
 
 	bool _sex_known;
+	bool _affected_known;
 	bool _male;
 	bool _affected;
 	bool _founder;
