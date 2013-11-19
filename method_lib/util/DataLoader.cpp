@@ -23,7 +23,112 @@ using std::string;
 using std::ifstream;
 using std::stringstream;
 
+namespace po=boost::program_options;
+using po::value;
+using po::bool_switch;
+
 namespace Methods{
+
+DataLoader::DataLoader() : _ped_genotype(true), _ped_missing_geno("0"), input(UNKNOWN) {}
+
+po::options_description& DataLoader::addOptions(po::options_description& opts){
+	po::options_description data_opts("Data Input Options");
+
+	data_opts.add_options();
+		("file", value<string>(&(this->file_base)), "Filename base for reading PED/MAP files")
+		("ped", value<string>(&(this->ped_fn)), "Filename of a PED file")
+		("map", value<string>(&(this->map_fn)), "Filename of a MAP file")
+		("bfile",value<string>(&(this->bfile_base)), "Filename base for reading BED/BIM/FAM files")
+		("bed", value<string>(&(this->bed_fn)), "Filename of a BED file")
+		("bim", value<string>(&(this->bim_fn)), "Filename of a BIM file")
+		("fam", value<string>(&(this->fam_fn)), "Filename of a FAM file")
+		("tfile",value<string>(&(this->tfile_base)), "Filename base for reading TPED/TFAM files")
+		("tped", value<string>(&(this->tped_fn)), "Filename of a TPED file")
+		("tfam", value<string>(&(this->tfam_fn)), "Filename of a TFAM file");
+		("no-sex", bool_switch(&(this->_ped_no_gender)), "PED file does not contain gender")
+		("no-parents", bool_switch(&(this->_ped_no_parents)), "PED file does not contain parental information")
+		("no-fid", bool_switch(&(this->_ped_no_fid)), "PED file does not contain fid")
+		("no-pheno", bool_switch(&(this->_ped_no_fid)), "PED file does not contain phenotype information")
+		("map3", bool_switch(&(this->_map_no_distance)), "Specify 3-column MAP file format (no genetic distance)");
+
+	return opts.add(data_opts);
+}
+
+void DataLoader::parseOptions(const po::variables_map& vm){
+	if(vm.count("file")){
+		if(ped_fn.size() == 0){
+			ped_fn = file_base + ".ped";
+		}
+		if(map_fn.size() == 0){
+			map_fn = file_base + ".map";
+		}
+	}
+
+	if(vm.count("bfile")){
+		if(bed_fn.size() == 0){
+			bed_fn = bfile_base + ".bed";
+		}
+		if(bim_fn.size() == 0){
+			bim_fn = bfile_base + ".bim";
+		}
+		if(fam_fn.size() == 0){
+			fam_fn = bfile_base + ".fam";
+		}
+	}
+
+	if(vm.count("tfile")){
+		if(tped_fn.size() == 0){
+			tped_fn = tfile_base + ".tped";
+		}
+		if(tfam_fn.size() == 0){
+			tfam_fn = tfile_base + ".tfam";
+		}
+	}
+
+	// decide what the style of input we're reading
+	if(ped_fn.size() && map_fn.size()){
+		input = PED;
+	}else if(bed_fn.size() && bim_fn.size() && fam_fn.size()){
+		input = BED;
+	}else if(tped_fn.size() && tfam_fn.size()){
+		input = TPED;
+	}
+
+}
+
+void DataLoader::read(){
+
+	// first, reading PED/MAP files
+	switch(input){
+	case PED:
+		readMap(map_fn);
+		readPed(ped_fn);
+		break;
+	case BED:
+		// the PED file no longer contains genotype information
+		_ped_genotype = false;
+		// the BIM file contains ref and alt information
+		_map_ref = _map_alt = true;
+
+		// NOTE: all the options dictating the map file format are still in play!
+		readMap(bim_fn);
+		readPed(fam_fn);
+		readBinPed(bed_fn);
+		break;
+	case TPED:
+		// No genotype information in the PED
+		_ped_genotype = false;
+
+		readPed(tfam_fn);
+		readTPed(tped_fn);
+		break;
+	default:
+		throw std::logic_error("Unknown input type");
+	}
+
+	// OK, now read any other data...
+}
+
 
 void DataLoader::readMap(const string& fn){
 
@@ -93,23 +198,23 @@ void DataLoader::readPed(const string& fn){
 		string sex;
 		string pheno;
 
-		if(_ped_fid){
+		if(!_ped_no_fid){
 			s >> iid;
 		}else{
 			iid = fid;
 			fid = "";
 		}
 
-		if(_ped_parents){
+		if(!_ped_no_parents){
 			s >> dad_id;
 			s >> mom_id;
 		}
 
-		if(_ped_gender){
+		if(!_ped_no_gender){
 			s >> sex;
 		}
 
-		if(_ped_pheno){
+		if(!_ped_no_pheno){
 			s >> pheno;
 		}
 
@@ -118,14 +223,14 @@ void DataLoader::readPed(const string& fn){
 		// check for filters at this point, before we add the sample
 		if(use){
 			Sample* samp;
-			if(_ped_fid){
+			if(!_ped_no_fid){
 				samp = ds_ptr->addSample(fid, iid, _marker_incl.count());
 				family_map.insert(fid, iid);
 			}else{
 				samp = ds_ptr->addSample(iid, _marker_incl.count());
 			}
 
-			if(_ped_gender){
+			if(!_ped_no_gender){
 				if(sex == "1"){
 					samp->setGender(true);
 				}else if(sex == "2"){
@@ -133,7 +238,7 @@ void DataLoader::readPed(const string& fn){
 				}// anything other than 1/2 is unknown gender
 			}
 
-			if(_ped_pheno){
+			if(!_ped_no_pheno){
 				if(pheno == (_ped_control1 ? "1" : "0")){
 					samp->setAffected(false);
 				}else if(pheno == (_ped_control1 ? "2" : "1")){
@@ -141,7 +246,7 @@ void DataLoader::readPed(const string& fn){
 				}
 			}
 
-			if(_ped_parents){
+			if(!_ped_no_parents){
 				mom_map[iid] = mom_id;
 				dad_map[iid] = dad_id;
 			}
@@ -409,7 +514,7 @@ Marker* DataLoader::parseMap(stringstream& ss) {
 	string alt;
 
 	ss >> id;
-	if (_map_distance) {
+	if (!_map_no_distance) {
 		ss >> distance;
 	}
 	ss >> bploc;
