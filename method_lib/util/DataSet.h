@@ -64,16 +64,8 @@ public:
 	typedef iterator<Marker> marker_iterator;
 	typedef iterator<Family> family_iterator;
 
-	void setBiallelic(bool enabled=true);
-	void setPhased(bool enabled=true);
-
-	void setMarkerEnabled(unsigned int pos, bool enabled=true);
-	void setSampleEnabled(unsigned int pos, bool enabled=true);
-	void setFamilyEnabled(unsigned int pos, bool enabled=true);
-
-	void setMarkerEnabled(const std::string& id, bool enabled=true);
-	void setSampleEnabled(const std::string& id, bool enabled=true);
-	void setFamilyEnabled(const std::string& id, bool enabled=true);
+	void setBiallelic(bool enabled=true){Sample::_biallelic = enabled;}
+	void setPhased(bool enabled=true){Sample::_phased = enabled;}
 
 	const_sample_iterator beginSample() const{
 		return const_sample_iterator(_samples.begin(), _samples.end());}
@@ -103,20 +95,18 @@ public:
 	family_iterator endFamily() {
 		return family_iterator(_families.end(), _families.end());}
 
-	Marker* addMarker(const std::string& chrom, unsigned int loc, const std::string id);
+	Marker* addMarker(const std::string& chrom, unsigned int loc, const std::string& id);
 	Sample* addSample(const std::string& famid, const std::string& id, unsigned int n_genos=0);
 	Sample* addSample(const std::string& id, unsigned int n_genos=0);
 	Family* addFamily(const std::string& id);
 
 	void sortMarkers();
 
-	const Sample* getSample(const std::string& id) const;
-	const Marker* getMaker(const std::string& id) const;
-	const Family* getFamily(const std::string& id) const;
+	Sample* const getSample(const std::string& id) const;
+	Marker* const getMaker(const std::string& id) const;
+	Family* const getFamily(const std::string& id) const;
 
-	const Sample* getSample(unsigned int idx) const;
-	const Marker* getMaker(unsigned int idx) const;
-	const Family* getFamily(unsigned int idx) const;
+	Marker* const getMarker(const std::string& chrom, unsigned int loc) const;
 
 private:
 	DataSet(const DataSet& other);
@@ -127,9 +117,12 @@ private:
 	std::deque<Sample*> _samples;
 	std::deque<Family*> _families;
 	std::deque<std::string> _trait_name;
-	std::map<std::string, unsigned int> _marker_idx_map;
-	std::map<std::string, unsigned int> _sample_idx_map;
-	std::map<std::string, unsigned int> _family_idx_map;
+	std::map<std::string, Marker*> _marker_map;
+	std::map<std::pair<std::string, unsigned int>, Marker*> _marker_pos_map;
+	std::map<std::string, Sample*> _sample_map;
+	std::map<std::string, Family*> _family_map;
+
+	unsigned int _marker_idx;
 
 };
 

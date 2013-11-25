@@ -13,10 +13,18 @@ public:
 	ExampleModule(){};
 	virtual ~ExampleModule(){};
 
+	virtual void parseOptions(const boost::program_options::variables_map& vm);
+
+
 protected:
 	virtual void PrintSummary();
-	virtual void filter();
 	virtual void process(Methods::DataSet*);
+	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
+
+private:
+	std::string arg_string;
+	bool arg_bool;
+
 };
 
 #endif

@@ -19,7 +19,7 @@ protected:
 
 public:
 	static Sample* create(const std::string& famid, const std::string& id, unsigned int n_genos=0);
-	static Sample* create(const std::string& id, unsigned int n_genos=0){return create(id, id, n_genos);}
+	//static Sample* create(const std::string& id, unsigned int n_genos=0){return create(id, id, n_genos);}
 
 private:
 	// No copying or assignment!!
@@ -52,6 +52,9 @@ public:
 	bool isFemale() const {return _sex_known && !_male;}
 	bool isAffected() const {return _affected_known && _affected;}
 	bool isAffectedKnown() const {return _affected_known;}
+
+	void setEnabled(bool enabled=true){_enabled = enabled;}
+	bool isEnabled() const {return _enabled;}
 
 	friend class DataSet;
 

@@ -36,6 +36,8 @@ int main(int, char**);
 
 static void Initialize();
 void print_steps();
+
+/*
 void startProcess(vector<Process*>&, int, InputFilter*);
 void parseInput(const string&, vector<Process*>& order_out);
 void usage();
@@ -52,6 +54,6 @@ void compileOutputs(vector<Marker*>*, vector<Family*>*, vector<Sample*>*);
 void webcheck(vector<string>, map<string, vector<string> >);
 map<string, vector<string> > getBatchArgs(string);
 vector<vector<Process*> > optimize(vector<Process*>&);
-
+*/
 
 #endif

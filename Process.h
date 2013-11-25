@@ -3,57 +3,47 @@
 
 #include <string>
 
-#include <StepOptions.h>
-#include <Options.h>
+#include <boost/program_options.hpp>
 
 #include "ProcessFactory.h"
+
+namespace Methods{
+	class DataSet;
+}
 
 class Process{
 
 public:
-	Process();
+	Process(const std::string& name_in) : name(name_in){}
 	virtual ~Process(){}
 
 	void run(Methods::DataSet*);
+	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 
-	bool hasIncExc(){return options.doIncExcludedSamples();}
-	void setOrder(int o){order = o;}
-	void setOverwrite(bool b){overwrite = b;}
-	virtual void setThreshold(std::string s){options.setUp(s);}
+	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
 
+	void printHelp(std::ostream& o){o << *opt_ptr;}
 	const std::string& getName(){return name;}
-	void setMarkerList(){_MARKERLIST_ = true;};
-	void setStratify(){_STRATIFY_ = true;};
-
-	Methods::StepOptions* getOptions(){return &options;}
-	Methods::StepOptions get_options(){return options;}
-	void set_options(Methods::StepOptions* opts){options = *opts;}
 
 protected:
 	virtual void process(Methods::DataSet*) = 0;
-	virtual void PrintSummary(){};
-	virtual void filter(){};
+	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts) = 0;
 
-	virtual void FilterSummary();
+	virtual void PrintSummary(){};
 
 protected:
-	Methods::StepOptions options;
 	Methods::DataSet* data_set;
-
 	std::string name;
-	bool overwrite;
-	int order;
 
-	int orig_num_markers;
+private:
 
-	bool _MARKERLIST_;
-	bool _STRATIFY_;
+	boost::program_options::options_description* opt_ptr;
 };
 
 template <class T>
 class ProcessImpl : public Process {
 public:
-	static Process* create(){return new T();}
+	static Process* create(){return new T(T::stepname);}
 
 protected:
 	static const std::string& doRegister(const std::string& key_in);

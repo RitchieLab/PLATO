@@ -1,8 +1,6 @@
 #include "Process.h"
-#include <Helpers.h>
 
-using std::getString;
-using Methods::opts;
+namespace po=boost::program_options;
 
 Process::Process() : data_set(NULL), overwrite(false), order(0),
 		orig_num_markers(0), _MARKERLIST_(false), _STRATIFY_(false) {
@@ -10,19 +8,14 @@ Process::Process() : data_set(NULL), overwrite(false), order(0),
 	options.setTraitMissing(Methods::opts::_TRAIT_MISSING_);
 }
 
-void Process::FilterSummary(){
-	opts::printLog("Threshold:\t" + options.toString() + "\n");
-	opts::printLog("Markers Passed:\t" + getString<int>(opts::_MARKERS_WORKING_ - orig_num_markers) + " (" +
-		getString<float>(((float)(opts::_MARKERS_WORKING_ - orig_num_markers) / (float)opts::_MARKERS_WORKING_) * 100.0) +
-		"%) of " + getString<int>(opts::_MARKERS_WORKING_) + "\n");
-	opts::_MARKERS_WORKING_ -= orig_num_markers;
+po::options_description& Process::addOptions(po::options_description& opts){
+	opt_ptr = &opts;
+	return appendOptions(opts);
 }
 
 void Process::run(Methods::DataSet* ds){
-	this->process(ds);
-	this->PrintSummary();
-	this->filter();
-	this->FilterSummary();
+	process(ds);
+	PrintSummary();
 }
 
 
