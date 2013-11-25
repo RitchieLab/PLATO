@@ -3,7 +3,9 @@ noinst_LTLIBRARIES=libmethods.la
 AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS)
 AM_LDFLAGS=$(GSL_LDFLAGS)
 
-libmethods_la_SOURCES=AlleleFrequency.cc \
+libmethods_la_SOURCES= 
+
+libmethods_orig_src=AlleleFrequency.cc \
 AlleleFrequency.h \
 BEAGLEOutput.cc \
 BEAGLEOutput.h \

@@ -23,7 +23,7 @@
 #include <General.h>//"General.h"
 */
 
-#include "wasp.h"
+#include "main.h"
 
 #include <iostream>
 #include <string>
@@ -41,6 +41,8 @@ using std::cout;
 using std::string;
 using std::vector;
 
+using Methods::DataSet;
+
 /*
  *Function: Initialize()
  *Return: void
@@ -51,7 +53,7 @@ void Initialize() {
 	srand((unsigned) time(0));
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
 
 	string logfn;
 

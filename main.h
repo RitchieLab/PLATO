@@ -1,36 +1,5 @@
-#ifndef wasp_H
-#define wasp_H
-
-#include <DataSet.h>
-#include <Options.h>
-#include <Helpers.h>
-#include <InputFilter.h>
-#include <StepOptions.h>
-#include <MethodException.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <list>
-#include <map>
-
-#include <vector>
-
-#include "config.h"
-
-#include "Finalize.h"
-
-#include "ProcessFactory.h"
-#include "Process.h"
-
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/bind.hpp>
-
-#define TOTAL_STEPS 15
-using namespace Methods;
+#ifndef PLATO_MAIN_H
+#define PLATO_MAIN_H
 
 int main(int, char**);
 
