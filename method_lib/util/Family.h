@@ -10,6 +10,8 @@ namespace Methods{
 class Sample;
 
 class Family{
+
+public:
 	Family(const std::string& fid) : _fam_id(fid) {_founder.push_back(true);}
 
 private:

@@ -1,6 +1,8 @@
 #ifndef PLATO_MAIN_H
 #define PLATO_MAIN_H
 
+#include "config.h"
+
 int main(int, char**);
 
 static void Initialize();

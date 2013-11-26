@@ -10,7 +10,11 @@ using std::set;
 
 namespace Methods{
 
-Sample::Sample(const string& famid, const string& id, unsigned int n_genos) :
+bool Sample::_biallelic = true;
+bool Sample::_phased = false;
+std::pair<unsigned char, unsigned char> Sample::missing_geno = std::make_pair(-1, -1);
+
+Sample::Sample(const string& famid, const string& id) :
 	_famid(famid), _id(id), _mom(NULL), _dad(NULL){
 }
 

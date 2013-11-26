@@ -15,6 +15,9 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
+#include <vector>
+#include <string>
+
 template<class charT>
 class custom_command_line_parser : public boost::program_options::detail::cmdline {
 public:
@@ -139,6 +142,8 @@ custom_command_line_parser<charT>::run()
 {
 	using namespace boost::program_options;
 	using namespace boost::program_options::command_line_style;
+	using std::vector;
+	using std::string;
 //	using namespace boost::program_options::detail::
 
     // save the canonical prefixes which were used by this cmdline parser

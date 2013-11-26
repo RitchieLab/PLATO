@@ -8,13 +8,16 @@
 #ifndef METHODS_POLYALLELIC_SAMPLE_H
 #define METHODS_POLYALLELIC_SAMPLE_H
 
+#include "Sample.h"
+
 namespace Methods {
 
-class PolyallelicSample {
+class PolyallelicSample : public Sample {
 public:
 	PolyallelicSample(const std::string& famid, const std::string& id, unsigned int n_genos);
 
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2);
+	virtual void appendMissingGenotype();
 	virtual bool isMissing(unsigned int pos) const;
 	virtual std::pair<unsigned char, unsigned char> getGeno(unsigned int pos) const;
 
@@ -23,7 +26,7 @@ public:
 private:
 
 	std::deque<unsigned char> _genotype;
-	static unsigned char _missing_val = static_cast<unsigned char>(-1);
+	static unsigned char _missing_val;
 
 };
 

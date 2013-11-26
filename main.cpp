@@ -8,29 +8,19 @@
  *
  * See README file for complete overview.
  ***************************************************************/
-/*#include <stdlib.h>
-#include <unistd.h>
-#include <iostream>
-#include <sstream>
-#include <string.h>
-#include <string>
-#include <iomanip>
-#include <fstream>
-#include <bitset>
-#include <ctime>
-#include <Globals.h>
-#include <vector>
-#include <General.h>//"General.h"
-*/
 
 #include "main.h"
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 
+#include <boost/program_options.hpp>
+
 #include "ProcessFactory.h"
 #include "Process.h"
+#include "InputManager.h"
 
 #include "util/CommandLineParser.h"
 #include "util/DataSet.h"
@@ -65,10 +55,14 @@ int main(int argc, char** argv) {
 		("logfile,f", po::value<string>(&logfn)->default_value("plato.log"),"Name of the log file of PLATO output")
 		("version,v", "Print the version of PLATO and exit");
 
+	InputManager::addOptions(cmd_opts);
+
 	po::variables_map vm;
 	po::parsed_options parsed = CommandLineParser(argc, argv).options(cmd_opts).run();
 	po::store(parsed, vm);
 	po::notify(vm);
+
+	InputManager::parseGlobalOptions(vm);
 
 	// OK, check for a few things now:
 	if(vm.count("help")){
@@ -105,12 +99,14 @@ int main(int argc, char** argv) {
 
 	// TODO: set up the logger here
 
-	vector<string> unrec_opt = po::collect_unrecognized(parsed.options, include_positional);
+	vector<string> unrec_opt = po::collect_unrecognized(parsed.options, po::include_positional);
 	vector<Process*> process_list;
 
 	// OK, now we create the list of processes that we want to create
 	while(unrec_opt.size() > 0){
 		ProcessFactory& f = ProcessFactory::getFactory();
+
+		string cmd_str = unrec_opt[0];
 
 		Process* p = f.Create(cmd_str);
 		if(!p){
@@ -133,7 +129,7 @@ int main(int argc, char** argv) {
 
 			p->parseOptions(subvm);
 
-			unrec_opt = po::collect_unrecognized(subparsed.options, include_positional);
+			unrec_opt = po::collect_unrecognized(subparsed.options, po::include_positional);
 		}
 
 	}
@@ -143,7 +139,7 @@ int main(int argc, char** argv) {
 
 	// Go through each step and run on the global dataset
 	for(int i=0; i<process_list.size(); i++){
-		process_list[i]->run(global_ds);
+		process_list[i]->run(&global_ds);
 	}
 
 	// OK, now delete all of our processes
@@ -174,13 +170,13 @@ void print_steps() {
 		}
 	}
 	field += 5;
-	cout << left << setw(field) << "Step:" << "Description:" << endl;
-	cout << left << setw(field) << "----------" << "---------------" << endl;
+	cout << std::left << std::setw(field) << "Step:" << "Description:" << std::endl;
+	cout << std::left << std::setw(field) << "----------" << "---------------" << std::endl;
 
 	for (ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++) {
 
 		Process* p = f.Create((*s_iter).first);
-		cout << left << setw(field) << (*s_iter).first << p->getName() << endl;
+		cout << std::left << std::setw(field) << (*s_iter).first << p->getName() << std::endl;
 		delete p;
 		//cout << "\tThresh: " << mystep.getThreshold() << endl;
 	}

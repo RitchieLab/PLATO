@@ -1,6 +1,7 @@
 #ifndef METHODS_SAMPLE_H
 #define METHODS_SAMPLE_H
 
+#include <deque>
 #include <string>
 #include <set>
 
@@ -11,7 +12,7 @@ class DataSet;
 class Sample{
 
 public:
-	virtual ~Sample();
+	virtual ~Sample(){}
 
 protected:
 
@@ -32,9 +33,9 @@ public:
 	virtual bool isMissing(unsigned int pos) const = 0;
 	virtual std::pair<unsigned char, unsigned char> getGeno(unsigned int pos) const = 0;
 
-	bool addMother(const Sample* mom) {return mom == (_mom = (_mom == NULL) ? mom : _mom);}
-	bool addFather(const Sample* dad) {return dad == (_dad = (_dad == NULL) ? dad : _dad);}
-	bool addChild(const Sample* child) {return _children.insert(child).second;}
+	bool addMother(Sample* mom) {return mom == (_mom = (_mom == NULL) ? mom : _mom);}
+	bool addFather(Sample* dad) {return dad == (_dad = (_dad == NULL) ? dad : _dad);}
+	bool addChild(Sample* child) {return _children.insert(child).second;}
 
 	void setFounder(bool founder){_founder = founder;}
 	void setAffected(bool affected){_affected_known = true; _affected = affected;}
@@ -78,11 +79,11 @@ private:
 	bool _enabled;
 
 	unsigned char _pheno_pos;
-	deque<float> _traits;
+	std::deque<float> _traits;
 
 	static float missing_trait;
-	static bool _biallelic = true;
-	static bool _phased = false;
+	static bool _biallelic;
+	static bool _phased;
 
 protected:
 	static std::pair<unsigned char, unsigned char> missing_geno;

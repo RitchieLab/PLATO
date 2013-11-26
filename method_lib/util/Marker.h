@@ -9,7 +9,7 @@ namespace Methods{
 class Marker{
 
 public:
-	Marker(const std::string& chrom, unsigned int loc, const std::string id, unsigned int idx);
+	Marker(const std::string& chrom, unsigned int loc, const std::string& id, unsigned int idx);
 
 	/*!
 	 * Adds an allele to the Marker.  Returns the index of the given allele.
@@ -100,6 +100,7 @@ private:
 
 // define an ordering for Marker pointers
 namespace std{
+template<>
 struct less<Methods::Marker*> {
 	bool operator()(const Methods::Marker* x,
 			const Methods::Marker* y) const {

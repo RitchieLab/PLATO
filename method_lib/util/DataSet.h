@@ -8,22 +8,26 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
+#include "Sample.h"
+
 namespace Methods{
 
 class Marker;
-class Sample;
 class Family;
 
 class DataSet{
 
 public:
+	DataSet() : _marker_idx(0) {}
 	~DataSet();
 
 	template <class T>
 	class const_iterator : public boost::iterator_facade<const_iterator<T>, T* const, boost::forward_traversal_tag>{
 
 	public:
-		const_iterator(std::deque<T*>::const_iterator& itr, std::deque<T*>::const_iterator& end) :
+		const_iterator(
+				typename std::_Deque_iterator<T*, T* const&, T* const*> itr,
+				typename std::_Deque_iterator<T*, T* const&, T* const*> end) :
 			_itr(itr), _end(end) {}
 
 	private:
@@ -32,16 +36,18 @@ public:
 		// Iterate only over enabled samples
 		void increment() { while(_itr != _end && !((*(++_itr))->isEnabled()));}
 		bool equal(const const_iterator& other) const { return _itr == other._itr;}
-		T& dereference() const { return (**_itr);}
+		T* const & dereference() const { return (*_itr);}
 
-		std::deque<T*>::const_iterator _itr;
-		const std::deque<T*>::const_iterator _end;
+		typename std::deque<T*>::const_iterator _itr;
+		const typename std::deque<T*>::const_iterator _end;
 	};
+
 	template <class T>
 	class iterator : public boost::iterator_facade<iterator<T>, T*, boost::forward_traversal_tag>{
 
 	public:
-		iterator(std::deque<T*>::iterator& itr, std::deque<T*>::iterator& end) :
+		iterator(typename std::_Deque_iterator<T*, T*&, T**> itr,
+				 typename std::_Deque_iterator<T*, T*&, T**> end) :
 			_itr(itr), _end(end) {}
 
 	private:
@@ -49,11 +55,11 @@ public:
 
 		// Iterate only over enabled samples
 		void increment() { while(_itr != _end && !((*(++_itr))->isEnabled()));}
-		bool equal(const const_iterator& other) const { return _itr == other._itr;}
-		T& dereference() const { return (**_itr);}
+		bool equal(const iterator& other) const { return _itr == other._itr;}
+		T* & dereference() const { return (*_itr);}
 
-		std::deque<T*>::iterator _itr;
-		const std::deque<T*>::iterator _end;
+		typename std::deque<T*>::iterator _itr;
+		const typename std::deque<T*>::iterator _end;
 	};
 
 	typedef const_iterator<Sample> const_sample_iterator;
@@ -118,7 +124,7 @@ private:
 	std::deque<Family*> _families;
 	std::deque<std::string> _trait_name;
 	std::map<std::string, Marker*> _marker_map;
-	std::map<std::pair<std::string, unsigned int>, Marker*> _marker_pos_map;
+	std::map<std::pair<unsigned short, unsigned int>, Marker*> _marker_pos_map;
 	std::map<std::string, Sample*> _sample_map;
 	std::map<std::string, Family*> _family_map;
 

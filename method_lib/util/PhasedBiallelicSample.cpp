@@ -13,7 +13,7 @@ using std::make_pair;
 
 namespace Methods{
 
-PhasedBiallelicSample::PhasedBiallelicSample(string famid, string id, unsigned int n_genos) :
+PhasedBiallelicSample::PhasedBiallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
 
 	_genotype.resize(2*n_genos);
@@ -29,6 +29,15 @@ void PhasedBiallelicSample::appendGenotype(unsigned char geno1, unsigned char ge
 
 	_genotype.push_back(geno1);
 	_genotype.push_back(geno2);
+}
+
+void PhasedBiallelicSample::appendMissingGenotype(){
+	// If either is "missing", then both are missing!
+	_missing.push_back(true);
+	_missing.push_back(true);
+
+	_genotype.push_back(0);
+	_genotype.push_back(0);
 }
 
 bool PhasedBiallelicSample::isMissing(unsigned int pos) const{

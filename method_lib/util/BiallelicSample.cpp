@@ -13,7 +13,7 @@ using std::make_pair;
 
 namespace Methods {
 
-BiallelicSample::BiallelicSample(string famid, string id, unsigned int n_genos) :
+BiallelicSample::BiallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
 
 	_genotype.resize(2*n_genos);
@@ -24,14 +24,18 @@ void BiallelicSample::appendGenotype(unsigned char geno1, unsigned char geno2){
 
 	// If either is "missing", then both are missing!
 	if(geno1 == static_cast<unsigned char>(-1) || geno2 == static_cast<unsigned char>(-1)){
-		_genotype.push_back(1);
-		_genotype.push_back(0);
+		appendMissingGenotype();
 	}else{
 		// Note: this can still be "missing" if we give [1,0], so this will take
 		// Binary PED without modification.
 		_genotype.push_back(geno1);
 		_genotype.push_back(geno2);
 	}
+}
+
+void BiallelicSample::appendMissingGenotype(){
+	_genotype.push_back(1);
+	_genotype.push_back(0);
 }
 
 bool BiallelicSample::isMissing(unsigned int pos) const{

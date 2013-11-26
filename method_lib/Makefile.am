@@ -1,9 +1,27 @@
 noinst_LTLIBRARIES=libmethods.la
 
-AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS)
+AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS) -I$(top_srcdir)
 AM_LDFLAGS=$(GSL_LDFLAGS)
 
-libmethods_la_SOURCES= 
+libmethods_la_SOURCES= util/BiallelicSample.h \
+util/BiallelicSample.cpp \
+util/CommandLineParser.h \
+util/DataSet.h \
+util/DataSet.cpp \
+util/Family.cpp \
+util/Family.h \
+util/Marker.cpp \
+util/Marker.h \
+util/PhasedBiallelicSample.cpp \
+util/PhasedBiallelicSample.h \
+util/PhasedPolyallelicSample.cpp \
+util/PhasedPolyallelicSample.h \
+util/PolyallelicSample.cpp \
+util/PolyallelicSample.h \
+util/Sample.cpp \
+util/Sample.h
+
+libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB)
 
 libmethods_orig_src=AlleleFrequency.cc \
 AlleleFrequency.h \
@@ -273,4 +291,3 @@ Regression.h \
 Interactions.cpp \
 Interactions.h
 
-libmethods_la_LIBADD=$(GSL_LIBS)

@@ -18,12 +18,17 @@ AM_LDFLAGS=$(BOOST_LDFLAGS)
 
 bin_PROGRAMS=plato
 
-plato_SOURCES= Process.cc \
+plato_SOURCES= Process.cpp \
 Process.h \
-wasp.cc \
-wasp.h \
+main.cpp \
+main.h \
 ProcessFactory.cpp \
-ProcessFactory.h
+ProcessFactory.h \
+InputManager.h \
+InputManager.cpp
+
+plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)
+
 
 orig_plato_src = cdflib.h \
 dcdflib.cpp \
@@ -121,4 +126,3 @@ process/ProcessInteraction.cpp \
 ProcessFactory.cpp \
 ProcessFactory.h
 
-plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB)

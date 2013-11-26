@@ -13,7 +13,9 @@ using std::make_pair;
 
 namespace Methods{
 
-PolyallelicSample::PolyallelicSample(string famid, string id, unsigned int n_genos) :
+unsigned char PolyallelicSample::_missing_val = static_cast<unsigned char>(-1);
+
+PolyallelicSample::PolyallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
 }
 
@@ -27,6 +29,11 @@ void PolyallelicSample::appendGenotype(unsigned char geno1, unsigned char geno2)
 		_genotype.push_back(geno1);
 		_genotype.push_back(geno2);
 	}
+}
+
+void PolyallelicSample::appendMissingGenotype(){
+	_genotype.push_back(_missing_val);
+	_genotype.push_back(_missing_val);
 }
 
 bool PolyallelicSample::isMissing(unsigned int pos) const{

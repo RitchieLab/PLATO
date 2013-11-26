@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "InputManager.h"
+
 #include "Marker.h"
 #include "Sample.h"
 #include "Family.h"
@@ -51,18 +53,18 @@ Marker* DataSet::addMarker(const std::string& chrom, unsigned int loc, const std
 		_marker_map[id] = new_marker;
 	}
 
-	_marker_pos_map[std::make_pair(chrom, loc)] = new_marker;
+	_marker_pos_map[std::make_pair(InputManager::chrStringToInt(chrom), loc)] = new_marker;
 	return new_marker;
 }
 
-Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsigned int n_genos=0){
+Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsigned int n_genos){
 	Sample* new_samp = Sample::create(famid,id,n_genos);
 	_sample_map[id] = new_samp;
 
 	return new_samp;
 }
 
-Sample* DataSet::addSample(const std::string& id, unsigned int n_genos=0){
+Sample* DataSet::addSample(const std::string& id, unsigned int n_genos){
 	return addSample(id, id, n_genos);
 }
 
@@ -90,8 +92,8 @@ Family* const DataSet::getFamily(const std::string& id) const{
 }
 
 Marker* const DataSet::getMarker(const std::string& chrom, unsigned int loc) const{
-	map<pair<string, unsigned int>,Marker*>::const_iterator m_itr =
-			_marker_pos_map.find(std::make_pair(chrom, loc));
+	map<pair<unsigned short, unsigned int>,Marker*>::const_iterator m_itr =
+			_marker_pos_map.find(std::make_pair(InputManager::chrStringToInt(chrom), loc));
 	return m_itr == _marker_pos_map.end() ? 0 : (*m_itr).second;
 }
 }
