@@ -5,6 +5,8 @@
 
 #include "Process.h"
 
+namespace ProcessLib{
+
 class ExampleModule : public ProcessImpl<ExampleModule>{
 private:
 	const static std::string stepname;
@@ -26,5 +28,7 @@ private:
 	bool arg_bool;
 
 };
+
+}
 
 #endif

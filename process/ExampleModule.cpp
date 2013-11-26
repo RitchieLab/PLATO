@@ -12,6 +12,8 @@ using Methods::DataSet;
 
 namespace po=boost::program_options;
 
+namespace ProcessLib{
+
 const string ExampleModule::stepname = ExampleModule::doRegister("example");
 
 //PrintSummary()
@@ -49,4 +51,6 @@ void ExampleModule::parseOptions(const po::variables_map& vm){
 	cout << "You values are:\n";
 	cout << "\targ: " << arg_string << std::endl;
 	cout << "\tswitch: " << arg_bool << std::endl;
+}
+
 }
