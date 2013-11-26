@@ -22,7 +22,7 @@ public:
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
 
-	void printHelp(std::ostream& o){o << *opt_ptr;}
+	void printHelp(std::ostream& o){if(opt_ptr){o << *opt_ptr;}}
 	const std::string& getName(){return name;}
 
 protected:
@@ -43,7 +43,10 @@ private:
 template <class T>
 class ProcessImpl : public Process {
 public:
-	static Process* create(){return new T(T::stepname);}
+	ProcessImpl(const std::string& n) : Process(n) {}
+
+public:
+	static Process* create(){return new T();}
 
 protected:
 	static const std::string& doRegister(const std::string& key_in);

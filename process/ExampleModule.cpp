@@ -1,14 +1,18 @@
 #include "ExampleModule.h" //////CHANGE TO REAL MODULE NAME
 
+#include "util/DataSet.h"
+
 #include <iostream>
 
 using std::cout;
 using std::endl;
 using std::string;
 
+using Methods::DataSet;
+
 namespace po=boost::program_options;
 
-const string ExampleModule::stepname = ExampleModule::doRegiser("example");
+const string ExampleModule::stepname = ExampleModule::doRegister("example");
 
 //PrintSummary()
 //used to output results after processing the data

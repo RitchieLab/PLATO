@@ -10,7 +10,7 @@ private:
 	const static std::string stepname;
 
 public:
-	ExampleModule(){};
+	ExampleModule() : ProcessImpl<ExampleModule>(stepname) {};
 	virtual ~ExampleModule(){};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);

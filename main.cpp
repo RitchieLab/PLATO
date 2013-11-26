@@ -84,6 +84,8 @@ int main(int argc, char** argv) {
 			cout << "Please use the 'list-command' option to see a list of commands available\n";
 			return 1;
 		}else{
+			po::options_description opts;
+			p->addOptions(opts);
 			p->printHelp(cout);
 			delete p;
 			return 0;

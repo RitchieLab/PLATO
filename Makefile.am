@@ -25,7 +25,9 @@ main.h \
 ProcessFactory.cpp \
 ProcessFactory.h \
 InputManager.h \
-InputManager.cpp
+InputManager.cpp \
+process/ExampleModule.cpp \
+process/ExampleModule.h
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)
 

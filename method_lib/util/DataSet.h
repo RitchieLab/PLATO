@@ -114,6 +114,10 @@ public:
 
 	Marker* const getMarker(const std::string& chrom, unsigned int loc) const;
 
+	unsigned int num_loci() const {return _markers.size();}
+	unsigned int num_pedigrees() const {return _families.size();}
+	unsigned int num_inds() const {return _samples.size();}
+
 private:
 	DataSet(const DataSet& other);
 	DataSet& operator=(const DataSet& other);
