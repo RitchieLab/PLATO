@@ -31,12 +31,14 @@ public:
 	};
 
 	DataLoader();
-	virtual ~DataLoader();
-
-	void read();
+	virtual ~DataLoader() {}
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 	void parseOptions(const boost::program_options::variables_map& vm);
+
+protected:
+	void setDataSet(DataSet& ds){ds_ptr = &ds;}
+	void read();
 
 private:
 	void readPed(const std::string& fn);
@@ -70,29 +72,29 @@ private:
 	bool _ped_control0;
 
 	// bitset dictating the inclusion/exclusion of markers in the dataset
-	boost::dynamic_bitset _marker_incl;
+	boost::dynamic_bitset<> _marker_incl;
 
 	// bitset indicating inclusion/exclusion of samples in the dataset
-	boost::dynamic_bitset _sample_incl;
+	boost::dynamic_bitset<> _sample_incl;
 
 	std::string _ped_missing_geno;
 
 	// the actual DataSet we're working with
 	DataSet* ds_ptr;
 
-	enum input_type input;
+	enum input_style input;
 
 	//options
-	string file_base;
-	string ped_fn;
-	string map_fn;
-	string bfile_base;
-	string bim_fn;
-	string bed_fn;
-	string fam_fn;
-	string tfile_base;
-	string tped_fn;
-	string tfam_fn;
+	std::string file_base;
+	std::string ped_fn;
+	std::string map_fn;
+	std::string bfile_base;
+	std::string bim_fn;
+	std::string bed_fn;
+	std::string fam_fn;
+	std::string tfile_base;
+	std::string tped_fn;
+	std::string tfam_fn;
 
 };
 

@@ -8,6 +8,8 @@ util/BiallelicSample.cpp \
 util/CommandLineParser.h \
 util/DataSet.h \
 util/DataSet.cpp \
+util/DataLoader.cpp \
+util/DataLoader.h \
 util/Family.cpp \
 util/Family.h \
 util/Marker.cpp \

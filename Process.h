@@ -17,7 +17,7 @@ public:
 	Process(const std::string& name_in) : name(name_in){}
 	virtual ~Process(){}
 
-	void run(Methods::DataSet*);
+	void run(Methods::DataSet&);
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
@@ -26,7 +26,7 @@ public:
 	const std::string& getName(){return name;}
 
 protected:
-	virtual void process(Methods::DataSet*) = 0;
+	virtual void process(Methods::DataSet&) = 0;
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts) = 0;
 
 	virtual void PrintSummary(){};

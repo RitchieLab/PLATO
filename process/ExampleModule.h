@@ -1,5 +1,5 @@
-#ifndef EXAMPLEMODULE_H   //change to actual process name
-#define EXAMPLEMODULE_H   //change to actual process name
+#ifndef PROCESSLIB_EXAMPLEMODULE_H   //change to actual process name
+#define PROCESSLIB_EXAMPLEMODULE_H   //change to actual process name
 
 #include <string>
 
@@ -20,7 +20,7 @@ public:
 
 protected:
 	virtual void PrintSummary();
-	virtual void process(Methods::DataSet*);
+	virtual void process(Methods::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
 
 private:

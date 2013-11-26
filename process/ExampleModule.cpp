@@ -26,10 +26,10 @@ void ExampleModule::PrintSummary(){
 
 //process()
 //main method to get the process going and to the work
-void ExampleModule::process(DataSet* ds){
+void ExampleModule::process(DataSet& ds){
 	//main processing of step goes here.
 	cout << "Hi, I'm in the ExampleModule process method\n";
-	cout << "I'm going to process " << ds->num_loci() << " markers, " << ds->num_pedigrees() << " families, and " << ds->num_inds() << " samples!\n";
+	cout << "I'm going to process " << ds.num_loci() << " markers, " << ds.num_pedigrees() << " families, and " << ds.num_inds() << " samples!\n";
 
 }
 

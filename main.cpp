@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 
 	// Go through each step and run on the global dataset
 	for(int i=0; i<process_list.size(); i++){
-		process_list[i]->run(&global_ds);
+		process_list[i]->run(global_ds);
 	}
 
 	// OK, now delete all of our processes

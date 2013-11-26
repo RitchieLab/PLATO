@@ -14,7 +14,7 @@ po::options_description& Process::addOptions(po::options_description& opts){
 	return appendOptions(opts);
 }
 
-void Process::run(Methods::DataSet* ds){
+void Process::run(Methods::DataSet& ds){
 	process(ds);
 	PrintSummary();
 }

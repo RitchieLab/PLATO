@@ -13,6 +13,7 @@
 #include "Marker.h"
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <map>
@@ -34,7 +35,7 @@ DataLoader::DataLoader() : _ped_genotype(true), _ped_missing_geno("0"), input(UN
 po::options_description& DataLoader::addOptions(po::options_description& opts){
 	po::options_description data_opts("Data Input Options");
 
-	data_opts.add_options();
+	data_opts.add_options()
 		("file", value<string>(&(this->file_base)), "Filename base for reading PED/MAP files")
 		("ped", value<string>(&(this->ped_fn)), "Filename of a PED file")
 		("map", value<string>(&(this->map_fn)), "Filename of a MAP file")
@@ -44,7 +45,7 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("fam", value<string>(&(this->fam_fn)), "Filename of a FAM file")
 		("tfile",value<string>(&(this->tfile_base)), "Filename base for reading TPED/TFAM files")
 		("tped", value<string>(&(this->tped_fn)), "Filename of a TPED file")
-		("tfam", value<string>(&(this->tfam_fn)), "Filename of a TFAM file");
+		("tfam", value<string>(&(this->tfam_fn)), "Filename of a TFAM file")
 		("no-sex", bool_switch(&(this->_ped_no_gender)), "PED file does not contain gender")
 		("no-parents", bool_switch(&(this->_ped_no_parents)), "PED file does not contain parental information")
 		("no-fid", bool_switch(&(this->_ped_no_fid)), "PED file does not contain fid")
@@ -134,7 +135,7 @@ void DataLoader::readMap(const string& fn){
 
 	DataSet& dataset = *ds_ptr;
 
-	ifstream input(fn);
+	ifstream input(fn.c_str());
 
     if(!input.is_open()){
     	throw std::invalid_argument("Error opening map file: " + fn);
@@ -170,7 +171,7 @@ void DataLoader::readPed(const string& fn){
 	// a multiset of family ID -> individual ID
 	multimap<string, string> family_map;
 
-    ifstream input(fn);
+    ifstream input(fn.c_str());
 
 	if(!input.is_open()){
 		throw std::invalid_argument("Error opening pedfile: " + fn);
@@ -225,7 +226,7 @@ void DataLoader::readPed(const string& fn){
 			Sample* samp;
 			if(!_ped_no_fid){
 				samp = ds_ptr->addSample(fid, iid, _marker_incl.count());
-				family_map.insert(fid, iid);
+				family_map.insert(std::make_pair(fid, iid));
 			}else{
 				samp = ds_ptr->addSample(iid, _marker_incl.count());
 			}
@@ -239,9 +240,9 @@ void DataLoader::readPed(const string& fn){
 			}
 
 			if(!_ped_no_pheno){
-				if(pheno == (_ped_control1 ? "1" : "0")){
+				if(pheno == (_ped_control0 ? "0" : "1")){
 					samp->setAffected(false);
-				}else if(pheno == (_ped_control1 ? "2" : "1")){
+				}else if(pheno == (_ped_control0 ? "1" : "2")){
 					samp -> setAffected(true);
 				}
 			}
@@ -301,8 +302,8 @@ void DataLoader::readPed(const string& fn){
 			map<string, string>::const_iterator dad_itr = dad_map.find((*fam_itr).second);
 
 			//If both are not found, then we have a founder!
-			if((mom_itr == mom_map.end() || id_map.find((*mom_itr).second) == id_map.end) &&
-			   (dad_itr == dad_map.end() || id_map.find((*dad_itr).second) == id_map.end)){
+			if((mom_itr == mom_map.end() || id_map.find((*mom_itr).second) == id_map.end()) &&
+			   (dad_itr == dad_map.end() || id_map.find((*dad_itr).second) == id_map.end())){
 				curr_fam_ptr->addFounder((*samp_itr).second);
 			}else{
 				curr_fam_ptr->addNonFounder((*samp_itr).second);
@@ -341,19 +342,19 @@ void DataLoader::readPed(const string& fn){
 
 void DataLoader::readBinPed(const string& fn){
 
-	ifstream BIT(fn, std::ios::in | std::ios::binary);
+	ifstream BIT(fn.c_str(), std::ios::in | std::ios::binary);
 
 	if(!BIT.good()){
 		throw std::invalid_argument("Error opening genotype bitfile: " + fn);
 	}
 
-	unsigned char byte_val;
-	unsigned short magic;
+	char byte_val;
+	char magic[2];
 	//header
-	BIT.read(&magic, 2);
+	BIT.read(magic, 2);
 
 	bool snp_major = false;
-	if(magic == 27675){
+	if(magic[0] == 108 && magic[1] == 27){
 		BIT.read(&byte_val, 1);
 		snp_major = static_cast<bool>(byte_val);
 	} else {
@@ -376,7 +377,7 @@ void DataLoader::readBinPed(const string& fn){
 				// of bytes.
 				BIT.seekg(_sample_incl.size() / 4, BIT.cur);
 			} else {
-				DataSet::sample_iterator si = ds_ptr->sampleBegin();
+				DataSet::sample_iterator si = ds_ptr->beginSample();
 				// I KNOW that _sample_incl.size() is a multiple of 4!
 				for (int s = 0; s * 4 < _sample_incl.size(); s++) {
 					char ch;
@@ -388,12 +389,12 @@ void DataLoader::readBinPed(const string& fn){
 
 					for (int i = 0; i < 4; i++) {
 						if (_sample_incl[s * 4 + i]) {
-							if (si == ds_ptr->sampleEnd()) {
+							if (si == ds_ptr->endSample()) {
 								throw std::logic_error(
 										"Problem with the bed file - not enough samples.");
 							}
 							if ((ch & GENO_2) && !(ch & GENO_1)) {
-								(*si)->appendMissingGenotype;
+								(*si)->appendMissingGenotype();
 							} else {
 								(*si)->appendGenotype((ch & GENO_2) >> 1, ch
 										& GENO_1);
@@ -411,13 +412,13 @@ void DataLoader::readBinPed(const string& fn){
 		while(_marker_incl.size() % 4 != 0){
 			_marker_incl.push_back(false);
 		}
-		DataSet::sample_iterator si = ds_ptr->sampleBegin();
+		DataSet::sample_iterator si = ds_ptr->beginSample();
 		// OK, must be individual-major then!
 		for (int s = 0; s < _sample_incl.size(); s++) {
 			if(!_sample_incl[s]){
 				BIT.seekg(_marker_incl.size() / 4, BIT.cur);
 			} else {
-				if (si == ds_ptr->sampleEnd()) {
+				if (si == ds_ptr->endSample()) {
 					throw std::logic_error("Problem with the bed file - not enough samples.");
 				}
 
@@ -432,7 +433,7 @@ void DataLoader::readBinPed(const string& fn){
 					for (int i = 0; i < 4; i++) {
 						if (_marker_incl[m * 4 + i]) {
 							if ((ch & GENO_2) && !(ch & GENO_1)) {
-								(*si)->appendMissingGenotype;
+								(*si)->appendMissingGenotype();
 							} else {
 								(*si)->appendGenotype((ch & GENO_2) >> 1, ch & GENO_1);
 							}
@@ -454,7 +455,7 @@ void DataLoader::readBinPed(const string& fn){
 void DataLoader::readTPed(const string& fn){
 	// We'll assume that we've already read the "tfam", which is really just a
 	// "ped" with no genotype information.
-    ifstream input(fn);
+    ifstream input(fn.c_str());
 
 	if(!input.is_open()){
 		throw std::invalid_argument("Error opening pedfile: " + fn);
@@ -532,7 +533,7 @@ Marker* DataLoader::parseMap(stringstream& ss) {
 
 	Marker* m = 0;
 	if (use) {
-		m = dataset.addMarker(chr, static_cast<unsigned int> (bploc),
+		m = ds_ptr->addMarker(chr, static_cast<unsigned int> (bploc),
 				id);
 
 		if (_map_ref) {
@@ -550,14 +551,14 @@ Marker* DataLoader::parseMap(stringstream& ss) {
 void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const string& g2){
 
 	if (g1 == _ped_missing_geno || g2 == _ped_missing_geno) {
-		samp->appendMissingGenotype();
+		s->appendMissingGenotype();
 	} else {
 		unsigned char g_idx1 =
 				static_cast<unsigned char> (m->addAllele(g1));
 		unsigned char g_idx2 =
 				static_cast<unsigned char> (m->addAllele(g2));
 
-		samp->appendGenotype(g1, g2);
+		s->appendGenotype(g_idx1, g_idx2);
 	}
 
 }
