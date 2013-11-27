@@ -50,6 +50,11 @@ public:
 				 typename std::_Deque_iterator<T*, T*&, T**> end) :
 			_itr(itr), _end(end) {}
 
+		// Make sure I can convert an iterator<T> to a const_iterator<T>
+		operator const_iterator<T>() {
+			return const_iterator<T>(_itr, _end);
+		}
+
 	private:
 		friend class boost::iterator_core_access;
 

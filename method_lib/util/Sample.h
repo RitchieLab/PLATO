@@ -47,6 +47,12 @@ public:
 	float getTrait(unsigned int pos) const {return pos < _traits.size() ? _traits[pos] : missing_trait;}
 	float getPhenotype() const {return getTrait(_pheno_pos);}
 
+	const std::string& getFID() const {return _famid;}
+	const std::string& getID() const {return _id;}
+
+	Sample* getFather() const {return _dad;}
+	Sample* getMother() const {return _mom;}
+
 	bool isFounder() const {return _founder;}
 	bool isGenderKnown() const {return _sex_known;}
 	bool isMale() const {return _sex_known && _male;}

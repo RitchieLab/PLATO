@@ -51,6 +51,10 @@ public:
 		return _alt_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_alt_idx];
 	}
 
+	const std::string& getAllele(unsigned char idx){
+		return idx >= _alleles.size() ? _missing_allele : _alleles[idx];
+	}
+
 	/*!
 	 * Returns the chromosome
 	 */
@@ -79,6 +83,8 @@ public:
 	}
 
 	bool isEnabled() const {return _chr & ENABLED_MASK;	}
+
+	static const std::string& getMissingAllele() {return _missing_allele;}
 
 private:
 	// NOTE: the most significant bit of _chr is the enabled bit
