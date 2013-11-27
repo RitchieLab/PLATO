@@ -19,7 +19,7 @@ private:
 	const static std::string stepname;
 
 public:
-	InputProcess() : ProcessImpl<InputProcess>(stepname) {};
+	InputProcess() : ProcessImpl<InputProcess>(stepname, "Command to load data into PLATO") {};
 	virtual ~InputProcess(){};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);

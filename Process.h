@@ -14,7 +14,7 @@ namespace Methods{
 class Process{
 
 public:
-	Process(const std::string& name_in) : name(name_in){}
+	Process(const std::string& name, const std::string& desc) : _name(name), _desc(desc){}
 	virtual ~Process(){}
 
 	void run(Methods::DataSet&);
@@ -23,7 +23,8 @@ public:
 	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
 
 	void printHelp(std::ostream& o){if(opt_ptr){o << *opt_ptr;}}
-	const std::string& getName(){return name;}
+	const std::string& getName() const {return _name;}
+	const std::string& getDesc() const {return _desc;}
 
 protected:
 	virtual void process(Methods::DataSet&) = 0;
@@ -33,7 +34,8 @@ protected:
 
 protected:
 	Methods::DataSet* data_set;
-	std::string name;
+	std::string _name;
+	std::string _desc;
 
 private:
 
@@ -43,7 +45,7 @@ private:
 template <class T>
 class ProcessImpl : public Process {
 public:
-	ProcessImpl(const std::string& n) : Process(n) {}
+	ProcessImpl(const std::string& n, const std::string& d) : Process(n, d) {}
 
 public:
 	static Process* create(){return new T();}

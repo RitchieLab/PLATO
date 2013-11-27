@@ -134,6 +134,8 @@ int main(int argc, char** argv) {
 			unrec_opt = po::collect_unrecognized(subparsed.options, po::include_positional);
 		}
 
+		process_list.push_back(p);
+
 	}
 
 	// Create a global DataSet for our use
@@ -178,7 +180,7 @@ void print_steps() {
 	for (ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++) {
 
 		Process* p = f.Create((*s_iter).first);
-		cout << std::left << std::setw(field) << (*s_iter).first << p->getName() << std::endl;
+		cout << std::left << std::setw(field) << p->getName() << p->getDesc() << std::endl;
 		delete p;
 		//cout << "\tThresh: " << mystep.getThreshold() << endl;
 	}
