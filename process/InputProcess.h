@@ -13,7 +13,7 @@
 
 namespace ProcessLib {
 
-class InputProcess : public ProcessImpl<InputProcess>, public Methods::DataLoader {
+class InputProcess : public ProcessImpl<InputProcess>, private Methods::DataLoader {
 
 private:
 	const static std::string stepname;
