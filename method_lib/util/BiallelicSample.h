@@ -30,6 +30,7 @@ public:
 private:
 
 	boost::dynamic_bitset<> _genotype;
+	unsigned int _max_pos;
 
 };
 

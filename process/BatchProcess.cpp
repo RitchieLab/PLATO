@@ -77,12 +77,12 @@ void BatchProcess::process(DataSet& ds){
     }
 
     // Now that we have all of our processes ready to go, let's run them!
-    for(int i=0; i<process_list.size(); i++){
+    for(unsigned int i=0; i<process_list.size(); i++){
     	process_list[i]->run(ds);
     }
 
     // OK, now delete all of our processes
-    for(int i=0; i<process_list.size(); i++){
+    for(unsigned int i=0; i<process_list.size(); i++){
     	delete process_list[i];
     }
     process_list.clear();

@@ -49,6 +49,8 @@ Marker* DataSet::addMarker(const std::string& chrom, unsigned int loc, const std
 
 	Marker* new_marker = new Marker(chrom, loc, id, _marker_idx++);
 
+	_markers.push_back(new_marker);
+
 	if(id != "." && id != ""){
 		_marker_map[id] = new_marker;
 	}
@@ -59,6 +61,8 @@ Marker* DataSet::addMarker(const std::string& chrom, unsigned int loc, const std
 
 Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsigned int n_genos){
 	Sample* new_samp = Sample::create(famid,id,n_genos);
+
+	_samples.push_back(new_samp);
 	_sample_map[id] = new_samp;
 
 	return new_samp;
@@ -71,6 +75,7 @@ Sample* DataSet::addSample(const std::string& id, unsigned int n_genos){
 Family* DataSet::addFamily(const std::string& id){
 	Family* new_fam = new Family(id);
 
+	_families.push_back(new_fam);
 	_family_map[id] = new_fam;
 
 	return new_fam;

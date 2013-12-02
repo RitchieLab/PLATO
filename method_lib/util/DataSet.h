@@ -34,7 +34,7 @@ public:
 		friend class boost::iterator_core_access;
 
 		// Iterate only over enabled samples
-		void increment() { while(_itr != _end && !((*(++_itr))->isEnabled()));}
+		void increment() { while(++_itr != _end && !((*(_itr))->isEnabled()));}
 		bool equal(const const_iterator& other) const { return _itr == other._itr;}
 		T* const & dereference() const { return (*_itr);}
 
@@ -59,7 +59,7 @@ public:
 		friend class boost::iterator_core_access;
 
 		// Iterate only over enabled samples
-		void increment() { while(_itr != _end && !((*(++_itr))->isEnabled()));}
+		void increment() { while(  !(++_itr == _end) && !((*(_itr))->isEnabled()));}
 		bool equal(const iterator& other) const { return _itr == other._itr;}
 		T* & dereference() const { return (*_itr);}
 

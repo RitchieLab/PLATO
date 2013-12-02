@@ -133,8 +133,6 @@ void DataLoader::read(){
 
 void DataLoader::readMap(const string& fn){
 
-	DataSet& dataset = *ds_ptr;
-
 	ifstream input(fn.c_str());
 
     if(!input.is_open()){
@@ -256,7 +254,7 @@ void DataLoader::readPed(const string& fn){
 				// Now, load up the genotypes
 				DataSet::marker_iterator mi = ds_ptr->beginMarker();
 				DataSet::marker_iterator mi_end = ds_ptr->endMarker();
-				for (int i = 0; i < _marker_incl.size(); i++) {
+				for (unsigned int i = 0; i < _marker_incl.size(); i++) {
 					string g1, g2;
 					s >> g1;
 					s >> g2;
@@ -371,7 +369,7 @@ void DataLoader::readBinPed(const string& fn){
 		while(_sample_incl.size() % 4 != 0){
 			_sample_incl.push_back(false);
 		}
-		for(int m = 0; m < _marker_incl.size(); m++){
+		for(unsigned int m = 0; m < _marker_incl.size(); m++){
 			if(!_marker_incl[m]){
 				// If I'm not including this marker, seek the appropriate number
 				// of bytes.
@@ -379,7 +377,7 @@ void DataLoader::readBinPed(const string& fn){
 			} else {
 				DataSet::sample_iterator si = ds_ptr->beginSample();
 				// I KNOW that _sample_incl.size() is a multiple of 4!
-				for (int s = 0; s * 4 < _sample_incl.size(); s++) {
+				for (unsigned int s = 0; s * 4 < _sample_incl.size(); s++) {
 					char ch;
 					BIT.read(&ch, 1);
 					if (!BIT.good()) {
@@ -414,7 +412,7 @@ void DataLoader::readBinPed(const string& fn){
 		}
 		DataSet::sample_iterator si = ds_ptr->beginSample();
 		// OK, must be individual-major then!
-		for (int s = 0; s < _sample_incl.size(); s++) {
+		for (unsigned int s = 0; s < _sample_incl.size(); s++) {
 			if(!_sample_incl[s]){
 				BIT.seekg(_marker_incl.size() / 4, BIT.cur);
 			} else {
@@ -423,7 +421,7 @@ void DataLoader::readBinPed(const string& fn){
 				}
 
 				// I KNOW that _marker_incl.size() is a multiple of 4!
-				for (int m = 0; m * 4 < _marker_incl.size(); s++) {
+				for (unsigned int m = 0; m * 4 < _marker_incl.size(); s++) {
 					char ch;
 					BIT.read(&ch, 1);
 					if (!BIT.good()) {
@@ -475,7 +473,7 @@ void DataLoader::readTPed(const string& fn){
 
 			if(newMarker){
 				DataSet::sample_iterator si = ds_ptr->beginSample();
-				for(int i=0; i<_sample_incl.size(); i++){
+				for(unsigned int i=0; i<_sample_incl.size(); i++){
 					// now, go through and parse each sample.
 					string g1, g2;
 					s >> g1;

@@ -58,7 +58,7 @@ public:
 	/*!
 	 * Returns the chromosome
 	 */
-	unsigned short getChrom() const {return _chr & !(ENABLED_MASK);}
+	unsigned short getChrom() const {return _chr & ~(ENABLED_MASK);}
 
 	/*!
 	 * Returns the location
@@ -99,7 +99,7 @@ private:
 	std::vector<std::string> _alleles;
 
 	static std::string _missing_allele;
-	static const unsigned short ENABLED_MASK = 1 << (sizeof(unsigned short) - 1);
+	static const unsigned short ENABLED_MASK = 1 << (sizeof(unsigned short)*8 - 1);
 };
 
 }

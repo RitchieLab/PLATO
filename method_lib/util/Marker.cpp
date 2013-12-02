@@ -12,7 +12,7 @@ namespace Methods{
 string Marker::_missing_allele = "0";
 
 Marker::Marker(const string& chr, unsigned int loc, const string& id, unsigned int idx) :
-		_chr(InputManager::chrStringToInt(chr)), _loc(loc), _idx(idx), _id(id){
+		_chr(InputManager::chrStringToInt(chr) | ENABLED_MASK), _loc(loc), _idx(idx), _id(id){
 	_ref_idx = _alt_idx = static_cast<unsigned char>(-1);
 }
 

@@ -7,6 +7,8 @@
 
 #include "BiallelicSample.h"
 
+#include <algorithm>
+
 using std::string;
 using std::pair;
 using std::make_pair;
@@ -15,21 +17,24 @@ namespace Methods {
 
 BiallelicSample::BiallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
-
-	_genotype.resize(2*n_genos);
+	//_genotype.resize(2*n_genos);
 
 }
 
 void BiallelicSample::appendGenotype(unsigned char geno1, unsigned char geno2){
 
 	// If either is "missing", then both are missing!
-	if(geno1 == static_cast<unsigned char>(-1) || geno2 == static_cast<unsigned char>(-1)){
+	if(geno1 == missing_allele || geno2 == missing_allele){
 		appendMissingGenotype();
 	}else{
+		if(geno1 && !geno2){
+			std::swap(geno1, geno2);
+		}
 		// Note: this can still be "missing" if we give [1,0], so this will take
 		// Binary PED without modification.
 		_genotype.push_back(geno1);
 		_genotype.push_back(geno2);
+
 	}
 }
 
