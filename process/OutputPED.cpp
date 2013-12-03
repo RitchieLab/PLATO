@@ -63,8 +63,6 @@ void OutputPED::process(DataSet& ds){
 
 	while(m_itr != m_end){
 
-		int myChrom = (*m_itr)->getChrom();
-
 		map_f << InputManager::chrIntToString((*m_itr)->getChrom()) << "\t"
 			  << (*m_itr)->getID() << "\t" << 0 << "\t"
 			  << (*m_itr)->getLoc() << std::endl;
@@ -81,11 +79,11 @@ void OutputPED::process(DataSet& ds){
 		Sample* s = *s_itr;
 
 		// printing information about the sample
-		ped_f << s->getFID() << "\t" << s->getID() << "\t";
-		ped_f << (s->getFather() == 0 ? "0" : s->getFather()->getID()) << "\t";
-		ped_f << (s->getMother() == 0 ? "0" : s->getMother()->getID()) << "\t";
-		ped_f << (s->isGenderKnown() ? (s->isFemale() + 1) : 0) << "\t";
-		ped_f << (s->isAffectedKnown() ? (s->isAffected() + 1) : -9);
+		ped_f << s->getFID() << "\t" << s->getID() << "\t"
+		      << (s->getFather() == 0 ? "0" : s->getFather()->getID()) << "\t"
+		      << (s->getMother() == 0 ? "0" : s->getMother()->getID()) << "\t"
+		      << (s->isGenderKnown() ? (s->isFemale() + 1) : 0) << "\t"
+		      << (s->isAffectedKnown() ? (s->isAffected() + 1) : -9);
 
 		DataSet::const_marker_iterator ms_itr = ds.beginMarker();
 		std::pair<unsigned char, unsigned char> geno;
