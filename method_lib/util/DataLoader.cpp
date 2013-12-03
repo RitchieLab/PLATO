@@ -476,11 +476,12 @@ void DataLoader::readTPed(const string& fn){
 				for(unsigned int i=0; i<_sample_incl.size(); i++){
 					// now, go through and parse each sample.
 					string g1, g2;
-					s >> g1;
-					s >> g2;
 					if(!s.good()){
 						throw std::logic_error("Error: not enough samples in TPed");
 					}
+					s >> g1;
+					s >> g2;
+
 
 					if(_sample_incl[i]){
 						if(si == ds_ptr->endSample()){
