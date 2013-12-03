@@ -361,8 +361,8 @@ void DataLoader::readBinPed(const string& fn){
 		BIT.seekg(0);
 	}
 
-	const unsigned char GENO_1 = 1;
-	const unsigned char GENO_2 = 2;
+	const unsigned char GENO_1 = 2;
+	const unsigned char GENO_2 = 1;
 
 	if(snp_major){
 		// OK, pad the sample size to a multiple of 4 (just "ignore" those samples)
@@ -394,8 +394,8 @@ void DataLoader::readBinPed(const string& fn){
 							if ((ch & GENO_2) && !(ch & GENO_1)) {
 								(*si)->appendMissingGenotype();
 							} else {
-								(*si)->appendGenotype((ch & GENO_2) >> 1, ch
-										& GENO_1);
+								(*si)->appendGenotype((ch & GENO_1) >> 1, ch
+										& GENO_2);
 							}
 
 							++si;
