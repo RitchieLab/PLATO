@@ -12,8 +12,6 @@ using std::pair;
 
 namespace Methods{
 
-unsigned char PhasedPolyallelicSample::_missing_val = static_cast<unsigned char>(-1);
-
 PhasedPolyallelicSample::PhasedPolyallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
 }
@@ -24,12 +22,12 @@ void PhasedPolyallelicSample::appendGenotype(unsigned char geno1, unsigned char 
 }
 
 void PhasedPolyallelicSample::appendMissingGenotype(){
-	_genotype.push_back(_missing_val);
-	_genotype.push_back(_missing_val);
+	_genotype.push_back(missing_allele);
+	_genotype.push_back(missing_allele);
 }
 
 bool PhasedPolyallelicSample::isMissing(unsigned int pos) const{
-	return _genotype[2*pos] == _missing_val || _genotype[2*pos + 1] == _missing_val;
+	return _genotype[2*pos] == missing_allele || _genotype[2*pos + 1] == missing_allele;
 }
 
 pair<unsigned char, unsigned char> PhasedPolyallelicSample::getGeno(unsigned int pos) const{

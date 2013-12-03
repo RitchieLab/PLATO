@@ -92,7 +92,7 @@ private:
 	static bool _phased;
 
 protected:
-	static const unsigned char missing_allele = static_cast<unsigned char>(-1);
+	static const unsigned char missing_allele;
 	static const std::pair<unsigned char, unsigned char> missing_geno;
 
 

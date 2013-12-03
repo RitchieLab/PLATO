@@ -13,8 +13,6 @@ using std::make_pair;
 
 namespace Methods{
 
-unsigned char PolyallelicSample::_missing_val = static_cast<unsigned char>(-1);
-
 PolyallelicSample::PolyallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
 }
@@ -22,9 +20,9 @@ PolyallelicSample::PolyallelicSample(const string& famid, const string& id, unsi
 void PolyallelicSample::appendGenotype(unsigned char geno1, unsigned char geno2){
 
 	// If either is "missing", then both are missing!
-	if(geno1 == _missing_val || geno2 == _missing_val){
-		_genotype.push_back(_missing_val);
-		_genotype.push_back(_missing_val);
+	if(geno1 == missing_allele || geno2 == missing_allele){
+		_genotype.push_back(missing_allele);
+		_genotype.push_back(missing_allele);
 	}else{
 		_genotype.push_back(geno1);
 		_genotype.push_back(geno2);
@@ -32,12 +30,12 @@ void PolyallelicSample::appendGenotype(unsigned char geno1, unsigned char geno2)
 }
 
 void PolyallelicSample::appendMissingGenotype(){
-	_genotype.push_back(_missing_val);
-	_genotype.push_back(_missing_val);
+	_genotype.push_back(missing_allele);
+	_genotype.push_back(missing_allele);
 }
 
 bool PolyallelicSample::isMissing(unsigned int pos) const{
-	return _genotype[2*pos] == _missing_val || _genotype[2*pos + 1] == _missing_val;
+	return _genotype[2*pos] == missing_allele || _genotype[2*pos + 1] == missing_allele;
 }
 
 pair<unsigned char, unsigned char> PolyallelicSample::getGeno(unsigned int pos) const{

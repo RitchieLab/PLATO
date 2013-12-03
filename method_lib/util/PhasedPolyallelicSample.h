@@ -28,8 +28,6 @@ public:
 private:
 
 	std::deque<unsigned char> _genotype;
-	static unsigned char _missing_val;
-
 };
 
 }
