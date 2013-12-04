@@ -138,17 +138,17 @@ void OutputBED::process(DataSet& ds){
 		m_itr = ds.beginMarker();
 		while (m_itr != m_end) {
 
-			unsigned int n_samp = 0;
+			unsigned int n_samp = 4;
 			s_itr = ds.beginSample();
 			while (s_itr != s_end) {
 
-				ch <<= 2;
-				ch |= getBinaryGeno((*s_itr)->getGeno((*m_itr)->getIndex()));
+				ch |= (getBinaryGeno((*s_itr)->getGeno((*m_itr)->getIndex())) << ((4 - n_samp)*2)) ;
 
-				if ((++n_samp) % 4 == 0) {
+				if (--n_samp == 0) {
 					bed_f.write(&ch, 1);
 					// probably unnecessary, but I like it
 					ch = 0;
+					n_samp = 4;
 				}
 
 				++s_itr;
