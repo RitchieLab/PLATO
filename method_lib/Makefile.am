@@ -21,7 +21,9 @@ util/PhasedPolyallelicSample.h \
 util/PolyallelicSample.cpp \
 util/PolyallelicSample.h \
 util/Sample.cpp \
-util/Sample.h
+util/Sample.h \
+util/OutputPLINK.h \
+util/OutputPLINK.cpp
 
 libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB)
 
