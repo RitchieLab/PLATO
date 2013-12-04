@@ -7,6 +7,8 @@
 
 #include "PolyallelicSample.h"
 
+#include "Marker.h"
+
 using std::string;
 using std::pair;
 using std::make_pair;
@@ -34,11 +36,13 @@ void PolyallelicSample::appendMissingGenotype(){
 	_genotype.push_back(missing_allele);
 }
 
-bool PolyallelicSample::isMissing(unsigned int pos) const{
+bool PolyallelicSample::isMissing(const Marker& m) const{
+	unsigned int pos = m.getIndex();
 	return _genotype[2*pos] == missing_allele || _genotype[2*pos + 1] == missing_allele;
 }
 
-pair<unsigned char, unsigned char> PolyallelicSample::getGeno(unsigned int pos) const{
+pair<unsigned char, unsigned char> PolyallelicSample::getGeno(const Marker& m) const{
+	unsigned int pos = m.getIndex();
 	return make_pair(_genotype[2*pos], _genotype[2*pos + 1]);
 }
 

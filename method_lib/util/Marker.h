@@ -6,6 +6,8 @@
 
 namespace Methods{
 
+class Sample;
+
 class Marker{
 
 public:
@@ -43,6 +45,14 @@ public:
 		return _ref_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_ref_idx];
 	}
 
+	unsigned char getRefIdx() const{
+		return _ref_idx;
+	}
+
+	unsigned char getAltIdx() const{
+		return _alt_idx;
+	}
+
 	/*!
 	 * Returns the alternate allele; the first available allele (as added) which
 	 * is not the reference allele.  Returns "0" if no available allele
@@ -54,6 +64,10 @@ public:
 	const std::string& getAllele(unsigned char idx){
 		return idx >= _alleles.size() ? _missing_allele : _alleles[idx];
 	}
+	/*!
+	 * Returns the index into the chromosome array
+	 */
+	unsigned int getIndex() const {return _idx;}
 
 	/*!
 	 * Returns the chromosome
@@ -64,11 +78,6 @@ public:
 	 * Returns the location
 	 */
 	unsigned int getLoc() const {return _loc;}
-
-	/*!
-	 * Returns the index into the chromosome array
-	 */
-	unsigned int getIndex() const {return _idx;}
 
 	/*!
 	 * Returns the ID (usually an RSID)
@@ -86,7 +95,11 @@ public:
 
 	static const std::string& getMissingAllele() {return _missing_allele;}
 
+
+
 private:
+
+
 	// NOTE: the most significant bit of _chr is the enabled bit
 	unsigned short _chr;
 	unsigned char _ref_idx;

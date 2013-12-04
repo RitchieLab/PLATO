@@ -108,26 +108,24 @@ void OutputBED::process(DataSet& ds){
 	if(_ind_major){
 		s_itr = ds.beginSample();
 		while(s_itr != s_end){
-			Sample* s = *s_itr;
 
-			unsigned int n_mark=0;
+			unsigned int n_mark=4;
 			m_itr = ds.beginMarker();
 
 			while(m_itr != m_end){
 
-				ch <<= 2;
-				ch |= getBinaryGeno(s->getGeno((*m_itr)->getIndex()));
+				ch |= (getBinaryGeno(**s_itr, **m_itr) << ((4 - n_mark)*2)) ;
 
-				if((++n_mark) % 4 == 0){
+				if(--n_mark == 0){
 					bed_f.write(&ch, 1);
-					// probably unnecessary, but I like it
 					ch = 0;
+					n_mark = 4;
 				}
 
 				++m_itr;
 			}
 
-			if(n_mark % 4 != 0){
+			if(n_mark != 4){
 				bed_f.write(&ch, 1);
 			}
 
@@ -142,7 +140,7 @@ void OutputBED::process(DataSet& ds){
 			s_itr = ds.beginSample();
 			while (s_itr != s_end) {
 
-				ch |= (getBinaryGeno((*s_itr)->getGeno((*m_itr)->getIndex())) << ((4 - n_samp)*2)) ;
+				ch |= (getBinaryGeno(**s_itr, **m_itr) << ((4 - n_samp)*2)) ;
 
 				if (--n_samp == 0) {
 					bed_f.write(&ch, 1);
@@ -154,7 +152,7 @@ void OutputBED::process(DataSet& ds){
 				++s_itr;
 			}
 
-			if (n_samp % 4 != 0) {
+			if (n_samp != 4) {
 				bed_f.write(&ch, 1);
 			}
 
@@ -166,20 +164,27 @@ void OutputBED::process(DataSet& ds){
 
 }
 
-unsigned char OutputBED::getBinaryGeno(std::pair<unsigned char, unsigned char> geno) {
+unsigned char OutputBED::getBinaryGeno(const Sample& s, const Marker& m) const {
 
-	unsigned char g_char = 0;
+	unsigned char g_char = s.getAdditiveGeno(m);
 
-	if (geno.first == Sample::missing_allele || geno.second == Sample::missing_allele) {
+	switch(g_char){
+	case 0:
+		// homozygous referent (00)
+		g_char = 0;
+		break;
+	case 1:
+		// heterozygous (10)
+		g_char = 2;
+		break;
+	case 2:
+		// homozygous alternate (11)
+		g_char = 3;
+		break;
+	default:
 		// missing (01)
 		g_char = 1;
-	} else if (geno.first && geno.second) {
-		// homozygote alternate (11)
-		g_char = 3;
-	} else if (geno.first || geno.second) {
-		//heterozygote (10)
-		g_char = 2;
-	} // must be homozygous referent (00), so no change needed
+	}
 
 	return g_char;
 

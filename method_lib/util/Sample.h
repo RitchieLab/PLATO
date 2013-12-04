@@ -8,6 +8,7 @@
 namespace Methods{
 
 class DataSet;
+class Marker;
 
 class Sample{
 
@@ -30,8 +31,11 @@ private:
 public:
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2) = 0;
 	virtual void appendMissingGenotype() = 0;
-	virtual bool isMissing(unsigned int pos) const = 0;
-	virtual std::pair<unsigned char, unsigned char> getGeno(unsigned int pos) const = 0;
+	virtual bool isMissing(const Marker&) const = 0;
+	virtual std::pair<unsigned char, unsigned char> getGeno(const Marker&) const = 0;
+
+	unsigned char getAdditiveGeno(const Marker&) const;
+
 
 	bool addMother(Sample* mom) {return mom == (_mom = (_mom == NULL) ? mom : _mom);}
 	bool addFather(Sample* dad) {return dad == (_dad = (_dad == NULL) ? dad : _dad);}

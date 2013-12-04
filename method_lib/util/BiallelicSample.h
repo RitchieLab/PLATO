@@ -22,8 +22,8 @@ public:
 
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2);
 	virtual void appendMissingGenotype();
-	virtual bool isMissing(unsigned int pos) const;
-	virtual std::pair<unsigned char, unsigned char> getGeno(unsigned int pos) const;
+	virtual bool isMissing(const Marker&) const;
+	virtual std::pair<unsigned char, unsigned char> getGeno(const Marker&) const;
 
 	virtual ~BiallelicSample(){}
 

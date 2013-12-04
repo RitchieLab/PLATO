@@ -29,7 +29,7 @@ protected:
 
 private:
 
-	unsigned char getBinaryGeno(std::pair<unsigned char, unsigned char> geno);
+	unsigned char getBinaryGeno(const Methods::Sample& s, const Methods::Marker& m) const;
 
 private:
 	std::string base_fn;

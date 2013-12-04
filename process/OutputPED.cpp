@@ -86,7 +86,7 @@ void OutputPED::process(DataSet& ds){
 		std::pair<unsigned char, unsigned char> geno;
 		string allele;
 		while(ms_itr != m_end){
-			geno = s->getGeno((*ms_itr)->getIndex());
+			geno = s->getGeno(**ms_itr);
 			allele = (*ms_itr)->getAllele(geno.first);
 			ped_f << "\t" << (allele == Marker::getMissingAllele() ? "0" : allele);
 			allele = (*ms_itr)->getAllele(geno.second);

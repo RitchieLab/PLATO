@@ -7,6 +7,8 @@
 
 #include "BiallelicSample.h"
 
+#include "Marker.h"
+
 #include <algorithm>
 
 using std::string;
@@ -43,15 +45,18 @@ void BiallelicSample::appendMissingGenotype(){
 	_genotype.push_back(0);
 }
 
-bool BiallelicSample::isMissing(unsigned int pos) const{
+bool BiallelicSample::isMissing(const Marker& m) const{
+	unsigned int pos = m.getIndex();
 	return _genotype[2*pos] && (!_genotype[2*pos + 1]);
 }
 
-pair<unsigned char, unsigned char> BiallelicSample::getGeno(unsigned int pos) const{
-	if(isMissing(pos)){
+pair<unsigned char, unsigned char> BiallelicSample::getGeno(const Marker& m) const{
+	unsigned int pos = m.getIndex();
+	if(isMissing(m)){
 		return missing_geno;
 	}else{
-		return make_pair(_genotype[2*pos], _genotype[2*pos + 1]);
+		return make_pair(_genotype[2*pos] ? m.getAltIdx() : m.getRefIdx(),
+				_genotype[2*pos + 1] ? m.getAltIdx() : m.getRefIdx());
 	}
 }
 

@@ -1,5 +1,7 @@
 #include "Sample.h"
 
+#include "Marker.h"
+
 #include "PhasedBiallelicSample.h"
 #include "BiallelicSample.h"
 #include "PolyallelicSample.h"
@@ -33,6 +35,20 @@ Sample* Sample::create(const string& famid, const string& id, unsigned int n_gen
 			return new PolyallelicSample(famid, id, n_genos);
 		}
 	}
+}
+
+unsigned char Sample::getAdditiveGeno(const Marker& m) const{
+	unsigned char geno = missing_allele;
+
+	std::pair<unsigned char, unsigned char> allele_pair = getGeno(m);
+
+	if(allele_pair.first != missing_allele && allele_pair.second != missing_allele){
+		geno = (allele_pair.first != m.getRefIdx()) + (allele_pair.second != m.getRefIdx());
+	}
+
+	return geno;
+
+
 }
 
 }
