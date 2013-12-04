@@ -68,8 +68,7 @@ void OutputBED::process(DataSet& ds){
 	DataSet::const_marker_iterator m_end = ds.endMarker();
 
 	while(m_itr != m_end){
-		Marker* m = *m_itr;
-		printMAPInfo(bim_f, m, true);
+		printMAPInfo(bim_f, **m_itr, true);
 		bim_f << std::endl;
 		++m_itr;
 	}
@@ -80,8 +79,7 @@ void OutputBED::process(DataSet& ds){
 	DataSet::const_sample_iterator s_itr = ds.beginSample();
 	DataSet::const_sample_iterator s_end = ds.endSample();
 	while(s_itr != s_end){
-		Sample* s = *s_itr;
-		printPEDHeader(fam_f, s);
+		printPEDHeader(fam_f, **s_itr);
 		fam_f << std::endl;
 		++s_itr;
 	}

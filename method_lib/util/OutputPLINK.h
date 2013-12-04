@@ -22,8 +22,8 @@ public:
 
 protected:
 
-	void printPEDHeader(std::ostream&, const Sample*) const;
-	void printMAPInfo(std::ostream&, const Marker*, bool print_alleles=false) const;
+	void printPEDHeader(std::ostream&, const Sample&) const;
+	void printMAPInfo(std::ostream&, const Marker&, bool print_alleles=false) const;
 
 
 };

@@ -62,13 +62,8 @@ void OutputPED::process(DataSet& ds){
 	DataSet::const_marker_iterator m_end = ds.endMarker();
 
 	while(m_itr != m_end){
-
-		Marker* m = *m_itr;
-
-		printMAPInfo(map_f, m, false);
-
+		printMAPInfo(map_f, **m_itr, false);
 		map_f << std::endl;
-
 		++m_itr;
 	}
 
@@ -78,19 +73,18 @@ void OutputPED::process(DataSet& ds){
 	DataSet::const_sample_iterator s_itr = ds.beginSample();
 	DataSet::const_sample_iterator s_end = ds.endSample();
 	while(s_itr != s_end){
-		Sample* s = *s_itr;
-
-		printPEDHeader(ped_f, s);
+		printPEDHeader(ped_f, **s_itr);
 
 		DataSet::const_marker_iterator ms_itr = ds.beginMarker();
 		std::pair<unsigned char, unsigned char> geno;
-		string allele;
 		while(ms_itr != m_end){
-			geno = s->getGeno(**ms_itr);
-			allele = (*ms_itr)->getAllele(geno.first);
-			ped_f << "\t" << (allele == Marker::getMissingAllele() ? "0" : allele);
-			allele = (*ms_itr)->getAllele(geno.second);
-			ped_f << "\t" << (allele == Marker::getMissingAllele() ? "0" : allele);
+			if((*s_itr)->isMissing(**ms_itr)){
+				ped_f << "\t0\t0";
+			} else {
+				geno = (*s_itr)->getGeno(**ms_itr);
+				ped_f << "\t" << (*ms_itr)->getAllele(geno.first)
+					  << "\t" << (*ms_itr)->getAllele(geno.second);
+			}
 			++ms_itr;
 		}
 
