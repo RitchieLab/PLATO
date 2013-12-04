@@ -91,7 +91,7 @@ private:
 	static bool _biallelic;
 	static bool _phased;
 
-protected:
+public:
 	static const unsigned char missing_allele;
 	static const std::pair<unsigned char, unsigned char> missing_geno;
 

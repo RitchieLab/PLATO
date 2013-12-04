@@ -9,10 +9,11 @@
 #define PROCESSLIB_OUTPUTPED_H
 
 #include "Process.h"
+#include "util/OutputPLINK.h"
 
 namespace ProcessLib {
 
-class OutputPED : public ProcessImpl<OutputPED> {
+class OutputPED : public ProcessImpl<OutputPED>, private Methods::OutputPLINK {
 private:
 	const static std::string stepname;
 

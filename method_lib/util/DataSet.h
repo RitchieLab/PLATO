@@ -39,7 +39,7 @@ public:
 		T* const & dereference() const { return (*_itr);}
 
 		typename std::deque<T*>::const_iterator _itr;
-		const typename std::deque<T*>::const_iterator _end;
+		typename std::deque<T*>::const_iterator _end;
 	};
 
 	template <class T>
@@ -64,7 +64,7 @@ public:
 		T* & dereference() const { return (*_itr);}
 
 		typename std::deque<T*>::iterator _itr;
-		const typename std::deque<T*>::iterator _end;
+		typename std::deque<T*>::iterator _end;
 	};
 
 	typedef const_iterator<Sample> const_sample_iterator;
