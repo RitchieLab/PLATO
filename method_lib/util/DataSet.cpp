@@ -63,7 +63,7 @@ Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsi
 	Sample* new_samp = Sample::create(famid,id,n_genos);
 
 	_samples.push_back(new_samp);
-	_sample_map[id] = new_samp;
+	_sample_map[std::make_pair(famid, id)] = new_samp;
 
 	return new_samp;
 }
@@ -81,8 +81,13 @@ Family* DataSet::addFamily(const std::string& id){
 	return new_fam;
 }
 
-Sample* const DataSet::getSample(const std::string& id) const{
-	map<string,Sample*>::const_iterator s_itr = _sample_map.find(id);
+Sample* const DataSet::getSample(const string& id) const{
+	map<pair<string, string>,Sample*>::const_iterator s_itr = _sample_map.find(std::make_pair(id, id));
+	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
+}
+
+Sample* const DataSet::getSample(const string& fid, const string& iid) const{
+	map<pair<string, string>,Sample*>::const_iterator s_itr = _sample_map.find(std::make_pair(fid, iid));
 	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
 }
 

@@ -114,6 +114,7 @@ public:
 	void sortMarkers();
 
 	Sample* const getSample(const std::string& id) const;
+	Sample* const getSample(const std::string& fid, const std::string& id) const;
 	Marker* const getMaker(const std::string& id) const;
 	Family* const getFamily(const std::string& id) const;
 
@@ -134,7 +135,7 @@ private:
 	std::deque<std::string> _trait_name;
 	std::map<std::string, Marker*> _marker_map;
 	std::map<std::pair<unsigned short, unsigned int>, Marker*> _marker_pos_map;
-	std::map<std::string, Sample*> _sample_map;
+	std::map<std::pair<std::string, std::string>, Sample*> _sample_map;
 	std::map<std::string, Family*> _family_map;
 
 	unsigned int _marker_idx;
