@@ -45,14 +45,6 @@ public:
 		return _ref_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_ref_idx];
 	}
 
-	unsigned char getRefIdx() const{
-		return _ref_idx;
-	}
-
-	unsigned char getAltIdx() const{
-		return _alt_idx;
-	}
-
 	/*!
 	 * Returns the alternate allele; the first available allele (as added) which
 	 * is not the reference allele.  Returns "0" if no available allele
@@ -61,9 +53,18 @@ public:
 		return _alt_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_alt_idx];
 	}
 
-	const std::string& getAllele(unsigned char idx){
+	const std::string& getAllele(unsigned char idx) const{
 		return idx >= _alleles.size() ? _missing_allele : _alleles[idx];
 	}
+
+	unsigned char getRefIdx() const{
+		return _ref_idx;
+	}
+
+	unsigned char getAltIdx() const{
+		return _alt_idx;
+	}
+
 	/*!
 	 * Returns the index into the chromosome array
 	 */

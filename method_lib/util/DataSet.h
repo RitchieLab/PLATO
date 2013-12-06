@@ -22,7 +22,7 @@ public:
 	~DataSet();
 
 	template <class T>
-	class const_iterator : public boost::iterator_facade<const_iterator<T>, T* const, boost::forward_traversal_tag>{
+	class const_iterator : public boost::iterator_facade<const_iterator<T>, const T* const, boost::forward_traversal_tag>{
 
 	public:
 		const_iterator(
@@ -36,8 +36,9 @@ public:
 		// Iterate only over enabled samples
 		void increment() { while(++_itr != _end && !((*(_itr))->isEnabled()));}
 		bool equal(const const_iterator& other) const { return _itr == other._itr;}
-		T* const & dereference() const { return (*_itr);}
+		const T* const & dereference() const { return _tmp = *_itr;}
 
+		mutable T const* _tmp;
 		typename std::deque<T*>::const_iterator _itr;
 		typename std::deque<T*>::const_iterator _end;
 	};
