@@ -111,6 +111,8 @@ public:
 	Sample* addSample(const std::string& famid, const std::string& id, unsigned int n_genos=0);
 	Sample* addSample(const std::string& id, unsigned int n_genos=0);
 	Family* addFamily(const std::string& id);
+	bool addTrait(const std::string& trait, const Sample* samp, float val);
+	float getTrait(const std::string& trait, const Sample* samp) const;
 
 	void sortMarkers();
 
@@ -133,11 +135,14 @@ private:
 	std::deque<Marker*> _markers;
 	std::deque<Sample*> _samples;
 	std::deque<Family*> _families;
-	std::deque<std::string> _trait_name;
 	std::map<std::string, Marker*> _marker_map;
 	std::map<std::pair<unsigned short, unsigned int>, Marker*> _marker_pos_map;
 	std::map<std::pair<std::string, std::string>, Sample*> _sample_map;
 	std::map<std::string, Family*> _family_map;
+
+	std::map<const Sample*, unsigned int> _sample_idx_map;
+
+	std::map<std::string, std::deque<float> > _trait_map;
 
 	unsigned int _marker_idx;
 

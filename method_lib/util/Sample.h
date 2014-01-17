@@ -5,6 +5,8 @@
 #include <string>
 #include <set>
 
+#include <utility>
+
 namespace Methods{
 
 class DataSet;
@@ -29,6 +31,10 @@ private:
 	Sample& operator=(const Sample&);
 
 public:
+	bool operator<(const Sample& o) const{
+		return std::make_pair(_id, _famid) < std::make_pair(o._id, o._famid);
+	}
+
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2) = 0;
 	virtual void appendMissingGenotype() = 0;
 	virtual bool isMissing(const Marker&) const = 0;
@@ -98,10 +104,9 @@ private:
 public:
 	static const unsigned char missing_allele;
 	static const std::pair<unsigned char, unsigned char> missing_geno;
-
-
 };
 
 }
+
 
 #endif

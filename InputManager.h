@@ -1,10 +1,13 @@
 #ifndef INPUT_MANAGER_H
 #define INPUT_MANAGER_H
 
+#include <string>
+#include <sstream>
+#include <map>
+
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
-#include <string>
-#include <map>
+#include <boost/tokenizer.hpp>
 
 /*!
  * Class that manages the input to PLATO
@@ -43,6 +46,12 @@ public:
 	 */
 	static void parseGlobalOptions(const boost::program_options::variables_map& vm);
 
+	/*!
+	 * Parse a vector of separated strings
+	 */
+	template <class I, class O>
+	static void parseInput(const I& cont_in, O& cont_out, const std::string& sep=",");
+
 private:
 
 	//! A mapping of strings -> chromosome numbers
@@ -51,5 +60,25 @@ private:
 	static const std::string s_missing_chr_str;
 
 };
+
+template <class I, class O>
+void InputManager::parseInput(const I& cont_in, O& cont_out, const std::string& sep){
+	typename I::const_iterator itr = cont_in.begin();
+	while(itr != cont_in.end()){
+		std::stringstream out_s;
+		out_s << (*itr);
+
+		boost::char_separator<char> tok_sep(sep.c_str());
+
+		boost::tokenizer<boost::char_separator<char> > tok(out_s.str());
+		boost::tokenizer<boost::char_separator<char> >::iterator t_itr = tok.begin();
+		while(t_itr != tok.end()){
+			cont_out.insert(cont_out.end(), boost::lexical_cast<typename O::value_type>(*t_itr));
+			++t_itr;
+		}
+
+		++itr;
+	}
+}
 
 #endif

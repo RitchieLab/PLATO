@@ -23,7 +23,14 @@ util/PolyallelicSample.h \
 util/Sample.cpp \
 util/Sample.h \
 util/OutputPLINK.h \
-util/OutputPLINK.cpp
+util/OutputPLINK.cpp \
+util/Container.h \
+util/Logger.h \
+util/Logger.cpp \
+analysis/Correction.h \
+analysis/Correction.cpp \
+analysis/Regression.h \
+analysis/Regression.cpp
 
 libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB)
 

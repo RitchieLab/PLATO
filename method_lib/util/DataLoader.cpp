@@ -127,7 +127,6 @@ void DataLoader::read(){
 		throw std::logic_error("Unknown input type");
 	}
 
-	// OK, now read any other data...
 }
 
 

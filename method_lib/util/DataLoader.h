@@ -9,7 +9,6 @@
 #define METHODS_DATA_LOADER_H
 
 #include <string>
-#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 #include <boost/program_options.hpp>

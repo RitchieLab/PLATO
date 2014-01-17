@@ -1,6 +1,7 @@
 #include "DataSet.h"
 
 #include <algorithm>
+#include <limits>
 
 #include "InputManager.h"
 
@@ -62,6 +63,7 @@ Marker* DataSet::addMarker(const std::string& chrom, unsigned int loc, const std
 Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsigned int n_genos){
 	Sample* new_samp = Sample::create(famid,id,n_genos);
 
+	_sample_idx_map[new_samp] = _samples.size();
 	_samples.push_back(new_samp);
 	_sample_map[std::make_pair(famid, id)] = new_samp;
 
@@ -106,4 +108,37 @@ Marker* const DataSet::getMarker(const std::string& chrom, unsigned int loc) con
 			_marker_pos_map.find(std::make_pair(InputManager::chrStringToInt(chrom), loc));
 	return m_itr == _marker_pos_map.end() ? 0 : (*m_itr).second;
 }
+
+bool DataSet::addTrait(const std::string& trait, const Sample* samp, float val){
+	map<const Sample*, unsigned int>::const_iterator s_itr = _sample_idx_map.find(samp);
+
+	// Could not find the position of the given sample - something is bad here!
+	if(s_itr == _sample_idx_map.end()){
+		return false;
+	}
+
+	map<string, deque<float> >::iterator itr = _trait_map.find(trait);
+
+	//If the mapping isn't found for the given trait, add a completely NaN entry
+	if(itr == _trait_map.end()){
+		itr = _trait_map.insert(_trait_map.end(), make_pair(trait,
+				deque<float> (_samples.size(),
+						std::numeric_limits<float>::quiet_NaN())));
+	}
+
+	(*itr).second[(*s_itr).second] = val;
+	return true;
+}
+
+float DataSet::getTrait(const std::string& trait, const Sample* samp) const{
+	map<const Sample*, unsigned int>::const_iterator s_itr = _sample_idx_map.find(samp);
+	map<string, deque<float> >::const_iterator itr = _trait_map.find(trait);
+
+	if(s_itr == _sample_idx_map.end() || itr == _trait_map.end()){
+		return std::numeric_limits<float>::quiet_NaN();
+	}
+
+	return (*itr).second[(*s_itr).second];
+}
+
 }

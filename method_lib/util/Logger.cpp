@@ -8,7 +8,7 @@ using std::endl;
 namespace Utility{
 
 string Logger::logfn = "plato.log";
-Logger* Logger::logger = 0;
+Logger* Logger::_log = 0;
 
 Logger::Logger() : logstream(logfn.c_str()){}
 
@@ -19,9 +19,9 @@ Logger::~Logger(){
 void Logger::setLogFile(const string& fn){
 	if(fn != logfn){
 		logfn = fn;
-		if(logger){
-			delete logger;
-			logger = new Logger();
+		if(_log){
+			delete _log;
+			_log = new Logger();
 		}
 	}
 }
@@ -32,5 +32,9 @@ void Logger::print(const string& msg, ostream& out){
 	out << msg << endl;
 
 }
+
+Logger& Logger::getLogger(){return *((_log == 0) ? _log = new Logger() : _log);}
+
+void Logger::log(const std::string& msg){getLogger().print(msg, std::cout);}
 
 }

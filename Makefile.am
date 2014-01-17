@@ -37,7 +37,9 @@ process/ExampleModule.h \
 process/OutputBED.cpp \
 process/OutputBED.h \
 process/OutputTPED.cpp \
-process/OutputTPED.h
+process/OutputTPED.h \
+process/TraitLoader.h \
+process/TraitLoader.cpp
 
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)
