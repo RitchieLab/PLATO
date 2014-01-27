@@ -2,6 +2,10 @@
 
 #include <algorithm>
 #include <limits>
+#include <vector>
+#include <sstream>
+
+#include <boost/algorithm/string.hpp>
 
 #include "InputManager.h"
 
@@ -9,6 +13,7 @@
 #include "Sample.h"
 #include "Family.h"
 
+using std::vector;
 using std::deque;
 using std::string;
 using std::map;
@@ -95,7 +100,28 @@ Sample* const DataSet::getSample(const string& fid, const string& iid) const{
 
 Marker* const DataSet::getMaker(const std::string& id) const{
 	map<string,Marker*>::const_iterator m_itr = _marker_map.find(id);
-	return m_itr == _marker_map.end() ? 0 : (*m_itr).second;
+	Marker* m = 0;
+	if(m_itr != _marker_map.end()){
+		m = (*m_itr).second;
+	}else{
+		// try to find with chr:pos instead!
+		vector<string> chr_pos;
+		boost::algorithm::split(chr_pos, id, boost::is_any_of(":"), boost::token_compress_off);
+		if(chr_pos.size() == 2){
+			unsigned int pos;
+			std::stringstream pos_ss(chr_pos[1]);
+			pos_ss >> pos;
+			if(pos_ss.eof()){
+				map<pair<unsigned short, unsigned int>, Marker*>::const_iterator m_pos_itr =
+						_marker_pos_map.find(std::make_pair(InputManager::chrStringToInt(chr_pos[0]), pos));
+				if(m_pos_itr != _marker_pos_map.end()){
+					m = (*m_pos_itr).second;
+				}
+			}
+
+		}
+	}
+	return m;
 }
 
 Family* const DataSet::getFamily(const std::string& id) const{

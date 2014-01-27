@@ -1,7 +1,6 @@
 #ifndef METHODS_DATASET_H
 #define METHODS_DATASET_H
 
-#include <vector>
 #include <deque>
 #include <map>
 #include <string>
@@ -68,6 +67,24 @@ public:
 		typename std::deque<T*>::iterator _end;
 	};
 
+	class const_trait_iterator: public boost::iterator_facade<
+			const_trait_iterator, const std::string&,
+			boost::forward_traversal_tag> {
+
+	public:
+		const_trait_iterator(std::map<std::string, std::deque<float> >::const_iterator itr) :
+			_itr(itr) {}
+
+	private:
+		friend class boost::iterator_core_access;
+
+		void increment() { ++_itr;}
+		bool equal(const const_trait_iterator& other) const { return _itr == other._itr; }
+		const std::string& dereference() const { return (*_itr).first;}
+
+		std::map<std::string, std::deque<float> >::const_iterator _itr;
+	};
+
 	typedef const_iterator<Sample> const_sample_iterator;
 	typedef const_iterator<Marker> const_marker_iterator;
 	typedef const_iterator<Family> const_family_iterator;
@@ -85,6 +102,8 @@ public:
 		return const_marker_iterator(_markers.begin(), _markers.end());}
 	const_family_iterator beginFamily() const{
 		return const_family_iterator(_families.begin(), _families.end());}
+	const_trait_iterator beginTrait() const{
+		return const_trait_iterator(_trait_map.begin());}
 
 	const_sample_iterator endSample() const{
 		return const_sample_iterator(_samples.end(), _samples.end());}
@@ -92,6 +111,9 @@ public:
 		return const_marker_iterator(_markers.end(), _markers.end());}
 	const_family_iterator endFamily() const{
 		return const_family_iterator(_families.end(), _families.end());}
+	const_trait_iterator endTrait() const{
+		return const_trait_iterator(_trait_map.end());}
+
 
 	sample_iterator beginSample() {
 		return sample_iterator(_samples.begin(), _samples.end());}
@@ -113,6 +135,7 @@ public:
 	Family* addFamily(const std::string& id);
 	bool addTrait(const std::string& trait, const Sample* samp, float val);
 	float getTrait(const std::string& trait, const Sample* samp) const;
+	bool isTrait(const std::string& trait) const { return _trait_map.find(trait) != _trait_map.end();}
 
 	void sortMarkers();
 
@@ -141,7 +164,6 @@ private:
 	std::map<std::string, Family*> _family_map;
 
 	std::map<const Sample*, unsigned int> _sample_idx_map;
-
 	std::map<std::string, std::deque<float> > _trait_map;
 
 	unsigned int _marker_idx;
