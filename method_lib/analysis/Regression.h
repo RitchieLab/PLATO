@@ -11,10 +11,13 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include <boost/program_options.hpp>
 
 #include "Correction.h"
+#include "Encoding.h"
 
 #include "util/DataSet.h"
 
@@ -92,22 +95,44 @@ protected:
 	 * to print the results.
 	 */
 	class Result{
-
+		std::deque<float> values;
 	};
 
 public:
 
-	Regression() {}
+	Regression() : out_f(NULL) {}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 	void parseOptions(const boost::program_options::variables_map& vm);
 
+	virtual void initData() {}
 	//! Make sure to delete the model you passed in!
 	virtual Result* run(Model* m) = 0;
+	virtual void printResults() = 0;
 
 	//! iterate through and run the regressions we want.
 	void runRegression(Methods::DataSet& ds);
+
+private:
+	//! a file of models to use
+	std::vector<std::string> model_files;
+	//! a list of models from the model files
+	std::deque<std::string> _models;
+	//! filename of output
+	std::string out_fn;
+
+	//! List of traits to include
+	std::set<std::string> incl_traits;
+	//! List of traits to exclude
+	std::set<std::string> excl_traits;
+
+	//! exclude markers? (only use covariates?)
+	bool exclude_markers;
+	//! build models with traits as well?
+	bool include_traits;
+	//! autogenerate pairwise models
+	bool pairwise;
 
 protected:
 
@@ -117,26 +142,20 @@ protected:
 	std::set<std::string> covar_names;
 	//! A string of the outcome name
 	std::string outcome_name;
-	//! a file of models to use
-	std::vector<std::string> model_files;
-
-	//! List of traits to include
-	std::set<std::string> incl_traits;
-	//! List of traits to exclude
-	std::set<std::string> excl_traits;
 
 	//! raw p-value cutoff for displaying models
 	float cutoff_p;
-	//! exclude markers? (only use covariates?)
-	bool exclude_markers;
-	//! build models with traits as well?
-	bool include_traits;
 	//! include interactions?
 	bool interactions;
-	//! autogenerate pairwise models
-	bool pairwise;
 
+	//! Encoding scheme for the SNPs in the regression
+	EncodingModel encoding;
+
+	//! list of results
 	std::deque<Result*> results;
+
+	//! output stream to print results to
+	std::ofstream out_f;
 
 };
 

@@ -29,6 +29,8 @@ util/Logger.h \
 util/Logger.cpp \
 analysis/Correction.h \
 analysis/Correction.cpp \
+analysis/Encoding.h \
+analysis/Encoding.cpp \
 analysis/Regression.h \
 analysis/Regression.cpp
 

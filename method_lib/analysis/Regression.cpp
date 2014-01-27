@@ -12,6 +12,7 @@
 #include "util/Marker.h"
 
 #include <algorithm>
+#include <fstream>
 
 using std::string;
 using std::vector;
@@ -30,6 +31,7 @@ Regression::~Regression() {
 		delete results[i];
 	}
 	results.clear();
+	out_f.close();
 }
 
 po::options_description& Regression::addOptions(po::options_description& opts){
@@ -49,9 +51,11 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("pairwise", po::bool_switch(&pairwise),
 			"When auto-generating models, include two variables exhaustively")
 		("correction", po::value<vector<string> >()->composing(), "p-value correction method(s)")
-		("models", po::value<vector<string> >(&model_files)->composing(), "List of models to generate")
+		("models", po::value<vector<string> >(&model_files)->composing(), "List of files containing models to generate")
 		("incl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to include")
 		("excl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to exclude")
+		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
+		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, categorical)")
 		;
 
 	opts.add(regress_opts);
@@ -76,6 +80,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		InputManager::parseInput(vm["excl-traits"].as<vector<string> >(), excl_traits);
 	}
 
+	out_f.open(out_fn.c_str());
+	if(!out_f){
+		throw std::logic_error("Cannot open regression output file '" + out_fn + "'");
+	}
 }
 
 void Regression::runRegression(DataSet& ds){
@@ -102,11 +110,15 @@ void Regression::runRegression(DataSet& ds){
 	}
 
 
+	this->initData();
+
 	Model* nm;
 	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
 	while( (nm = mg()) ){
 		results.push_back(run(nm));
 	}
+
+	printResults();
 }
 
 Regression::Model* Regression::ModelGenerator::operator()() {
