@@ -18,6 +18,8 @@ public:
 
 	operator int() const{return _data;}
 
+	int operator()(unsigned int add) const;
+
 private:
 	encoding_ENUM _data;
 };

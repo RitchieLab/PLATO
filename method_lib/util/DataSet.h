@@ -141,7 +141,7 @@ public:
 
 	Sample* const getSample(const std::string& id) const;
 	Sample* const getSample(const std::string& fid, const std::string& id) const;
-	Marker* const getMaker(const std::string& id) const;
+	Marker* const getMarker(const std::string& id) const;
 	Family* const getFamily(const std::string& id) const;
 
 	Marker* const getMarker(const std::string& chrom, unsigned int loc) const;

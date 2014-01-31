@@ -13,6 +13,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 #include <boost/program_options.hpp>
 
@@ -60,7 +61,7 @@ protected:
 		}
 
 		// use this for targeted
-		ModelGenerator(const Methods::DataSet& ds, const std::vector<std::string>& models, bool interact) :
+		ModelGenerator(const Methods::DataSet& ds, const std::deque<std::string>& models, bool interact) :
 			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
 			_mitr(models.begin()), _mend(models.end()),
 			_targeted(true) {
@@ -80,8 +81,8 @@ protected:
 		std::set<std::string>::const_iterator _tend;
 		std::set<std::string>::const_iterator _ti2;
 
-		std::vector<std::string>::const_iterator _mitr;
-		std::vector<std::string>::const_iterator _mend;
+		std::deque<std::string>::const_iterator _mitr;
+		std::deque<std::string>::const_iterator _mend;
 
 		bool _targeted;
 		bool _pairwise;
@@ -95,7 +96,15 @@ protected:
 	 * to print the results.
 	 */
 	class Result{
-		std::deque<float> values;
+	public:
+		std::deque<float> coeffs;
+		std::deque<float> p_vals;
+		std::deque<float> stderr;
+
+		float p_val;
+		float log_likelihood;
+
+		bool operator<(const Result& o) const {return p_val < o.p_val;}
 	};
 
 public:
@@ -106,13 +115,23 @@ public:
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 	void parseOptions(const boost::program_options::variables_map& vm);
 
-	virtual void initData() {}
-	//! Make sure to delete the model you passed in!
-	virtual Result* run(Model* m) = 0;
+	virtual void initData(const std::string& model_str, const Methods::DataSet& ds) {}
 	virtual void printResults() = 0;
 
 	//! iterate through and run the regressions we want.
-	void runRegression(Methods::DataSet& ds);
+	void runRegression(const Methods::DataSet& ds);
+
+	static Model* parseModelStr(const std::string& model_str, const Methods::DataSet& ds);
+
+protected:
+
+	virtual Result* calculate(float* data, unsigned int n_cols, unsigned int n_rows) = 0;
+	float getCategoricalWeight(const Methods::Marker* m, const Methods::DataSet& ds);
+
+private:
+	//! Make sure to delete the model you passed in!
+	virtual Result* run(Model* m, const Methods::DataSet& ds, bool categorical=false);
+
 
 private:
 	//! a file of models to use
@@ -122,19 +141,18 @@ private:
 	//! filename of output
 	std::string out_fn;
 
-	//! List of traits to include
-	std::set<std::string> incl_traits;
 	//! List of traits to exclude
 	std::set<std::string> excl_traits;
 
-	//! exclude markers? (only use covariates?)
-	bool exclude_markers;
 	//! build models with traits as well?
 	bool include_traits;
-	//! autogenerate pairwise models
-	bool pairwise;
+
+	std::map<const Methods::Marker*, float> categ_weight;
 
 protected:
+
+	//! List of traits to include
+	std::set<std::string> incl_traits;
 
 	//! a set of correction methods to apply to the p-values
 	std::set<CorrectionModel> corr_methods;
@@ -147,9 +165,18 @@ protected:
 	float cutoff_p;
 	//! include interactions?
 	bool interactions;
+	//! exclude markers? (only use covariates?)
+	bool exclude_markers;
+	//! autogenerate pairwise models
+	bool pairwise;
 
 	//! Encoding scheme for the SNPs in the regression
 	EncodingModel encoding;
+
+	// vector of all phenotypes
+	std::vector<float> _pheno;
+	// vector of all covariates
+	std::vector<std::vector<float> > _covars;
 
 	//! list of results
 	std::deque<Result*> results;

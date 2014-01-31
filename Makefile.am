@@ -39,7 +39,9 @@ process/OutputBED.h \
 process/OutputTPED.cpp \
 process/OutputTPED.h \
 process/TraitLoader.h \
-process/TraitLoader.cpp
+process/TraitLoader.cpp \
+process/LogisticRegression.h \
+process/LogisticRegression.cpp 
 
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)

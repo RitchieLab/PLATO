@@ -98,7 +98,7 @@ Sample* const DataSet::getSample(const string& fid, const string& iid) const{
 	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
 }
 
-Marker* const DataSet::getMaker(const std::string& id) const{
+Marker* const DataSet::getMarker(const std::string& id) const{
 	map<string,Marker*>::const_iterator m_itr = _marker_map.find(id);
 	Marker* m = 0;
 	if(m_itr != _marker_map.end()){
@@ -112,13 +112,8 @@ Marker* const DataSet::getMaker(const std::string& id) const{
 			std::stringstream pos_ss(chr_pos[1]);
 			pos_ss >> pos;
 			if(pos_ss.eof()){
-				map<pair<unsigned short, unsigned int>, Marker*>::const_iterator m_pos_itr =
-						_marker_pos_map.find(std::make_pair(InputManager::chrStringToInt(chr_pos[0]), pos));
-				if(m_pos_itr != _marker_pos_map.end()){
-					m = (*m_pos_itr).second;
-				}
+				m = getMarker(chr_pos[0], pos);
 			}
-
 		}
 	}
 	return m;

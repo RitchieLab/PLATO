@@ -21,6 +21,17 @@ EncodingModel::EncodingModel(const char * s){
 	ss >> (*this);
 }
 
+int EncodingModel::operator()(unsigned int add) const{
+	switch(_data){
+	case DOMINANT:
+		return add > 0;
+	case RECESSIVE:
+		return add == 2;
+	default:
+		return add;
+	}
+}
+
 istream& operator>>(istream& in,
 		Methods::Analysis::EncodingModel& model_out) {
 	string token;

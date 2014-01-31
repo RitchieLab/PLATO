@@ -51,12 +51,6 @@ public:
 	void setAffected(bool affected){_affected_known = true; _affected = affected;}
 	void setGender(bool is_male){_sex_known = true; _male = is_male;}
 
-	void addTrait(float trait){ _traits.push_back(trait);}
-	void setPhenoPos(unsigned int pos){ _pheno_pos = static_cast<unsigned char>(pos);}
-
-	float getTrait(unsigned int pos) const {return pos < _traits.size() ? _traits[pos] : missing_trait;}
-	float getPhenotype() const {return getTrait(_pheno_pos);}
-
 	const std::string& getFID() const {return _famid;}
 	const std::string& getID() const {return _id;}
 
@@ -86,7 +80,6 @@ private:
 	Sample* _dad;
 	std::set<Sample*> _children;
 
-
 	bool _sex_known;
 	bool _affected_known;
 	bool _male;
@@ -94,10 +87,6 @@ private:
 	bool _founder;
 	bool _enabled;
 
-	unsigned char _pheno_pos;
-	std::deque<float> _traits;
-
-	static float missing_trait;
 	static bool _biallelic;
 	static bool _phased;
 
