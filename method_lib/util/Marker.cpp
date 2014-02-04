@@ -1,5 +1,4 @@
 #include "Marker.h"
-#include "InputManager.h"
 
 #include <algorithm>
 

@@ -22,8 +22,6 @@
 
 #include "util/DataSet.h"
 
-//#include "method_lib/util/Container.h"
-
 namespace Methods{
 
 class Marker;
@@ -104,6 +102,11 @@ protected:
 		float p_val;
 		float log_likelihood;
 
+		// A string to print before anything (variable IDs, MAF, etc)
+		std::string prefix;
+		// A string to print AFTER all of the variables, but BEFORE
+		std::string suffix;
+
 		bool operator<(const Result& o) const {return p_val < o.p_val;}
 	};
 
@@ -115,9 +118,6 @@ public:
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 	void parseOptions(const boost::program_options::variables_map& vm);
 
-	virtual void initData(const std::string& model_str, const Methods::DataSet& ds) {}
-	virtual void printResults() = 0;
-
 	//! iterate through and run the regressions we want.
 	void runRegression(const Methods::DataSet& ds);
 
@@ -125,12 +125,16 @@ public:
 
 protected:
 
-	virtual Result* calculate(float* data, unsigned int n_cols, unsigned int n_rows) = 0;
+	virtual Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows) = 0;
 	float getCategoricalWeight(const Methods::Marker* m, const Methods::DataSet& ds);
 
+	virtual void initData(const std::string& model_str, const Methods::DataSet& ds) {}
+	virtual void printResults();
+
+	virtual void printVarHeader(const std::string& var_name);
+
 private:
-	//! Make sure to delete the model you passed in!
-	virtual Result* run(Model* m, const Methods::DataSet& ds, bool categorical=false);
+	virtual Result* run(const Model* m, const Methods::DataSet& ds, bool interact=false, bool categorical=false);
 
 
 private:
@@ -149,6 +153,12 @@ private:
 
 	std::map<const Methods::Marker*, float> categ_weight;
 
+	struct result_sorter{
+		inline bool operator() (const Result* const & x, const Result* const& y) const{
+			return (x && y) ? x->p_val < y->p_val : x < y;
+		}
+	};
+
 protected:
 
 	//! List of traits to include
@@ -161,6 +171,9 @@ protected:
 	//! A string of the outcome name
 	std::string outcome_name;
 
+	//! separator to use while printing output
+	std::string sep;
+
 	//! raw p-value cutoff for displaying models
 	float cutoff_p;
 	//! include interactions?
@@ -169,6 +182,8 @@ protected:
 	bool exclude_markers;
 	//! autogenerate pairwise models
 	bool pairwise;
+	//! Show univariate models
+	bool show_uni;
 
 	//! Encoding scheme for the SNPs in the regression
 	EncodingModel encoding;
@@ -183,6 +198,10 @@ protected:
 
 	//! output stream to print results to
 	std::ofstream out_f;
+
+	// univariate results by marker and trait
+	std::map<const Methods::Marker*, Result*> _marker_uni_result;
+	std::map<std::string, Result*> _trait_uni_result;
 
 };
 

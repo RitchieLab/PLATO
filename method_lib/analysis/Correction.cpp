@@ -15,11 +15,14 @@ namespace Methods{
 namespace Analysis{
 
 Correction* Correction::getCorrectionMethod(const CorrectionModel& c){
+	static Correction* bonf = new BonferroniCorrection();
+	static Correction* fdr = new FDRCorrection();
+
 	switch((int) c){
 	case BONFERRONI:
-		return new BonferroniCorrection();
+		return bonf;
 	case FDR:
-		return new FDRCorrection();
+		return fdr;
 	default:
 		return 0;
 	}
@@ -68,9 +71,9 @@ istream& operator>>(istream& in,
 	if (token.size() > 0) {
 		char s = token[0];
 		if (s == 'b' || s == 'B') {
-			model_out = Methods::Analysis::BONFERRONI;
+			model_out = Methods::Analysis::Correction::BONFERRONI;
 		} else if (s == 'f' || s == 'F') {
-			model_out = Methods::Analysis::FDR;
+			model_out = Methods::Analysis::Correction::FDR;
 		} else {
 			throw validation_error(validation_error::invalid_option_value);
 		}
@@ -82,9 +85,9 @@ istream& operator>>(istream& in,
 }
 ostream& operator<<(ostream& o, const Methods::Analysis::CorrectionModel& m){
 	switch(m){
-	case Methods::Analysis::BONFERRONI:
+	case Methods::Analysis::Correction::BONFERRONI:
 		return o << "Bonferroni";
-	case Methods::Analysis::FDR:
+	case Methods::Analysis::Correction::FDR:
 		return o << "FDR";
 	default:
 		return o << "unknown";

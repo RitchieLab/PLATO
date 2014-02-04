@@ -7,22 +7,12 @@
 namespace Methods{
 namespace Analysis{
 
-enum correction_ENUM { BONFERRONI, FDR };
-
-class CorrectionModel{
-public:
-	CorrectionModel() : _data(BONFERRONI) {}
-	CorrectionModel(correction_ENUM c) : _data(c) {}
-
-	operator int() const{return _data;}
-
-//	bool operator<(const CorrectionModel& o) {return static_cast<int>(_data) < static_cast<int>(o._data);}
-
-private:
-	correction_ENUM _data;
-};
+class CorrectionModel;
 
 class Correction {
+public:
+	enum correction_ENUM { BONFERRONI, FDR };
+
 private:
 
 	template<class T>
@@ -42,13 +32,27 @@ protected:
 	Correction(){}
 
 public:
-	virtual ~Correction(){}
+	virtual ~Correction(){};
 	virtual void correct(const std::vector<float>& pval_in, std::vector<float>& pval_out) = 0;
+
 	static Correction* getCorrectionMethod(const CorrectionModel& c);
 
 protected:
 	void initOutVec(const std::vector<float>& pval_in, std::vector<float>& pval_out, std::vector<size_t>& idx_out);
 
+};
+
+class CorrectionModel{
+public:
+	CorrectionModel() : _data(Correction::BONFERRONI) {}
+	CorrectionModel(Correction::correction_ENUM c) : _data(c) {}
+
+	operator int() const{return _data;}
+
+//	bool operator<(const CorrectionModel& o) {return static_cast<int>(_data) < static_cast<int>(o._data);}
+
+private:
+	Correction::correction_ENUM _data;
 };
 
 

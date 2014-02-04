@@ -6,8 +6,9 @@
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_blas.h>
 
 #include "util/Sample.h"
 #include "util/Marker.h"
@@ -41,7 +42,7 @@ po::options_description& LogisticRegression::appendOptions(po::options_descripti
 	po::options_description logreg_opts("Logistic Regression Options");
 
 	logreg_opts.add_options()
-			("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
+			//("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
 			("max-iterations", po::value<unsigned int>(&maxIterations)->default_value(30), "Maximum number of iterations in the logistic regression")
 			;
 
@@ -55,22 +56,6 @@ void LogisticRegression::parseOptions(const po::variables_map& vm){
 }
 
 void LogisticRegression::initData(const std::string& model_str, const DataSet& ds){
-	unsigned int n_snp = 0;
-	unsigned int n_trait = 0;
-
-	if(model_str.size() > 0){
-		Model* m = Regression::parseModelStr(model_str, ds);
-		n_snp = m->markers.size();
-		n_trait = m->markers.size();
-		delete m;
-	} else{
-		// Calculate the number of SNPs / Env vars based on the options passed
-		// in to the Regression object.
-		n_snp = (!exclude_markers) * (1 + pairwise);
-		n_trait = (incl_traits.size() > 0) * (1 + exclude_markers);
-	}
-
-	// Now, print the header
 
 	//transform the phenotype from [0,1]
 	set<float> uniq_pheno;
@@ -99,7 +84,7 @@ void LogisticRegression::initData(const std::string& model_str, const DataSet& d
 
 }
 
-Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_cols, unsigned int n_rows){
+Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_cols, unsigned int n_rows){
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
 
@@ -121,24 +106,27 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 
 	// This is the current estimate of the parameters
 	// Note: position 0 is reserved for the intercept
-	vector<double> beta(n_cols, 0);
+	double beta[n_cols];
 
-	// standard errors of the coefficients
-	vector<double> SEP(n_cols);
+	// weight vector used for IRLS procedure
+	double weight[n_rows];
+	double Y[n_rows];
 
-	// Use this matrix for updating parameter estimates
-	// Note that this is related to the hessian
-	double Hess[n_cols][n_cols];
+	gsl_matrix_view X = gsl_matrix_view_array(data, n_cols, n_rows);
 
-	// We're going to use this matrix "view" to do the solve that we need
-	gsl_matrix_view T = gsl_matrix_view_array (Hess[0], n_cols, n_cols);
+	// gsl weight vector for IRLS procedure
+	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
+	// gsl beta vector
+	gsl_vector_view b = gsl_vector_view_array(beta, n_cols);
 
-	// This will hold the RHS of the solver
-	gsl_vector* c = gsl_vector_alloc(n_cols);
-	gsl_vector* beta_add = gsl_vector_alloc(n_cols);
+	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
+	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
+	gsl_vector* rhs = gsl_vector_alloc(n_rows);
 
-	// Just need this for QR decomposition
-	gsl_vector* tau = gsl_vector_alloc(n_cols);
+	// I need these to work with the default values
+	gsl_multifit_linear_workspace *ws = gsl_multifit_linear_alloc(n_rows, n_cols);
+	gsl_matrix* cov = gsl_matrix_alloc(n_cols, n_cols);
+	double tmp_chisq;
 
 	// store xM and xSD for mean and standard deviation calculations
 	for (unsigned int i = 0; i < n_rows; i++) {
@@ -148,6 +136,9 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 			xM[j] += x;
 			xSD[j] += x*x;
 		}
+
+		Y[i] = data[i*n_cols];
+		data[i*n_cols] = 1;
 	}
 
 	// calculate mean and standard deviation
@@ -158,18 +149,20 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 	}
 
 	// adjusts X values using the mean and standard deviation values
+	/*
 	for (unsigned int i = 0; i < n_rows; i++) {
 		for (unsigned int j = 0; j <= n_cols-1; j++) {
 			// This subtracts the mean, then divides by the stddev
 			(data[i*n_cols + j+1] -= xM[j]) /= xSD[j] ;
 		}
 	}
+	*/
 
-	float sY1 = 0;
+	double sY1 = 0;
 	for(unsigned int i=0; i< n_rows; i++){
-		sY1 += data[i*n_cols];
+		sY1 += Y[i];
 	}
-	float sY0 = n_rows - sY1;
+	double sY0 = n_rows - sY1;
 
 	beta[0] = log(sY1 / sY0); // use natural log of the ratio
 
@@ -179,11 +172,11 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 
 	while (fabs(LLp - LL) > 0.0000001 && ++numIterations > maxIterations ) {
 
+		// First, let's initialize the RHS to X*beta_t (rhs = 1 * X * b + 0* rhs)
+		gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &b.vector, 0, rhs);
+
 		LLp = LL;
 		LL = 0;
-
-		// zero out Hess for this iteration
-		std::memset(Hess[0],0,n_cols * n_cols * sizeof(double));
 
 		// add to LL for each row
 		for (unsigned int i = 0; i < n_rows; i++) {
@@ -224,21 +217,12 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 			}
 
 			// calculate LL for this ind and add to running total
-			LL -= 2 *(data[i*n_cols] * log_val + (1-data[i*n_cols]) * log_val_c);
+			LL -= 2 *(Y[i] * log_val + (1-Y[i]) * log_val_c);
 
-			// We're calculating X^T * W * X for the iterations here
+			// get the weight and update the rhs for IRLS
+			weight[i] = deriv;
+			gsl_vector_set(rhs, i, gsl_vector_get(rhs, i) + 1/deriv * (Y[i] - val));
 
-			// First, we have the intercept terms for which X == 1
-			for (unsigned int j = 0; j < n_cols; j++) {
-				Hess[0][j] = (Hess[j][0] += deriv);
-			}
-
-			// Now, we have to go through our data!
-			for (unsigned int j = 1; j < n_cols; j++){
-				for (unsigned int k = j; k < n_cols; k++) {
-					Hess[j][k] = (Hess[k][j] += data[i*n_cols + j] * deriv * data[i*n_cols + k]);
-				}
-			}
 		}
 
 		// when this is the first iteration, set LLn (null model) to be the current value of LL
@@ -246,45 +230,30 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 			LLn = LL;
 		}
 
-		// OK, I want to find b=T^-1*X'*(Y-val)
-		// OR... I can solve the equation (for v): Tv = X'*(Y-val)
-
-		// First, clear the RHS:
-		gsl_vector_set_zero(c);
-		// set the c = X'*(Y-val)
-
-		// Now, do a QR factorization on the "Hess" or T matrix:
-		gsl_linalg_QR_decomp(&T.matrix, tau);
-		gsl_linalg_QR_solve(&T.matrix, tau, c, beta_add);
-
-		for(unsigned int j=0; j<n_cols; j++){
-			beta[j] += gsl_vector_get(beta_add, j);
-		}
+		// Look, magic!
+		// This solves the weighted least-squares problem with the weights given
+		// by the derivative.  This should be a backwards-stable algorithm!
+		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
 
 	} // complete iteration
 
 	// calculate p values for the coefficients
 	// interaction coefficient for all loci is the first one
+	/*
 	for (unsigned int j = 1; j <= n_cols; j++) {
-		beta[j] /= xSD[j];
-		beta[0] -= beta[j] * xM[j];
+		beta[j] /= xSD[j-1];
+		beta[0] -= beta[j] * xM[j-1];
 	}
-
-	for (unsigned int j = 0; j <= n_cols; j++) {
-		SEP[j] = sqrt(Hess[j][j] / xSD[j]);
-	}
-
-	r->coeffs.clear();
-	// add all the coeffecients that we calculated:
-	r->coeffs.insert(r->coeffs.begin(), beta.begin(), beta.end());
+	*/
 
 	r->stderr.clear();
-	r->stderr.insert(r->stderr.begin(), SEP.begin(), SEP.end());
-
-	// use the wald statistic to get p-values for each coefficient
+	r->coeffs.clear();
 	r->p_vals.clear();
-	for (unsigned int i = 0; i < n_cols; i++) {
-		r->p_vals.push_back(gsl_cdf_chisq_Q(fabs(beta[i] / SEP[i]), 1));
+	for (unsigned int j = 1; j <= n_cols; j++) {
+		r->coeffs.push_back(beta[j]);
+		r->stderr.push_back(sqrt(gsl_matrix_get(cov, j, j)/weight[j]));
+		// use the wald statistic to get p-values for each coefficient
+		r->p_vals.push_back(gsl_cdf_chisq_Q(fabs(r->coeffs[j] / r->stderr[j]),1));
 	}
 
 	if (isnan(LL)) {
@@ -295,27 +264,11 @@ Regression::Result* LogisticRegression::calculate(float* data, unsigned int n_co
 		r->log_likelihood = LL - LLn;
 	}
 
-
-	gsl_vector_free(c);
-	gsl_vector_free(beta_add);
-	gsl_vector_free(tau);
+	gsl_vector_free(rhs);
+	gsl_matrix_free(cov);
+	gsl_multifit_linear_free(ws);
 
 	return r;
-}
-
-void LogisticRegression::printResults(){
-	// Perhaps sort the deque of results based on overall p-values
-
-	// Now, let's do some multiple test correction!
-
-
-	for(unsigned int i=0; i<results.size(); i++){
-		// If we've gone over the threshold, stop printing!
-		if(results[i]->p_val > cutoff_p){
-			break;
-		}
-		// print a single line
-	}
 }
 
 void LogisticRegression::process(DataSet& ds){

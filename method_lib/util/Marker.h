@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "InputManager.h"
+
 namespace Methods{
 
 class Sample;
@@ -74,6 +76,11 @@ public:
 	 * Returns the chromosome
 	 */
 	unsigned short getChrom() const {return _chr & ~(ENABLED_MASK);}
+
+	/*!
+	 * Returns the chromosome string
+	 */
+	std::string getChromStr() const {return InputManager::chrIntToString(_chr & ~(ENABLED_MASK));}
 
 	/*!
 	 * Returns the location

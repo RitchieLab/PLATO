@@ -149,212 +149,234 @@ void LogisticRegression::calculate(vector<unsigned int>& loci, DataSet* dataset)
 }
 
 
-void LogisticRegression::calculateLR(vector<vector<double> >& data, bool summary_data, vector<int>& includedCells){
+void LogisticRegression::calculateLR(vector<vector<double> >& data,
+		bool summary_data, vector<int>& includedCells) {
 
+	unsigned int nRows = includedCells.size();
+	// number of coefficients is equal to the main effects + the interactions
+	unsigned int nColumns = data.at(0).size() - 2;
+	if (!summary_data)
+		nColumns++;
 
-   unsigned int nRows = includedCells.size();
-  // number of coefficients is equal to the main effects + the interactions
-  unsigned int nColumns = data.at(0).size()-2;
-  if(!summary_data)
-    nColumns++;
+	unsigned int nP = nColumns + 1;
+	unsigned int nP1 = nP + 1;
+	unsigned int sY0 = 0;
+	unsigned int sY1 = 0;
+	unsigned int sC = 0;
+	double x;
+	double v, xij, s, q;
 
-  unsigned int nP = nColumns + 1;
-  unsigned int nP1 = nP + 1;
-  unsigned int sY0 = 0;
-  unsigned int sY1 = 0;
-  unsigned int sC = 0;
-  double x;
-  double v, xij, s,q;
+	unsigned int unaffIndex = data.at(0).size() - 2;
+	unsigned int affIndex = unaffIndex + 1;
 
-  unsigned int unaffIndex = data.at(0).size()-2;
-  unsigned int affIndex = unaffIndex+1;
+	vector<double> X(nRows * (nColumns + 1), 0);
+	vector<unsigned int> Y0(nRows, 0);
+	vector<unsigned int> Y1(nRows, 0);
+	vector<double> xM(nColumns + 1, 0.0);
+	vector<double> xSD(nColumns + 1, 0.0);
+	vector<double> Par(nP);
+	coefficients.clear();
+	standard_errors.clear();
+	coefficients.resize(nP - 1);
+	coeff_pvalues.resize(nP - 1);
+	standard_errors.resize(nP - 1);
 
-  vector<double> X(nRows * ( nColumns + 1 ),0);
-  vector<unsigned int> Y0(nRows,0);
-  vector<unsigned int> Y1(nRows,0);
-  vector<double> xM(nColumns+1,0.0);
-  vector<double> xSD(nColumns+1, 0.0);
-  vector<double> Par(nP);
-  coefficients.clear();
-  standard_errors.clear();
-  coefficients.resize(nP-1);
-  coeff_pvalues.resize(nP-1);
-  standard_errors.resize(nP-1);
+	vector<double> SEP(nP);
+	vector<double> Arr(nP * nP1);
 
-  vector<double> SEP(nP);
-  vector<double> Arr(nP * nP1);
+	unsigned int i, j, k;
 
-  unsigned int i,j,k;
+	// This loop stores the original values in X and adds values into
+	// xM and xSD for mean and standard deviation calculations
+	for (i = 0; i < nRows; i++) {
+		X.at(ix(i, 0, nColumns + 1)) = 1;
+		// store predictor values
+		for (j = 1; j <= nColumns; j++) {
+			X.at(ix(i, j, nColumns + 1)) = data.at(includedCells.at(i)).at(j
+					- 1);
+		}
 
-  // This loop stores the original values in X and adds values into
-  // xM and xSD for mean and standard deviation calculations
-  for(i=0; i<nRows; i++){
-    X.at(ix(i,0,nColumns+1)) = 1;
-    // store predictor values
-    for(j=1; j<=nColumns; j++){
-      X.at(ix(i,j,nColumns+1)) = data.at(includedCells.at(i)).at(j-1);
-    }
+		// status handled differently if data is summary
+		if (summary_data) {
+			Y0.at(i) = (unsigned int) (data.at(includedCells.at(i)).at(
+					unaffIndex));
+			sY0 += Y0.at(i);
+			Y1.at(i)
+					= (unsigned int) (data.at(includedCells.at(i)).at(affIndex));
+			sY1 += Y1.at(i);
+		} else { // not summary
+			if (data.at(includedCells.at(i)).back() == 0) {
+				Y0.at(i) = 1;
+				sY0++;
+			} else {
+				Y1.at(i) = 1;
+				sY1++;
+			}
+		}
 
-    // status handled differently if data is summary
-    if(summary_data)
-    {
-      Y0.at(i) = (unsigned int)(data.at(includedCells.at(i)).at(unaffIndex));
-      sY0 += Y0.at(i);
-      Y1.at(i) = (unsigned int)(data.at(includedCells.at(i)).at(affIndex));
-      sY1 += Y1.at(i);
-    }
-    else
-    { // not summary
-      if(data.at(includedCells.at(i)).back() == 0)
-      {
-        Y0.at(i) = 1; sY0++;
-      }
-      else
-      {
-        Y1.at(i) = 1; sY1++;
-      }
-    }
+		sC += Y0.at(i) + Y1.at(i);
 
-    sC += Y0.at(i) + Y1.at(i);
+		for (j = 1; j <= nColumns; j++) {
+			x = X.at(ix(i, j, nColumns + 1));
+			xM.at(j) += (Y0.at(i) + Y1.at(i)) * x;
+			xSD.at(j) += (Y0.at(i) + Y1.at(i)) * x * x;
+		}
+	}
 
-    for(j=1; j<= nColumns; j++)
-    {
-      x = X.at(ix(i,j,nColumns+1));
-      xM.at(j) += (Y0.at(i) + Y1.at(i))*x;
-		  xSD.at(j) += (Y0.at(i) + Y1.at(i))*x*x;
-    }
-  }
+	// calculate mean and standard deviation
+	for (j = 1; j <= nColumns; j++) {
+		xM.at(j) = xM.at(j) / sC;
+		xSD.at(j) = xSD.at(j) / sC;
+		xSD.at(j) = sqrt(fabs(xSD.at(j) - xM.at(j) * xM.at(j)));
+	}
 
-  // calculate mean and standard deviation
-  for (j = 1; j<=nColumns; j++) {
-    xM.at(j)  = xM.at(j)  / sC;
-    xSD.at(j) = xSD.at(j) / sC;
-    xSD.at(j) = sqrt( fabs( xSD.at(j) - xM.at(j) * xM.at(j) ) );
-  }
+	xM.at(0) = 0;
+	xSD.at(0) = 1;
 
-  xM.at(0) = 0;
-  xSD.at(0) = 1;
+	// adjusts X values using the mean and standard deviation values
+	for (i = 0; i < nRows; i++) {
+		for (j = 1; j <= nColumns; j++) {
+			X.at(ix(i, j, nColumns + 1)) = (X.at(ix(i, j, nColumns + 1))
+					- xM.at(j)) / xSD.at(j);
+		}
+	}
 
-  // adjusts X values using the mean and standard deviation values
-  for (i = 0; i<nRows; i++) {
-    for (j = 1; j<=nColumns; j++) {
-      X.at(ix(i,j,nColumns+1)) = ( X.at(ix(i,j,nColumns+1)) - xM.at(j) ) / xSD.at(j);
-    }
-  }
+	Par.at(0) = log(double(sY1) / sY0); // use natural log of the ratio
+	for (j = 1; j <= nColumns; j++) { // zero out all the others
+		Par.at(j) = 0;
+	}
 
-  Par.at(0) = log( double(sY1) / sY0 ); // use natural log of the ratio
-  for (j = 1; j<=nColumns; j++) { // zero out all the others
-    Par.at(j) = 0;
-  }
+	double LnV = 0, Ln1mV = 0, LLn = 0;
+	double LLp = 2e+10; // stores previous value of LL to check for convergence
+	double LL = 1e+10;
+	unsigned int numIterations = 0;
 
-  double LnV=0,Ln1mV=0, LLn=0;
-  double LLp = 2e+10; // stores previous value of LL to check for convergence
-  double LL = 1e+10;
-  unsigned int numIterations = 0;
+	while (fabs(LLp - LL) > 0.0000001) {
+		if (++numIterations > maxIterations) {
+			break;
+		}
 
-  while( fabs(LLp-LL)>0.0000001 ) {
-    if(++numIterations > maxIterations){
-      break;
-    }
+		LLp = LL;
+		LL = 0;
 
-    LLp = LL;
-    LL = 0;
+		// zero out Arr for this iteration
+		for (j = 0; j <= nColumns; j++) {
+			for (k = j; k <= nColumns + 1; k++) {
+				Arr.at(ix(j, k, nColumns + 2)) = 0;
+			}
+		}
 
-    // zero out Arr for this iteration
-    for (j = 0; j<=nColumns; j++) {
-      for (k = j; k<=nColumns+1; k++) {
-        Arr.at(ix(j,k,nColumns+2)) = 0;
-      }
-    }
+		// add to LL for each row
+		for (i = 0; i < nRows; i++) {
+			v = Par.at(0); // for this ind start with Par.at(0) value
+			for (j = 1; j <= nColumns; j++) {
+				v = v + Par.at(j) * X.at(ix(i, j, nColumns + 1)); // add the value of Par for column and the value at that column
+			}
+			if (v > 15) {
+				LnV = -exp(-v);
+				Ln1mV = -v;
+				q = exp(-v);
+				v = exp(LnV);
+			} else {
+				if (v < -15) {
+					LnV = v;
+					Ln1mV = -exp(v);
+					q = exp(v);
+					v = exp(LnV);
+				} else {
+					v = 1 / (1 + exp(-v));
+					LnV = log(v);
+					Ln1mV = log(1 - v);
+					q = v * (1 - v);
+				}
+			}
+			// calculate LL for this ind and add to running total
+			LL = LL - 2 * Y1.at(i) * LnV - 2 * Y0.at(i) * Ln1mV;
+			for (j = 0; j <= nColumns; j++) {
+				xij = X.at(ix(i, j, nColumns + 1));
 
-	  // add to LL for each row
-    for (i = 0; i<nRows; i++) {
-      v = Par.at(0); // for this ind start with Par.at(0) value
-      for (j = 1; j<=nColumns; j++) {
-        v = v + Par.at(j) * X.at(ix(i,j,nColumns+1)); // add the value of Par for column and the value at that column
-      }
-      if( v>15 ) { LnV = -exp(-v); Ln1mV = -v; q = exp(-v); v=exp(LnV); }
-      else {
-        if( v<-15 ) { LnV = v; Ln1mV = -exp(v); q = exp(v); v=exp(LnV); }
-        else { v = 1 / ( 1 + exp(-v) ); LnV = log(v); Ln1mV = log(1-v); q = v*(1-v); }
-      }
-      // calculate LL for this ind and add to running total
-      LL = LL - 2*Y1.at(i)*LnV - 2*Y0.at(i)*Ln1mV;
-      for (j = 0; j<=nColumns; j++) {
-        xij = X.at(ix(i,j,nColumns+1));
-        Arr.at(ix(j,nColumns+1,nColumns+2)) = Arr.at(ix(j,nColumns+1,nColumns+2)) + xij * ( Y1.at(i) * (1 - v) + Y0.at(i) * (-v) );
-        for (k=j; k<=nColumns; k++) {
-          Arr.at(ix(j,k,nColumns+2)) = Arr.at(ix(j,k,nColumns+2)) + xij * X.at(ix(i,k,nColumns+1)) * q * (Y0.at(i) + Y1.at(i));
-        }
-      }
-    }
+				Arr.at(ix(j, nColumns + 1, nColumns + 2)) = Arr.at(ix(j,
+						nColumns + 1, nColumns + 2)) + xij * (Y1.at(i)
+						* (1 - v) + Y0.at(i) * (-v));
+				for (k = j; k <= nColumns; k++) {
+					Arr.at(ix(j, k, nColumns + 2)) = Arr.at(ix(j, k, nColumns
+							+ 2)) + xij * X.at(ix(i, k, nColumns + 1)) * q
+							* (Y0.at(i) + Y1.at(i));
+				}
+			}
+		}
 
-	  // when this is the first iteration, set LLn (null model) to be the current value of LL
-    if( LLp==1e+10 ) { LLn = LL;}
+		// when this is the first iteration, set LLn (null model) to be the current value of LL
+		if (LLp == 1e+10) {
+			LLn = LL;
+		}
 
-    for (j = 1; j<=nColumns; j++) {
-      for (k=0; k<j; k++) {
-        Arr.at(ix(j,k,nColumns+2)) = Arr.at(ix(k,j,nColumns+2));
-      }
-    }
+		for (j = 1; j <= nColumns; j++) {
+			for (k = 0; k < j; k++) {
+				Arr.at(ix(j, k, nColumns + 2)) = Arr.at(ix(k, j, nColumns + 2));
+			}
+		}
 
-    for (i=0; i<=nColumns; i++) {
-      s = Arr.at(ix(i,i,nColumns+2));
-      Arr.at(ix(i,i,nColumns+2)) = 1;
-      for (k=0; k<=nColumns+1; k++) {
-        Arr.at(ix(i,k,nColumns+2)) = Arr.at(ix(i,k,nColumns+2)) / s;
-      }
-      for (j=0; j<=nColumns; j++) {
-        if (i!=j) {
-          s = Arr.at(ix(j,i,nColumns+2)); Arr.at(ix(j,i,nColumns+2)) = 0;
-          for (k=0; k<=nColumns+1; k++) {
-            Arr.at(ix(j,k,nColumns+2)) = Arr.at(ix(j,k,nColumns+2)) - s * Arr.at(ix(i,k,nColumns+2));
-          }
-        }
-      }
-    }
-    for( j=0; j<=nColumns; j++) {
-      Par.at(j) = Par.at(j) + Arr.at(ix(j,nColumns+1,nColumns+2));
-    }
-  } // complete iteration
+		for (i = 0; i <= nColumns; i++) {
+			s = Arr.at(ix(i, i, nColumns + 2));
+			Arr.at(ix(i, i, nColumns + 2)) = 1;
+			for (k = 0; k <= nColumns + 1; k++) {
+				Arr.at(ix(i, k, nColumns + 2)) = Arr.at(ix(i, k, nColumns + 2))
+						/ s;
+			}
+			for (j = 0; j <= nColumns; j++) {
+				if (i != j) {
+					s = Arr.at(ix(j, i, nColumns + 2));
+					Arr.at(ix(j, i, nColumns + 2)) = 0;
+					for (k = 0; k <= nColumns + 1; k++) {
+						Arr.at(ix(j, k, nColumns + 2)) = Arr.at(ix(j, k,
+								nColumns + 2)) - s * Arr.at(ix(i, k, nColumns
+								+ 2));
+					}
+				}
+			}
+		}
+		for (j = 0; j <= nColumns; j++) {
+			Par.at(j) = Par.at(j) + Arr.at(ix(j, nColumns + 1, nColumns + 2));
+		}
+	} // complete iteration
 
-  // calculate p values for the coefficients
-  // interaction coefficient for all loci is the last one
-  for(j=1; j<=nColumns; j++) {
-    Par.at(j) = Par.at(j) / xSD.at(j);
-    Par.at(0) = Par.at(0) - Par.at(j) * xM.at(j);
-  }
+	// calculate p values for the coefficients
+	// interaction coefficient for all loci is the last one
+	for (j = 1; j <= nColumns; j++) {
+		Par.at(j) = Par.at(j) / xSD.at(j);
+		Par.at(0) = Par.at(0) - Par.at(j) * xM.at(j);
+	}
 
-  if(isnan(LL)){
-    overallPvalue = coeffPvalue = 1.0;
-    LLR = 0.0;
-  }
-  else{
-    // calculate coefficient p value
-    for(j=1; j<=nColumns; j++){
-      SEP.at(j) = sqrt( Arr.at(ix(j,j,nP+1)) ) / xSD.at(j);
-    }
-    j=nColumns;
-    coeffPvalue = norm(fabs(Par.at(j)/SEP.at(j)));
-    // calculate overall p value
-    overallPvalue = ChiSq(fabs(LLn-LL), nColumns);
+	if (isnan(LL)) {
+		overallPvalue = coeffPvalue = 1.0;
+		LLR = 0.0;
+	} else {
+		// calculate coefficient p value
+		for (j = 1; j <= nColumns; j++) {
+			SEP.at(j) = sqrt(Arr.at(ix(j, j, nP + 1))) / xSD.at(j);
+		}
+		j = nColumns;
+		coeffPvalue = norm(fabs(Par.at(j) / SEP.at(j)));
+		// calculate overall p value
+		overallPvalue = ChiSq(fabs(LLn - LL), nColumns);
 
-    coeff_intercept = Par.at(0);
-    // adjust coefficients so that the zero index is now first coefficient
-    for(j=1; j<=nColumns; j++) {
-      coefficients.at(j-1) = Par.at(j);
-      standard_errors.at(j-1) = SEP.at(j);
-      coeff_pvalues.at(j-1) = norm(fabs(Par.at(j)/SEP.at(j)));
-    }
+		coeff_intercept = Par.at(0);
+		// adjust coefficients so that the zero index is now first coefficient
+		for (j = 1; j <= nColumns; j++) {
+			coefficients.at(j - 1) = Par.at(j);
+			standard_errors.at(j - 1) = SEP.at(j);
+			coeff_pvalues.at(j - 1) = norm(fabs(Par.at(j) / SEP.at(j)));
+		}
 
-    // calculate pseudo r-squared
-    // http://statistics.ats.ucla.edu/stat/mult_pkg/faq/general/Psuedo_RSquareds.htm
-    // using McFadden's method from page
-    pseudo_r2 = 1 - LL/LLn;
+		// calculate pseudo r-squared
+		// http://statistics.ats.ucla.edu/stat/mult_pkg/faq/general/Psuedo_RSquareds.htm
+		// using McFadden's method from page
+		pseudo_r2 = 1 - LL / LLn;
 
-    // calculate log-likelihood 
-    LLR = LLn-LL;
-  }
+		// calculate log-likelihood
+		LLR = LLn - LL;
+	}
 
 }
 

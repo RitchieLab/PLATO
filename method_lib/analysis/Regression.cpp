@@ -17,14 +17,20 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <sstream>
+#include <iostream>
+
+#include <gsl/gsl_cdf.h>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 using std::string;
 using std::vector;
 using std::set;
 using std::map;
 using std::numeric_limits;
+using std::stringstream;
 
 namespace po=boost::program_options;
 
@@ -39,6 +45,21 @@ Regression::~Regression() {
 		delete results[i];
 	}
 	results.clear();
+
+	map<const Marker*, Result*>::const_iterator mu_itr = _marker_uni_result.begin();
+	while(mu_itr != _marker_uni_result.end()){
+		delete (*mu_itr).second;
+		++mu_itr;
+	}
+	_marker_uni_result.clear();
+
+	map<string, Result*>::const_iterator tu_itr = _trait_uni_result.begin();
+	while(tu_itr != _trait_uni_result.end()){
+		delete (*tu_itr).second;
+		++tu_itr;
+	}
+	_trait_uni_result.clear();
+
 	out_f.close();
 }
 
@@ -63,12 +84,20 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("incl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to include")
 		("excl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to exclude")
 		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
+		("seaparator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, categorical)")
+		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		;
 
 	opts.add(regress_opts);
 
 	return opts;
+}
+
+void Regression::printVarHeader(const string& var_name){
+	out_f << var_name << "_Pval" << sep
+		  << var_name << "_beta" << sep
+		  << var_name << "_SE" << sep;
 }
 
 void Regression::parseOptions(const boost::program_options::variables_map& vm){
@@ -143,10 +172,76 @@ void Regression::runRegression(const DataSet& ds){
 		Utility::Logger::log_err("ERROR: '" + outcome_name + "' is not a recognized trait, aborting.", true);
 	}
 
-	string first_model = "";
+	string model_str = "";
 	if(_models.size() > 0){
-		first_model=*(_models.begin());
+		model_str=*(_models.begin());
 	}
+
+	unsigned int n_snp = 0;
+	unsigned int n_trait = 0;
+
+	if(model_str.size() > 0){
+		Model* m = Regression::parseModelStr(model_str, ds);
+		n_snp = m->markers.size();
+		n_trait = m->markers.size();
+		delete m;
+	} else{
+		// Calculate the number of SNPs / Env vars based on the options passed
+		// in to the Regression object.
+		n_snp = (!exclude_markers) * (1 + pairwise);
+		n_trait = (incl_traits.size() > 0) * (1 + exclude_markers);
+	}
+
+	// Now, print the header
+	for(unsigned int i=0; i<n_snp; i++){
+		out_f << "Var" << i+1 << "_ID" << sep
+			  << "Var" << i+1 << "_Pos" << sep
+			  << "Var" << i+1 << "_MAF" << sep;
+	}
+
+	for(unsigned int i=0; i<n_trait; i++){
+		out_f << "Var" << n_snp + i + 1 << "_ID" << sep;
+	}
+
+	out_f << "N_Missing" << sep;
+
+	if(n_snp + n_trait > 1){
+		for(unsigned int i=0; show_uni && i < n_snp + n_trait; i++){
+			printVarHeader("Uni_Var" + boost::lexical_cast<string>(i+1));
+		}
+
+		if(interactions){
+			for(unsigned int i=0; i < n_snp + n_trait; i++){
+				printVarHeader("Red_Var"+ boost::lexical_cast<string>(i+1));
+			}
+
+			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
+				printVarHeader("Full_Var" + boost::lexical_cast<string>(i+1));
+			}
+
+			for(unsigned int i=0; i<n_snp+n_trait; i++){
+				for(unsigned int j=1; j<n_snp+n_trait; j++){
+					printVarHeader("Full_Var" + boost::lexical_cast<string>(i+1)
+							+ "_Var" + boost::lexical_cast<string>(j+1));
+				}
+			}
+
+			out_f << "Red_Model_Pval" << sep << "Full_Model_Pval" << sep;
+		}
+	}
+
+	for(unsigned int i=0; !interactions && i < n_snp + n_trait; i++){
+		printVarHeader("Var" + boost::lexical_cast<string>(i+1));
+	}
+
+	out_f << "Overall_Pval";
+
+	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
+	while(c_itr != corr_methods.end()){
+		out_f << sep << "Overall_Pval_adj_" << *c_itr;
+	}
+
+	out_f << std::endl;
 
 	// Now, set up the outcome variable and the covariates
 	DataSet::const_sample_iterator si = ds.beginSample();
@@ -174,12 +269,71 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	}
 
-	this->initData(first_model, ds);
+	this->initData(model_str, ds);
 
 	Model* nm;
 	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
 	while( (nm = mg()) ){
-		results.push_back(run(nm, ds));
+		Result* r = run(nm, ds, false);
+
+		// Run some univariate models
+		if(show_uni && n_snp + n_trait > 1){
+			// Here, we are going to reverse the order of marker/trait variables
+			// because we're adding the results onto the FRONT of the model
+
+			for(unsigned int i=nm->traits.size(); i>0; i--){
+				map<string, Result*>::const_iterator t_itr = _trait_uni_result.find(nm->traits[i-1]);
+				// If this is the case, we have not seen this marker before
+				if(t_itr == _trait_uni_result.end()){
+					Model m;
+					m.traits.push_back(nm->traits[i-1]);
+					t_itr = _trait_uni_result.insert(_trait_uni_result.begin(),
+							std::make_pair(nm->traits[i-1], run(&m, ds)));
+				}
+
+				// Add the result to the front of the deque
+				r->coeffs.push_front((*t_itr).second->coeffs[0]);
+				r->p_vals.push_front((*t_itr).second->p_vals[0]);
+				r->stderr.push_front((*t_itr).second->stderr[0]);
+			}
+
+			for(unsigned int i=nm->markers.size(); i>0; i--){
+				map<const Marker*, Result*>::const_iterator m_itr = _marker_uni_result.find(nm->markers[i-1]);
+				// If this is the case, we have not seen this marker before
+				if(m_itr == _marker_uni_result.end()){
+					Model m;
+					m.markers.push_back(nm->markers[i-1]);
+					m_itr = _marker_uni_result.insert(_marker_uni_result.begin(),
+							std::make_pair(nm->markers[i-1], run(&m, ds)));
+				}
+
+				// Add the result to the front of the deque
+				r->coeffs.push_front((*m_itr).second->coeffs[0]);
+				r->p_vals.push_front((*m_itr).second->p_vals[0]);
+				r->stderr.push_front((*m_itr).second->stderr[0]);
+			}
+		}
+
+		if(interactions){
+			Result* r_full = run(nm, ds, true);
+
+			stringstream ss;
+			ss << r->p_val << sep << r_full->p_val << sep;
+			for(unsigned int i=0; i<r_full->coeffs.size(); i++){
+				r->coeffs.push_back(r_full->coeffs[i]);
+				r->stderr.push_back(r_full->stderr[i]);
+				r->p_vals.push_back(r_full->p_vals[i]);
+			}
+
+			// calculate a new log likelihood
+			r->log_likelihood = -2 * (r->log_likelihood - r_full->log_likelihood);
+			r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
+			delete r_full;
+
+		}
+
+		results.push_back(r);
+		delete nm;
 	}
 
 	printResults();
@@ -218,8 +372,9 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
 	Model mod;
 	mod.markers.push_back(m);
-	Result* r = run(&mod, ds, true);
+	Result* r = run(&mod, ds, false, true);
 
+	// NOTE: this assigns to the map at the same step
 	float toret = (categ_weight[m] = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]));
 
 	delete r;
@@ -228,24 +383,28 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
 }
 
-Regression::Result* Regression::run(Model* m, const DataSet& ds, bool categorical) {
+Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool interact, bool categorical) {
 
 	unsigned int numLoci = m->markers.size();
 	unsigned int numCovars = covar_names.size();
 	unsigned int numTraits = m->traits.size();
 	unsigned int n_vars = numLoci + numTraits;
+	unsigned int n_kept = n_vars;
 
 	// determine size of row for each sample in dataset
 	unsigned int n_cols = 1 + numLoci + numTraits + numCovars ;
 	if(categorical){
 		n_cols += numLoci - numTraits;
 	} else if (interactions){
-		n_cols += (n_vars * (n_vars - 1))/2;
+		n_kept += (n_vars * (n_vars - 1))/2;
+		n_cols += n_kept - n_vars;
 	}
 
 	// Allocate a huge amount of memory for the regression here
-	float regress_data[_pheno.size()][n_cols];
+	double regress_data[_pheno.size()][n_cols];
 	float row_data[n_cols];
+	unsigned char geno[numLoci];
+	float maf_sum[numLoci];
 
 	DataSet::const_sample_iterator si = ds.beginSample();
 	unsigned int n_samples = 0;
@@ -258,21 +417,21 @@ Regression::Result* Regression::run(Model* m, const DataSet& ds, bool categorica
 
 		// Now, work through the markers
 		for (unsigned int i = 0; i<numLoci; i++){
-			unsigned char geno = (*si)->getAdditiveGeno(*(m->markers[i]));
-			if(geno == Sample::missing_allele){
-				row_data[pos++] = numeric_limits<float>::quiet_NaN();
+			geno[i] = (*si)->getAdditiveGeno(*(m->markers[i]));
+			if(geno[i] == Sample::missing_allele){
+				row_data[pos++] = numeric_limits<double>::quiet_NaN();
 				if(categorical){
-					row_data[pos++] = numeric_limits<float>::quiet_NaN();
+					row_data[pos++] = numeric_limits<double>::quiet_NaN();
 				}
 			} else {
 				if(categorical){
-					row_data[pos++] = EncodingModel(Methods::Analysis::DOMINANT)(geno);
-					row_data[pos++] = EncodingModel(Methods::Analysis::RECESSIVE)(geno);
+					row_data[pos++] = EncodingModel(Methods::Analysis::DOMINANT)(geno[i]);
+					row_data[pos++] = EncodingModel(Methods::Analysis::RECESSIVE)(geno[i]);
 				} else if (encoding == Methods::Analysis::CATEGORICAL){
 					float w = getCategoricalWeight(m->markers[i], ds);
-					row_data[pos++] = 1 + (geno==1) * w + (geno==2);
+					row_data[pos++] = 1 + (geno[i]==1) * w + (geno[i]==2);
 				} else {
-					row_data[pos++] = encoding(geno);
+					row_data[pos++] = encoding(geno[i]);
 				}
 			}
 		}
@@ -283,7 +442,7 @@ Regression::Result* Regression::run(Model* m, const DataSet& ds, bool categorica
 		}
 
 		// Now, the interaction terms
-		for(unsigned int i=0; i < (n_vars) * interactions * (!categorical); i++){
+		for(unsigned int i=0; i < (n_vars) * interact * (!categorical); i++){
 			for(unsigned int j=i+1; j < (n_vars); j++){
 				row_data[pos++] = row_data[i+1]*row_data[j+1];
 			}
@@ -301,8 +460,11 @@ Regression::Result* Regression::run(Model* m, const DataSet& ds, bool categorica
 		}
 
 		if(!ismissing){
+			for(unsigned int i=0; i<numLoci; i++){
+				maf_sum[i] += geno[i];
+			}
 			// do a fast memory copy into the data for regression
-			std::memcpy(regress_data[n_samples - n_missing], row_data, sizeof(float) * (pos));
+			std::memcpy(regress_data[n_samples - n_missing], row_data, sizeof(double) * (pos));
 		} else {
 			++n_missing;
 		}
@@ -310,10 +472,80 @@ Regression::Result* Regression::run(Model* m, const DataSet& ds, bool categorica
 		++n_samples;
 	}
 
-	delete m;
+	Result* r = calculate(regress_data[0], n_cols, n_samples - n_missing);
+	r->coeffs.resize(n_kept);
+	r->stderr.resize(n_kept);
+	r->p_vals.resize(n_kept);
 
-	return calculate(regress_data[0], n_cols, n_samples - n_missing);
+	stringstream ss;
 
+	for(unsigned int i=0; i<numLoci; i++){
+		ss << m->markers[i]->getID() << sep
+		   << m->markers[i]->getChromStr() << ":" << m->markers[i]->getLoc()
+		   << sep << maf_sum[i] / static_cast<float>(n_samples-n_missing) << sep;
+	}
+	for(unsigned int i=0; i<numTraits; i++){
+		ss << m->traits[i] << sep;
+	}
+
+	// print the # missing from this model
+	ss << n_missing << sep;
+
+	r->prefix = ss.str();
+
+	return r;
+}
+
+void Regression::printResults(){
+	// Perhaps sort the deque of results based on overall p-values
+
+	std::sort(results.begin(), results.end(), result_sorter());
+
+	// Now, let's do some multiple test correction!
+	map<CorrectionModel, vector<float> > pval_corr;
+
+	// don't bother with the work if there's no correction desired!
+	if (corr_methods.size()) {
+
+		vector<float> pv_in;
+		pv_in.reserve(results.size());
+		for (unsigned int i = 0; i < results.size(); i++) {
+			pv_in.push_back(results[i]->p_val);
+		}
+
+		set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
+		while(c_itr != corr_methods.end()){
+			Correction::getCorrectionMethod(*c_itr)->correct(pv_in, pval_corr[(*c_itr)]);
+		}
+
+	}
+
+
+	for(unsigned int i=0; i<results.size(); i++){
+		// If we've gone over the threshold, stop printing!
+		if(results[i]->p_val > cutoff_p){
+			break;
+		}
+		// print a single line
+		out_f << results[i]->prefix;
+
+		for(unsigned int j=0;j<results[i]->coeffs.size(); j++){
+			out_f << results[i]->p_vals[j] << sep
+				  << results[i]->coeffs[j] << sep
+				  << results[i]->stderr[j] << sep;
+		}
+
+		out_f << results[i]->suffix << results[i]->p_val;
+
+		// print some creected p-values!
+		// NOTE: we assume that "set" and "map" use the same ordering!!
+		map<CorrectionModel, vector<float> >::const_iterator p_itr = pval_corr.begin();
+		while(p_itr != pval_corr.end()){
+			out_f << sep << (*p_itr).second[i];
+		}
+
+		out_f << std::endl;
+	}
 }
 
 Regression::Model* Regression::ModelGenerator::operator()() {
