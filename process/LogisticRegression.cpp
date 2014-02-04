@@ -42,7 +42,7 @@ po::options_description& LogisticRegression::appendOptions(po::options_descripti
 	po::options_description logreg_opts("Logistic Regression Options");
 
 	logreg_opts.add_options()
-			//("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
+			("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
 			("max-iterations", po::value<unsigned int>(&maxIterations)->default_value(30), "Maximum number of iterations in the logistic regression")
 			;
 
@@ -53,6 +53,16 @@ po::options_description& LogisticRegression::appendOptions(po::options_descripti
 
 void LogisticRegression::parseOptions(const po::variables_map& vm){
 	Regression::parseOptions(vm);
+}
+
+void LogisticRegression::printVarHeader(const std::string& var_name){
+	if(!show_odds){
+		Regression::printVarHeader(var_name);
+	}else{
+		out_f << var_name << "_Pval" << sep
+			  << var_name << "_OR" << sep
+			  << var_name << "_SE" << sep;
+	}
 }
 
 void LogisticRegression::initData(const std::string& model_str, const DataSet& ds){
@@ -148,16 +158,6 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 		xSD[j] = sqrt(fabs(xSD[j] - xM[j] * xM[j]));
 	}
 
-	// adjusts X values using the mean and standard deviation values
-	/*
-	for (unsigned int i = 0; i < n_rows; i++) {
-		for (unsigned int j = 0; j <= n_cols-1; j++) {
-			// This subtracts the mean, then divides by the stddev
-			(data[i*n_cols + j+1] -= xM[j]) /= xSD[j] ;
-		}
-	}
-	*/
-
 	double sY1 = 0;
 	for(unsigned int i=0; i< n_rows; i++){
 		sY1 += Y[i];
@@ -237,21 +237,15 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 
 	} // complete iteration
 
-	// calculate p values for the coefficients
-	// interaction coefficient for all loci is the first one
-	/*
-	for (unsigned int j = 1; j <= n_cols; j++) {
-		beta[j] /= xSD[j-1];
-		beta[0] -= beta[j] * xM[j-1];
-	}
-	*/
-
 	r->stderr.clear();
 	r->coeffs.clear();
 	r->p_vals.clear();
 	for (unsigned int j = 1; j <= n_cols; j++) {
 		r->coeffs.push_back(beta[j]);
-		r->stderr.push_back(sqrt(gsl_matrix_get(cov, j, j)/weight[j]));
+		if(show_odds){
+			r->coeffs[j-1] = exp(r->coeffs[j-1]);
+		}
+		r->stderr.push_back(sqrt(gsl_matrix_get(cov, j, j)/weight[j]));\
 		// use the wald statistic to get p-values for each coefficient
 		r->p_vals.push_back(gsl_cdf_chisq_Q(fabs(r->coeffs[j] / r->stderr[j]),1));
 	}

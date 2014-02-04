@@ -15,12 +15,14 @@ public:
 	virtual ~LogisticRegression(){};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
-	virtual void initData(const std::string& model_str, const Methods::DataSet& ds);
 
 protected:
 	virtual void process(Methods::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
 	virtual Methods::Analysis::Regression::Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows);
+
+	virtual void printVarHeader(const std::string& var_name);
+	virtual void initData(const std::string& model_str, const Methods::DataSet& ds);
 
 private:
 	bool show_odds;
