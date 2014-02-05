@@ -15,7 +15,8 @@ using std::string;
 using std::pair;
 using std::make_pair;
 
-namespace Methods {
+namespace PLATO {
+namespace Data{
 
 BiallelicSample::BiallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
@@ -60,4 +61,5 @@ pair<unsigned char, unsigned char> BiallelicSample::getGeno(const Marker& m) con
 	}
 }
 
+}
 }

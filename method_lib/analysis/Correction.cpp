@@ -11,8 +11,18 @@ using std::sort;
 
 using boost::program_options::validation_error;
 
-namespace Methods{
+namespace PLATO{
 namespace Analysis{
+
+CorrectionModel::CorrectionModel(const std::string& s){
+	std::istringstream ss(s);
+	ss >> (*this);
+}
+
+CorrectionModel::CorrectionModel(const char * s){
+	std::istringstream ss(s);
+	ss >> (*this);
+}
 
 Correction* Correction::getCorrectionMethod(const CorrectionModel& c){
 	static Correction* bonf = new BonferroniCorrection();
@@ -65,15 +75,15 @@ void FDRCorrection::correct(const vector<float>& pval_in, vector<float>& pval_ou
 namespace std{
 
 istream& operator>>(istream& in,
-		Methods::Analysis::CorrectionModel& model_out) {
+		PLATO::Analysis::CorrectionModel& model_out) {
 	string token;
 	in >> token;
 	if (token.size() > 0) {
 		char s = token[0];
 		if (s == 'b' || s == 'B') {
-			model_out = Methods::Analysis::Correction::BONFERRONI;
+			model_out = PLATO::Analysis::Correction::BONFERRONI;
 		} else if (s == 'f' || s == 'F') {
-			model_out = Methods::Analysis::Correction::FDR;
+			model_out = PLATO::Analysis::Correction::FDR;
 		} else {
 			throw validation_error(validation_error::invalid_option_value);
 		}
@@ -83,11 +93,11 @@ istream& operator>>(istream& in,
 	//    else throw boost::program_options::validation_error("Invalid unit");
 	return in;
 }
-ostream& operator<<(ostream& o, const Methods::Analysis::CorrectionModel& m){
+ostream& operator<<(ostream& o, const PLATO::Analysis::CorrectionModel& m){
 	switch(m){
-	case Methods::Analysis::Correction::BONFERRONI:
+	case PLATO::Analysis::Correction::BONFERRONI:
 		return o << "Bonferroni";
-	case Methods::Analysis::Correction::FDR:
+	case PLATO::Analysis::Correction::FDR:
 		return o << "FDR";
 	default:
 		return o << "unknown";

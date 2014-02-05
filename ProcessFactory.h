@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+namespace PLATO{
+
 class Process;
 
 typedef Process* (createFunc)();
@@ -29,5 +31,7 @@ public:
 private:
 	std::map<const std::string, createFunc*> creation_map;
 };
+
+}
 
 #endif

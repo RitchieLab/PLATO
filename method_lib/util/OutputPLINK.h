@@ -5,16 +5,19 @@
  *      Author: jrw32
  */
 
-#ifndef METHODS_OUTPUTPLINK_H
-#define METHODS_OUTPUTPLINK_H
+#ifndef UTILITY_OUTPUTPLINK_H
+#define UTILITY_OUTPUTPLINK_H
 
 #include <ostream>
 
-namespace Methods {
+namespace PLATO {
 
+namespace Data{
 class Marker;
 class Sample;
+}
 
+namespace Utility{
 class OutputPLINK {
 public:
 	OutputPLINK(){}
@@ -22,12 +25,13 @@ public:
 
 protected:
 
-	void printPEDHeader(std::ostream&, const Sample&) const;
-	void printMAPInfo(std::ostream&, const Marker&, bool print_alleles=false) const;
+	void printPEDHeader(std::ostream&, const PLATO::Data::Sample&) const;
+	void printMAPInfo(std::ostream&, const PLATO::Data::Marker&, bool print_alleles=false) const;
 
 
 };
 
+}
 }
 
 #endif /* OUTPUTPLINK_H_ */

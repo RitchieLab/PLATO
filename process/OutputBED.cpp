@@ -9,19 +9,20 @@
 
 #include <fstream>
 
-#include "util/DataSet.h"
-#include "util/Sample.h"
-#include "util/Marker.h"
+#include "data/DataSet.h"
+#include "data/Sample.h"
+#include "data/Marker.h"
 
 namespace po=boost::program_options;
 
 using std::string;
 using std::ofstream;
 
-using Methods::DataSet;
-using Methods::Sample;
-using Methods::Marker;
+using PLATO::Data::DataSet;
+using PLATO::Data::Sample;
+using PLATO::Data::Marker;
 
+namespace PLATO{
 namespace ProcessLib {
 
 const string OutputBED::stepname = OutputBED::doRegister("output-bed");
@@ -185,6 +186,7 @@ unsigned char OutputBED::getBinaryGeno(const Sample& s, const Marker& m) const {
 	}
 
 	return g_char;
+}
 
 }
 }

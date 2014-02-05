@@ -9,20 +9,23 @@
 
 #include <fstream>
 
-#include "util/DataSet.h"
-#include "util/Sample.h"
-#include "util/Marker.h"
+#include "data/DataSet.h"
+#include "data/Sample.h"
+#include "data/Marker.h"
 
-#include "InputManager.h"
+#include "util/InputManager.h"
 
 namespace po=boost::program_options;
 
-using Methods::DataSet;
-using Methods::Sample;
-using Methods::Marker;
+using PLATO::Data::DataSet;
+using PLATO::Data::Sample;
+using PLATO::Data::Marker;
+using PLATO::Utility::InputManager;
+
 using std::string;
 using std::ofstream;
 
+namespace PLATO{
 namespace ProcessLib{
 
 const string OutputTPED::stepname = OutputTPED::doRegister("output-tped");
@@ -99,4 +102,5 @@ void OutputTPED::process(DataSet& ds){
 
 }
 
+}
 }

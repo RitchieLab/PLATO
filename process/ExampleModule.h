@@ -5,6 +5,7 @@
 
 #include "Process.h"
 
+namespace PLATO{
 namespace ProcessLib{
 
 class ExampleModule : public ProcessImpl<ExampleModule>{
@@ -20,7 +21,7 @@ public:
 
 protected:
 	virtual void PrintSummary();
-	virtual void process(Methods::DataSet&);
+	virtual void process(Data::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
 
 private:
@@ -29,6 +30,7 @@ private:
 
 };
 
+}
 }
 
 #endif

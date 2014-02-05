@@ -10,7 +10,8 @@
 using std::string;
 using std::set;
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 bool Sample::_biallelic = true;
 bool Sample::_phased = false;
@@ -47,8 +48,7 @@ unsigned char Sample::getAdditiveGeno(const Marker& m) const{
 	}
 
 	return geno;
-
-
 }
 
+}
 }

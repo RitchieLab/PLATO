@@ -1,12 +1,13 @@
-#ifndef METHODS_MARKER_H
-#define METHODS_MARKER_H
+#ifndef DATA_MARKER_H
+#define DATA_MARKER_H
 
 #include <string>
 #include <vector>
 
-#include "InputManager.h"
+#include "util/InputManager.h"
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 class Sample;
 
@@ -80,7 +81,7 @@ public:
 	/*!
 	 * Returns the chromosome string
 	 */
-	std::string getChromStr() const {return InputManager::chrIntToString(_chr & ~(ENABLED_MASK));}
+	std::string getChromStr() const {return PLATO::Utility::InputManager::chrIntToString(_chr & ~(ENABLED_MASK));}
 
 	/*!
 	 * Returns the location
@@ -124,13 +125,14 @@ private:
 };
 
 }
+}
 
 // define an ordering for Marker pointers
 namespace std{
 template<>
-struct less<Methods::Marker*> {
-	bool operator()(const Methods::Marker* x,
-			const Methods::Marker* y) const {
+struct less<PLATO::Data::Marker*> {
+	bool operator()(const PLATO::Data::Marker* x,
+			const PLATO::Data::Marker* y) const {
 		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
 	}
 };

@@ -5,12 +5,13 @@
  *      Author: jrw32
  */
 
-#ifndef METHODS_POLYALLELIC_SAMPLE_H
-#define METHODS_POLYALLELIC_SAMPLE_H
+#ifndef DATA_POLYALLELIC_SAMPLE_H
+#define DATA_POLYALLELIC_SAMPLE_H
 
 #include "Sample.h"
 
-namespace Methods {
+namespace PLATO{
+namespace Data{
 
 class PolyallelicSample : public Sample {
 public:
@@ -29,6 +30,7 @@ private:
 
 };
 
+}
 }
 
 #endif /* POLYALLELICSAMPLE_H_ */

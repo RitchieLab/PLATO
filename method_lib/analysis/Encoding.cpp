@@ -8,7 +8,7 @@ using std::istream;
 using std::ostream;
 using std::string;
 
-namespace Methods{
+namespace PLATO{
 namespace Analysis{
 
 EncodingModel::EncodingModel(const std::string& s){
@@ -23,9 +23,9 @@ EncodingModel::EncodingModel(const char * s){
 
 int EncodingModel::operator()(unsigned int add) const{
 	switch(_data){
-	case DOMINANT:
+	case Encoding::DOMINANT:
 		return add > 0;
-	case RECESSIVE:
+	case Encoding::RECESSIVE:
 		return add == 2;
 	default:
 		return add;
@@ -33,19 +33,19 @@ int EncodingModel::operator()(unsigned int add) const{
 }
 
 istream& operator>>(istream& in,
-		Methods::Analysis::EncodingModel& model_out) {
+		PLATO::Analysis::EncodingModel& model_out) {
 	string token;
 	in >> token;
 	if (token.size() > 0) {
 		char s = token[0];
 		if (s == 'a' || s == 'A') {
-			model_out = Methods::Analysis::ADDITIVE;
+			model_out = PLATO::Analysis::Encoding::ADDITIVE;
 		} else if (s == 'd' || s == 'D') {
-			model_out = Methods::Analysis::DOMINANT;
+			model_out = PLATO::Analysis::Encoding::DOMINANT;
 		} else if (s == 'r' || s == 'R') {
-			model_out = Methods::Analysis::RECESSIVE;
+			model_out = PLATO::Analysis::Encoding::RECESSIVE;
 		} else if (s == 'c' || s == 'C') {
-			model_out = Methods::Analysis::CATEGORICAL;
+			model_out = PLATO::Analysis::Encoding::CATEGORICAL;
 		} else {
 			throw validation_error(validation_error::invalid_option_value);
 		}
@@ -56,15 +56,15 @@ istream& operator>>(istream& in,
 	return in;
 }
 
-ostream& operator<<(ostream& o, const Methods::Analysis::EncodingModel& m){
+ostream& operator<<(ostream& o, const PLATO::Analysis::EncodingModel& m){
 	switch(m){
-	case Methods::Analysis::ADDITIVE:
+	case PLATO::Analysis::Encoding::ADDITIVE:
 		return o << "additive";
-	case Methods::Analysis::DOMINANT:
+	case PLATO::Analysis::Encoding::DOMINANT:
 		return o << "dominant";
-	case Methods::Analysis::RECESSIVE:
+	case PLATO::Analysis::Encoding::RECESSIVE:
 		return o << "recessive";
-	case Methods::Analysis::CATEGORICAL:
+	case PLATO::Analysis::Encoding::CATEGORICAL:
 		return o << "categorical";
 	default:
 		return o << "unknown";

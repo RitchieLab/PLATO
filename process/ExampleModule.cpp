@@ -1,6 +1,6 @@
 #include "ExampleModule.h" //////CHANGE TO REAL MODULE NAME
 
-#include "util/DataSet.h"
+#include "data/DataSet.h"
 
 #include <iostream>
 
@@ -8,10 +8,11 @@ using std::cout;
 using std::endl;
 using std::string;
 
-using Methods::DataSet;
+using PLATO::Data::DataSet;
 
 namespace po=boost::program_options;
 
+namespace PLATO{
 namespace ProcessLib{
 
 const string ExampleModule::stepname = ExampleModule::doRegister("example");
@@ -53,4 +54,5 @@ void ExampleModule::parseOptions(const po::variables_map& vm){
 	cout << "\tswitch: " << arg_bool << std::endl;
 }
 
+}
 }

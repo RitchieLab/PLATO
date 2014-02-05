@@ -11,9 +11,10 @@
 #include "Process.h"
 #include "util/OutputPLINK.h"
 
+namespace PLATO{
 namespace ProcessLib {
 
-class OutputBED : public ProcessImpl<OutputBED>, private Methods::OutputPLINK {
+class OutputBED : public ProcessImpl<OutputBED>, private Utility::OutputPLINK {
 private:
 	const static std::string stepname;
 
@@ -24,12 +25,12 @@ public:
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
 
 protected:
-	virtual void process(Methods::DataSet&);
+	virtual void process(Data::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
 
 private:
 
-	unsigned char getBinaryGeno(const Methods::Sample& s, const Methods::Marker& m) const;
+	unsigned char getBinaryGeno(const Data::Sample& s, const Data::Marker& m) const;
 
 private:
 	std::string base_fn;
@@ -40,6 +41,7 @@ private:
 	bool _ind_major;
 };
 
+}
 }
 
 #endif /* OUTPUTBED_H_ */

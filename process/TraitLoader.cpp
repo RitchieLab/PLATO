@@ -8,8 +8,9 @@
 #include <boost/algorithm/string.hpp>
 
 #include "util/Logger.h"
-#include "util/DataSet.h"
-#include "util/Sample.h"
+
+#include "data/DataSet.h"
+#include "data/Sample.h"
 
 namespace po=boost::program_options;
 
@@ -21,16 +22,17 @@ using std::ifstream;
 using boost::algorithm::split;
 using boost::algorithm::is_any_of;
 
-using Utility::Logger;
+using PLATO::Utility::Logger;
+using PLATO::Data::Sample;
+using PLATO::Data::DataSet;
 
-using Methods::Sample;
-
+namespace PLATO{
 namespace ProcessLib {
 
 const std::string TraitLoader::stepname =
 		TraitLoader::doRegister("load-trait");
 
-void TraitLoader::process(Methods::DataSet& ds) {
+void TraitLoader::process(DataSet& ds) {
 	vector<string>::const_iterator fn_itr = trait_fns.begin();
 
 	while (fn_itr != trait_fns.end()) {
@@ -102,5 +104,6 @@ po::options_description& TraitLoader::appendOptions(po::options_description& opt
 void TraitLoader::parseOptions(const po::variables_map& vm){
 }
 
+}
 }
 

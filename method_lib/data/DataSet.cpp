@@ -7,7 +7,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "InputManager.h"
+#include "util/InputManager.h"
 
 #include "Marker.h"
 #include "Sample.h"
@@ -19,7 +19,10 @@ using std::string;
 using std::map;
 using std::pair;
 
-namespace Methods{
+using PLATO::Utility::InputManager;
+
+namespace PLATO{
+namespace Data{
 
 DataSet::~DataSet(){
 	deque<Marker*>::iterator m_it = _markers.begin();
@@ -162,4 +165,5 @@ float DataSet::getTrait(const std::string& trait, const Sample* samp) const{
 	return (*itr).second[(*s_itr).second];
 }
 
+}
 }

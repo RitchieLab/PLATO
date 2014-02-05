@@ -1,11 +1,12 @@
-#ifndef METHODS_FAMILY_H
-#define METHODS_FAMILY_H
+#ifndef DATA_FAMILY_H
+#define DATA_FAMILY_H
 
 #include <deque>
 #include <vector>
 #include <string>
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 class Sample;
 
@@ -40,5 +41,5 @@ private:
 };
 
 }
-
+}
 #endif

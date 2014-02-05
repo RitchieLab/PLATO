@@ -5,8 +5,8 @@
  *      Author: jrw32
  */
 
-#ifndef COMMANDLINEPARSER_HPP_
-#define COMMANDLINEPARSER_HPP_
+#ifndef UTILITY_COMMANDLINEPARSER_H
+#define UTILITY_COMMANDLINEPARSER_H
 
 #include <boost/program_options.hpp>
 
@@ -17,6 +17,10 @@
 
 #include <vector>
 #include <string>
+
+namespace PLATO{
+namespace Utility{
+
 
 template<class charT>
 class custom_command_line_parser : public boost::program_options::detail::cmdline {
@@ -347,4 +351,9 @@ custom_command_line_parser<charT>::run()
     // does the trick.
     return basic_parsed_options<charT>(super_result);
 }
+
+}
+}
+
 #endif /* COMMANDLINEPARSER_HPP_ */
+

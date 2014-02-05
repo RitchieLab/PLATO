@@ -6,6 +6,7 @@
 #include <fstream>
 #include <stdexcept>
 
+namespace PLATO{
 namespace Utility{
 
 class Logger{
@@ -36,6 +37,7 @@ private:
 template <class E>
 void Logger::log_err(const std::string& msg, bool fatal){getLogger().print(msg, std::cerr); throw E(msg);}
 
+}
 }
 
 #endif

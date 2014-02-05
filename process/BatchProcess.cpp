@@ -12,7 +12,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "util/DataSet.h"
+#include "data/DataSet.h"
 
 namespace po=boost::program_options;
 
@@ -20,8 +20,9 @@ using std::string;
 using std::ifstream;
 using std::vector;
 
-using Methods::DataSet;
+using PLATO::Data::DataSet;
 
+namespace PLATO{
 namespace ProcessLib{
 
 const std::string BatchProcess::stepname = BatchProcess::doRegister("batch");
@@ -90,4 +91,5 @@ void BatchProcess::process(DataSet& ds){
 
 }
 
+}
 }

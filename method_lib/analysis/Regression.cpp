@@ -7,10 +7,11 @@
 
 #include "Regression.h"
 
-#include "InputManager.h"
-
+#include "util/InputManager.h"
 #include "util/Logger.h"
-#include "util/Marker.h"
+
+#include "data/Marker.h"
+#include "data/Sample.h"
 
 #include <algorithm>
 #include <fstream>
@@ -32,11 +33,15 @@ using std::map;
 using std::numeric_limits;
 using std::stringstream;
 
+using PLATO::Data::DataSet;
+using PLATO::Data::Marker;
+using PLATO::Data::Sample;
+using PLATO::Utility::InputManager;
+
 namespace po=boost::program_options;
 
-using Methods::DataSet;
 
-namespace Methods{
+namespace PLATO{
 
 namespace Analysis{
 
@@ -339,7 +344,7 @@ void Regression::runRegression(const DataSet& ds){
 	printResults();
 }
 
-Regression::Model* Regression::parseModelStr(const std::string& model_str, const Methods::DataSet& ds) {
+Regression::Model* Regression::parseModelStr(const std::string& model_str, const DataSet& ds) {
 	vector<string> model_elements;
 	boost::algorithm::split(model_elements, model_str, boost::is_any_of(" \t"), boost::token_compress_on);
 
@@ -425,9 +430,9 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 				}
 			} else {
 				if(categorical){
-					row_data[pos++] = EncodingModel(Methods::Analysis::DOMINANT)(geno[i]);
-					row_data[pos++] = EncodingModel(Methods::Analysis::RECESSIVE)(geno[i]);
-				} else if (encoding == Methods::Analysis::CATEGORICAL){
+					row_data[pos++] = EncodingModel(Encoding::DOMINANT)(geno[i]);
+					row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(geno[i]);
+				} else if (encoding == Encoding::CATEGORICAL){
 					float w = getCategoricalWeight(m->markers[i], ds);
 					row_data[pos++] = 1 + (geno[i]==1) * w + (geno[i]==2);
 				} else {

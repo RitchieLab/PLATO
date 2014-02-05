@@ -7,7 +7,9 @@
 
 #include "ProcessFactory.h"
 
-namespace Methods{
+namespace PLATO{
+
+namespace Data{
 	class DataSet;
 }
 
@@ -17,7 +19,7 @@ public:
 	Process(const std::string& name, const std::string& desc) : _name(name), _desc(desc){}
 	virtual ~Process(){}
 
-	void run(Methods::DataSet&);
+	void run(PLATO::Data::DataSet&);
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
@@ -27,13 +29,13 @@ public:
 	const std::string& getDesc() const {return _desc;}
 
 protected:
-	virtual void process(Methods::DataSet&) = 0;
+	virtual void process(PLATO::Data::DataSet&) = 0;
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts) = 0;
 
 	virtual void PrintSummary(){};
 
 protected:
-	Methods::DataSet* data_set;
+	//PLATO::Data::DataSet* data_set;
 	std::string _name;
 	std::string _desc;
 
@@ -57,6 +59,8 @@ protected:
 template<typename T>
 const std::string& ProcessImpl<T>::doRegister(const std::string& key_in){
 	return ProcessFactory::getFactory().RegisterProcess(key_in, &T::create);
+}
+
 }
 
 #endif

@@ -1,10 +1,10 @@
-#ifndef METHODS_ANALYSIS_CORRECTION_H
-#define METHODS_ANALYSIS_CORRECTION_H
+#ifndef ANALYSIS_CORRECTION_H
+#define ANALYSIS_CORRECTION_H
 
 #include <vector>
 #include <iostream>
 
-namespace Methods{
+namespace PLATO{
 namespace Analysis{
 
 class CorrectionModel;
@@ -44,6 +44,8 @@ protected:
 
 class CorrectionModel{
 public:
+	CorrectionModel(const std::string& s);
+	CorrectionModel(const char* s);
 	CorrectionModel() : _data(Correction::BONFERRONI) {}
 	CorrectionModel(Correction::correction_ENUM c) : _data(c) {}
 
@@ -78,8 +80,8 @@ public:
 }
 
 namespace std{
-istream& operator>>(istream& in, Methods::Analysis::CorrectionModel& model_out);
-ostream& operator<<(ostream& o, const Methods::Analysis::CorrectionModel& m);
+istream& operator>>(istream& in, PLATO::Analysis::CorrectionModel& model_out);
+ostream& operator<<(ostream& o, const PLATO::Analysis::CorrectionModel& m);
 }
 
 #endif

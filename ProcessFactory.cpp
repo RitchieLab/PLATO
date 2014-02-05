@@ -4,6 +4,8 @@
 using std::string;
 using std::map;
 
+namespace PLATO{
+
 const string& ProcessFactory::RegisterProcess(const string& key, createFunc* ptr){
 	creation_map[key] = ptr;
 	return key;
@@ -16,4 +18,6 @@ Process* ProcessFactory::Create(const string& key){
 	}else{
 		return NULL;
 	}
+}
+
 }

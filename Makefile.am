@@ -24,8 +24,6 @@ main.cpp \
 main.h \
 ProcessFactory.cpp \
 ProcessFactory.h \
-InputManager.h \
-InputManager.cpp \
 process/InputProcess.cpp \
 process/InputProcess.h \
 process/BatchProcess.cpp \

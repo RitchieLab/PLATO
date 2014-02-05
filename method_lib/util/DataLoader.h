@@ -5,20 +5,24 @@
  *      Author: jrw32
  */
 
-#ifndef METHODS_DATA_LOADER_H
-#define METHODS_DATA_LOADER_H
+#ifndef UTILITY_DATA_LOADER_H
+#define UTILITY_DATA_LOADER_H
 
 #include <string>
 
 #include <boost/dynamic_bitset.hpp>
 #include <boost/program_options.hpp>
 
-namespace Methods {
+namespace PLATO {
+
+namespace Data{
 
 class DataSet;
 class Marker;
 class Sample;
+}
 
+namespace Utility{
 class DataLoader {
 
 public:
@@ -36,7 +40,7 @@ public:
 	void parseOptions(const boost::program_options::variables_map& vm);
 
 protected:
-	void setDataSet(DataSet& ds){ds_ptr = &ds;}
+	void setDataSet(PLATO::Data::DataSet& ds){ds_ptr = &ds;}
 	void read();
 
 private:
@@ -45,8 +49,8 @@ private:
 	void readBinPed(const std::string& fn);
 	void readTPed(const std::string& fn);
 
-	Marker* parseMap(std::stringstream& ss);
-	void parseSample(Marker* m, Sample* samp, const std::string& s1, const std::string& s2);
+	PLATO::Data::Marker* parseMap(std::stringstream& ss);
+	void parseSample(PLATO::Data::Marker* m, PLATO::Data::Sample* samp, const std::string& s1, const std::string& s2);
 
 
 	// does the map file contain a distance column?
@@ -79,7 +83,7 @@ private:
 	std::string _ped_missing_geno;
 
 	// the actual DataSet we're working with
-	DataSet* ds_ptr;
+	PLATO::Data::DataSet* ds_ptr;
 
 	enum input_style input;
 
@@ -97,6 +101,7 @@ private:
 
 };
 
+}
 }
 
 #endif /* DATALOADER_H_ */

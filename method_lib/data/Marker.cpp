@@ -6,7 +6,10 @@ using std::string;
 using std::find;
 using std::vector;
 
-namespace Methods{
+using PLATO::Utility::InputManager;
+
+namespace PLATO{
+namespace Data{
 
 string Marker::_missing_allele = "0";
 
@@ -57,4 +60,5 @@ bool Marker::setAltAllele(const string& allele){
 	return to_ret;
 }
 
+}
 }

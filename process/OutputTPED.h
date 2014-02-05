@@ -11,9 +11,10 @@
 #include "Process.h"
 #include "util/OutputPLINK.h"
 
+namespace PLATO{
 namespace ProcessLib {
 
-class OutputTPED : public ProcessImpl<OutputTPED>, private Methods::OutputPLINK {
+class OutputTPED : public ProcessImpl<OutputTPED>, private Utility::OutputPLINK {
 private:
 	const static std::string stepname;
 
@@ -24,7 +25,7 @@ public:
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
 
 protected:
-	virtual void process(Methods::DataSet&);
+	virtual void process(Data::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
 
 private:
@@ -33,6 +34,7 @@ private:
 	std::string tfam_fn;
 };
 
+}
 }
 
 #endif /* OUTPUTPED_H_ */

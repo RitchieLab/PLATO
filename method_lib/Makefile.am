@@ -3,30 +3,31 @@ noinst_LTLIBRARIES=libmethods.la
 AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS) -I$(top_srcdir)
 AM_LDFLAGS=$(GSL_LDFLAGS)
 
-libmethods_la_SOURCES= util/BiallelicSample.h \
-util/BiallelicSample.cpp \
-util/CommandLineParser.h \
-util/DataSet.h \
-util/DataSet.cpp \
+libmethods_la_SOURCES= data/BiallelicSample.h \
+data/BiallelicSample.cpp \
+data/DataSet.h \
+data/DataSet.cpp \
+data/Family.cpp \
+data/Family.h \
+data/Marker.cpp \
+data/Marker.h \
+data/PhasedBiallelicSample.cpp \
+data/PhasedBiallelicSample.h \
+data/PhasedPolyallelicSample.cpp \
+data/PhasedPolyallelicSample.h \
+data/PolyallelicSample.cpp \
+data/PolyallelicSample.h \
+data/Sample.cpp \
+data/Sample.h \
 util/DataLoader.cpp \
 util/DataLoader.h \
-util/Family.cpp \
-util/Family.h \
-util/Marker.cpp \
-util/Marker.h \
-util/PhasedBiallelicSample.cpp \
-util/PhasedBiallelicSample.h \
-util/PhasedPolyallelicSample.cpp \
-util/PhasedPolyallelicSample.h \
-util/PolyallelicSample.cpp \
-util/PolyallelicSample.h \
-util/Sample.cpp \
-util/Sample.h \
 util/OutputPLINK.h \
 util/OutputPLINK.cpp \
-util/Container.h \
 util/Logger.h \
 util/Logger.cpp \
+util/CommandLineParser.h \
+util/InputManager.h \
+util/InputManager.cpp \
 analysis/Correction.h \
 analysis/Correction.cpp \
 analysis/Encoding.h \

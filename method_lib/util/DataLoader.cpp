@@ -7,10 +7,10 @@
 
 #include "DataLoader.h"
 
-#include "DataSet.h"
-#include "Family.h"
-#include "Sample.h"
-#include "Marker.h"
+#include "data/DataSet.h"
+#include "data/Family.h"
+#include "data/Sample.h"
+#include "data/Marker.h"
 
 #include <iostream>
 #include <fstream>
@@ -24,11 +24,17 @@ using std::string;
 using std::ifstream;
 using std::stringstream;
 
+using PLATO::Data::Marker;
+using PLATO::Data::Sample;
+using PLATO::Data::DataSet;
+using PLATO::Data::Family;
+
 namespace po=boost::program_options;
 using po::value;
 using po::bool_switch;
 
-namespace Methods{
+namespace PLATO{
+namespace Utility{
 
 DataLoader::DataLoader() : _ped_genotype(true), _ped_missing_geno("0"), input(UNKNOWN) {}
 
@@ -562,4 +568,4 @@ void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const strin
 }
 
 }
-
+}

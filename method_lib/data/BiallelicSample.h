@@ -5,15 +5,16 @@
  *      Author: jrw32
  */
 
-#ifndef METHODS_BIALLELIC_SAMPLE_H
-#define METHODS_BIALLELIC_SAMPLE_H
+#ifndef DATA_BIALLELIC_SAMPLE_H
+#define DATA_BIALLELIC_SAMPLE_H
 
 #include "Sample.h"
 
 #include <boost/dynamic_bitset.hpp>
 
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 class BiallelicSample : public Sample {
 
@@ -34,6 +35,7 @@ private:
 
 };
 
+}
 }
 
 #endif /* BIALLELICSAMPLE_H_ */

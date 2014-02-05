@@ -7,13 +7,17 @@
 
 #include "InputProcess.h"
 
+using PLATO::Utility::DataLoader;
+using PLATO::Data::DataSet;
+
 namespace po=boost::program_options;
 
+namespace PLATO{
 namespace ProcessLib{
 
 const std::string InputProcess::stepname = InputProcess::doRegister("load-data");
 
-void InputProcess::process(Methods::DataSet& ds){
+void InputProcess::process(DataSet& ds){
 	setDataSet(ds);
 	read();
 }
@@ -26,4 +30,5 @@ void InputProcess::parseOptions(const po::variables_map& vm){
 	DataLoader::parseOptions(vm);
 }
 
+}
 }

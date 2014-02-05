@@ -20,11 +20,13 @@
 #include "Correction.h"
 #include "Encoding.h"
 
-#include "util/DataSet.h"
+#include "data/DataSet.h"
 
-namespace Methods{
+namespace PLATO{
 
+namespace Data{
 class Marker;
+}
 
 namespace Analysis{
 
@@ -42,7 +44,7 @@ protected:
 		Model(){}
 		Model(const std::vector<std::string>& tv) : traits(tv) {}
 
-		std::vector<const Methods::Marker*> markers;
+		std::vector<const PLATO::Data::Marker*> markers;
 		std::vector<std::string> traits;
 	};
 
@@ -50,7 +52,7 @@ protected:
 	public:
 
 		// use this for exhaustive
-		ModelGenerator(const Methods::DataSet& ds,
+		ModelGenerator(const PLATO::Data::DataSet& ds,
 				const std::set<std::string>& trait, bool pw,
 				bool nomarker) :
 			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
@@ -59,7 +61,7 @@ protected:
 		}
 
 		// use this for targeted
-		ModelGenerator(const Methods::DataSet& ds, const std::deque<std::string>& models, bool interact) :
+		ModelGenerator(const PLATO::Data::DataSet& ds, const std::deque<std::string>& models, bool interact) :
 			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
 			_mitr(models.begin()), _mend(models.end()),
 			_targeted(true) {
@@ -70,10 +72,10 @@ protected:
 		Model* operator() ();
 	private:
 
-		const DataSet& _ds;
+		const PLATO::Data::DataSet& _ds;
 
-		Methods::DataSet::const_marker_iterator _mi1;
-		Methods::DataSet::const_marker_iterator _mi2;
+		PLATO::Data::DataSet::const_marker_iterator _mi1;
+		PLATO::Data::DataSet::const_marker_iterator _mi2;
 
 		std::set<std::string>::const_iterator _titr;
 		std::set<std::string>::const_iterator _tend;
@@ -119,22 +121,22 @@ public:
 	void parseOptions(const boost::program_options::variables_map& vm);
 
 	//! iterate through and run the regressions we want.
-	void runRegression(const Methods::DataSet& ds);
+	void runRegression(const PLATO::Data::DataSet& ds);
 
-	static Model* parseModelStr(const std::string& model_str, const Methods::DataSet& ds);
+	static Model* parseModelStr(const std::string& model_str, const PLATO::Data::DataSet& ds);
 
 protected:
 
 	virtual Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows) = 0;
-	float getCategoricalWeight(const Methods::Marker* m, const Methods::DataSet& ds);
+	float getCategoricalWeight(const PLATO::Data::Marker* m, const PLATO::Data::DataSet& ds);
 
-	virtual void initData(const std::string& model_str, const Methods::DataSet& ds) {}
+	virtual void initData(const std::string& model_str, const PLATO::Data::DataSet& ds) {}
 	virtual void printResults();
 
 	virtual void printVarHeader(const std::string& var_name);
 
 private:
-	virtual Result* run(const Model* m, const Methods::DataSet& ds, bool interact=false, bool categorical=false);
+	virtual Result* run(const Model* m, const PLATO::Data::DataSet& ds, bool interact=false, bool categorical=false);
 
 
 private:
@@ -151,7 +153,7 @@ private:
 	//! build models with traits as well?
 	bool include_traits;
 
-	std::map<const Methods::Marker*, float> categ_weight;
+	std::map<const PLATO::Data::Marker*, float> categ_weight;
 
 	struct result_sorter{
 		inline bool operator() (const Result* const & x, const Result* const& y) const{
@@ -200,14 +202,14 @@ protected:
 	std::ofstream out_f;
 
 	// univariate results by marker and trait
-	std::map<const Methods::Marker*, Result*> _marker_uni_result;
+	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
 	std::map<std::string, Result*> _trait_uni_result;
 
 };
 
 }
-
 }
+
 
 
 #endif /* REGRESSION_H_ */

@@ -1,5 +1,5 @@
-#ifndef METHODS_SAMPLE_H
-#define METHODS_SAMPLE_H
+#ifndef DATA_SAMPLE_H
+#define DATA_SAMPLE_H
 
 #include <deque>
 #include <string>
@@ -7,7 +7,8 @@
 
 #include <utility>
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 class DataSet;
 class Marker;
@@ -95,6 +96,7 @@ public:
 	static const std::pair<unsigned char, unsigned char> missing_geno;
 };
 
+}
 }
 
 

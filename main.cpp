@@ -20,10 +20,10 @@
 
 #include "ProcessFactory.h"
 #include "Process.h"
-#include "InputManager.h"
 
+#include "util/InputManager.h"
 #include "util/CommandLineParser.h"
-#include "util/DataSet.h"
+#include "data/DataSet.h"
 
 namespace po = boost::program_options;
 
@@ -31,7 +31,12 @@ using std::cout;
 using std::string;
 using std::vector;
 
-using Methods::DataSet;
+using PLATO::Data::DataSet;
+using PLATO::Utility::InputManager;
+using PLATO::Utility::CommandLineParser;
+
+using PLATO::Process;
+using PLATO::ProcessFactory;
 
 /*
  *Function: Initialize()

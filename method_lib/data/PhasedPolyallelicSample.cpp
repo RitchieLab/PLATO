@@ -12,7 +12,8 @@
 using std::string;
 using std::pair;
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 PhasedPolyallelicSample::PhasedPolyallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
@@ -38,4 +39,5 @@ pair<unsigned char, unsigned char> PhasedPolyallelicSample::getGeno(const Marker
 	return std::make_pair(_genotype[2*pos], _genotype[2*pos + 1]);
 }
 
+}
 }

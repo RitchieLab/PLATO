@@ -10,28 +10,22 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
 
-#include "util/Sample.h"
-#include "util/Marker.h"
 #include "util/Logger.h"
 
-using Methods::DataSet;
-using Methods::Sample;
-using Methods::Marker;
-using Methods::Analysis::Regression;
-using Methods::Analysis::EncodingModel;
+using PLATO::Data::DataSet;
+using PLATO::Analysis::Regression;
 
 using std::vector;
-using std::deque;
 using std::string;
 using std::set;
 using std::numeric_limits;
-using std::pair;
 using std::fabs;
 using std::log;
 using std::exp;
 
 namespace po=boost::program_options;
 
+namespace PLATO{
 namespace ProcessLib{
 
 const std::string LogisticRegression::stepname = LogisticRegression::doRegister("logistic");
@@ -270,4 +264,5 @@ void LogisticRegression::process(DataSet& ds){
 }
 
 
+}
 }

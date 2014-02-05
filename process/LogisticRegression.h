@@ -4,9 +4,10 @@
 #include "Process.h"
 #include "analysis/Regression.h"
 
+namespace PLATO{
 namespace ProcessLib{
 
-class LogisticRegression : public ProcessImpl<LogisticRegression>, public Methods::Analysis::Regression {
+class LogisticRegression : public ProcessImpl<LogisticRegression>, public Analysis::Regression {
 private:
 	const static std::string stepname;
 
@@ -17,12 +18,12 @@ public:
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
 
 protected:
-	virtual void process(Methods::DataSet&);
+	virtual void process(Data::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
-	virtual Methods::Analysis::Regression::Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows);
+	virtual Analysis::Regression::Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows);
 
 	virtual void printVarHeader(const std::string& var_name);
-	virtual void initData(const std::string& model_str, const Methods::DataSet& ds);
+	virtual void initData(const std::string& model_str, const Data::DataSet& ds);
 
 private:
 	bool show_odds;
@@ -30,6 +31,7 @@ private:
 
 };
 
+}
 }
 
 #endif

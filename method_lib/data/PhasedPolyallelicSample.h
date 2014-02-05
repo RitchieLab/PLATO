@@ -5,14 +5,15 @@
  *      Author: jrw32
  */
 
-#ifndef METHDOS_PHASED_POLYALLELIC_SAMPLE_H
-#define METHDOS_PHASED_POLYALLELIC_SAMPLE_H
+#ifndef DATA_PHASED_POLYALLELIC_SAMPLE_H
+#define DATA_PHASED_POLYALLELIC_SAMPLE_H
 
 #include "Sample.h"
 
 #include <deque>
 
-namespace Methods {
+namespace PLATO {
+namespace Data{
 
 class PhasedPolyallelicSample : public Sample {
 public:
@@ -30,6 +31,7 @@ private:
 	std::deque<unsigned char> _genotype;
 };
 
+}
 }
 
 #endif /* PHASEDPOLYALLELICSAMPLE_H_ */

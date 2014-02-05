@@ -1,5 +1,5 @@
-#ifndef METHODS_DATASET_H
-#define METHODS_DATASET_H
+#ifndef DATA_DATASET_H
+#define DATA_DATASET_H
 
 #include <deque>
 #include <map>
@@ -9,7 +9,8 @@
 
 #include "Sample.h"
 
-namespace Methods{
+namespace PLATO{
+namespace Data{
 
 class Marker;
 class Family;
@@ -171,5 +172,5 @@ private:
 };
 
 }
-
+}
 #endif

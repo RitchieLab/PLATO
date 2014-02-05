@@ -5,6 +5,7 @@ using std::ofstream;
 using std::ostream;
 using std::endl;
 
+namespace PLATO{
 namespace Utility{
 
 string Logger::logfn = "plato.log";
@@ -37,4 +38,5 @@ Logger& Logger::getLogger(){return *((_log == 0) ? _log = new Logger() : _log);}
 
 void Logger::log(const std::string& msg){getLogger().print(msg, std::cout);}
 
+}
 }

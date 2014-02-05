@@ -7,12 +7,16 @@
 
 #include "OutputPLINK.h"
 
-#include "util/Marker.h"
-#include "util/Sample.h"
+#include "data/Marker.h"
+#include "data/Sample.h"
 
 #include "InputManager.h"
 
-namespace Methods {
+using PLATO::Data::Marker;
+using PLATO::Data::Sample;
+
+namespace PLATO {
+namespace Utility {
 
 void OutputPLINK::printPEDHeader(std::ostream& ped_f, const Sample& s) const {
 	ped_f << s.getFID() << "\t" << s.getID() << "\t"
@@ -32,4 +36,5 @@ void OutputPLINK::printMAPInfo(std::ostream& map_f, const Marker& m, bool print_
 
 }
 
+}
 }
