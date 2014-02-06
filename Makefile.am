@@ -41,7 +41,11 @@ process/TraitLoader.cpp \
 process/LogisticRegression.h \
 process/LogisticRegression.cpp \
 process/LinearRegression.h \
-process/LinearRegression.cpp
+process/LinearRegression.cpp \
+process/SampleMissingFilter.h \
+process/SampleMissingFilter.cpp \
+process/MarkerMissingFilter.h \
+process/MarkerMissingFilter.cpp
 
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)
