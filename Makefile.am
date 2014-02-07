@@ -45,7 +45,9 @@ process/LinearRegression.cpp \
 process/SampleMissingFilter.h \
 process/SampleMissingFilter.cpp \
 process/MarkerMissingFilter.h \
-process/MarkerMissingFilter.cpp
+process/MarkerMissingFilter.cpp \
+process/AlleleFreqFilter.h \
+process/AlleleFreqFilter.cpp
 
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)

@@ -37,6 +37,7 @@ void MarkerMissingFilter::process(DataSet& ds){
 		if(1 - Utility::Missing::markerMissing(ds, **mi) < _thresh){
 			(*mi)->setEnabled(false);
 		}
+		++_n_filtered;
 
 		++mi;
 	}

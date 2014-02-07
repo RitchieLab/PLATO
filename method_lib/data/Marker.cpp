@@ -1,5 +1,8 @@
 #include "Marker.h"
 
+#include "DataSet.h"
+#include "Sample.h"
+
 #include <algorithm>
 
 using std::string;
@@ -58,6 +61,21 @@ bool Marker::setAltAllele(const string& allele){
 		to_ret = true;
 	}
 	return to_ret;
+}
+
+float Marker::calcMAF(const DataSet& ds) const{
+	DataSet::const_sample_iterator si = ds.beginSample();
+	int n_sample = 0;
+	int n_allele = 0;
+	while(si != ds.endSample()){
+		n_allele += (*si)->getAdditiveGeno(*this);
+		++n_sample;
+		++si;
+	}
+
+	float maf = n_allele / static_cast<float>(2 * n_sample);
+
+	return std::min(maf, 1-maf);
 }
 
 }

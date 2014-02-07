@@ -10,6 +10,7 @@ namespace PLATO{
 namespace Data{
 
 class Sample;
+class DataSet;
 
 class Marker{
 
@@ -40,6 +41,7 @@ public:
 
 	bool issetMAF() const {return _maf >= 0 && _maf <= 1;};
 	float getMAF() const {return _maf;}
+	float calcMAF(const DataSet& ds) const;
 	/*!
 	 * Returns the reference allele, or "0" if no reference allele is available.
 	 * Note that the first allele added is by default the reference allele.
