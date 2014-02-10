@@ -103,7 +103,9 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 
 }
 
-void DataLoader::read(){
+void DataLoader::read(DataSet& ds){
+
+	ds_ptr = &ds;
 
 	// first, reading PED/MAP files
 	switch(input){

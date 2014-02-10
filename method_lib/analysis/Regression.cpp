@@ -32,6 +32,8 @@ using std::set;
 using std::map;
 using std::numeric_limits;
 using std::stringstream;
+using std::min;
+using std::max;
 
 using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
@@ -239,6 +241,11 @@ void Regression::runRegression(const DataSet& ds){
 		printVarHeader("Var" + boost::lexical_cast<string>(i+1));
 	}
 
+	// If we are looking at single SNP models w/ categorical weight, print said weight!
+	if(encoding == Encoding::CATEGORICAL && n_snp == 1 && n_trait == 0){
+		out_f << "Categ_Weight" << sep;
+	}
+
 	out_f << "Overall_Pval";
 
 	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
@@ -407,13 +414,20 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 
 	// Allocate a huge amount of memory for the regression here
 	double regress_data[_pheno.size()][n_cols];
-	float row_data[n_cols];
+	double row_data[n_cols];
 	unsigned char geno[numLoci];
 	float maf_sum[numLoci];
 
 	DataSet::const_sample_iterator si = ds.beginSample();
 	unsigned int n_samples = 0;
 	unsigned int n_missing = 0;
+
+	double categ_weight[numLoci];
+	if (encoding == Encoding::CATEGORICAL){
+		for (unsigned int i = 0; i<numLoci; i++){
+			categ_weight[i] = getCategoricalWeight(m->markers[i], ds);
+		}
+	}
 
 	while(si != ds.endSample()){
 		unsigned int pos=0;
@@ -433,8 +447,14 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 					row_data[pos++] = EncodingModel(Encoding::DOMINANT)(geno[i]);
 					row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(geno[i]);
 				} else if (encoding == Encoding::CATEGORICAL){
-					float w = getCategoricalWeight(m->markers[i], ds);
-					row_data[pos++] = 1 + (geno[i]==1) * w + (geno[i]==2);
+					// Returns:
+					// {0,w,1}    , w in [0,1]
+					// {1,1-w,0}  , w in [-1,0]
+					// {0,1,1/w}  , w in [1, inf)
+					// {1,0,1-1/w}, w in [-inf, -1]
+					row_data[pos++] = (categ_weight[i] < 0)
+							        + max(min(1.0, categ_weight[i]),-1.0) * (geno[i]==1)
+							        + max(min(1.0, 1/categ_weight[i]),-1.0) * (geno[i]==2);
 				} else {
 					row_data[pos++] = encoding(geno[i]);
 				}
@@ -487,7 +507,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 	for(unsigned int i=0; i<numLoci; i++){
 		ss << m->markers[i]->getID() << sep
 		   << m->markers[i]->getChromStr() << ":" << m->markers[i]->getLoc()
-		   << sep << maf_sum[i] / static_cast<float>(n_samples-n_missing) << sep;
+		   << sep << maf_sum[i] / (2*static_cast<float>(n_samples-n_missing)) << sep;
 	}
 	for(unsigned int i=0; i<numTraits; i++){
 		ss << m->traits[i] << sep;
@@ -497,6 +517,12 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 	ss << n_missing << sep;
 
 	r->prefix = ss.str();
+
+	ss.clear();
+	if(encoding == Encoding::CATEGORICAL && m->markers.size() == 1 && m->traits.size() == 0 && !categorical){
+		ss << categ_weight << sep;
+		r->suffix += ss.str();
+	}
 
 	return r;
 }

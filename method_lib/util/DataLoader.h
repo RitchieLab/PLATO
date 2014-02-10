@@ -40,8 +40,8 @@ public:
 	void parseOptions(const boost::program_options::variables_map& vm);
 
 protected:
-	void setDataSet(PLATO::Data::DataSet& ds){ds_ptr = &ds;}
-	void read();
+	//void setDataSet(PLATO::Data::DataSet& ds){ds_ptr = &ds;}
+	void read(Data::DataSet& ds);
 
 private:
 	void readPed(const std::string& fn);

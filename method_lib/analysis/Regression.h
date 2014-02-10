@@ -106,7 +106,7 @@ protected:
 
 		// A string to print before anything (variable IDs, MAF, etc)
 		std::string prefix;
-		// A string to print AFTER all of the variables, but BEFORE
+		// A string to print AFTER all of the variables, but BEFORE p-value
 		std::string suffix;
 
 		bool operator<(const Result& o) const {return p_val < o.p_val;}

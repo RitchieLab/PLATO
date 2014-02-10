@@ -18,8 +18,7 @@ namespace ProcessLib{
 const std::string InputProcess::stepname = InputProcess::doRegister("load-data");
 
 void InputProcess::process(DataSet& ds){
-	setDataSet(ds);
-	read();
+	read(ds);
 }
 
 po::options_description& InputProcess::appendOptions(po::options_description& opts){
