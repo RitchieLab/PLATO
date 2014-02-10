@@ -7,6 +7,8 @@
 
 #include "ConcordanceProcess.h"
 
+#include "util/DataSet.h"
+
 using PLATO::Utility::DataLoader;
 using PLATO::Data::DataSet;
 
