@@ -94,6 +94,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("seaparator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, categorical)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
+		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		;
 
 	opts.add(regress_opts);
@@ -279,14 +280,23 @@ void Regression::runRegression(const DataSet& ds){
 			++covar_itr;
 			++val_itr;
 		}
+		++si;
 	}
 
 	this->initData(model_str, ds);
 
+
+	Model m_null;
+	m_null.reduce = false;
+	Result* r_null = 0;
+	if(_covars.size() > 0){
+		r_null = run(&m_null, ds);
+	}
+
 	Model* nm;
 	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
 	while( (nm = mg()) ){
-		Result* r = run(nm, ds, false);
+		Result* r = run(nm, ds, r_null);
 
 		// Run some univariate models
 		if(show_uni && n_snp + n_trait > 1){
@@ -300,7 +310,7 @@ void Regression::runRegression(const DataSet& ds){
 					Model m;
 					m.traits.push_back(nm->traits[i-1]);
 					t_itr = _trait_uni_result.insert(_trait_uni_result.begin(),
-							std::make_pair(nm->traits[i-1], run(&m, ds)));
+							std::make_pair(nm->traits[i-1], run(&m, ds, r_null)));
 				}
 
 				// Add the result to the front of the deque
@@ -316,7 +326,7 @@ void Regression::runRegression(const DataSet& ds){
 					Model m;
 					m.markers.push_back(nm->markers[i-1]);
 					m_itr = _marker_uni_result.insert(_marker_uni_result.begin(),
-							std::make_pair(nm->markers[i-1], run(&m, ds)));
+							std::make_pair(nm->markers[i-1], run(&m, ds, r_null)));
 				}
 
 				// Add the result to the front of the deque
@@ -327,10 +337,12 @@ void Regression::runRegression(const DataSet& ds){
 		}
 
 		if(interactions){
-			Result* r_full = run(nm, ds, true);
-
 			stringstream ss;
-			ss << r->p_val << sep << r_full->p_val << sep;
+			ss << r->p_val << sep;
+
+			nm->interact = true;
+			Result* r_full = run(nm, ds, r);
+
 			for(unsigned int i=0; i<r_full->coeffs.size(); i++){
 				r->coeffs.push_back(r_full->coeffs[i]);
 				r->stderr.push_back(r_full->stderr[i]);
@@ -338,8 +350,10 @@ void Regression::runRegression(const DataSet& ds){
 			}
 
 			// calculate a new log likelihood
-			r->log_likelihood = -2 * (r->log_likelihood - r_full->log_likelihood);
-			r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
+			//r->log_likelihood = -2 * (r->log_likelihood - r_full->log_likelihood);
+			r->log_likelihood = r_full->log_likelihood;
+			r->p_val = r_full->p_val;
+			//r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
 			delete r_full;
 
 		}
@@ -347,6 +361,8 @@ void Regression::runRegression(const DataSet& ds){
 		results.push_back(r);
 		delete nm;
 	}
+
+	delete r_null;
 
 	printResults();
 }
@@ -384,7 +400,8 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
 	Model mod;
 	mod.markers.push_back(m);
-	Result* r = run(&mod, ds, false, true);
+	mod.categorical = true;
+	Result* r = run(&mod, ds);
 
 	// NOTE: this assigns to the map at the same step
 	float toret = (categ_weight[m] = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]));
@@ -395,7 +412,7 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
 }
 
-Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool interact, bool categorical) {
+Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* null_result) {
 
 	unsigned int numLoci = m->markers.size();
 	unsigned int numCovars = covar_names.size();
@@ -405,7 +422,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 
 	// determine size of row for each sample in dataset
 	unsigned int n_cols = 1 + numLoci + numTraits + numCovars ;
-	if(categorical){
+	if(m->categorical){
 		n_cols += numLoci - numTraits;
 	} else if (interactions){
 		n_kept += (n_vars * (n_vars - 1))/2;
@@ -428,6 +445,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 			categ_weight[i] = getCategoricalWeight(m->markers[i], ds);
 		}
 	}
+	//DataSet::const_sample_iterator se = ds.endSample();
 
 	while(si != ds.endSample()){
 		unsigned int pos=0;
@@ -439,11 +457,11 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 			geno[i] = (*si)->getAdditiveGeno(*(m->markers[i]));
 			if(geno[i] == Sample::missing_allele){
 				row_data[pos++] = numeric_limits<double>::quiet_NaN();
-				if(categorical){
+				if(m->categorical){
 					row_data[pos++] = numeric_limits<double>::quiet_NaN();
 				}
 			} else {
-				if(categorical){
+				if(m->categorical){
 					row_data[pos++] = EncodingModel(Encoding::DOMINANT)(geno[i]);
 					row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(geno[i]);
 				} else if (encoding == Encoding::CATEGORICAL){
@@ -462,12 +480,12 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 		}
 
 		// Now, work through the traits
-		for(unsigned int i = 0; i < numTraits * (!categorical); i++){
+		for(unsigned int i = 0; (!m->categorical) && i < numTraits; i++){
 			row_data[pos++] = ds.getTrait(m->traits[i], *si);
 		}
 
 		// Now, the interaction terms
-		for(unsigned int i=0; i < (n_vars) * interact * (!categorical); i++){
+		for(unsigned int i=0; m->interact && (!m->categorical) && i < (n_vars); i++){
 			for(unsigned int j=i+1; j < (n_vars); j++){
 				row_data[pos++] = row_data[i+1]*row_data[j+1];
 			}
@@ -495,9 +513,10 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, bool inte
 		}
 
 		++n_samples;
+		++si;
 	}
 
-	Result* r = calculate(regress_data[0], n_cols, n_samples - n_missing);
+	Result* r = calculate(regress_data[0], n_cols, n_samples - n_missing, null_result);
 	r->coeffs.resize(n_kept);
 	r->stderr.resize(n_kept);
 	r->p_vals.resize(n_kept);

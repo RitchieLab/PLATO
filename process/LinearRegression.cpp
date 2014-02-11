@@ -45,7 +45,7 @@ void LinearRegression::parseOptions(const po::variables_map& vm){
 	Regression::parseOptions(vm);
 }
 
-Regression::Result* LinearRegression::calculate(double* data, unsigned int n_cols, unsigned int n_rows){
+Regression::Result* LinearRegression::calculate(double* data, unsigned int n_cols, unsigned int n_rows, const Result* null_result){
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
 
@@ -73,25 +73,6 @@ Regression::Result* LinearRegression::calculate(double* data, unsigned int n_col
 
 	// OK, now we have our coefficients!  It's that easy!
 
-	// mean and standard deviation of the coefficients (not incl. intercept!)
-	vector<double> xM(n_cols -1, 0.0);
-	vector<double> xSD(n_cols - 1, 0.0);
-
-	// store xM and xSD for mean and standard deviation calculations
-	for (unsigned int i = 0; i < n_rows; i++) {
-		for (unsigned int j = 0; j <= n_cols-1; j++) {
-			double x = data[i*n_cols + j+1];
-			xM[j] += x;
-			xSD[j] += x*x;
-		}
-	}
-	// calculate mean and standard deviation
-	for (unsigned int j = 0; j <= n_cols-1; j++) {
-		xM[j] /= n_rows;
-		xSD[j] /= n_rows;
-		xSD[j] = sqrt(fabs(xSD[j] - xM[j] * xM[j]));
-	}
-
 	r->coeffs.clear();
 	r->stderr.clear();
 	r->p_vals.clear();
@@ -100,17 +81,37 @@ Regression::Result* LinearRegression::calculate(double* data, unsigned int n_col
 		r->coeffs.push_back(gsl_vector_get(beta, i));
 		r->stderr.push_back(sqrt(gsl_matrix_get(cov, i, i)));
 		// t-val = | beta / stderr |
-		r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(r->coeffs[i] / r->stderr[i]),n_rows-n_cols+1)));
+		r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(r->coeffs[i-1] / r->stderr[i-1]),n_rows-n_cols+1)));
 	}
 
-	double R_squared = 1 - chisq / gsl_stats_tss(Y, 1, n_rows);
-	double F=(R_squared * (n_rows - n_cols))/((1-R_squared) * (n_cols - 1));
+	double tss = gsl_stats_tss(Y, 1, n_rows);
+	double null_rss = tss;
+	int n_null = 0;
+	if(null_result != 0){
+		null_rss = tss*(1-null_result->r_squared);
+		n_null = null_result->coeffs.size();
+	}
 
-	r->p_val = 1-gsl_cdf_fdist_P(F,n_cols-1,n_rows-n_cols);
+
+	r->r_squared = 1 - chisq / tss;
+	double F=((null_rss - chisq) * (n_rows - n_cols))/(chisq * (n_cols - 1 - n_null));
+
+	r->p_val = 1-gsl_cdf_fdist_P(F,n_cols-1-n_null,n_rows-n_cols);
 
 	// calulate the sum of the squares of the residuals
-	double sum_sq_resid = gsl_stats_tss_m(resid->data, 1, n_rows, 0);
-	r->log_likelihood = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(sum_sq_resid)));
+	//double sum_sq_resid = gsl_stats_tss_m(resid->data, 1, n_rows, 0);
+	double ll = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(chisq)));
+	if(null_result){
+		r->log_likelihood = -2 * (null_result->log_likelihood - ll);
+	}else{
+		r->log_likelihood = ll;
+	}
+
+	double pv_test = gsl_cdf_chisq_Q(r->log_likelihood,1);
+
+	//r->log_likelihood = r_full->log_likelihood;
+	//r->p_val = r_full->p_val;
+	//r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
 
 	gsl_vector_free(beta);
 	gsl_vector_free(resid);

@@ -88,7 +88,7 @@ void LogisticRegression::initData(const std::string& model_str, const DataSet& d
 
 }
 
-Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_cols, unsigned int n_rows){
+Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_cols, unsigned int n_rows, const Result* null_result){
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
 

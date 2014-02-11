@@ -20,7 +20,7 @@ public:
 protected:
 	virtual void process(Data::DataSet&);
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
-	virtual Analysis::Regression::Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows);
+	virtual Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows, const Result* null_result);
 
 	virtual void printVarHeader(const std::string& var_name);
 	virtual void initData(const std::string& model_str, const Data::DataSet& ds);

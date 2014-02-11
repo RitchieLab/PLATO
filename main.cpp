@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 	cmd_opts.add_options()
 		("help,h","Display this help message")
 		("list-command,L", "List the available commands")
-		("help-command,C", po::value<string>(), "Get help for a particular command")
+		("help-command,C", po::value<string>()->implicit_value(""), "Get help for a particular command")
 		("logfile,f", po::value<string>(&logfn)->default_value("plato.log"),"Name of the log file of PLATO output")
 		("version,v", "Print the version of PLATO and exit");
 
@@ -83,23 +83,40 @@ int main(int argc, char** argv) {
 	if(vm.count("help-command")){
 		ProcessFactory& f = ProcessFactory::getFactory();
 		string cmd_str = vm["help-command"].as<string>();
-		Process* p = f.Create(cmd_str);
-		if(!p){
-			cout << "ERROR: Unrecognized command '" << cmd_str << "'\n\n";
-			cout << "Please use the 'list-command' option to see a list of commands available\n";
-			return 1;
-		}else{
-			po::options_description opts;
-			p->addOptions(opts);
-			p->printHelp(cout);
-			delete p;
-			return 0;
+
+		// If no argument given, print help for ALL commands
+		if(cmd_str.size() == 0){
+			cout << "Printing help for ALL commands:" << std::endl;
+
+			for (ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++) {
+				cout << std::endl << "========================================" << std::endl;
+				Process* p = f.Create((*s_iter).first);
+				cout << "Help for " << p->getName() << ":" << std::endl;
+				po::options_description opts;
+				p->addOptions(opts);
+				p->printHelp(cout);
+				delete p;
+				//cout << "\tThresh: " << mystep.getThreshold() << endl;
+			}
+		} else {
+			Process* p = f.Create(cmd_str);
+			if (!p) {
+				cout << "ERROR: Unrecognized command '" << cmd_str << "'\n\n";
+				cout << "Please use the 'list-command' option to see a list of commands available\n";
+				return 1;
+			} else {
+				po::options_description opts;
+				p->addOptions(opts);
+				p->printHelp(cout);
+				delete p;
+				return 0;
+			}
 		}
 	}
 
 	if(vm.count("version")){
 		std::cout << PACKAGE_STRING << "\n";
-		std::cout << "(c) Ritchie Lab, 2013\n";
+		std::cout << "(c) Ritchie Lab, 2014\n";
 		std::cout << "To report bugs, please email " << PACKAGE_BUGREPORT << "\n";
 		return 0;
 	}

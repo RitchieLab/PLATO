@@ -81,6 +81,7 @@ void TraitLoader::process(DataSet& ds) {
 		}
 
 		input.close();
+		++fn_itr;
 	}
 
 }

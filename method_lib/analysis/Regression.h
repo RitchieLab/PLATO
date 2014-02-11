@@ -41,11 +41,16 @@ protected:
 	 */
 	class Model{
 	public:
-		Model(){}
+		Model() : interact(false), categorical(false), reduce(true){}
 		Model(const std::vector<std::string>& tv) : traits(tv) {}
 
 		std::vector<const PLATO::Data::Marker*> markers;
 		std::vector<std::string> traits;
+
+		bool interact;
+		bool categorical;
+		bool reduce;
+
 	};
 
 	class ModelGenerator{
@@ -103,6 +108,7 @@ protected:
 
 		float p_val;
 		float log_likelihood;
+		float r_squared;
 
 		// A string to print before anything (variable IDs, MAF, etc)
 		std::string prefix;
@@ -127,7 +133,7 @@ public:
 
 protected:
 
-	virtual Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows) = 0;
+	virtual Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows, const Result* null_result=0) = 0;
 	float getCategoricalWeight(const PLATO::Data::Marker* m, const PLATO::Data::DataSet& ds);
 
 	virtual void initData(const std::string& model_str, const PLATO::Data::DataSet& ds) {}
@@ -136,7 +142,7 @@ protected:
 	virtual void printVarHeader(const std::string& var_name);
 
 private:
-	virtual Result* run(const Model* m, const PLATO::Data::DataSet& ds, bool interact=false, bool categorical=false);
+	virtual Result* run(const Model* m, const PLATO::Data::DataSet& ds, Result* null_model=0);
 
 
 private:
