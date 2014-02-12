@@ -8,6 +8,7 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace PLATO{
 namespace Utility{
@@ -69,12 +70,10 @@ template <class I, class O>
 void InputManager::parseInput(const I& cont_in, O& cont_out, const std::string& sep){
 	typename I::const_iterator itr = cont_in.begin();
 	while(itr != cont_in.end()){
-		std::stringstream out_s;
-		out_s << (*itr);
 
 		boost::char_separator<char> tok_sep(sep.c_str());
 
-		boost::tokenizer<boost::char_separator<char> > tok(out_s.str());
+		boost::tokenizer<boost::char_separator<char> > tok(boost::lexical_cast<std::string>(*itr), tok_sep);
 		boost::tokenizer<boost::char_separator<char> >::iterator t_itr = tok.begin();
 		while(t_itr != tok.end()){
 			cont_out.insert(cont_out.end(), boost::lexical_cast<typename O::value_type>(*t_itr));

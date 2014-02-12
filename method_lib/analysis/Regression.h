@@ -41,15 +41,13 @@ protected:
 	 */
 	class Model{
 	public:
-		Model() : interact(false), categorical(false), reduce(true){}
+		Model() : categorical(false){}
 		Model(const std::vector<std::string>& tv) : traits(tv) {}
 
 		std::vector<const PLATO::Data::Marker*> markers;
 		std::vector<std::string> traits;
 
-		bool interact;
 		bool categorical;
-		bool reduce;
 
 	};
 
@@ -133,7 +131,30 @@ public:
 
 protected:
 
-	virtual Result* calculate(double* data, unsigned int n_cols, unsigned int n_rows, const Result* null_result=0) = 0;
+	/*! \brief Runs the regression calculation
+	 * This function actually runs the regression (or appropriate statistical
+	 * test) calculation based on the raw data passed in.
+	 * \param result A n_rows length vector containing the output vector
+	 * \param data A n_rows x n_cols matrix containing the independent values
+	 * for the regression.  Note that the data should be in the following order:
+	 * - intercept (a column of all 1's)
+	 * - covariates
+	 * - main effects
+	 * - interactions
+	 * Also note that the data is arranged linearly in memory, with the following
+	 * relationship: data[i][j] = data[i*(n_cols + offset) + j]
+	 * \param n_rows The number of rows in the dataset
+	 * \param n_cols The number of independent variables in the dataset
+	 * \param offset The number of extra columns in the data not included in the
+	 * particular model that we are testing.
+	 * \param n_covars The number of covariates in the "reduced" model to test
+	 * significance against.  Note that if n_covars > covar_names.size() + 1, then
+	 * this method will call calculate again.  For an example, see the definition
+	 * in LinearRegression.
+	 */
+	virtual Result* calculate(const double* result, const double* data,
+			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
+			unsigned int n_covars=0) = 0;
 	float getCategoricalWeight(const PLATO::Data::Marker* m, const PLATO::Data::DataSet& ds);
 
 	virtual void initData(const std::string& model_str, const PLATO::Data::DataSet& ds) {}
@@ -142,7 +163,7 @@ protected:
 	virtual void printVarHeader(const std::string& var_name);
 
 private:
-	virtual Result* run(const Model* m, const PLATO::Data::DataSet& ds, Result* null_model=0);
+	virtual Result* run(const Model* m, const PLATO::Data::DataSet& ds);
 
 
 private:

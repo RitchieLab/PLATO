@@ -88,12 +88,31 @@ void LogisticRegression::initData(const std::string& model_str, const DataSet& d
 
 }
 
-Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_cols, unsigned int n_rows, const Result* null_result){
+Regression::Result* LogisticRegression::calculate(
+		const double* Y, const double* data,
+		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
+		unsigned int n_covars){
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
 
-	Result* r = new Result();
+	// Find the number of predictor variables in the reduced model
+	Result* null_result = 0;
+	unsigned int reduced_vars = n_covars + 1;
 
+	// If this is the case, we need to find the result for running the regression
+	// on the reduced model
+	if(reduced_vars != 1){
+
+		// If this is the case, we have a situation where the reduced model is
+		// not quite down to our covariates, so our "new_covars" should be
+		// the size of the covariates
+		unsigned int new_covars = n_covars > covar_names.size() ? covar_names.size() : 0;
+
+		// the offset is now the old offset + difference in the number of added variables
+		null_result = calculate(Y, data, n_cols, n_rows, offset + n_cols - (n_covars + 1), new_covars);
+	}
+
+	Result* r = new Result();
 
 	double x;
 
@@ -105,8 +124,8 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 	double val, deriv, log_val, log_val_c;
 
 	// mean and standard deviation of the coefficients (not incl. intercept!)
-	vector<double> xM(n_cols -1, 0.0);
-	vector<double> xSD(n_cols - 1, 0.0);
+//	vector<double> xM(n_cols -1, 0.0);
+//	vector<double> xSD(n_cols - 1, 0.0);
 
 	// This is the current estimate of the parameters
 	// Note: position 0 is reserved for the intercept
@@ -114,9 +133,9 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 
 	// weight vector used for IRLS procedure
 	double weight[n_rows];
-	double Y[n_rows];
+	//double Y[n_rows];
 
-	gsl_matrix_view X = gsl_matrix_view_array(data, n_cols, n_rows);
+	gsl_matrix_const_view X = gsl_matrix_const_view_array_with_tda(data, n_cols, n_rows, offset + n_cols);
 
 	// gsl weight vector for IRLS procedure
 	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
@@ -133,7 +152,7 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 	double tmp_chisq;
 
 	// store xM and xSD for mean and standard deviation calculations
-	for (unsigned int i = 0; i < n_rows; i++) {
+/*	for (unsigned int i = 0; i < n_rows; i++) {
 
 		for (unsigned int j = 0; j <= n_cols-1; j++) {
 			x = data[i*n_cols + j+1];
@@ -141,8 +160,8 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 			xSD[j] += x*x;
 		}
 
-		Y[i] = data[i*n_cols];
-		data[i*n_cols] = 1;
+//		Y[i] = data[i*n_cols];
+//		data[i*n_cols] = 1;
 	}
 
 	// calculate mean and standard deviation
@@ -152,6 +171,7 @@ Regression::Result* LogisticRegression::calculate(double* data, unsigned int n_c
 		xSD[j] = sqrt(fabs(xSD[j] - xM[j] * xM[j]));
 	}
 
+*/
 	double sY1 = 0;
 	for(unsigned int i=0; i< n_rows; i++){
 		sY1 += Y[i];

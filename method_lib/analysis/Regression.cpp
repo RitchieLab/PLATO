@@ -286,17 +286,10 @@ void Regression::runRegression(const DataSet& ds){
 	this->initData(model_str, ds);
 
 
-	Model m_null;
-	m_null.reduce = false;
-	Result* r_null = 0;
-	if(_covars.size() > 0){
-		r_null = run(&m_null, ds);
-	}
-
 	Model* nm;
 	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
 	while( (nm = mg()) ){
-		Result* r = run(nm, ds, r_null);
+		Result* r = run(nm, ds);
 
 		// Run some univariate models
 		if(show_uni && n_snp + n_trait > 1){
@@ -310,7 +303,7 @@ void Regression::runRegression(const DataSet& ds){
 					Model m;
 					m.traits.push_back(nm->traits[i-1]);
 					t_itr = _trait_uni_result.insert(_trait_uni_result.begin(),
-							std::make_pair(nm->traits[i-1], run(&m, ds, r_null)));
+							std::make_pair(nm->traits[i-1], run(&m, ds)));
 				}
 
 				// Add the result to the front of the deque
@@ -326,7 +319,7 @@ void Regression::runRegression(const DataSet& ds){
 					Model m;
 					m.markers.push_back(nm->markers[i-1]);
 					m_itr = _marker_uni_result.insert(_marker_uni_result.begin(),
-							std::make_pair(nm->markers[i-1], run(&m, ds, r_null)));
+							std::make_pair(nm->markers[i-1], run(&m, ds)));
 				}
 
 				// Add the result to the front of the deque
@@ -336,12 +329,12 @@ void Regression::runRegression(const DataSet& ds){
 			}
 		}
 
-		if(interactions){
+		/*if(interactions){
 			stringstream ss;
 			ss << r->p_val << sep;
 
 			nm->interact = true;
-			Result* r_full = run(nm, ds, r);
+			Result* r_full = run(nm, ds);
 
 			for(unsigned int i=0; i<r_full->coeffs.size(); i++){
 				r->coeffs.push_back(r_full->coeffs[i]);
@@ -356,13 +349,11 @@ void Regression::runRegression(const DataSet& ds){
 			//r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
 			delete r_full;
 
-		}
+		}*/
 
 		results.push_back(r);
 		delete nm;
 	}
-
-	delete r_null;
 
 	printResults();
 }
@@ -412,7 +403,7 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
 }
 
-Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* null_result) {
+Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 	unsigned int numLoci = m->markers.size();
 	unsigned int numCovars = covar_names.size();
@@ -430,6 +421,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 	}
 
 	// Allocate a huge amount of memory for the regression here
+	double regress_output[_pheno.size()];
 	double regress_data[_pheno.size()][n_cols];
 	double row_data[n_cols];
 	unsigned char geno[numLoci];
@@ -438,6 +430,10 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 	DataSet::const_sample_iterator si = ds.beginSample();
 	unsigned int n_samples = 0;
 	unsigned int n_missing = 0;
+
+	for(unsigned int i=0; i<numLoci; i++){
+		maf_sum[i] = 0;
+	}
 
 	double categ_weight[numLoci];
 	if (encoding == Encoding::CATEGORICAL){
@@ -449,8 +445,13 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 
 	while(si != ds.endSample()){
 		unsigned int pos=0;
-		// 1st col is always the phenotype
-		row_data[pos++] = _pheno[n_samples];
+		// 1st col is always 1
+		row_data[pos++] = 1;
+
+		// Now, the covariates
+		for(unsigned int i=0; i<_covars.size(); i++){
+			row_data[pos++] = _covars[i][n_samples];
+		}
 
 		// Now, work through the markers
 		for (unsigned int i = 0; i<numLoci; i++){
@@ -485,15 +486,10 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 		}
 
 		// Now, the interaction terms
-		for(unsigned int i=0; m->interact && (!m->categorical) && i < (n_vars); i++){
+		for(unsigned int i=0; interactions && (!m->categorical) && i < (n_vars); i++){
 			for(unsigned int j=i+1; j < (n_vars); j++){
 				row_data[pos++] = row_data[i+1]*row_data[j+1];
 			}
-		}
-
-		// Now, the covariates
-		for(unsigned int i=0; i<_covars.size(); i++){
-			row_data[pos++] = _covars[i][n_samples];
 		}
 
 		// OK, check for missingness before adding it to the dataset
@@ -508,6 +504,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 			}
 			// do a fast memory copy into the data for regression
 			std::memcpy(regress_data[n_samples - n_missing], row_data, sizeof(double) * (pos));
+			regress_output[n_samples - n_missing] = _pheno[n_samples];
 		} else {
 			++n_missing;
 		}
@@ -516,17 +513,20 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 		++si;
 	}
 
-	Result* r = calculate(regress_data[0], n_cols, n_samples - n_missing, null_result);
-	r->coeffs.resize(n_kept);
-	r->stderr.resize(n_kept);
-	r->p_vals.resize(n_kept);
+	// The number of variables in the "reduced" model is:
+	// # of covariates + (interactions * (# of SNPs + # of traits))
+	// for this version, there is no offset - the matrix is full!
+	Result* r = calculate(regress_output, regress_data[0],
+			n_cols, n_samples - n_missing, 0,
+			numCovars + interactions * (numLoci + numTraits));
 
 	stringstream ss;
 
 	for(unsigned int i=0; i<numLoci; i++){
+		float maf = maf_sum[i] / (2*static_cast<float>(n_samples-n_missing));
 		ss << m->markers[i]->getID() << sep
 		   << m->markers[i]->getChromStr() << ":" << m->markers[i]->getLoc()
-		   << sep << maf_sum[i] / (2*static_cast<float>(n_samples-n_missing)) << sep;
+		   << sep << std::min(maf, 1-maf) << sep;
 	}
 	for(unsigned int i=0; i<numTraits; i++){
 		ss << m->traits[i] << sep;
@@ -538,8 +538,8 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds, Result* n
 	r->prefix = ss.str();
 
 	ss.clear();
-	if(encoding == Encoding::CATEGORICAL && m->markers.size() == 1 && m->traits.size() == 0 && !categorical){
-		ss << categ_weight << sep;
+	if(encoding == Encoding::CATEGORICAL && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
+		ss << categ_weight[0] << sep;
 		r->suffix += ss.str();
 	}
 
