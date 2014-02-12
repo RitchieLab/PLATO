@@ -71,12 +71,14 @@ Regression::Result* LinearRegression::calculate(
 
 	Result* r = new Result();
 
+	r->beta_vec = new double[n_cols];
 	// We want to calculate the best fit for X*b = y
 	//double Y[n_rows];
 
 	gsl_matrix_const_view X = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 	gsl_vector_const_view y_vec = gsl_vector_const_view_array(Y, n_rows);
-	gsl_vector* beta = gsl_vector_alloc(n_cols);
+	gsl_vector_view bv = gsl_vector_view_array(r->beta_vec, n_cols);
+	gsl_vector* beta = &bv.vector;
 	gsl_vector* resid = gsl_vector_alloc(n_rows);
 	gsl_matrix* cov = gsl_matrix_alloc(n_cols, n_cols);
 	double chisq;
@@ -98,10 +100,12 @@ Regression::Result* LinearRegression::calculate(
 	r->p_vals.clear();
 	// add all the non-covariate coefficients
 	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
-		r->coeffs.push_back(gsl_vector_get(beta, i));
-		r->stderr.push_back(sqrt(gsl_matrix_get(cov, i, i)));
+		double c = gsl_vector_get(beta, i);
+		double se = sqrt(gsl_matrix_get(cov, i, i));
+		r->coeffs.push_back(c);
+		r->stderr.push_back(se);
 		// t-val = | beta / stderr |
-		r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(r->coeffs[i-1] / r->stderr[i-1]),n_rows-n_cols+1)));
+		r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(c / se),n_rows-n_cols+1)));
 	}
 
 	// Now, if we have a "null" model that is more than just the covariates,

@@ -100,6 +100,9 @@ protected:
 	 */
 	class Result{
 	public:
+		Result() : beta_vec(0) {}
+		~Result(){ if(beta_vec){delete[] beta_vec;}}
+
 		std::deque<float> coeffs;
 		std::deque<float> p_vals;
 		std::deque<float> stderr;
@@ -107,6 +110,11 @@ protected:
 		float p_val;
 		float log_likelihood;
 		float r_squared;
+
+		// An array of beta values (including intercept + covariate)
+		// we want to use this as a starting point for iterations of expanded
+		// models
+		double* beta_vec;
 
 		// A string to print before anything (variable IDs, MAF, etc)
 		std::string prefix;

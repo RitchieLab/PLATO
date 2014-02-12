@@ -3,6 +3,8 @@
 #include <limits>
 #include <utility>
 #include <cmath>
+#include <cstring>
+#include <numeric>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -22,6 +24,7 @@ using std::numeric_limits;
 using std::fabs;
 using std::log;
 using std::exp;
+using std::pow;
 
 namespace po=boost::program_options;
 
@@ -109,12 +112,10 @@ Regression::Result* LogisticRegression::calculate(
 		unsigned int new_covars = n_covars > covar_names.size() ? covar_names.size() : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		null_result = calculate(Y, data, n_cols, n_rows, offset + n_cols - (n_covars + 1), new_covars);
+		null_result = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - reduced_vars, new_covars);
 	}
 
 	Result* r = new Result();
-
-	double x;
 
 	// val is the value of the logit function
 	// deriv is the derivative of the logit
@@ -123,24 +124,34 @@ Regression::Result* LogisticRegression::calculate(
 	// of the exponent, we need to use approximations for log_val and log_val_c
 	double val, deriv, log_val, log_val_c;
 
-	// mean and standard deviation of the coefficients (not incl. intercept!)
-//	vector<double> xM(n_cols -1, 0.0);
-//	vector<double> xSD(n_cols - 1, 0.0);
-
 	// This is the current estimate of the parameters
 	// Note: position 0 is reserved for the intercept
-	double beta[n_cols];
+	r->beta_vec = new double [n_cols];
+	double* beta = r->beta_vec;
 
 	// weight vector used for IRLS procedure
 	double weight[n_rows];
-	//double Y[n_rows];
 
-	gsl_matrix_const_view X = gsl_matrix_const_view_array_with_tda(data, n_cols, n_rows, offset + n_cols);
+	gsl_matrix_const_view X = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 
 	// gsl weight vector for IRLS procedure
 	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
 	// gsl beta vector
 	gsl_vector_view b = gsl_vector_view_array(beta, n_cols);
+
+	// zero out the beta
+	gsl_vector_set_zero (&b.vector);
+
+	// If we have a null result, copy the beta vector for the reduced model into
+	// the current beta vector - this should save a bit of time because we're
+	// starting off with a better initial guess
+	if(null_result){
+		std::memcpy(beta, null_result->beta_vec, (n_covars + 1)*sizeof(double));
+	} else {
+		// Add up all the values in Y
+		double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
+		beta[0] = log(sum_Y / (n_rows - sum_Y)); // use natural log of the ratio
+	}
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
@@ -151,40 +162,19 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_matrix* cov = gsl_matrix_alloc(n_cols, n_cols);
 	double tmp_chisq;
 
-	// store xM and xSD for mean and standard deviation calculations
-/*	for (unsigned int i = 0; i < n_rows; i++) {
 
-		for (unsigned int j = 0; j <= n_cols-1; j++) {
-			x = data[i*n_cols + j+1];
-			xM[j] += x;
-			xSD[j] += x*x;
-		}
-
-//		Y[i] = data[i*n_cols];
-//		data[i*n_cols] = 1;
-	}
-
-	// calculate mean and standard deviation
-	for (unsigned int j = 0; j <= n_cols-1; j++) {
-		xM[j] /= n_rows;
-		xSD[j] /= n_rows;
-		xSD[j] = sqrt(fabs(xSD[j] - xM[j] * xM[j]));
-	}
-
-*/
-	double sY1 = 0;
-	for(unsigned int i=0; i< n_rows; i++){
-		sY1 += Y[i];
-	}
-	double sY0 = n_rows - sY1;
-
-	beta[0] = log(sY1 / sY0); // use natural log of the ratio
 
 	double LLp = numeric_limits<double>::infinity(); // stores previous value of LL to check for convergence
-	double LLn = 0, LL = 0;
+	double LLn, LL;
+
+	LLn = (null_result) ? null_result->log_likelihood : 0;
+
 	unsigned int numIterations = 0;
 
-	while (fabs(LLp - LL) > 0.0000001 && ++numIterations > maxIterations ) {
+	double TOL= 0.000000001;
+	// 2*numeric_limits<double>::epsilon() ??
+
+	while (fabs(LLp - LL) > TOL && ++numIterations < maxIterations ) {
 
 		// First, let's initialize the RHS to X*beta_t (rhs = 1 * X * b + 0* rhs)
 		gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &b.vector, 0, rhs);
@@ -196,10 +186,8 @@ Regression::Result* LogisticRegression::calculate(
 		for (unsigned int i = 0; i < n_rows; i++) {
 
 			// calculate the value of the exponent for the individual
-			double v = beta[0];
-			for (unsigned int j = 1; j <= n_cols; j++) {
-				v += v + beta[j] * data[i*n_cols + j];
-			}
+			// we already have this! it's the rhs!
+			double v = gsl_vector_get(rhs, i);
 
 			// At this point, v is the value of the exponent
 
@@ -235,12 +223,12 @@ Regression::Result* LogisticRegression::calculate(
 
 			// get the weight and update the rhs for IRLS
 			weight[i] = deriv;
-			gsl_vector_set(rhs, i, gsl_vector_get(rhs, i) + 1/deriv * (Y[i] - val));
+			gsl_vector_set(rhs, i, v + 1/deriv * (Y[i] - val));
 
 		}
 
 		// when this is the first iteration, set LLn (null model) to be the current value of LL
-		if (numIterations == 1) {
+		if (null_result == 0 && numIterations == 1) {
 			LLn = LL;
 		}
 
@@ -254,22 +242,31 @@ Regression::Result* LogisticRegression::calculate(
 	r->stderr.clear();
 	r->coeffs.clear();
 	r->p_vals.clear();
-	for (unsigned int j = 1; j <= n_cols; j++) {
-		r->coeffs.push_back(beta[j]);
-		if(show_odds){
-			r->coeffs[j-1] = exp(r->coeffs[j-1]);
-		}
-		r->stderr.push_back(sqrt(gsl_matrix_get(cov, j, j)/weight[j]));\
+
+	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
+		double c = beta[i];
+		double se = sqrt( gsl_matrix_get(cov, i, i));
+
+		r->coeffs.push_back(show_odds ? exp(c) : c);
+		r->stderr.push_back(se);
 		// use the wald statistic to get p-values for each coefficient
-		r->p_vals.push_back(gsl_cdf_chisq_Q(fabs(r->coeffs[j] / r->stderr[j]),1));
+		r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1) );
+	}
+
+	if(null_result){
+		for(unsigned int i=null_result->coeffs.size(); i < 0; --i){
+			r->coeffs.push_front(null_result->coeffs[i]);
+			r->stderr.push_front(null_result->stderr[i]);
+			r->p_vals.push_back(null_result->p_vals[i]);
+		}
 	}
 
 	if (isnan(LL)) {
 		r->p_val = 1.0;
 		r->log_likelihood = 0.0;
 	} else {
-		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols);
-		r->log_likelihood = LL - LLn;
+		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-n_covars-1);
+		r->log_likelihood = LL;
 	}
 
 	gsl_vector_free(rhs);
