@@ -16,6 +16,7 @@
 #include <map>
 
 #include <boost/program_options.hpp>
+#include <boost/thread.hpp>
 
 #include "Correction.h"
 #include "Encoding.h"
@@ -170,9 +171,16 @@ protected:
 
 	virtual void printVarHeader(const std::string& var_name);
 
-private:
-	virtual Result* run(const Model* m, const PLATO::Data::DataSet& ds);
+	void addResult(Result* curr_result, const Result* null_result);
 
+private:
+	Result* run(const Model* m, const Data::DataSet& ds);
+
+	/*! \brief A function to be used for threading
+	 * This function takes a ModelGenerator and iterates through it, constantly
+	 * adding results to the result deque.
+	 */
+	void start(ModelGenerator& mg, const Data::DataSet& ds);
 
 private:
 	//! a file of models to use
@@ -187,6 +195,12 @@ private:
 
 	//! build models with traits as well?
 	bool include_traits;
+
+	//! are we threaded?
+	bool _threaded;
+
+	boost::mutex _result_mutex;
+	boost::mutex _model_gen_mutex;
 
 	std::map<const PLATO::Data::Marker*, float> categ_weight;
 

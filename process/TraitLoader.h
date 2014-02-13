@@ -30,6 +30,7 @@ private:
 	bool no_fid;
 	bool ignore_error;
 	bool extra_samples;
+	bool dummy_samples;
 };
 
 }

@@ -234,7 +234,7 @@ void Regression::runRegression(const DataSet& ds){
 				}
 			}
 
-			out_f << "Red_Model_Pval" << sep << "Full_Model_Pval" << sep;
+			out_f << "Red_Model_Pval" << sep ;
 		}
 	}
 
@@ -285,10 +285,28 @@ void Regression::runRegression(const DataSet& ds){
 
 	this->initData(model_str, ds);
 
+	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
+
+	// TODO: add some threading code here
+	start(mg, ds);
+
+	printResults();
+}
+
+void Regression::start(ModelGenerator& mg, const DataSet& ds){
 
 	Model* nm;
-	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
-	while( (nm = mg()) ){
+
+	// synchronize
+	_model_gen_mutex.lock();
+	nm = mg();
+	_model_gen_mutex.unlock();
+	// end synchronize
+
+	while( nm ){
+		unsigned int n_snp = nm->markers.size();
+		unsigned int n_trait = nm->traits.size();
+
 		Result* r = run(nm, ds);
 
 		// Run some univariate models
@@ -329,33 +347,22 @@ void Regression::runRegression(const DataSet& ds){
 			}
 		}
 
-		/*if(interactions){
-			stringstream ss;
-			ss << r->p_val << sep;
-
-			nm->interact = true;
-			Result* r_full = run(nm, ds);
-
-			for(unsigned int i=0; i<r_full->coeffs.size(); i++){
-				r->coeffs.push_back(r_full->coeffs[i]);
-				r->stderr.push_back(r_full->stderr[i]);
-				r->p_vals.push_back(r_full->p_vals[i]);
-			}
-
-			// calculate a new log likelihood
-			//r->log_likelihood = -2 * (r->log_likelihood - r_full->log_likelihood);
-			r->log_likelihood = r_full->log_likelihood;
-			r->p_val = r_full->p_val;
-			//r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
-			delete r_full;
-
-		}*/
-
+		// synchronize
+		_result_mutex.lock();
 		results.push_back(r);
-		delete nm;
-	}
+		_result_mutex.unlock();
+		// end synchronize
 
-	printResults();
+		delete nm;
+
+		boost::this_thread::yield();
+
+		// synchronize
+		_model_gen_mutex.lock();
+		nm = mg();
+		_model_gen_mutex.unlock();
+		// end synchronize
+	}
 }
 
 Regression::Model* Regression::parseModelStr(const std::string& model_str, const DataSet& ds) {
@@ -544,6 +551,26 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 
 	return r;
+}
+
+void Regression::addResult(Result* curr_result, const Result* null_result){
+	if(null_result){
+		for(unsigned int i=null_result->coeffs.size(); i < 0; --i){
+			curr_result->coeffs.push_front(null_result->coeffs[i]);
+			curr_result->stderr.push_front(null_result->stderr[i]);
+			curr_result->p_vals.push_back(null_result->p_vals[i]);
+		}
+
+		// If we have coefficients, it means that the null model is a
+		// model with explanatory variables, and we need to add a suffix containing
+		// the reduced model's p-value
+		if(null_result->coeffs.size() > 0){
+			stringstream ss;
+			ss << null_result->p_val << sep;
+
+			curr_result->suffix = ss.str();
+		}
+	}
 }
 
 void Regression::printResults(){

@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "util/Logger.h"
 
@@ -64,9 +65,19 @@ void TraitLoader::process(DataSet& ds) {
 			}
 
 			if(!s){
-				string err("Extra sample found on line " +  static_cast<stringstream*>( &(stringstream() << lineno) )->str());
-				Logger::log_err(err, !extra_samples);
-			}else{
+				string err("Extra sample found on line " + boost::lexical_cast<string>(lineno));;
+				Logger::log_err(err, !(extra_samples || dummy_samples));
+				if(dummy_samples){
+					if(no_fid){
+						s = ds.addSample(values[0]);
+					} else {
+						s = ds.addSample(values[0], values[1]);
+					}
+				}
+
+			}
+
+			if(s){
 				for(unsigned int i=(1+(!no_fid)); i < std::min(values.size(), headers.size()); i++){
 					float val;
 					if(values[i] != missing_val && !(stringstream(values[i]) >> val)){
@@ -95,6 +106,7 @@ po::options_description& TraitLoader::appendOptions(po::options_description& opt
 		("no-fid", po::bool_switch(&no_fid), "If given, trait file has no FamID column")
 		("ignore-error", po::bool_switch(&ignore_error), "If given, treat any conversion errors as missing")
 		("extra-samples", po::bool_switch(&extra_samples), "If given, ignore any samples that cannot be mapped to existing data")
+		("dummy-samples", po::bool_switch(&dummy_samples), "If given, create samples for any that cannot be mapped to existing data")
 		;
 
 	opts.add(trait_opts);

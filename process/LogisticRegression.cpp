@@ -186,8 +186,9 @@ Regression::Result* LogisticRegression::calculate(
 		for (unsigned int i = 0; i < n_rows; i++) {
 
 			// calculate the value of the exponent for the individual
-			// we already have this! it's the rhs!
-			double v = gsl_vector_get(rhs, i);
+			gsl_vector_const_view X_i = gsl_matrix_const_row(&X.matrix, i);
+			double v;
+			gsl_blas_ddot(&X_i.vector, &b.vector, &v);
 
 			// At this point, v is the value of the exponent
 
@@ -253,13 +254,7 @@ Regression::Result* LogisticRegression::calculate(
 		r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1) );
 	}
 
-	if(null_result){
-		for(unsigned int i=null_result->coeffs.size(); i < 0; --i){
-			r->coeffs.push_front(null_result->coeffs[i]);
-			r->stderr.push_front(null_result->stderr[i]);
-			r->p_vals.push_back(null_result->p_vals[i]);
-		}
-	}
+	addResult(r, null_result);
 
 	if (isnan(LL)) {
 		r->p_val = 1.0;
@@ -267,6 +262,10 @@ Regression::Result* LogisticRegression::calculate(
 	} else {
 		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-n_covars-1);
 		r->log_likelihood = LL;
+	}
+
+	if(null_result){
+		delete null_result;
 	}
 
 	gsl_vector_free(rhs);
