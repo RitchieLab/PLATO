@@ -75,6 +75,14 @@ Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsi
 	_samples.push_back(new_samp);
 	_sample_map[std::make_pair(famid, id)] = new_samp;
 
+	// Now, add a NaN for everything in the trait map
+	map<string, deque<float> >::iterator t_itr = _trait_map.begin();
+	while(t_itr != _trait_map.end()){
+		(*t_itr).second.push_back(std::numeric_limits<float>::quiet_NaN());
+		++t_itr;
+	}
+
+
 	return new_samp;
 }
 

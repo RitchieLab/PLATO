@@ -134,8 +134,7 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	}
 
 	// ensure that we have at least 1 thread!
-	n_threads = max(static_cast<unsigned int>(1),n_threads);
-	_threaded = n_threads > 1;
+	_threaded = n_threads > 0;
 }
 
 void Regression::runRegression(const DataSet& ds){
@@ -183,8 +182,8 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	}
 
-	if(!ds.isTrait(outcome_name)){
-		Utility::Logger::log_err("ERROR: '" + outcome_name + "' is not a recognized trait, aborting.", true);
+	if(outcome_name.size() > 0 && !ds.isTrait(outcome_name)){
+		Utility::Logger::log_err("ERROR: Outcome '" + outcome_name + "' is not a recognized trait, aborting.", true);
 	}
 
 	string model_str = "";
@@ -295,14 +294,19 @@ void Regression::runRegression(const DataSet& ds){
 
 	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
 
-	// TODO: add some threading code here
-	boost::thread_group all_threads;
+	if (_threaded) {
+		boost::thread_group all_threads;
 
-	for(unsigned int i=0; i<n_threads; i++){
-		all_threads.create_thread(boost::bind(&Regression::start, this, boost::ref(mg), boost::ref(ds)));
+		for (unsigned int i = 0; i < n_threads; i++) {
+			all_threads.create_thread(boost::bind(&Regression::start, this,
+					boost::ref(mg), boost::ref(ds)));
+		}
+		all_threads.join_all();
+
+	} else {
+		// go here for debugging purposes, i.e. set --threads to 0
+		start(mg, ds);
 	}
-	all_threads.join_all();
-	//start(mg, ds);
 
 	printResults();
 }
@@ -512,7 +516,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		}
 
 		// OK, check for missingness before adding it to the dataset
-		bool ismissing = false;
+		bool ismissing = std::isnan(_pheno[n_samples]);
 		for(unsigned int i=0; i<pos; i++){
 			ismissing |= std::isnan(row_data[i]);
 		}

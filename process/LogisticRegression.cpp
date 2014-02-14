@@ -77,7 +77,9 @@ void LogisticRegression::initData(const std::string& model_str, const DataSet& d
 	}
 
 	if(uniq_pheno.size() < 2){
-		Utility::Logger::log_err("ERROR: Desired phenotype has only 1 unique value; logistic regression will almost certainly fail!", true);
+		Utility::Logger::log_err("ERROR: Desired phenotype has only " +
+				boost::lexical_cast<string>(uniq_pheno.size()) +
+				" unique value(s); logistic regression will almost certainly fail!", true);
 	}
 
 	float min_pheno = *(uniq_pheno.begin());
