@@ -298,8 +298,7 @@ void Regression::runRegression(const DataSet& ds){
 	boost::thread_group all_threads;
 
 	for(unsigned int i=0; i<n_threads; i++){
-		boost::thread* t = new boost::thread(&Regression::start, this, boost::ref(mg), boost::ref(ds));
-		all_threads.add_thread(t);
+		all_threads.create_thread(boost::bind(&Regression::start, this, boost::ref(mg), boost::ref(ds)));
 	}
 	all_threads.join_all();
 	//start(mg, ds);
