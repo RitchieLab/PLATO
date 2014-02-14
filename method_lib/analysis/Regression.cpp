@@ -25,6 +25,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
 using std::string;
 using std::vector;
@@ -95,6 +97,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, categorical)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
+		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
 		;
 
 	opts.add(regress_opts);
@@ -129,6 +132,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(!out_f){
 		throw std::logic_error("Cannot open regression output file '" + out_fn + "'");
 	}
+
+	// ensure that we have at least 1 thread!
+	n_threads = max(static_cast<unsigned int>(1),n_threads);
+	_threaded = n_threads > 1;
 }
 
 void Regression::runRegression(const DataSet& ds){
@@ -288,7 +295,14 @@ void Regression::runRegression(const DataSet& ds){
 	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
 
 	// TODO: add some threading code here
-	start(mg, ds);
+	boost::thread_group all_threads;
+
+	for(unsigned int i=0; i<n_threads; i++){
+		boost::thread* t = new boost::thread(&Regression::start, this, boost::ref(mg), boost::ref(ds));
+		all_threads.add_thread(t);
+	}
+	all_threads.join_all();
+	//start(mg, ds);
 
 	printResults();
 }
@@ -304,13 +318,10 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 	// end synchronize
 
 	while( nm ){
-		unsigned int n_snp = nm->markers.size();
-		unsigned int n_trait = nm->traits.size();
-
 		Result* r = run(nm, ds);
 
 		// Run some univariate models
-		if(show_uni && n_snp + n_trait > 1){
+		if(show_uni && nm->markers.size() + nm->traits.size() > 1){
 			// Here, we are going to reverse the order of marker/trait variables
 			// because we're adding the results onto the FRONT of the model
 
@@ -355,6 +366,7 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 
 		delete nm;
 
+		// give someone else a chance ...
 		boost::this_thread::yield();
 
 		// synchronize

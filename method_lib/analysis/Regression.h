@@ -199,6 +199,8 @@ private:
 	//! are we threaded?
 	bool _threaded;
 
+	unsigned int n_threads;
+
 	boost::mutex _result_mutex;
 	boost::mutex _model_gen_mutex;
 
