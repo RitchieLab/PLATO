@@ -2,12 +2,14 @@
 
 #include <algorithm>
 #include <string>
+#include <sstream>
 
 #include <boost/program_options.hpp>
 
 using std::map;
 using std::vector;
 using std::sort;
+using std::stringstream;
 
 using boost::program_options::validation_error;
 
@@ -36,6 +38,14 @@ Correction* Correction::getCorrectionMethod(const CorrectionModel& c){
 	default:
 		return 0;
 	}
+}
+
+std::string Correction::listCorrectionMethods(){
+
+	stringstream ss;
+	ss << CorrectionModel(BONFERRONI) << "," << CorrectionModel(FDR);
+
+	return ss.str();
 }
 
 void Correction::initOutVec(const vector<float>& pval_in, vector<float>& pval_out, vector<size_t>& idx_out){

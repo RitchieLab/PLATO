@@ -88,7 +88,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 			"Include interactions in the models generated")
 		("pairwise", po::bool_switch(&pairwise),
 			"When auto-generating models, include two variables exhaustively")
-		("correction", po::value<vector<string> >()->composing(), "p-value correction method(s)")
+		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
 		("models", po::value<vector<string> >(&model_files)->composing(), "List of files containing models to generate")
 		("incl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to include")
 		("excl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to exclude")

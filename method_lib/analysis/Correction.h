@@ -37,6 +37,8 @@ public:
 
 	static Correction* getCorrectionMethod(const CorrectionModel& c);
 
+	static std::string listCorrectionMethods();
+
 protected:
 	void initOutVec(const std::vector<float>& pval_in, std::vector<float>& pval_out, std::vector<size_t>& idx_out);
 
