@@ -259,6 +259,7 @@ void Regression::runRegression(const DataSet& ds){
 	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
 	while(c_itr != corr_methods.end()){
 		out_f << sep << "Overall_Pval_adj_" << *c_itr;
+		++c_itr;
 	}
 
 	out_f << std::endl;
@@ -604,6 +605,7 @@ void Regression::printResults(){
 		set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
 		while(c_itr != corr_methods.end()){
 			Correction::getCorrectionMethod(*c_itr)->correct(pv_in, pval_corr[(*c_itr)]);
+			++c_itr;
 		}
 
 	}
@@ -630,6 +632,7 @@ void Regression::printResults(){
 		map<CorrectionModel, vector<float> >::const_iterator p_itr = pval_corr.begin();
 		while(p_itr != pval_corr.end()){
 			out_f << sep << (*p_itr).second[i];
+			++p_itr;
 		}
 
 		out_f << std::endl;

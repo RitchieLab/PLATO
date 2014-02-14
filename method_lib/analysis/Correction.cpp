@@ -64,7 +64,7 @@ void BonferroniCorrection::correct(const vector<float>& pval_in, vector<float>& 
 void FDRCorrection::correct(const vector<float>& pval_in, vector<float>& pval_out){
 	vector<size_t> idx;
 	initOutVec(pval_in, pval_out, idx);
-	for(int i=(pval_out.size()-1); i > 0; --i){
+	for(int i=(pval_out.size()-2); i >= 0; --i){
 		pval_out[idx[i]] = std::min(pval_out[idx[i+1]], pval_out[idx[i]] * pval_out.size() / (i+1));
 	}
 }
