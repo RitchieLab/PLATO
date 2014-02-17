@@ -13,7 +13,7 @@
 #include "data/DataSet.h"
 #include "data/Sample.h"
 
-namespace po=boost::program_options;
+namespace po = boost::program_options;
 
 using std::string;
 using std::vector;
@@ -27,11 +27,10 @@ using PLATO::Utility::Logger;
 using PLATO::Data::Sample;
 using PLATO::Data::DataSet;
 
-namespace PLATO{
+namespace PLATO {
 namespace ProcessLib {
 
-const std::string TraitLoader::stepname =
-		TraitLoader::doRegister("load-trait");
+const std::string TraitLoader::stepname = TraitLoader::doRegister("load-trait");
 
 void TraitLoader::process(DataSet& ds) {
 	vector<string>::const_iterator fn_itr = trait_fns.begin();
@@ -41,7 +40,8 @@ void TraitLoader::process(DataSet& ds) {
 		ifstream input((*fn_itr).c_str());
 
 		if (!input.is_open()) {
-			throw std::invalid_argument("Error opening trait file: " + (*fn_itr));
+			throw std::invalid_argument("Error opening trait file: "
+					+ (*fn_itr));
 		}
 
 		string line;
@@ -56,19 +56,20 @@ void TraitLoader::process(DataSet& ds) {
 			++lineno;
 			split(values, line, is_any_of(" \n\t"), boost::token_compress_on);
 
-
 			Sample* s = 0;
-			if(no_fid){
+			if (no_fid) {
 				s = ds.getSample(values[0]);
 			} else {
 				s = ds.getSample(values[0], values[1]);
 			}
 
-			if(!s){
-				string err("Extra sample found on line " + boost::lexical_cast<string>(lineno));;
+			if (!s) {
+				string err("Extra sample found on line " + boost::lexical_cast<
+						string>(lineno));
+				;
 				Logger::log_err(err, !(extra_samples || dummy_samples));
-				if(dummy_samples){
-					if(no_fid){
+				if (dummy_samples) {
+					if (no_fid) {
 						s = ds.addSample(values[0]);
 					} else {
 						s = ds.addSample(values[0], values[1]);
@@ -77,15 +78,19 @@ void TraitLoader::process(DataSet& ds) {
 
 			}
 
-			if(s){
-				for(unsigned int i=(1+(!no_fid)); i < std::min(values.size(), headers.size()); i++){
+			if (s) {
+				for (unsigned int i = (1 + (!no_fid)); i < std::min(
+						values.size(), headers.size()); i++) {
 					float val;
-					if(values[i] != missing_val && !(stringstream(values[i]) >> val)){
-						string err("Unparseable value for '" + headers[i] +
-							"' on line " +  static_cast<stringstream*>( &(stringstream() << lineno) )->str());
-						Logger::log_err(err, !ignore_error);
-					} else {
-						ds.addTrait(headers[i], s, val);
+					if (values[i] != missing_val) {
+						if (!(stringstream(values[i]) >> val)) {
+							Logger::log_err("Unparseable value for '"
+									+ headers[i] + "' on line "
+									+ boost::lexical_cast<string>(lineno),
+									!ignore_error);
+						} else {
+							ds.addTrait(headers[i], s, val);
+						}
 					}
 				}
 			}
@@ -97,24 +102,28 @@ void TraitLoader::process(DataSet& ds) {
 
 }
 
-po::options_description& TraitLoader::appendOptions(po::options_description& opts){
+po::options_description& TraitLoader::appendOptions(
+		po::options_description& opts) {
 	po::options_description trait_opts("Trait Loading Options");
 
-	trait_opts.add_options()
-		("file", po::value<vector<string> >(&trait_fns)->composing(), "Trait file to load")
-		("missing", po::value<string>(&missing_val), "Missing value")
-		("no-fid", po::bool_switch(&no_fid), "If given, trait file has no FamID column")
-		("ignore-error", po::bool_switch(&ignore_error), "If given, treat any conversion errors as missing")
-		("extra-samples", po::bool_switch(&extra_samples), "If given, ignore any samples that cannot be mapped to existing data")
-		("dummy-samples", po::bool_switch(&dummy_samples), "If given, create samples for any that cannot be mapped to existing data")
-		;
+	trait_opts.add_options()("file",
+			po::value<vector<string> >(&trait_fns)->composing(),
+			"Trait file to load")("missing", po::value<string>(&missing_val),
+			"Missing value")("no-fid", po::bool_switch(&no_fid),
+			"If given, trait file has no FamID column")("ignore-error",
+			po::bool_switch(&ignore_error),
+			"If given, treat any conversion errors as missing")(
+			"extra-samples", po::bool_switch(&extra_samples),
+			"If given, ignore any samples that cannot be mapped to existing data")(
+			"dummy-samples", po::bool_switch(&dummy_samples),
+			"If given, create samples for any that cannot be mapped to existing data");
 
 	opts.add(trait_opts);
 
 	return opts;
 }
 
-void TraitLoader::parseOptions(const po::variables_map& vm){
+void TraitLoader::parseOptions(const po::variables_map& vm) {
 }
 
 }
