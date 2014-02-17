@@ -124,7 +124,7 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		InputManager::parseInput(vm["incl-traits"].as<vector<string> >(), incl_traits);
 	}
 
-	if(vm.count("incl-traits")){
+	if(vm.count("excl-traits")){
 		InputManager::parseInput(vm["excl-traits"].as<vector<string> >(), excl_traits);
 	}
 
