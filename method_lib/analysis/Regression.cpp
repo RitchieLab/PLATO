@@ -156,6 +156,13 @@ void Regression::runRegression(const DataSet& ds){
 		std::set_difference(tmp_trait.begin(), tmp_trait.end(),
 						    covar_names.begin(), covar_names.end(),
 						    std::inserter(incl_traits, incl_traits.begin()));
+
+		// And finally, remove the outcome variable
+		tmp_itr = incl_traits.find(outcome_name);
+		if(tmp_itr != incl_traits.end()){
+			incl_traits.erase(tmp_itr);
+		}
+
 	}else{
 		incl_traits.clear();
 	}
@@ -234,7 +241,7 @@ void Regression::runRegression(const DataSet& ds){
 			}
 
 			for(unsigned int i=0; i<n_snp+n_trait; i++){
-				for(unsigned int j=1; j<n_snp+n_trait; j++){
+				for(unsigned int j=i+1; j<n_snp+n_trait; j++){
 					printVarHeader("Full_Var" + boost::lexical_cast<string>(i+1)
 							+ "_Var" + boost::lexical_cast<string>(j+1));
 				}
@@ -571,16 +578,18 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 void Regression::addResult(Result* curr_result, const Result* null_result){
 	if(null_result){
-		for(unsigned int i=null_result->coeffs.size(); i < 0; --i){
+		unsigned int s = null_result->coeffs.size();
+
+		for(int i=s-1; i >= 0; --i){
 			curr_result->coeffs.push_front(null_result->coeffs[i]);
 			curr_result->stderr.push_front(null_result->stderr[i]);
-			curr_result->p_vals.push_back(null_result->p_vals[i]);
+			curr_result->p_vals.push_front(null_result->p_vals[i]);
 		}
 
 		// If we have coefficients, it means that the null model is a
 		// model with explanatory variables, and we need to add a suffix containing
 		// the reduced model's p-value
-		if(null_result->coeffs.size() > 0){
+		if(s > 0){
 			stringstream ss;
 			ss << null_result->p_val << sep;
 

@@ -108,16 +108,7 @@ Regression::Result* LinearRegression::calculate(
 		r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(c / se),n_rows-n_cols+1)));
 	}
 
-	// Now, if we have a "null" model that is more than just the covariates,
-	// we should add those coeffs / stderr / p_vals to the front of our result
-	if(null_result){
-		for(unsigned int i=null_result->coeffs.size(); i < 0; --i){
-			r->coeffs.push_front(null_result->coeffs[i]);
-			r->stderr.push_front(null_result->stderr[i]);
-			// t-val = | beta / stderr |
-			r->p_vals.push_back(null_result->p_vals[i]);
-		}
-	}
+	addResult(r, null_result);
 
 
 	double tss = gsl_stats_tss(Y, 1, n_rows);
@@ -126,14 +117,10 @@ Regression::Result* LinearRegression::calculate(
 	if (null_result){
 		null_rss *= 1-null_result->r_squared;
 	}
-	unsigned int n_null = n_covars;
-	if (null_result){
-		n_null += null_result->coeffs.size();
-	}
 
-	double F=((null_rss - chisq) * (n_rows - n_cols))/(chisq * (n_cols - 1 - n_null));
+	double F=((null_rss - chisq) * (n_rows - n_cols))/(chisq * (n_cols - reduced_vars));
 
-	r->p_val = 1-gsl_cdf_fdist_P(std::max(0.0, F),n_cols-1-n_null,n_rows-n_cols);
+	r->p_val = 1-gsl_cdf_fdist_P(std::max(0.0, F),n_cols-reduced_vars,n_rows-n_cols);
 
 	// I have no idea if the log_likelihood is correct!!
 	r->log_likelihood = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(chisq)));
@@ -149,7 +136,6 @@ Regression::Result* LinearRegression::calculate(
 		delete null_result;
 	}
 
-	gsl_vector_free(beta);
 	gsl_vector_free(resid);
 	gsl_matrix_free(cov);
 
