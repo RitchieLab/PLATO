@@ -518,7 +518,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		// Now, the interaction terms
 		for(unsigned int i=0; interactions && (!m->categorical) && i < (n_vars); i++){
 			for(unsigned int j=i+1; j < (n_vars); j++){
-				row_data[pos++] = row_data[i+1]*row_data[j+1];
+				row_data[pos++] = row_data[i+numCovars+1]*row_data[j+numCovars+1];
 			}
 		}
 
