@@ -167,7 +167,7 @@ Regression::Result* LogisticRegression::calculate(
 
 
 	double LLp = numeric_limits<double>::infinity(); // stores previous value of LL to check for convergence
-	double LLn, LL;
+	double LLn, LL = 0;
 
 	LLn = (null_result) ? null_result->log_likelihood : 0;
 
@@ -188,9 +188,7 @@ Regression::Result* LogisticRegression::calculate(
 		for (unsigned int i = 0; i < n_rows; i++) {
 
 			// calculate the value of the exponent for the individual
-			gsl_vector_const_view X_i = gsl_matrix_const_row(&X.matrix, i);
-			double v;
-			gsl_blas_ddot(&X_i.vector, &b.vector, &v);
+			double v = gsl_vector_get(rhs, i);
 
 			// At this point, v is the value of the exponent
 
@@ -236,8 +234,6 @@ Regression::Result* LogisticRegression::calculate(
 		}
 
 		// Look, magic!
-		// This solves the weighted least-squares problem with the weights given
-		// by the derivative.  This should be a backwards-stable algorithm!
 		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
 
 	} // complete iteration
@@ -262,7 +258,7 @@ Regression::Result* LogisticRegression::calculate(
 		r->p_val = 1.0;
 		r->log_likelihood = 0.0;
 	} else {
-		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-n_covars-1);
+		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-reduced_vars);
 		r->log_likelihood = LL;
 	}
 
