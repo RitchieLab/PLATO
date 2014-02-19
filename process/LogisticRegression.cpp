@@ -16,6 +16,7 @@
 
 using PLATO::Data::DataSet;
 using PLATO::Analysis::Regression;
+using PLATO::Analysis::Encoding;
 
 using std::vector;
 using std::string;
@@ -254,11 +255,22 @@ Regression::Result* LogisticRegression::calculate(
 
 	addResult(r, null_result);
 
+	// We want to see if there are extra degrees of freedom, which can happen in
+	// the case of the "categorical" model
+	// we have an extra df per marker in the categorically encoded model
+	// We only have markers if we are not excluding markers and the
+	// number of columns is at least as many as the number of covariates
+	// (i.e. this isn;t the "null" model)
+	unsigned int extra_df = (encoding == Encoding::CATEGORICAL)
+			* (!interactions || offset != 0)
+			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
+			* (1 + pairwise);
+
 	if (isnan(LL)) {
 		r->p_val = 1.0;
 		r->log_likelihood = 0.0;
 	} else {
-		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-reduced_vars);
+		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-reduced_vars+extra_df);
 		r->log_likelihood = LL;
 	}
 

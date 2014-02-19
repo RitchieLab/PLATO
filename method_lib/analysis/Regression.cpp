@@ -466,7 +466,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 
 	double categ_weight[numLoci];
-	if (encoding == Encoding::CATEGORICAL){
+	if ((!m->categorical) && encoding == Encoding::CATEGORICAL){
 		for (unsigned int i = 0; i<numLoci; i++){
 			categ_weight[i] = getCategoricalWeight(m->markers[i], ds);
 		}
@@ -569,8 +569,8 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 	ss.clear();
 	if(encoding == Encoding::CATEGORICAL && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
-		ss << categ_weight[0] << sep;
-		r->suffix += ss.str();
+		//ss << categ_weight[0] << sep;
+		r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
 	}
 
 	return r;
