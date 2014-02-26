@@ -10,6 +10,7 @@
 #include "Sample.h"
 
 namespace PLATO{
+
 namespace Data{
 
 class Marker;
@@ -26,8 +27,8 @@ public:
 
 	public:
 		const_iterator(
-				typename std::_Deque_iterator<T*, T* const&, T* const*> itr,
-				typename std::_Deque_iterator<T*, T* const&, T* const*> end) :
+				const typename std::deque<T*>::const_iterator& itr,
+				const typename std::deque<T*>::const_iterator& end) :
 			_itr(itr), _end(end) {}
 
 	private:
