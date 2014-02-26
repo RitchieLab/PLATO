@@ -40,8 +40,7 @@ void TraitLoader::process(DataSet& ds) {
 		ifstream input((*fn_itr).c_str());
 
 		if (!input.is_open()) {
-			throw std::invalid_argument("Error opening trait file: "
-					+ (*fn_itr));
+			Logger::log_err("Error opening trait file: " + (*fn_itr), true);
 		}
 
 		string line;

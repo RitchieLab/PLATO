@@ -55,8 +55,9 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("no-sex", bool_switch(&(this->_ped_no_gender)), "PED file does not contain gender")
 		("no-parents", bool_switch(&(this->_ped_no_parents)), "PED file does not contain parental information")
 		("no-fid", bool_switch(&(this->_ped_no_fid)), "PED file does not contain fid")
-		("no-pheno", bool_switch(&(this->_ped_no_fid)), "PED file does not contain phenotype information")
-		("map3", bool_switch(&(this->_map_no_distance)), "Specify 3-column MAP file format (no genetic distance)");
+		("no-pheno", bool_switch(&(this->_ped_no_pheno)), "PED file does not contain phenotype information")
+		("map3", bool_switch(&(this->_map_no_distance)), "Specify 3-column MAP file format (no genetic distance)")
+		("control0", bool_switch(&(this->_ped_control0)), "Case/Control status is encoded as 0/1, not 1/2");
 
 	return opts.add(data_opts);
 }

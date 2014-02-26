@@ -156,6 +156,7 @@ Regression::Result* LinearRegression::calculate(
 
 	gsl_vector_free(resid);
 	gsl_matrix_free(cov);
+	gsl_multifit_linear_free(ws);
 
 	return r;
 }
