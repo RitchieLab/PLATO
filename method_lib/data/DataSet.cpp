@@ -25,21 +25,21 @@ namespace PLATO{
 namespace Data{
 
 DataSet::~DataSet(){
-	deque<Marker*>::iterator m_it = _markers.begin();
+	vector<Marker*>::iterator m_it = _markers.begin();
 	while(m_it != _markers.end()){
 		delete *m_it;
 		++m_it;
 	}
 	_markers.clear();
 
-	deque<Sample*>::iterator s_it = _samples.begin();
+	vector<Sample*>::iterator s_it = _samples.begin();
 	while(s_it != _samples.end()){
 		delete *s_it;
 		++s_it;
 	}
 	_samples.clear();
 
-	deque<Family*>::iterator f_it = _families.begin();
+	vector<Family*>::iterator f_it = _families.begin();
 	while(f_it != _families.end()){
 		delete *f_it;
 		++f_it;

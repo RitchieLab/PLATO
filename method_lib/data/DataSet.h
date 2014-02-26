@@ -4,6 +4,7 @@
 #include <deque>
 #include <map>
 #include <string>
+#include <vector>
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -27,8 +28,8 @@ public:
 
 	public:
 		const_iterator(
-				const typename std::deque<T*>::const_iterator& itr,
-				const typename std::deque<T*>::const_iterator& end) :
+				const typename std::vector<T*>::const_iterator& itr,
+				const typename std::vector<T*>::const_iterator& end) :
 			_itr(itr), _end(end) {}
 
 	private:
@@ -40,16 +41,16 @@ public:
 		const T* const & dereference() const { return _tmp = *_itr;}
 
 		mutable T const* _tmp;
-		typename std::deque<T*>::const_iterator _itr;
-		typename std::deque<T*>::const_iterator _end;
+		typename std::vector<T*>::const_iterator _itr;
+		typename std::vector<T*>::const_iterator _end;
 	};
 
 	template <class T>
 	class iterator : public boost::iterator_facade<iterator<T>, T*, boost::forward_traversal_tag>{
 
 	public:
-		iterator(typename std::_Deque_iterator<T*, T*&, T**> itr,
-				 typename std::_Deque_iterator<T*, T*&, T**> end) :
+		iterator(const typename std::vector<T*>::iterator& itr,
+				const typename std::vector<T*>::iterator& end) :
 			_itr(itr), _end(end) {}
 
 		// Make sure I can convert an iterator<T> to a const_iterator<T>
@@ -65,8 +66,8 @@ public:
 		bool equal(const iterator& other) const { return _itr == other._itr;}
 		T* & dereference() const { return (*_itr);}
 
-		typename std::deque<T*>::iterator _itr;
-		typename std::deque<T*>::iterator _end;
+		typename std::vector<T*>::iterator _itr;
+		typename std::vector<T*>::iterator _end;
 	};
 
 	class const_trait_iterator: public boost::iterator_facade<
@@ -157,9 +158,9 @@ private:
 	DataSet& operator=(const DataSet& other);
 
 private:
-	std::deque<Marker*> _markers;
-	std::deque<Sample*> _samples;
-	std::deque<Family*> _families;
+	std::vector<Marker*> _markers;
+	std::vector<Sample*> _samples;
+	std::vector<Family*> _families;
 	std::map<std::string, Marker*> _marker_map;
 	std::map<std::pair<unsigned short, unsigned int>, Marker*> _marker_pos_map;
 	std::map<std::pair<std::string, std::string>, Sample*> _sample_map;
