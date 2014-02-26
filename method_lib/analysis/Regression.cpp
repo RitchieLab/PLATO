@@ -351,8 +351,10 @@ void Regression::runRegression(const DataSet& ds){
 		boost::thread_group all_threads;
 
 		for (unsigned int i = 0; i < n_threads; i++) {
-			all_threads.create_thread(boost::bind(&Regression::start, this,
-					boost::ref(mg), boost::ref(ds)));
+			boost::thread* t = new boost::thread(&Regression::start,this,boost::ref(mg), boost::cref(ds));
+			all_threads.add_thread(t);
+
+			//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
 		}
 		all_threads.join_all();
 
@@ -520,7 +522,11 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	unsigned char geno[numLoci];
 	float maf_sum[numLoci];
 
+	_ds_mutex.lock();
 	DataSet::const_sample_iterator si = ds.beginSample();
+	DataSet::const_sample_iterator se = ds.endSample();
+	_ds_mutex.unlock();
+
 	unsigned int n_samples = 0;
 	unsigned int n_missing = 0;
 
@@ -536,7 +542,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 	//DataSet::const_sample_iterator se = ds.endSample();
 
-	while(si != ds.endSample()){
+	while(si != se){
 		unsigned int pos=0;
 		// 1st col is always 1
 		row_data[pos++] = 1;
@@ -548,7 +554,9 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 		// Now, work through the markers
 		for (unsigned int i = 0; i<numLoci; i++){
+			_ds_mutex.lock();
 			geno[i] = (*si)->getAdditiveGeno(*(m->markers[i]));
+			_ds_mutex.unlock();
 			if(geno[i] == Sample::missing_allele){
 				row_data[pos++] = numeric_limits<double>::quiet_NaN();
 				if(m->categorical){
@@ -579,7 +587,9 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 		// Now, work through the traits
 		for(unsigned int i = 0; (!m->categorical) && i < numTraits; i++){
+			_ds_mutex.lock();
 			row_data[pos++] = ds.getTrait(m->traits[i], *si);
+			_ds_mutex.unlock();
 		}
 
 		// Now, the interaction terms
