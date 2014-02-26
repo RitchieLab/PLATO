@@ -370,6 +370,7 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 
 	// synchronize
 	_model_gen_mutex.lock();
+	unsigned int lc=1;
 	nm = mg();
 	_model_gen_mutex.unlock();
 	// end synchronize
@@ -428,6 +429,7 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 
 		// synchronize
 		_model_gen_mutex.lock();
+		++lc;
 		nm = mg();
 		_model_gen_mutex.unlock();
 		// end synchronize
