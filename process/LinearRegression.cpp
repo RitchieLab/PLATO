@@ -106,7 +106,12 @@ Regression::Result* LinearRegression::calculate(
 		r->coeffs.push_back(c);
 		r->stderr.push_back(se);
 		// t-val = | beta / stderr |
-		r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(c / se),n_rows-n_cols+1)));
+		if(encoding == Encoding::WEIGHTED){
+			// this assumes that as df -> /inf, T -> Norm, and Norm^2 = ChiSq
+			r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) , 2));
+		}else{
+			r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(c / se),n_rows-n_cols+1)));
+		}
 	}
 
 	addResult(r, null_result);
