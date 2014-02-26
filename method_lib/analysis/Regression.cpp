@@ -94,7 +94,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("excl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to exclude")
 		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
 		("seaparator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
-		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, categorical)")
+		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
@@ -109,6 +109,15 @@ void Regression::printVarHeader(const string& var_name){
 	out_f << var_name << "_Pval" << sep
 		  << var_name << "_beta" << sep
 		  << var_name << "_SE" << sep;
+}
+
+void Regression::printMarkerHeader(const string& var_name){
+	if(encoding == Encoding::CODOMINANT){
+		printVarHeader(var_name + "_Het");
+		printVarHeader(var_name + "_Hom");
+	}else{
+		printVarHeader(var_name);
+	}
 }
 
 void Regression::parseOptions(const boost::program_options::variables_map& vm){
@@ -228,22 +237,54 @@ void Regression::runRegression(const DataSet& ds){
 
 	if(n_snp + n_trait > 1){
 		for(unsigned int i=0; show_uni && i < n_snp + n_trait; i++){
-			printVarHeader("Uni_Var" + boost::lexical_cast<string>(i+1));
+			string hdr = "Uni_Var" + boost::lexical_cast<string>(i+1);
+			if(i < n_snp){
+				printMarkerHeader(hdr);
+			}else{
+				printVarHeader(hdr);
+			}
 		}
 
 		if(interactions){
 			for(unsigned int i=0; i < n_snp + n_trait; i++){
-				printVarHeader("Red_Var"+ boost::lexical_cast<string>(i+1));
+				string hdr = "Red_Var" + boost::lexical_cast<string>(i+1);
+				if(i < n_snp){
+					printMarkerHeader(hdr);
+				}else{
+					printVarHeader(hdr);
+				}
 			}
 
 			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
-				printVarHeader("Full_Var" + boost::lexical_cast<string>(i+1));
+				string hdr = "Full_Var" + boost::lexical_cast<string>(i+1);
+				if(i < n_snp){
+					printMarkerHeader(hdr);
+				}else{
+					printVarHeader(hdr);
+				}
 			}
 
 			for(unsigned int i=0; i<n_snp+n_trait; i++){
 				for(unsigned int j=i+1; j<n_snp+n_trait; j++){
-					printVarHeader("Full_Var" + boost::lexical_cast<string>(i+1)
-							+ "_Var" + boost::lexical_cast<string>(j+1));
+					string v1_hdr = "Full_Var" + boost::lexical_cast<string>(i+1);
+					string v2_hdr = "_Var" + boost::lexical_cast<string>(j+1);
+
+					if(encoding == Encoding::CODOMINANT && i < n_snp){
+
+							if(j < n_snp){
+								printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Het");
+								printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Hom");
+								printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Het");
+								printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Hom");
+
+							} else {
+								printVarHeader(v1_hdr + "_Het" + v2_hdr);
+								printVarHeader(v1_hdr + "_Hom" + v2_hdr);
+							}
+
+					} else {
+						printVarHeader(v1_hdr + v2_hdr);
+					}
 				}
 			}
 
@@ -252,11 +293,16 @@ void Regression::runRegression(const DataSet& ds){
 	}
 
 	for(unsigned int i=0; !interactions && i < n_snp + n_trait; i++){
-		printVarHeader("Var" + boost::lexical_cast<string>(i+1));
+		string hdr = "Var" + boost::lexical_cast<string>(i+1);
+		if(i < n_snp){
+			printMarkerHeader(hdr);
+		}else{
+			printVarHeader(hdr);
+		}
 	}
 
 	// If we are looking at single SNP models w/ categorical weight, print said weight!
-	if(encoding == Encoding::CATEGORICAL && n_snp == 1 && n_trait == 0){
+	if(encoding == Encoding::WEIGHTED && n_snp == 1 && n_trait == 0){
 		out_f << "Categ_Weight" << sep;
 	}
 
@@ -439,15 +485,30 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	unsigned int numCovars = covar_names.size();
 	unsigned int numTraits = m->traits.size();
 	unsigned int n_vars = numLoci + numTraits;
-	unsigned int n_kept = n_vars;
+	unsigned int n_interact = 0;
 
 	// determine size of row for each sample in dataset
-	unsigned int n_cols = 1 + numLoci + numTraits + numCovars ;
+	unsigned int n_cols = 1 + numCovars + numLoci + numTraits ;
 	if(m->categorical){
 		n_cols += numLoci - numTraits;
 	} else if (interactions){
-		n_kept += (n_vars * (n_vars - 1))/2;
-		n_cols += n_kept - n_vars;
+		n_interact += (n_vars * (n_vars - 1))/2;
+		n_cols += n_interact;
+	}
+
+	if(encoding == Encoding::CODOMINANT){
+		// If we have codominant encoding, we need an extra column for every SNP
+		n_cols += numLoci;
+
+		// If we have interactions (bleh!), we need an extra column for every
+		// SNP-Trait pair and 3 extra columns for every SNP-SNP pair!
+		if(interactions){
+			unsigned int toadd = numLoci * numTraits + 3 * numLoci * (numLoci - 1) / 2;
+			n_interact += toadd;
+			n_cols += toadd;
+		}
+
+
 	}
 
 	// Allocate a huge amount of memory for the regression here
@@ -466,7 +527,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 
 	double categ_weight[numLoci];
-	if ((!m->categorical) && encoding == Encoding::CATEGORICAL){
+	if ((!m->categorical) && encoding == Encoding::WEIGHTED){
 		for (unsigned int i = 0; i<numLoci; i++){
 			categ_weight[i] = getCategoricalWeight(m->markers[i], ds);
 		}
@@ -495,7 +556,11 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 				if(m->categorical){
 					row_data[pos++] = EncodingModel(Encoding::DOMINANT)(geno[i]);
 					row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(geno[i]);
-				} else if (encoding == Encoding::CATEGORICAL){
+				} else if (encoding == Encoding::CODOMINANT){
+					row_data[pos++] = (geno[i] == 1);
+					row_data[pos++] = (geno[i] == 2);
+				}else if (encoding == Encoding::WEIGHTED){
+
 					// Returns:
 					// {0,w,1}    , w in [0,1]
 					// {1,1-w,0}  , w in [-1,0]
@@ -516,9 +581,28 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		}
 
 		// Now, the interaction terms
-		for(unsigned int i=0; interactions && (!m->categorical) && i < (n_vars); i++){
-			for(unsigned int j=i+1; j < (n_vars); j++){
-				row_data[pos++] = row_data[i+numCovars+1]*row_data[j+numCovars+1];
+		for (unsigned int i = 0; interactions && (!m->categorical) && i	< (n_vars); i++) {
+			for (unsigned int j = i + 1; j < (n_vars); j++) {
+
+				if(encoding == Encoding::CODOMINANT){
+					// we have to be a little careful here.
+					if(i < numLoci){
+						if(j < numLoci){
+							row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j*2 + numCovars + 1];
+							row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j*2 + numCovars + 2];
+							row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j*2 + numCovars + 1];
+							row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j*2 + numCovars + 2];
+						} else {
+							row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j + numLoci + numCovars + 1];
+							row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j + numLoci + numCovars + 1];
+						}
+					} else {
+						row_data[pos++] = row_data[i + numLoci + numCovars + 1] * row_data[j + numLoci + numCovars + 1];
+					}
+
+				}else{
+					row_data[pos++] = row_data[i + numCovars + 1] * row_data[j + numCovars + 1];
+				}
 			}
 		}
 
@@ -544,11 +628,12 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 
 	// The number of variables in the "reduced" model is:
-	// # of covariates + (interactions * (# of SNPs + # of traits))
-	// for this version, there is no offset - the matrix is full!
+	// # of covariates if no interactions
+	// # of main effects (total columns - # interactions) o/w
+	unsigned int red_vars = n_interact == 0 ? numCovars : n_cols - n_interact - 1;
+
 	Result* r = calculate(regress_output, regress_data[0],
-			n_cols, n_samples - n_missing, 0,
-			numCovars + interactions * (numLoci + numTraits));
+			n_cols, n_samples - n_missing, 0, red_vars);
 
 	stringstream ss;
 
@@ -568,7 +653,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	r->prefix = ss.str();
 
 	ss.clear();
-	if(encoding == Encoding::CATEGORICAL && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
+	if(encoding == Encoding::WEIGHTED && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
 		//ss << categ_weight[0] << sep;
 		r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
 	}

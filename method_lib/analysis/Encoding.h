@@ -9,7 +9,7 @@ namespace Analysis{
 
 class Encoding{
 public:
-	enum encoding_ENUM { ADDITIVE, DOMINANT, RECESSIVE, CATEGORICAL};
+	enum encoding_ENUM { ADDITIVE, DOMINANT, RECESSIVE, WEIGHTED, CODOMINANT};
 };
 
 class EncodingModel{

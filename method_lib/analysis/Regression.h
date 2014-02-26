@@ -182,6 +182,8 @@ private:
 	 */
 	void start(ModelGenerator& mg, const Data::DataSet& ds);
 
+	void printMarkerHeader(const std::string& var_name);
+
 private:
 	//! a file of models to use
 	std::vector<std::string> model_files;

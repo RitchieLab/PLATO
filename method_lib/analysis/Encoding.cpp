@@ -44,8 +44,10 @@ istream& operator>>(istream& in,
 			model_out = PLATO::Analysis::Encoding::DOMINANT;
 		} else if (s == 'r' || s == 'R') {
 			model_out = PLATO::Analysis::Encoding::RECESSIVE;
+		} else if (s == 'w' || s == 'W') {
+			model_out = PLATO::Analysis::Encoding::WEIGHTED;
 		} else if (s == 'c' || s == 'C') {
-			model_out = PLATO::Analysis::Encoding::CATEGORICAL;
+			model_out = PLATO::Analysis::Encoding::CODOMINANT;
 		} else {
 			throw validation_error(validation_error::invalid_option_value);
 		}
@@ -64,8 +66,10 @@ ostream& operator<<(ostream& o, const PLATO::Analysis::EncodingModel& m){
 		return o << "dominant";
 	case PLATO::Analysis::Encoding::RECESSIVE:
 		return o << "recessive";
-	case PLATO::Analysis::Encoding::CATEGORICAL:
-		return o << "categorical";
+	case PLATO::Analysis::Encoding::WEIGHTED:
+		return o << "weighted";
+	case PLATO::Analysis::Encoding::CODOMINANT:
+		return o << "codominant";
 	default:
 		return o << "unknown";
 	}

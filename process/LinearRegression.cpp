@@ -127,7 +127,7 @@ Regression::Result* LinearRegression::calculate(
 	// We only have markers if we are not excluding markers and the
 	// number of columns is at least as many as the number of covariates
 	// (i.e. this isn;t the "null" model)
-	unsigned int extra_df = (encoding == Encoding::CATEGORICAL)
+	unsigned int extra_df = (encoding == Encoding::WEIGHTED)
 			* (!interactions || offset != 0)
 			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
 			* (1 + pairwise);

@@ -250,7 +250,7 @@ Regression::Result* LogisticRegression::calculate(
 		r->coeffs.push_back(show_odds ? exp(c) : c);
 		r->stderr.push_back(se);
 		// use the wald statistic to get p-values for each coefficient
-		r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1) );
+		r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1 + (encoding == Encoding::WEIGHTED)) );
 	}
 
 	addResult(r, null_result);
@@ -261,7 +261,7 @@ Regression::Result* LogisticRegression::calculate(
 	// We only have markers if we are not excluding markers and the
 	// number of columns is at least as many as the number of covariates
 	// (i.e. this isn;t the "null" model)
-	unsigned int extra_df = (encoding == Encoding::CATEGORICAL)
+	unsigned int extra_df = (encoding == Encoding::WEIGHTED)
 			* (!interactions || offset != 0)
 			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
 			* (1 + pairwise);
