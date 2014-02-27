@@ -25,6 +25,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/multi_array.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
 
@@ -516,16 +517,21 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 
 	// Allocate a huge amount of memory for the regression here
-	double regress_output[_pheno.size()];
-	double regress_data[_pheno.size()][n_cols];
-	double row_data[n_cols];
+	double* regress_output = new double[_pheno.size()];
+
+	double* regress_buf = new double[_pheno.size()* n_cols];
+
+	boost::multi_array_ref<double, 2> regress_data(regress_buf, boost::extents[_pheno.size()][n_cols]);
+	//typedef boost::multi_array<double, 3> array_type;
+	//typedef array_type::index index;
+	//  array_type A(boost::extents[3][4][2])
+
+	double* row_data = new double[n_cols];
 	unsigned char geno[numLoci];
 	float maf_sum[numLoci];
 
-	_ds_mutex.lock();
 	DataSet::const_sample_iterator si = ds.beginSample();
 	DataSet::const_sample_iterator se = ds.endSample();
-	_ds_mutex.unlock();
 
 	unsigned int n_samples = 0;
 	unsigned int n_missing = 0;
@@ -554,12 +560,11 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 		// Now, work through the markers
 		for (unsigned int i = 0; i<numLoci; i++){
-			_ds_mutex.lock();
 			geno[i] = (*si)->getAdditiveGeno(*(m->markers[i]));
-			_ds_mutex.unlock();
+
 			if(geno[i] == Sample::missing_allele){
 				row_data[pos++] = numeric_limits<double>::quiet_NaN();
-				if(m->categorical){
+				if(m->categorical || encoding == Encoding::CODOMINANT){
 					row_data[pos++] = numeric_limits<double>::quiet_NaN();
 				}
 			} else {
@@ -587,9 +592,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 		// Now, work through the traits
 		for(unsigned int i = 0; (!m->categorical) && i < numTraits; i++){
-			_ds_mutex.lock();
 			row_data[pos++] = ds.getTrait(m->traits[i], *si);
-			_ds_mutex.unlock();
 		}
 
 		// Now, the interaction terms
@@ -629,7 +632,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 				maf_sum[i] += geno[i];
 			}
 			// do a fast memory copy into the data for regression
-			std::memcpy(regress_data[n_samples - n_missing], row_data, sizeof(double) * (pos));
+			std::memcpy(&regress_data[n_samples - n_missing][0], row_data, sizeof(double) * (pos));
 			regress_output[n_samples - n_missing] = _pheno[n_samples];
 		} else {
 			++n_missing;
@@ -644,7 +647,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	// # of main effects (total columns - # interactions) o/w
 	unsigned int red_vars = n_interact == 0 ? numCovars : n_cols - n_interact - 1;
 
-	Result* r = calculate(regress_output, regress_data[0],
+	Result* r = calculate(regress_output, &regress_data[0][0],
 			n_cols, n_samples - n_missing, 0, red_vars);
 
 	stringstream ss;
@@ -669,6 +672,10 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		//ss << categ_weight[0] << sep;
 		r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
 	}
+
+	delete[] regress_output;
+	delete[] regress_buf;
+	delete[] row_data;
 
 	return r;
 }
