@@ -773,7 +773,7 @@ Regression::Model* Regression::ModelGenerator::operator()() {
 			if (_traits) {
 				// we want exhaustive EnvxEnv
 				if (_nomarker) {
-					if (++_ti2 == _tend && ++_titr != _tend) {
+					if (++_ti2 == _tend && _titr != _tend && ++_titr != _tend) {
 						_ti2 = _titr;
 						++_ti2;
 					}
@@ -787,7 +787,7 @@ Regression::Model* Regression::ModelGenerator::operator()() {
 				} else {
 
 					if (_mi2 == _ds.endMarker()) {
-						if (++_mi1 != _ds.endMarker()) {
+						if (_mi1 != _ds.endMarker() && ++_mi1 != _ds.endMarker()) {
 							_mi2 = _mi1;
 							if (++_mi2 == _ds.endMarker()) {
 								_mi1 = _ds.beginMarker();
@@ -808,7 +808,7 @@ Regression::Model* Regression::ModelGenerator::operator()() {
 			} else{
 
 				if (_mi2 == _ds.endMarker()) {
-					if (++_mi1 != _ds.endMarker()) {
+					if (_mi1 != _ds.endMarker() && ++_mi1 != _ds.endMarker()) {
 						_mi2 = _mi1;
 						++_mi2;
 					}
