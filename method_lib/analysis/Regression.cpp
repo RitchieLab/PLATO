@@ -366,13 +366,20 @@ void Regression::runRegression(const DataSet& ds){
 
 	this->initData(model_str, ds);
 
-	ModelGenerator mg(ds, incl_traits, pairwise, exclude_markers);
+	ModelGenerator* mgp;
+
+	if(_models.size() == 0){
+		mgp = new ModelGenerator(ds, incl_traits, pairwise, exclude_markers);
+	}else{
+		mgp = new ModelGenerator(ds, _models);
+	}
+
 
 	if (_threaded) {
 		boost::thread_group all_threads;
 
 		for (unsigned int i = 0; i < n_threads; i++) {
-			boost::thread* t = new boost::thread(&Regression::start,this,boost::ref(mg), boost::cref(ds));
+			boost::thread* t = new boost::thread(&Regression::start,this,boost::ref(*mgp), boost::cref(ds));
 			all_threads.add_thread(t);
 
 			//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
@@ -381,8 +388,10 @@ void Regression::runRegression(const DataSet& ds){
 
 	} else {
 		// go here for debugging purposes, i.e. set --threads to 0
-		start(mg, ds);
+		start(*mgp, ds);
 	}
+
+	delete mgp;
 
 	printResults();
 }
@@ -681,7 +690,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 	Result* r = 0;
 
-	if(n_cols >= n_samples - n_missing){
+	if(n_cols <= n_samples - n_missing){
 		r = calculate(regress_output, &regress_data[0][0],
 					n_cols, n_samples - n_missing, 0, red_vars);
 	}else{

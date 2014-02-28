@@ -55,6 +55,8 @@ protected:
 	class ModelGenerator{
 	private:
 
+
+
 	public:
 
 		// use this for exhaustive
@@ -67,7 +69,7 @@ protected:
 		}
 
 		// use this for targeted
-		ModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models, bool interact) :
+		ModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models) :
 			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
 			_mitr(models.begin()), _mend(models.end()),
 			_targeted(true) {
