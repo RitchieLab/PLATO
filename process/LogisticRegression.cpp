@@ -145,16 +145,9 @@ Regression::Result* LogisticRegression::calculate(
 	// zero out the beta
 	gsl_vector_set_zero (&b.vector);
 
-	// If we have a null result, copy the beta vector for the reduced model into
-	// the current beta vector - this should save a bit of time because we're
-	// starting off with a better initial guess
-	if(null_result){
-		std::memcpy(beta, null_result->beta_vec, (n_covars + 1)*sizeof(double));
-	} else {
-		// Add up all the values in Y
-		double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
-		beta[0] = log(sum_Y / (n_rows - sum_Y)); // use natural log of the ratio
-	}
+	// Add up all the values in Y
+	double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
+	beta[0] = log(sum_Y / (n_rows - sum_Y)); // use natural log of the ratio
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
