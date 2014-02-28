@@ -42,6 +42,7 @@ using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
 using PLATO::Data::Sample;
 using PLATO::Utility::InputManager;
+using PLATO::Utility::Logger;
 
 namespace po=boost::program_options;
 
@@ -99,6 +100,8 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
+		("incl-markers", po::value<vector<string> >()->composing(), "Comma-separated list of markers to include")
+		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
 		;
 
 	opts.add(regress_opts);
@@ -138,13 +141,30 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		InputManager::parseInput(vm["excl-traits"].as<vector<string> >(), excl_traits);
 	}
 
+	if(vm.count("incl-markers")){
+		InputManager::parseInput(vm["incl-markers"].as<vector<string> >(), incl_marker_name);
+	}
+
+
 	out_f.open(out_fn.c_str());
 	if(!out_f){
 		throw std::logic_error("Cannot open regression output file '" + out_fn + "'");
 	}
 
-	// ensure that we have at least 1 thread!
 	_threaded = n_threads > 0;
+	if(model_files.size() == 0){
+		if(_onesided && !pairwise){
+			Logger::log_err("WARNING: --one-sided must be used with --pairwise; ignoring --one-sided directive");
+		}
+
+		if(exclude_markers && !include_traits){
+			Logger::log_err("ERROR: --exclude-markers requires --use-traits", true);
+		}
+	}else if (include_traits || _onesided || pairwise){
+		Logger::log_err("WARNING: --use-traits, --one-sided, and --pairwise have no effect when specifying models");
+	}
+
+
 }
 
 void Regression::runRegression(const DataSet& ds){
@@ -647,9 +667,6 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	// # of main effects (total columns - # interactions) o/w
 	unsigned int red_vars = n_interact == 0 ? numCovars : n_cols - n_interact - 1;
 
-	Result* r = calculate(regress_output, &regress_data[0][0],
-			n_cols, n_samples - n_missing, 0, red_vars);
-
 	stringstream ss;
 
 	for(unsigned int i=0; i<numLoci; i++){
@@ -660,6 +677,17 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}
 	for(unsigned int i=0; i<numTraits; i++){
 		ss << m->traits[i] << sep;
+	}
+
+	Result* r = 0;
+
+	if(n_cols >= n_samples - n_missing){
+		r = calculate(regress_output, &regress_data[0][0],
+					n_cols, n_samples - n_missing, 0, red_vars);
+	}else{
+		Logger::log_err("WARNING: not enough samples in model: '" + ss.str() + "'!");
+		r = new Result();
+		r->p_val = r->log_likelihood = r->r_squared = std::numeric_limits<float>::quiet_NaN();
 	}
 
 	// print the # missing from this model

@@ -53,6 +53,8 @@ protected:
 	};
 
 	class ModelGenerator{
+	private:
+
 	public:
 
 		// use this for exhaustive
@@ -65,7 +67,7 @@ protected:
 		}
 
 		// use this for targeted
-		ModelGenerator(const PLATO::Data::DataSet& ds, const std::deque<std::string>& models, bool interact) :
+		ModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models, bool interact) :
 			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
 			_mitr(models.begin()), _mend(models.end()),
 			_targeted(true) {
@@ -76,10 +78,10 @@ protected:
 		Model* operator() ();
 	private:
 
-		const PLATO::Data::DataSet& _ds;
+		const Data::DataSet& _ds;
 
-		PLATO::Data::DataSet::const_marker_iterator _mi1;
-		PLATO::Data::DataSet::const_marker_iterator _mi2;
+		Data::DataSet::const_marker_iterator _mi1;
+		Data::DataSet::const_marker_iterator _mi2;
 
 		std::set<std::string>::const_iterator _titr;
 		std::set<std::string>::const_iterator _tend;
@@ -198,8 +200,14 @@ private:
 	//! build models with traits as well?
 	bool include_traits;
 
+	//! generate one-sided pairwise models?
+	bool _onesided;
+
 	//! are we threaded?
 	bool _threaded;
+
+	//! List of markers to include
+	std::set<std::string> incl_marker_name;
 
 	unsigned int n_threads;
 
@@ -218,6 +226,7 @@ protected:
 
 	//! List of traits to include
 	std::set<std::string> incl_traits;
+
 
 	//! a set of correction methods to apply to the p-values
 	std::set<CorrectionModel> corr_methods;
