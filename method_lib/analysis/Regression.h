@@ -57,6 +57,7 @@ protected:
 
 		// use this for exhaustive
 		ModelGenerator(const Data::DataSet& ds) : _ds(ds) {}
+		virtual ~ModelGenerator() {}
 
 		virtual Model* next() = 0;
 
@@ -80,6 +81,7 @@ protected:
 			_titr(trait.begin()), _tend(trait.end()), _ti2(trait.begin()),
 			_pairwise(pw), _traits(trait.size()> 0), _nomarker(nomarker) {
 		}
+		virtual ~BasicModelGenerator() {}
 
 		virtual Model* next();
 
@@ -104,6 +106,7 @@ protected:
 		// use this for targeted
 		TargetedModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models) :
 			ModelGenerator(ds),	_mitr(models.begin()), _mend(models.end()) {}
+		virtual ~TargetedModelGenerator() {}
 
 
 		virtual Model* next();
@@ -125,6 +128,7 @@ protected:
 			_mi1(m_set.begin()), _mi2(ds.beginMarker()),
 			_titr(trait.begin()), _ti2(all_traits.begin()),
 			_traits(trait.size() > 0),	_nomarker(nomarker){}
+		virtual ~OneSidedModelGenerator() {}
 
 		virtual Model* next();
 
