@@ -80,6 +80,10 @@ protected:
 			_mbegin(begin), _mi1(begin), _mi2(begin), _mend(end),
 			_titr(trait.begin()), _tend(trait.end()), _ti2(trait.begin()),
 			_pairwise(pw), _traits(trait.size()> 0), _nomarker(nomarker) {
+
+			if(_mi2 != _mend){
+				++_mi2;
+			}
 		}
 		virtual ~BasicModelGenerator() {}
 

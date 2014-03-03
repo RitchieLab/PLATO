@@ -892,7 +892,7 @@ Regression::Model* Regression::OneSidedModelGenerator::next() {
 
 			// If ti2 == end ==> _titr == end
 			if (_ti2 != _tall_set.end()) {
-				if (_t_processed.find(*_ti2) == _t_processed.end()) {
+				if (*_titr != *_ti2 && _t_processed.find(*_ti2) == _t_processed.end()) {
 					m = new Model();
 					m->traits.push_back(*_titr);
 					m->traits.push_back(*_ti2);
@@ -929,7 +929,7 @@ Regression::Model* Regression::OneSidedModelGenerator::next() {
 			}
 
 			if (_mi1 != _m_set.end()) {
-				if (_m_processed.find(*_mi2) == _m_processed.end()) {
+				if (*_mi1 != *_mi2 && _m_processed.find(*_mi2) == _m_processed.end()) {
 					m = new Model();
 					m->markers.push_back(*_mi1);
 					m->markers.push_back(*_mi2);
@@ -953,7 +953,7 @@ Regression::Model* Regression::OneSidedModelGenerator::next() {
 		}
 
 		if (_mi2 != _ds.beginMarker()) {
-			if(_m_processed.find(*_mi2) == _m_processed.end()){
+			if(*_mi2 != *_mi1 && _m_processed.find(*_mi2) == _m_processed.end()){
 				m = new Model();
 				m->markers.push_back(*_mi1);
 				m->markers.push_back(*_mi2);
