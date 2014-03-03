@@ -53,50 +53,98 @@ protected:
 	};
 
 	class ModelGenerator{
-	private:
-
-
-
 	public:
 
 		// use this for exhaustive
-		ModelGenerator(const PLATO::Data::DataSet& ds,
-				const std::set<std::string>& trait, bool pw,
-				bool nomarker) :
-			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
-			_titr(trait.begin()), _tend(trait.end()), _ti2(trait.begin()),
-			_targeted(false), _pairwise(pw), _traits(trait.size()> 0), _nomarker(nomarker) {
-		}
+		ModelGenerator(const Data::DataSet& ds) : _ds(ds) {}
 
-		// use this for targeted
-		ModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models) :
-			_ds(ds), _mi1(ds.beginMarker()), _mi2(ds.beginMarker()),
-			_mitr(models.begin()), _mend(models.end()),
-			_targeted(true) {
-
-		}
+		virtual Model* next() = 0;
 
 		// Return a new Model* object, or NULL if finished
-		Model* operator() ();
-	private:
+		Model* operator() () {return next();};
+	protected:
 
 		const Data::DataSet& _ds;
 
-		Data::DataSet::const_marker_iterator _mi1;
-		Data::DataSet::const_marker_iterator _mi2;
+	};
+
+	template <class M_iter>
+	class BasicModelGenerator : public ModelGenerator{
+
+	public:
+		BasicModelGenerator(const PLATO::Data::DataSet& ds,
+				const M_iter& begin, const M_iter& end,
+				const std::set<std::string>& trait, bool pw,
+				bool nomarker) : ModelGenerator(ds),
+			_mbegin(begin), _mi1(begin), _mi2(begin), _mend(end),
+			_titr(trait.begin()), _tend(trait.end()), _ti2(trait.begin()),
+			_pairwise(pw), _traits(trait.size()> 0), _nomarker(nomarker) {
+		}
+
+		virtual Model* next();
+
+	private:
+
+		M_iter _mbegin;
+		M_iter _mi1;
+		M_iter _mi2;
+		M_iter _mend;
 
 		std::set<std::string>::const_iterator _titr;
 		std::set<std::string>::const_iterator _tend;
 		std::set<std::string>::const_iterator _ti2;
 
-		std::deque<std::string>::const_iterator _mitr;
-		std::deque<std::string>::const_iterator _mend;
-
-		bool _targeted;
 		bool _pairwise;
 		bool _traits;
 		bool _nomarker;
+	};
 
+	class TargetedModelGenerator : public ModelGenerator{
+	public:
+		// use this for targeted
+		TargetedModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models) :
+			ModelGenerator(ds),	_mitr(models.begin()), _mend(models.end()) {}
+
+
+		virtual Model* next();
+	private:
+
+		std::deque<std::string>::const_iterator _mitr;
+		std::deque<std::string>::const_iterator _mend;
+	};
+
+	class OneSidedModelGenerator : public ModelGenerator{
+
+	public:
+		OneSidedModelGenerator(const Data::DataSet& ds,
+				const std::set<const Data::Marker*>& m_set,
+				const std::set<std::string>& trait,
+				const std::set<std::string>& all_traits,
+				bool nomarker ) : ModelGenerator(ds), _m_set(m_set),
+			_t_set(trait), _tall_set(all_traits),
+			_mi1(m_set.begin()), _mi2(ds.beginMarker()),
+			_titr(trait.begin()), _ti2(all_traits.begin()),
+			_traits(trait.size() > 0),	_nomarker(nomarker){}
+
+		virtual Model* next();
+
+		private:
+			const std::set<const Data::Marker*>& _m_set;
+			const std::set<std::string>& _t_set;
+			const std::set<std::string>& _tall_set;
+
+			std::set<const Data::Marker*>::const_iterator _mi1;
+			Data::DataSet::const_marker_iterator _mi2;
+
+			std::set<std::string>::const_iterator _titr;
+			std::set<std::string>::const_iterator _ti2;
+
+			std::set<std::string> _t_processed;
+			std::set<const Data::Marker*> _m_processed;
+
+			// NOTE: we ALWAYS want pairwise with this generator!
+			bool _traits;
+			bool _nomarker;
 	};
 
 	/*!
@@ -187,6 +235,7 @@ private:
 	void start(ModelGenerator& mg, const Data::DataSet& ds);
 
 	void printMarkerHeader(const std::string& var_name);
+	void printHeader(unsigned int n_snp, unsigned int n_trait);
 
 private:
 	//! a file of models to use
@@ -270,6 +319,102 @@ protected:
 	std::map<std::string, Result*> _trait_uni_result;
 
 };
+
+template <class M_iter>
+Regression::Model* Regression::BasicModelGenerator<M_iter>::next() {
+
+	Model* m = 0;
+
+	// We must want exhaustive pairwise models
+	if (_pairwise) {
+
+		// We want Env vars
+		if (_traits) {
+			// we want exhaustive EnvxEnv
+			if (_nomarker) {
+				if (++_ti2 == _tend && _titr != _tend && ++_titr != _tend) {
+					_ti2 = _titr;
+					++_ti2;
+				}
+				if (_titr != _tend && _ti2 != _tend) {
+					m = new Model();
+					m->traits.push_back(*_titr);
+					m->traits.push_back(*_ti2);
+				}
+
+				// We want exhaustive SNPxSNPxEnv models
+			} else {
+
+				if (_mi2 == _mend) {
+					if (_mi1 != _mend && ++_mi1 != _mend) {
+						_mi2 = _mi1;
+						if (++_mi2 ==_mend) {
+							_mi1 = _mbegin;
+							_mi2 = _mi1;
+							++_titr;
+						}
+					}
+				}
+				if (_titr != _tend) {
+					m = new Model();
+					m->markers.push_back(*_mi1);
+					m->markers.push_back(*_mi2);
+					m->traits.push_back(*_titr);
+					++_mi2;
+				}
+			}
+			// OK, we just want SNPxSNP models
+		} else {
+
+			if (_mi2 == _mend) {
+				if (_mi1 != _mend && ++_mi1 != _mend){
+					_mi2 = _mi1;
+					++_mi2;
+				}
+			}
+			if (_mi2 != _mend) {
+				m = new Model();
+				m->markers.push_back(*_mi1);
+				m->markers.push_back(*_mi2);
+				++_mi2;
+			}
+
+		}
+		// We want Marker x Trait models (i.e. GxE)
+	} else if (_traits) { // Note: !_pairwise == true here
+		if (_mi1 == _mend) {
+			_mi1 = _mbegin;
+			++_titr;
+		}
+		if (_mi1 != _mend && _titr != _tend) {
+			m = new Model();
+			m->markers.push_back(*_mi1);
+			m->traits.push_back(*_titr);
+			++_mi1;
+		}
+		// Must want single variable models
+	} else {
+		// Env only
+		if (_nomarker) {
+			if (_titr != _tend) {
+				m = new Model();
+				m->traits.push_back(*_titr);
+				++_titr;
+			}
+			// SNP only
+		} else {
+			if (_mi1 != _mend) {
+				m = new Model();
+				m->markers.push_back(*_mi1);
+				++_mi1;
+			}
+		}
+	}
+
+	// NOTE: m == 0 if no more models can be generated!
+	return m;
+
+}
 
 }
 }

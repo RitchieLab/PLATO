@@ -37,6 +37,7 @@ using std::numeric_limits;
 using std::stringstream;
 using std::min;
 using std::max;
+using std::ifstream;
 
 using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
@@ -155,6 +156,7 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(model_files.size() == 0){
 		if(_onesided && !pairwise){
 			Logger::log_err("WARNING: --one-sided must be used with --pairwise; ignoring --one-sided directive");
+			_onesided = false;
 		}
 
 		if(exclude_markers && !include_traits){
@@ -162,12 +164,58 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		}
 	}else if (include_traits || _onesided || pairwise){
 		Logger::log_err("WARNING: --use-traits, --one-sided, and --pairwise have no effect when specifying models");
+		include_traits = _onesided = pairwise = false;
 	}
 
+	//OK, let's actually open these model files and read them!!
+	vector<string>::const_iterator mf_itr = model_files.begin();
+	while (mf_itr != model_files.end()) {
+
+		ifstream input((*mf_itr).c_str());
+
+		if (!input.is_open()) {
+			Logger::log_err("ERROR: Error opening model file: " + (*mf_itr), true);
+		}
+
+		string line;
+		while (getline(input, line)) {
+			// string isn't empty or starts with "#"
+			boost::algorithm::trim(line);
+			if(line.size() != 0 && line[0] != '#'){
+				_models.push_back(line);
+			}
+		}
+
+		input.close();
+		++mf_itr;
+	}
 
 }
 
 void Regression::runRegression(const DataSet& ds){
+	set<string> all_traits;
+	if(_onesided){
+		all_traits.insert(ds.beginTrait(), ds.endTrait());
+		// remove excluded traits
+		set<string> tmp_alltrait;
+		std::set_difference(all_traits.begin(), all_traits.end(),
+						    excl_traits.begin(), excl_traits.end(),
+						    std::inserter(tmp_alltrait, tmp_alltrait.begin()));
+
+		all_traits.clear();
+
+		// remove covariates
+		std::set_difference(tmp_alltrait.begin(), tmp_alltrait.end(),
+				            covar_names.begin(), covar_names.end(),
+				            std::inserter(all_traits, all_traits.begin()));
+
+		// remove the outcome variable
+		set<string>::iterator alltrait_out_itr = all_traits.find(outcome_name);
+		if(alltrait_out_itr != all_traits.end()){
+			all_traits.erase(alltrait_out_itr);
+		}
+	}
+
 	if(include_traits){
 	// First let's get all of the traits to include...
 		if(incl_traits.size() == 0 && include_traits){
@@ -195,6 +243,18 @@ void Regression::runRegression(const DataSet& ds){
 
 	}else{
 		incl_traits.clear();
+	}
+
+	// Get the set of markers to include, if needed
+	set<const Marker*> marker_incl;
+	set<string>::const_iterator mni = incl_marker_name.begin();
+	while(mni != incl_marker_name.end()){
+		const Marker* found_marker = ds.getMarker(*mni);
+		if(found_marker == 0){
+			Logger::log_err("WARNING: could not find marker: " + *mni + ", ignoring");
+		}else{
+			marker_incl.insert(found_marker);
+		}
 	}
 
 	set<string>::iterator trait_itr = incl_traits.begin();
@@ -234,7 +294,7 @@ void Regression::runRegression(const DataSet& ds){
 	if(model_str.size() > 0){
 		Model* m = Regression::parseModelStr(model_str, ds);
 		n_snp = m->markers.size();
-		n_trait = m->markers.size();
+		n_trait = m->traits.size();
 		delete m;
 	} else{
 		// Calculate the number of SNPs / Env vars based on the options passed
@@ -243,99 +303,7 @@ void Regression::runRegression(const DataSet& ds){
 		n_trait = (incl_traits.size() > 0) * (1 + exclude_markers);
 	}
 
-	// Now, print the header
-	for(unsigned int i=0; i<n_snp; i++){
-		out_f << "Var" << i+1 << "_ID" << sep
-			  << "Var" << i+1 << "_Pos" << sep
-			  << "Var" << i+1 << "_MAF" << sep;
-	}
-
-	for(unsigned int i=0; i<n_trait; i++){
-		out_f << "Var" << n_snp + i + 1 << "_ID" << sep;
-	}
-
-	out_f << "N_Missing" << sep;
-
-	if(n_snp + n_trait > 1){
-		for(unsigned int i=0; show_uni && i < n_snp + n_trait; i++){
-			string hdr = "Uni_Var" + boost::lexical_cast<string>(i+1);
-			if(i < n_snp){
-				printMarkerHeader(hdr);
-			}else{
-				printVarHeader(hdr);
-			}
-		}
-
-		if(interactions){
-			for(unsigned int i=0; i < n_snp + n_trait; i++){
-				string hdr = "Red_Var" + boost::lexical_cast<string>(i+1);
-				if(i < n_snp){
-					printMarkerHeader(hdr);
-				}else{
-					printVarHeader(hdr);
-				}
-			}
-
-			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
-				string hdr = "Full_Var" + boost::lexical_cast<string>(i+1);
-				if(i < n_snp){
-					printMarkerHeader(hdr);
-				}else{
-					printVarHeader(hdr);
-				}
-			}
-
-			for(unsigned int i=0; i<n_snp+n_trait; i++){
-				for(unsigned int j=i+1; j<n_snp+n_trait; j++){
-					string v1_hdr = "Full_Var" + boost::lexical_cast<string>(i+1);
-					string v2_hdr = "_Var" + boost::lexical_cast<string>(j+1);
-
-					if(encoding == Encoding::CODOMINANT && i < n_snp){
-
-							if(j < n_snp){
-								printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Het");
-								printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Hom");
-								printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Het");
-								printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Hom");
-
-							} else {
-								printVarHeader(v1_hdr + "_Het" + v2_hdr);
-								printVarHeader(v1_hdr + "_Hom" + v2_hdr);
-							}
-
-					} else {
-						printVarHeader(v1_hdr + v2_hdr);
-					}
-				}
-			}
-
-			out_f << "Red_Model_Pval" << sep ;
-		}
-	}
-
-	for(unsigned int i=0; !interactions && i < n_snp + n_trait; i++){
-		string hdr = "Var" + boost::lexical_cast<string>(i+1);
-		if(i < n_snp){
-			printMarkerHeader(hdr);
-		}else{
-			printVarHeader(hdr);
-		}
-	}
-
-	// If we are looking at single SNP models w/ categorical weight, print said weight!
-	if(encoding == Encoding::WEIGHTED && n_snp == 1 && n_trait == 0){
-		out_f << "Categ_Weight" << sep;
-	}
-
-	out_f << "Overall_Pval";
-
-	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
-	while(c_itr != corr_methods.end()){
-		out_f << sep << "Overall_Pval_adj_" << *c_itr;
-		++c_itr;
-	}
-
-	out_f << std::endl;
+	printHeader(n_snp, n_trait);
 
 	// Now, set up the outcome variable and the covariates
 	DataSet::const_sample_iterator si = ds.beginSample();
@@ -369,9 +337,15 @@ void Regression::runRegression(const DataSet& ds){
 	ModelGenerator* mgp;
 
 	if(_models.size() == 0){
-		mgp = new ModelGenerator(ds, incl_traits, pairwise, exclude_markers);
+		if(_onesided){
+			mgp = new OneSidedModelGenerator(ds, marker_incl, incl_traits, all_traits, exclude_markers);
+		} else if(marker_incl.size() > 0){
+			mgp = new BasicModelGenerator<set<const Marker*>::const_iterator>(ds, marker_incl.begin(), marker_incl.end(), incl_traits, pairwise, exclude_markers);
+		} else {
+			mgp = new BasicModelGenerator<DataSet::const_marker_iterator>(ds, ds.beginMarker(), ds.endMarker(), incl_traits, pairwise, exclude_markers);
+		}
 	}else{
-		mgp = new ModelGenerator(ds, _models);
+		mgp = new TargetedModelGenerator(ds, _models);
 	}
 
 
@@ -466,6 +440,102 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 		_model_gen_mutex.unlock();
 		// end synchronize
 	}
+}
+
+void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
+	// Now, print the header
+	for (unsigned int i = 0; i < n_snp; i++) {
+		out_f << "Var" << i + 1 << "_ID" << sep << "Var" << i + 1 << "_Pos"
+				<< sep << "Var" << i + 1 << "_MAF" << sep;
+	}
+
+	for (unsigned int i = 0; i < n_trait; i++) {
+		out_f << "Var" << n_snp + i + 1 << "_ID" << sep;
+	}
+
+	out_f << "N_Missing" << sep;
+
+	if (n_snp + n_trait > 1) {
+		for (unsigned int i = 0; show_uni && i < n_snp + n_trait; i++) {
+			string hdr = "Uni_Var" + boost::lexical_cast<string>(i + 1);
+			if (i < n_snp) {
+				printMarkerHeader(hdr);
+			} else {
+				printVarHeader(hdr);
+			}
+		}
+
+		if (interactions) {
+			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
+				string hdr = "Red_Var" + boost::lexical_cast<string>(i + 1);
+				if (i < n_snp) {
+					printMarkerHeader(hdr);
+				} else {
+					printVarHeader(hdr);
+				}
+			}
+
+			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
+				string hdr = "Full_Var" + boost::lexical_cast<string>(i + 1);
+				if (i < n_snp) {
+					printMarkerHeader(hdr);
+				} else {
+					printVarHeader(hdr);
+				}
+			}
+
+			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
+				for (unsigned int j = i + 1; j < n_snp + n_trait; j++) {
+					string v1_hdr = "Full_Var" + boost::lexical_cast<string>(i
+							+ 1);
+					string v2_hdr = "_Var" + boost::lexical_cast<string>(j + 1);
+
+					if (encoding == Encoding::CODOMINANT && i < n_snp) {
+
+						if (j < n_snp) {
+							printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Het");
+							printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Hom");
+							printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Het");
+							printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Hom");
+
+						} else {
+							printVarHeader(v1_hdr + "_Het" + v2_hdr);
+							printVarHeader(v1_hdr + "_Hom" + v2_hdr);
+						}
+
+					} else {
+						printVarHeader(v1_hdr + v2_hdr);
+					}
+				}
+			}
+
+			out_f << "Red_Model_Pval" << sep;
+		}
+	}
+
+	for (unsigned int i = 0; !interactions && i < n_snp + n_trait; i++) {
+		string hdr = "Var" + boost::lexical_cast<string>(i + 1);
+		if (i < n_snp) {
+			printMarkerHeader(hdr);
+		} else {
+			printVarHeader(hdr);
+		}
+	}
+
+	// If we are looking at single SNP models w/ categorical weight, print said weight!
+	if (encoding == Encoding::WEIGHTED && n_snp == 1 && n_trait == 0) {
+		out_f << "Categ_Weight" << sep;
+	}
+
+	out_f << "Overall_Pval";
+
+	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
+	while (c_itr != corr_methods.end()) {
+		out_f << sep << "Overall_Pval_adj_" << *c_itr;
+		++c_itr;
+	}
+
+	out_f << std::endl;
 }
 
 Regression::Model* Regression::parseModelStr(const std::string& model_str, const DataSet& ds) {
@@ -793,108 +863,114 @@ void Regression::printResults(){
 	}
 }
 
-Regression::Model* Regression::ModelGenerator::operator()() {
+Regression::Model* Regression::TargetedModelGenerator::next() {
 
 	Model* m = 0;
-	if (_targeted) {
-		// models are given one per line here
-		if(_mitr != _mend){
-			m = Regression::parseModelStr(*_mitr, _ds);
-			++_mitr;
-		}
-	} else {
-		// We must want exhaustive pairwise models
-		if (_pairwise) {
+	// models are given one per line here
+	if(_mitr != _mend){
+		m = Regression::parseModelStr(*_mitr, _ds);
+		++_mitr;
+	}
 
-			// We want Env vars
-			if (_traits) {
-				// we want exhaustive EnvxEnv
-				if (_nomarker) {
-					if (++_ti2 == _tend && _titr != _tend && ++_titr != _tend) {
-						_ti2 = _titr;
-						++_ti2;
-					}
-					if (_titr != _tend && _ti2 != _tend) {
-						m = new Model();
-						m->traits.push_back(*_titr);
-						m->traits.push_back(*_ti2);
-					}
+	return m;
+}
 
-				// We want exhaustive SNPxSNPxEnv models
+Regression::Model* Regression::OneSidedModelGenerator::next() {
+
+	Model* m = 0;
+
+	// We want Env vars
+	if (_traits) {
+		// we want exhaustive EnvxEnv
+		if (_nomarker) {
+			if (_ti2 == _tall_set.end() && _titr != _t_set.end()) {
+				_t_processed.insert(*(_titr++));
+				if (_titr != _t_set.end()) {
+					_ti2 = _tall_set.begin();
+				}
+			}
+
+			// If ti2 == end ==> _titr == end
+			if (_ti2 != _tall_set.end()) {
+				if (_t_processed.find(*_ti2) == _t_processed.end()) {
+					m = new Model();
+					m->traits.push_back(*_titr);
+					m->traits.push_back(*_ti2);
+					++_ti2;
 				} else {
+					//If we're here, we have already seen this model!
+					++_ti2;
+					m = next();
+				}
+			}
 
-					if (_mi2 == _ds.endMarker()) {
-						if (_mi1 != _ds.endMarker() && ++_mi1 != _ds.endMarker()) {
-							_mi2 = _mi1;
-							if (++_mi2 == _ds.endMarker()) {
-								_mi1 = _ds.beginMarker();
-								_mi2 = _mi1;
-								++_titr;
-							}
+			// We want exhaustive SNPxSNPxEnv models
+		} else {
+			// A little change from the BasicModelGenerator - here we
+			// want to iterate over mi1, then mi2, then traits
+			// (Basic iterated over traits, then mi1, then mi2)
+
+			if (_titr == _t_set.end()) {
+				// reset the traits and increment mi2
+				if (_mi2 != _ds.endMarker() && ++_mi2 == _ds.endMarker()) {
+					_titr = _t_set.begin();
+					// OK, increment mi1 and add it to the "processed" list
+					if (_mi1 != _m_set.end()) {
+						_m_processed.insert(*(_mi1++));
+
+						if (_mi1 != _m_set.end()) {
+							_mi2 = _ds.beginMarker();
+						} else {
+							// If I'm here, we're done iterating!
+							_titr = _t_set.end();
 						}
 					}
-					if (_titr != _tend) {
-						m = new Model();
-						m->markers.push_back(*_mi1);
-						m->markers.push_back(*_mi2);
-						m->traits.push_back(*_titr);
-						++_mi2;
-					}
 				}
-			// OK, we just want SNPxSNP models
-			} else{
+			}
 
-				if (_mi2 == _ds.endMarker()) {
-					if (_mi1 != _ds.endMarker() && ++_mi1 != _ds.endMarker()) {
-						_mi2 = _mi1;
-						++_mi2;
-					}
-				}
-				if(_mi2 != _ds.endMarker()){
+			if (_mi1 != _m_set.end()) {
+				if (_m_processed.find(*_mi2) == _m_processed.end()) {
 					m = new Model();
 					m->markers.push_back(*_mi1);
 					m->markers.push_back(*_mi2);
+					m->traits.push_back(*_titr);
 					++_mi2;
+				} else {
+					++_mi2;
+					m = next();
 				}
 
 			}
-		// We want Marker x Trait models (i.e. GxE)
-		}else if(_traits){ // Note: !_pairwise == true here
-			if(_mi1 == _ds.endMarker()){
-				_mi1 = _ds.beginMarker();
-				++_titr;
-			}
-			if(_mi1 != _ds.endMarker() && _titr != _tend) {
-				m = new Model();
-				m->markers.push_back(*_mi1);
-				m->traits.push_back(*_titr);
-				++_mi1;
-			}
-		// Must want single variable models
-		}else{
-			// Env only
-			if(_nomarker){
-				if(_titr != _tend){
-					m = new Model();
-					m->traits.push_back(*_titr);
-					++_titr;
-				}
-			// SNP only
-			} else {
-				if(_mi1 != _ds.endMarker()){
-					m = new Model();
-					m->markers.push_back(*_mi1);
-					++_mi1;
-				}
+		}
+		// OK, we just want SNPxSNP models
+	} else {
+
+		if (_mi2 == _ds.endMarker() && _mi1 != _m_set.end()) {
+			_m_processed.insert(*(_mi1++));
+			if(_mi1 != _m_set.end()){
+				_mi2 = _ds.beginMarker();
 			}
 		}
+
+		if (_mi2 != _ds.beginMarker()) {
+			if(_m_processed.find(*_mi2) == _m_processed.end()){
+				m = new Model();
+				m->markers.push_back(*_mi1);
+				m->markers.push_back(*_mi2);
+				++_mi2;
+			} else {
+				++_mi2;
+				m = next();
+			}
+		}
+
 	}
+
 	// NOTE: m == 0 if no more models can be generated!
 	// IN targeted mode, m != 0, but m->markers.size() == 0 && m->traits.size() == 0 in the case of a "bad" model
 	return m;
 
 }
-
 
 }
 }
