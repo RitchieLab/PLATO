@@ -17,6 +17,7 @@
 using PLATO::Data::DataSet;
 using PLATO::Analysis::Regression;
 using PLATO::Analysis::Encoding;
+using PLATO::Utility::Logger;
 
 using std::vector;
 using std::string;
@@ -232,6 +233,10 @@ Regression::Result* LogisticRegression::calculate(
 
 	} // complete iteration
 
+	if(!std::isfinite(LL) || LL-LLn > 0){
+		r->converged = false;
+	}
+
 	r->stderr.clear();
 	r->coeffs.clear();
 	r->p_vals.clear();
@@ -259,7 +264,8 @@ Regression::Result* LogisticRegression::calculate(
 			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
 			* (1 + pairwise);
 
-	if (isnan(LL)) {
+	if (!r->converged) {
+		Logger::log_err("WARNING: Logistic regression model did not converge");
 		r->p_val = 1.0;
 		r->log_likelihood = 0.0;
 	} else {
@@ -282,6 +288,13 @@ void LogisticRegression::process(DataSet& ds){
 	runRegression(ds);
 }
 
+void LogisticRegression::printExtraHeader(){
+	out_f << "Converged" << sep;
+}
+
+void LogisticRegression::printExtraResults(const Result& r){
+	out_f << r.converged << sep;
+}
 
 }
 }

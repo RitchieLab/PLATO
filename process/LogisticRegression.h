@@ -27,6 +27,9 @@ protected:
 	virtual void printVarHeader(const std::string& var_name);
 	virtual void initData(const std::string& model_str, const Data::DataSet& ds);
 
+	virtual void printExtraHeader();
+	virtual void printExtraResults(const Result& r);
+
 private:
 	bool show_odds;
 	unsigned int maxIterations;

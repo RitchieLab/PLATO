@@ -455,6 +455,8 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 
 	out_f << "N_Missing" << sep;
 
+	printExtraHeader();
+
 	if (n_snp + n_trait > 1) {
 		for (unsigned int i = 0; show_uni && i < n_snp + n_trait; i++) {
 			string hdr = "Uni_Var" + boost::lexical_cast<string>(i + 1);
@@ -766,7 +768,8 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	}else{
 		Logger::log_err("WARNING: not enough samples in model: '" + ss.str() + "'!");
 		r = new Result();
-		r->p_val = r->log_likelihood = r->r_squared = std::numeric_limits<float>::quiet_NaN();
+		r->p_val = 1;
+		r->log_likelihood = r->r_squared = std::numeric_limits<float>::quiet_NaN();
 	}
 
 	// print the # missing from this model
@@ -842,6 +845,8 @@ void Regression::printResults(){
 		}
 		// print a single line
 		out_f << results[i]->prefix;
+
+		printExtraResults(*(results[i]));
 
 		for(unsigned int j=0;j<results[i]->coeffs.size(); j++){
 			out_f << results[i]->p_vals[j] << sep

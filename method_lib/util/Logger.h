@@ -6,6 +6,8 @@
 #include <fstream>
 #include <stdexcept>
 
+#include <boost/thread.hpp>
+
 namespace PLATO{
 namespace Utility{
 
@@ -27,10 +29,13 @@ public:
 
 private:
 	void print(const std::string& msg, std::ostream& out);
+	void resetFile(const std::string& fn);
 
 	static std::string logfn;
 	static Logger* _log;
 
+	// We need to make the log thread-safe
+	boost::mutex _log_mutex;
 	std::ofstream logstream;
 };
 

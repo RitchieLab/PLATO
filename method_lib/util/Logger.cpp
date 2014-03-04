@@ -18,19 +18,24 @@ Logger::~Logger(){
 }
 
 void Logger::setLogFile(const string& fn){
+	getLogger().resetFile(fn);
+}
+
+void Logger::resetFile(const string& fn){
+	_log_mutex.lock();
 	if(fn != logfn){
 		logfn = fn;
-		if(_log){
-			delete _log;
-			_log = new Logger();
-		}
+		logstream.close();
+		logstream.open(logfn.c_str());
 	}
+	_log_mutex.unlock();
 }
 
 void Logger::print(const string& msg, ostream& out){
+	_log_mutex.lock();
 	logstream << msg << endl;
-
 	out << msg << endl;
+	_log_mutex.unlock();
 
 }
 

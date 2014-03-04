@@ -161,7 +161,7 @@ protected:
 	 */
 	class Result{
 	public:
-		Result() : beta_vec(0) {}
+		Result() : beta_vec(0), converged(true) {}
 		~Result(){ if(beta_vec){delete[] beta_vec;}}
 
 		std::deque<float> coeffs;
@@ -181,6 +181,9 @@ protected:
 		std::string prefix;
 		// A string to print AFTER all of the variables, but BEFORE p-value
 		std::string suffix;
+
+		// Did we converge (logistic regression only)?
+		bool converged;
 
 		bool operator<(const Result& o) const {return p_val < o.p_val;}
 	};
@@ -230,6 +233,9 @@ protected:
 	virtual void printResults();
 
 	virtual void printVarHeader(const std::string& var_name);
+	// Use this to print extra column information, like convergence..
+	virtual void printExtraHeader() {}
+	virtual void printExtraResults(const Result& r) {}
 
 	void addResult(Result* curr_result, const Result* null_result);
 
