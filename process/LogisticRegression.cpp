@@ -6,13 +6,12 @@
 #include <cstring>
 #include <numeric>
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
 
 #include "util/Logger.h"
+#include "util/GSLUtils.h"
 
 using PLATO::Data::DataSet;
 using PLATO::Analysis::Regression;
@@ -136,7 +135,13 @@ Regression::Result* LogisticRegression::calculate(
 	// weight vector used for IRLS procedure
 	double weight[n_rows];
 
-	gsl_matrix_const_view X = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
+	gsl_matrix_const_view data_mat = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
+
+	gsl_matrix* P = gsl_matrix_alloc(n_cols, n_cols);
+	// First, let's check for colinearity!
+	r->n_dropped = Utility::GSLUtils::checkColinear(&data_mat.matrix, P);
+
+	unsigned int n_indep = n_cols - r->n_dropped;
 
 	// gsl weight vector for IRLS procedure
 	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
@@ -155,11 +160,19 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_vector* rhs = gsl_vector_alloc(n_rows);
 
 	// I need these to work with the default values
-	gsl_multifit_linear_workspace *ws = gsl_multifit_linear_alloc(n_rows, n_cols);
-	gsl_matrix* cov = gsl_matrix_alloc(n_cols, n_cols);
+	gsl_multifit_linear_workspace *ws = gsl_multifit_linear_alloc(n_rows, n_indep);
+	gsl_matrix* cov_mat = gsl_matrix_calloc(n_cols, n_cols);
+	gsl_matrix_view cov_view = gsl_matrix_submatrix(cov_mat, 0, 0, n_indep, n_indep);
+	gsl_matrix* cov = &cov_view.matrix;
+	gsl_matrix* A = gsl_matrix_calloc(n_rows, n_cols);
 	double tmp_chisq;
 
+	// Let's perform our permutation ans set A = data * P
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mat.matrix, P, 0.0, A);
 
+	b = gsl_vector_view_array(beta, n_indep);
+
+	gsl_matrix_const_view X = gsl_matrix_const_submatrix(A, 0, 0, n_rows, n_indep);
 
 	double LLp = numeric_limits<double>::infinity(); // stores previous value of LL to check for convergence
 	double LLn, LL = 0;
@@ -239,21 +252,61 @@ Regression::Result* LogisticRegression::calculate(
 		r->converged = false;
 	}
 
+	// OK, now time to unpermute everything!
+	// Note: to unpermute, multiply by P transpose!
+	// Also, we need to unpermute both the rows AND columns of cov_mat
+	b = gsl_vector_view_array(r->beta_vec, n_cols);
+	gsl_matrix* _cov_work = gsl_matrix_calloc(n_cols, n_cols);
+	// permute columns
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, cov_mat, P, 0.0, _cov_work);
+	// permute rows
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, P, _cov_work, 0.0, cov_mat);
+	gsl_matrix_free(_cov_work);
+
+	gsl_vector* _bv_work = gsl_vector_alloc(n_cols);
+	gsl_vector_memcpy(_bv_work, &b.vector);
+	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, &b.vector);
+
 	r->stderr.clear();
 	r->coeffs.clear();
 	r->p_vals.clear();
 
-	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
-		double c = beta[i];
-		double se = sqrt( gsl_matrix_get(cov, i, i));
+	// create a set of all of the removed indices
+	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
+	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
+	for(unsigned int i=0; i<n_cols; i++){
+		gsl_vector_set(_bv_work, i, i);
+	}
+	gsl_blas_dgemv(CblasNoTrans, 1.0, P, _bv_work, 0.0, idx_permu);
+	set<unsigned int> permu_idx_set(idx_permu->data + n_indep, idx_permu->data + n_cols);
 
-		r->coeffs.push_back(show_odds ? exp(c) : c);
-		r->stderr.push_back(se);
-		// use the wald statistic to get p-values for each coefficient
-		r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1 + (encoding == Encoding::WEIGHTED)) );
+	gsl_vector_free(idx_permu);
+	gsl_vector_free(_bv_work);
+
+	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
+		if(permu_idx_set.find(i) == permu_idx_set.end()){
+
+			double c = beta[i];
+			double se = sqrt( gsl_matrix_get(cov_mat, i, i));
+
+			r->coeffs.push_back(show_odds ? exp(c) : c);
+			r->stderr.push_back(se);
+			// use the wald statistic to get p-values for each coefficient
+			r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1 + (encoding == Encoding::WEIGHTED)) );
+		} else {
+			// If this is true, this column was dropped from analysis!
+			r->coeffs.push_back(std::numeric_limits<float>::quiet_NaN());
+			r->stderr.push_back(std::numeric_limits<float>::quiet_NaN());
+			r->p_vals.push_back(std::numeric_limits<float>::quiet_NaN());
+		}
 	}
 
 	addResult(r, null_result);
+
+	unsigned int df = n_indep - reduced_vars;
+	if (null_result){
+		df += null_result->n_dropped;
+	}
 
 	// We want to see if there are extra degrees of freedom, which can happen in
 	// the case of the "categorical" model
@@ -271,7 +324,7 @@ Regression::Result* LogisticRegression::calculate(
 		r->p_val = 1.0;
 		r->log_likelihood = 0.0;
 	} else {
-		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), n_cols-reduced_vars+extra_df);
+		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), df+extra_df);
 		r->log_likelihood = LL;
 	}
 
@@ -280,8 +333,10 @@ Regression::Result* LogisticRegression::calculate(
 	}
 
 	gsl_vector_free(rhs);
-	gsl_matrix_free(cov);
+	gsl_matrix_free(cov_mat);
+	gsl_matrix_free(P);
 	gsl_multifit_linear_free(ws);
+	gsl_matrix_free(A);
 
 	return r;
 }

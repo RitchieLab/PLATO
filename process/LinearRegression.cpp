@@ -15,6 +15,7 @@
 #include <gsl/gsl_linalg.h>
 
 #include "util/Logger.h"
+#include "util/GSLUtils.h"
 
 using PLATO::Data::DataSet;
 using PLATO::Analysis::Regression;
@@ -87,79 +88,22 @@ Regression::Result* LinearRegression::calculate(
 	// to run our regression if we so choose (to save time)
 
 	// NOTE: I don't want X to be const! hence the leading _
-	_gsl_matrix_const_view X = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
-	gsl_matrix* A = gsl_matrix_calloc(n_rows, n_cols);
-	gsl_matrix* V = gsl_matrix_alloc(n_cols, n_cols);
-	gsl_vector* S = gsl_vector_calloc(n_cols);
-	gsl_vector* __ws_v = gsl_vector_alloc(n_cols);
-	gsl_matrix* __ws_m = gsl_matrix_alloc(n_cols, n_cols);
+	gsl_matrix_const_view data_mv = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 
-	// P is our permutation matrix
 	gsl_matrix* P = gsl_matrix_alloc(n_cols, n_cols);
-	gsl_matrix_set_identity(P);
+	r->n_dropped = Utility::GSLUtils::checkColinear(&data_mv.matrix, P);
 
-	gsl_matrix_memcpy(A, &X.matrix);
+	gsl_matrix* A = gsl_matrix_alloc(n_rows, n_cols);
 
-	gsl_linalg_SV_decomp_mod (A, __ws_m, V, S, __ws_v);
+	// Now, we're done with all of the SVD nonsense, we can set
+	// A = X * P (remember, X is our original data, but it's const!)
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mv.matrix, P, 0.0, A);
 
-	// OK, now we look for all singular values less than machine epsilon
-	// (we'll use float epsilon for double precision - lots of willge room there)
-	unsigned int n_indep = n_cols;
-	vector<unsigned int> idx_permu;
-	while(gsl_vector_get(S,n_indep - 1) < std::numeric_limits<float>::epsilon()){
-		// If we're here, the "n_indep - 1" column of V is a linear combination
-		// of columns that adds to 0, so we want the last non-zero coefficient
+	unsigned int n_indep = n_cols - r->n_dropped;
 
-		unsigned int p_idx = n_cols;
-
-		// At the end of this (empty) loop, p_idx will be the index of the column
-		// to drop
-		while(--p_idx > 0 && fabs(gsl_matrix_get(V,p_idx,n_indep-1)) < std::numeric_limits<float>::epsilon());
-
-		idx_permu.push_back(p_idx);
-		--n_indep;
-	}
-
-	if(n_indep != n_cols){
-		if(offset == 0){
-			Logger::log_err("WARNING: colinear columns detected in linear regression, dropping "
-							+ boost::lexical_cast<string>(n_cols - n_indep) + " parameters");
-		}
-
-		r->n_dropped = n_cols - n_indep;
-
-		// OK, let's construct a permutation matrix by walking from the front of
-		// the idx_permu vector and creating a temporary permutation matrix
-		// and left-multiplying by P (which is now the identity)
-		gsl_matrix* P_tmp = gsl_matrix_alloc(n_cols, n_cols);
-		gsl_matrix* _P_work = gsl_matrix_calloc(n_cols, n_cols);
-		for(unsigned int i=0; i<idx_permu.size(); i++){
-			unsigned int p_idx = idx_permu[i];
-			gsl_matrix_set_identity(P_tmp);
-
-			// Now, we want to transpose the (p_idx) and (n_cols - i - 1) columns
-			// so we set (p_idx, p_idx) = (n_cols-i-1,n_cols-i-1) = 0
-			// and (p_idx,n_cols-i-1) = (n_cols-i-1,p_idx) = 1
-			gsl_matrix_set(P_tmp, p_idx,p_idx, 0);
-			gsl_matrix_set(P_tmp, n_cols-i-1,n_cols-i-1, 0);
-			gsl_matrix_set(P_tmp, n_cols-i-1,p_idx, 1);
-			gsl_matrix_set(P_tmp, p_idx,n_cols-i-1, 1);
-
-			// Now, set P = P * P_tmp
-			gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, P, P_tmp, 0.0, _P_work);
-			std::swap(P, _P_work);
-		}
-		gsl_matrix_free(P_tmp);
-		gsl_matrix_free(_P_work);
-
-		// Now, we're done with all of the SVD nonsense, we can set
-		// A = X * P (remember, X is our original data, but it's const!)
-		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &X.matrix, P, 0.0, A);
-
-		// Now, let's make X a view of only the first linearly independent columns
-		// of A
-		X = gsl_matrix_const_submatrix(A,0,0,n_rows, n_indep);
-	}
+	// Now, let's make X a view of only the first linearly independent columns
+	// of A
+	gsl_matrix_const_view X = gsl_matrix_const_submatrix(A,0,0,n_rows, n_indep);
 
 	// At this point, we have our X matrix set appropriately
 	// Let's set up our other data
@@ -185,7 +129,6 @@ Regression::Result* LinearRegression::calculate(
 
 	gsl_multifit_linear_workspace* ws = gsl_multifit_linear_alloc(n_rows, n_indep);
 
-	// TODO: re-use the SVD we calculated previously if n_cols == n_indep
 	gsl_multifit_linear(&X.matrix, &y_vec.vector, &bv.vector, cov, &chisq, ws);
 	gsl_multifit_linear_residuals(&X.matrix, &y_vec.vector, &bv.vector, resid);
 
@@ -206,7 +149,7 @@ Regression::Result* LinearRegression::calculate(
 	gsl_vector* _bv_work = gsl_vector_alloc(n_cols);
 	gsl_vector_memcpy(_bv_work, &bv.vector);
 	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, &bv.vector);
-	gsl_vector_free(_bv_work);
+
 
 	r->coeffs.clear();
 	r->stderr.clear();
@@ -214,7 +157,16 @@ Regression::Result* LinearRegression::calculate(
 	// add all the non-covariate coefficients
 
 	// create a set of all of the removed indices
-	set<unsigned int> permu_idx_set(idx_permu.begin(), idx_permu.end());
+	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
+	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
+	for(unsigned int i=0; i<n_cols; i++){
+		gsl_vector_set(_bv_work, i, i);
+	}
+	gsl_blas_dgemv(CblasNoTrans, 1.0, P, _bv_work, 0.0, idx_permu);
+	set<unsigned int> permu_idx_set(idx_permu->data + n_indep, idx_permu->data + n_cols);
+
+	gsl_vector_free(idx_permu);
+	gsl_vector_free(_bv_work);
 
 	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
 		if(permu_idx_set.find(i) == permu_idx_set.end()){
@@ -282,10 +234,7 @@ Regression::Result* LinearRegression::calculate(
 	}
 
 	gsl_matrix_free(A);
-	gsl_matrix_free(V);
-	gsl_vector_free(S);
-	gsl_vector_free(__ws_v);
-	gsl_matrix_free(__ws_m);
+	gsl_matrix_free(P);
 	gsl_vector_free(resid);
 	gsl_matrix_free(cov_mat);
 	gsl_multifit_linear_free(ws);

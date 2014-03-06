@@ -872,8 +872,11 @@ Regression::Model* Regression::TargetedModelGenerator::next() {
 
 	Model* m = 0;
 	// models are given one per line here
-	if(_mitr != _mend){
+	while(_mitr != _mend && (m == 0 || (m->markers,size() == 0 && m->traits.size() == 0))){
 		m = Regression::parseModelStr(*_mitr, _ds);
+		if(m->markers,size() == 0 && m->traits.size() == 0){
+			Logger::log_err("WARNING: Model '" + *_mitr + "' has elements not in the dataset, ignoring");
+		}
 		++_mitr;
 	}
 

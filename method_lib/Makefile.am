@@ -30,6 +30,8 @@ util/InputManager.h \
 util/InputManager.cpp \
 util/Missing.h \
 util/Missing.cpp \
+util/GSLUtils.h \
+util/GSLUtils.cpp \
 analysis/Correction.h \
 analysis/Correction.cpp \
 analysis/Encoding.h \

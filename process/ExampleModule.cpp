@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <gsl/gsl_multifit.h>
+
 using std::cout;
 using std::endl;
 using std::string;
@@ -31,6 +33,40 @@ void ExampleModule::process(DataSet& ds){
 	//main processing of step goes here.
 	cout << "Hi, I'm in the ExampleModule process method\n";
 	cout << "I'm going to process " << ds.num_loci() << " markers, " << ds.num_pedigrees() << " families, and " << ds.num_inds() << " samples!\n";
+
+	// Test some GSL regression code here - easier to debug in Eclipse
+	gsl_matrix* dat = gsl_matrix_calloc(6,3);
+	gsl_vector* val = gsl_vector_calloc(6);
+	gsl_matrix_set_identity(dat);
+	// make the 2nd column all 0s (singularity)
+	gsl_matrix_set(dat,1,1,0);
+	// Make the first column all 1
+	for(int i=0; i<6; i++){
+		gsl_matrix_set(dat,i,0,1);
+	}
+
+	gsl_vector_set_basis(val,0);
+	gsl_vector_set(val,1,1);
+	gsl_vector_set(val,2,1);
+
+	// Now we have:
+	// val = [1 1 1 0 0 0]
+	// mat = [1 1 1 1 1 1; 0 0 0 0 0 0; 0 0 1 0 0 0]'
+
+	// try to run a linear regression:
+	gsl_multifit_linear_workspace* ws = gsl_multifit_linear_alloc (6, 3);
+
+	gsl_vector* c = gsl_vector_alloc(3);
+	gsl_matrix* cov = gsl_matrix_alloc(3,3);
+	double chisq;
+
+	gsl_multifit_linear(dat, val, c, cov, &chisq, ws);
+
+	gsl_matrix_free(cov);
+	gsl_vector_free(c);
+	gsl_multifit_linear_free(ws);
+	gsl_matrix_free(dat);
+	gsl_vector_free(val);
 
 }
 
