@@ -309,7 +309,7 @@ void Regression::runRegression(const DataSet& ds){
 		// Calculate the number of SNPs / Env vars based on the options passed
 		// in to the Regression object.
 		n_snp = (!exclude_markers) * (1 + pairwise);
-		n_trait = (incl_traits.size() > 0) * (1 + exclude_markers);
+		n_trait = (incl_traits.size() > 0) * (1 + pairwise * exclude_markers);
 	}
 
 	printHeader(n_snp, n_trait);

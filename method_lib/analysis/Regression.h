@@ -397,7 +397,7 @@ Regression::Model* Regression::BasicModelGenerator<M_iter>::next() {
 
 		}
 		// We want Marker x Trait models (i.e. GxE)
-	} else if (_traits) { // Note: !_pairwise == true here
+	} else if (!_nomarker && _traits) { // Note: !_pairwise == true here
 		if (_mi1 == _mend) {
 			_mi1 = _mbegin;
 			++_titr;
