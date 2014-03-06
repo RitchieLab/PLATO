@@ -161,7 +161,7 @@ protected:
 	 */
 	class Result{
 	public:
-		Result() : beta_vec(0), converged(true) {}
+		Result() : beta_vec(0), n_dropped(0), converged(true) {}
 		~Result(){ if(beta_vec){delete[] beta_vec;}}
 
 		std::deque<float> coeffs;
@@ -181,6 +181,8 @@ protected:
 		std::string prefix;
 		// A string to print AFTER all of the variables, but BEFORE p-value
 		std::string suffix;
+
+		unsigned int n_dropped;
 
 		// Did we converge (logistic regression only)?
 		bool converged;

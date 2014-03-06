@@ -168,10 +168,10 @@ Regression::Result* LogisticRegression::calculate(
 
 	unsigned int numIterations = 0;
 
-	double TOL= 0.000000001;
+	double TOL= numeric_limits<float>::epsilon();
 	// 2*numeric_limits<double>::epsilon() ??
 
-	while (fabs(LLp - LL) > TOL && ++numIterations < maxIterations ) {
+	while (fabs(LLp - LL) > TOL*LLn && ++numIterations < maxIterations ) {
 
 		// First, let's initialize the RHS to X*beta_t (rhs = 1 * X * b + 0* rhs)
 		gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &b.vector, 0, rhs);
@@ -229,11 +229,13 @@ Regression::Result* LogisticRegression::calculate(
 		}
 
 		// Look, magic!
-		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
+		int res = gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
+
+		LL += 0;
 
 	} // complete iteration
 
-	if(!std::isfinite(LL) || LL-LLn > 0){
+	if(!std::isfinite(LL) || numIterations >= maxIterations || LL-LLn > 0){
 		r->converged = false;
 	}
 
