@@ -231,7 +231,7 @@ protected:
 			unsigned int n_covars=0) = 0;
 	float getCategoricalWeight(const PLATO::Data::Marker* m, const PLATO::Data::DataSet& ds);
 
-	virtual void initData(const std::string& model_str, const PLATO::Data::DataSet& ds) {}
+	virtual void initData(const PLATO::Data::DataSet& ds) {}
 	virtual void printResults();
 
 	virtual void printVarHeader(const std::string& var_name);

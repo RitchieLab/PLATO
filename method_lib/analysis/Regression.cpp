@@ -38,6 +38,7 @@ using std::stringstream;
 using std::min;
 using std::max;
 using std::ifstream;
+using std::deque;
 
 using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
@@ -283,19 +284,27 @@ void Regression::runRegression(const DataSet& ds){
 		Utility::Logger::log_err("ERROR: Outcome '" + outcome_name + "' is not a recognized trait, aborting.", true);
 	}
 
-	string model_str = "";
-	if(_models.size() > 0){
-		model_str=*(_models.begin());
-	}
 
 	unsigned int n_snp = 0;
 	unsigned int n_trait = 0;
 
-	if(model_str.size() > 0){
-		Model* m = Regression::parseModelStr(model_str, ds);
+	if(_models.size() > 0){
+		deque<string>::const_iterator mi = _models.begin();
+		Model* m = 0;
+		while(mi != _models.end() && (m ==0 || (m->traits.size() == 0 && m->markers.size() ==0))){
+			m = parseModelStr(*mi, ds);
+			++mi;
+		}
+
 		n_snp = m->markers.size();
 		n_trait = m->traits.size();
+
 		delete m;
+
+		if(n_snp ==0 && n_trait == 0){
+			Logger::log_err("ERROR: Could not find a model to run", true);
+		}
+
 	} else{
 		// Calculate the number of SNPs / Env vars based on the options passed
 		// in to the Regression object.
@@ -332,7 +341,7 @@ void Regression::runRegression(const DataSet& ds){
 		++si;
 	}
 
-	this->initData(model_str, ds);
+	this->initData(ds);
 
 	ModelGenerator* mgp;
 
@@ -872,9 +881,9 @@ Regression::Model* Regression::TargetedModelGenerator::next() {
 
 	Model* m = 0;
 	// models are given one per line here
-	while(_mitr != _mend && (m == 0 || (m->markers,size() == 0 && m->traits.size() == 0))){
+	while(_mitr != _mend && (m == 0 || (m->markers.size() == 0 && m->traits.size() == 0))){
 		m = Regression::parseModelStr(*_mitr, _ds);
-		if(m->markers,size() == 0 && m->traits.size() == 0){
+		if(m->markers.size() == 0 && m->traits.size() == 0){
 			Logger::log_err("WARNING: Model '" + *_mitr + "' has elements not in the dataset, ignoring");
 		}
 		++_mitr;

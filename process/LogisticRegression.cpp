@@ -63,7 +63,7 @@ void LogisticRegression::printVarHeader(const std::string& var_name){
 	}
 }
 
-void LogisticRegression::initData(const std::string& model_str, const DataSet& ds){
+void LogisticRegression::initData(const DataSet& ds){
 
 	//transform the phenotype from [0,1]
 	set<float> uniq_pheno;
