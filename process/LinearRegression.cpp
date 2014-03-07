@@ -44,7 +44,7 @@ po::options_description& LinearRegression::appendOptions(po::options_description
 	logreg_opts.add_options()
 			;
 
-	opts.add(logreg_o);
+	opts.add(logreg_opts);
 
 	return opts;
 }
