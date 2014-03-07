@@ -44,7 +44,7 @@ po::options_description& LinearRegression::appendOptions(po::options_description
 	logreg_opts.add_options()
 			;
 
-	opts.add(logreg_opts);
+	opts.add(logreg_o);
 
 	return opts;
 }
@@ -217,7 +217,11 @@ Regression::Result* LinearRegression::calculate(
 			* (1 + pairwise);
 
 
-	r->p_val = 1-gsl_cdf_fdist_P(std::max(0.0, F),df+extra_df,n_rows-n_indep-extra_df);
+	if(df == 0){
+		r->p_val = 1;
+	} else {
+		r->p_val = 1-gsl_cdf_fdist_P(std::max(0.0, F),df+extra_df,n_rows-n_indep-extra_df);
+	}
 
 	// I have no idea if the log_likelihood is correct!!
 	r->log_likelihood = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(chisq)));

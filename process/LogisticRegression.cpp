@@ -324,7 +324,11 @@ Regression::Result* LogisticRegression::calculate(
 		r->p_val = 1.0;
 		r->log_likelihood = 0.0;
 	} else {
-		r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), df+extra_df);
+		if(df == 0){
+			r->p_val = 1;
+		} else {
+			r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), df+extra_df);
+		}
 		r->log_likelihood = LL;
 	}
 
