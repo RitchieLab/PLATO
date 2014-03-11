@@ -76,9 +76,9 @@ Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsi
 	_sample_map[std::make_pair(famid, id)] = new_samp;
 
 	// Now, add a NaN for everything in the trait map
-	map<string, deque<float> >::iterator t_itr = _trait_map.begin();
+	map<string, pair<bool, deque<float> > >::iterator t_itr = _trait_map.begin();
 	while(t_itr != _trait_map.end()){
-		(*t_itr).second.push_back(std::numeric_limits<float>::quiet_NaN());
+		(*t_itr).second.second.push_back(std::numeric_limits<float>::quiet_NaN());
 		++t_itr;
 	}
 
@@ -149,28 +149,39 @@ bool DataSet::addTrait(const std::string& trait, const Sample* samp, float val){
 		return false;
 	}
 
-	map<string, deque<float> >::iterator itr = _trait_map.find(trait);
+	map<string, pair<bool, deque<float> > >::iterator itr = _trait_map.find(trait);
 
 	//If the mapping isn't found for the given trait, add a completely NaN entry
 	if(itr == _trait_map.end()){
-		itr = _trait_map.insert(_trait_map.end(), make_pair(trait,
+		itr = _trait_map.insert(_trait_map.end(), make_pair(trait, make_pair(true,
 				deque<float> (_samples.size(),
-						std::numeric_limits<float>::quiet_NaN())));
+						std::numeric_limits<float>::quiet_NaN()))));
 	}
 
-	(*itr).second[(*s_itr).second] = val;
+	(*itr).second.second[(*s_itr).second] = val;
 	return true;
 }
 
 float DataSet::getTrait(const std::string& trait, const Sample* samp) const{
 	map<const Sample*, unsigned int>::const_iterator s_itr = _sample_idx_map.find(samp);
-	map<string, deque<float> >::const_iterator itr = _trait_map.find(trait);
+	map<string, pair<bool, deque<float> > >::const_iterator itr = _trait_map.find(trait);
 
 	if(s_itr == _sample_idx_map.end() || itr == _trait_map.end()){
 		return std::numeric_limits<float>::quiet_NaN();
 	}
 
-	return (*itr).second[(*s_itr).second];
+	return (*itr).second.second[(*s_itr).second];
+}
+
+bool DataSet::setTraitEnabled(const std::string& trait, bool isEnabled){
+	map<string, pair<bool, deque<float> > >::iterator m_itr = _trait_map.find(trait);
+
+	if(m_itr != _trait_map.end()){
+		(*m_itr).second.first = isEnabled;
+		return true;
+	}
+	// return false if the given trait is not found
+	return false;
 }
 
 }

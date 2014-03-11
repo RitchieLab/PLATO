@@ -4,6 +4,8 @@
 #include "data/Marker.h"
 #include "data/Sample.h"
 
+using std::string;
+
 using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
 using PLATO::Data::Sample;
@@ -35,6 +37,23 @@ double Missing::markerMissing(const DataSet& ds, const Marker& m){
 	DataSet::const_sample_iterator si = ds.beginSample();
 	while(si != ds.endSample()){
 		if((*si)->getAdditiveGeno(m) == Sample::missing_allele){
+			++n_missing;
+		}
+		++n_sample;
+		++si;
+	}
+
+	return n_missing / static_cast<double>(n_sample);
+
+}
+
+double Missing::traitMissing(const DataSet& ds, const string& t){
+	int n_sample;
+	int n_missing;
+
+	DataSet::const_sample_iterator si = ds.beginSample();
+	while(si != ds.endSample()){
+		if(std::isnan(ds.getTrait(t, *si))){
 			++n_missing;
 		}
 		++n_sample;

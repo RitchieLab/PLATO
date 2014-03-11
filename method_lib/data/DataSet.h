@@ -75,17 +75,42 @@ public:
 			boost::forward_traversal_tag> {
 
 	public:
-		const_trait_iterator(std::map<std::string, std::deque<float> >::const_iterator itr) :
-			_itr(itr) {}
+		const_trait_iterator(std::map<std::string, std::pair<bool, std::deque<float> > >::const_iterator itr,
+				std::map<std::string, std::pair<bool, std::deque<float> > >::const_iterator end) :
+			_itr(itr), _end(end) {}
 
 	private:
 		friend class boost::iterator_core_access;
 
-		void increment() { ++_itr;}
+		void increment() { while(_itr != _end && !(*_itr).second.first) {++_itr;}}
 		bool equal(const const_trait_iterator& other) const { return _itr == other._itr; }
 		const std::string& dereference() const { return (*_itr).first;}
 
-		std::map<std::string, std::deque<float> >::const_iterator _itr;
+		std::map<std::string, std::pair<bool, std::deque<float> > >::const_iterator _itr;
+		std::map<std::string, std::pair<bool, std::deque<float> > >::const_iterator _end;
+	};
+
+	class trait_iterator: public boost::iterator_facade<
+			trait_iterator, const std::string&,
+			boost::forward_traversal_tag> {
+
+	public:
+		trait_iterator(std::map<std::string, std::pair<bool, std::deque<float> > >::iterator itr,
+				std::map<std::string, std::pair<bool, std::deque<float> > >::iterator end) :
+			_itr(itr), _end(end) {}
+
+		operator const_trait_iterator() const{
+			return const_trait_iterator(_itr, _end);
+		}
+	private:
+		friend class boost::iterator_core_access;
+
+		void increment() { while(_itr != _end && !(*_itr).second.first) {++_itr;}}
+		bool equal(const trait_iterator& other) const { return _itr == other._itr; }
+		const std::string& dereference() const { return (*_itr).first;}
+
+		std::map<std::string, std::pair<bool, std::deque<float> > >::iterator _itr;
+		std::map<std::string, std::pair<bool, std::deque<float> > >::iterator _end;
 	};
 
 	typedef const_iterator<Sample> const_sample_iterator;
@@ -106,7 +131,7 @@ public:
 	const_family_iterator beginFamily() const{
 		return const_family_iterator(_families.begin(), _families.end());}
 	const_trait_iterator beginTrait() const{
-		return const_trait_iterator(_trait_map.begin());}
+		return const_trait_iterator(_trait_map.begin(), _trait_map.end());}
 
 	const_sample_iterator endSample() const{
 		return const_sample_iterator(_samples.end(), _samples.end());}
@@ -115,7 +140,7 @@ public:
 	const_family_iterator endFamily() const{
 		return const_family_iterator(_families.end(), _families.end());}
 	const_trait_iterator endTrait() const{
-		return const_trait_iterator(_trait_map.end());}
+		return const_trait_iterator(_trait_map.end(), _trait_map.end());}
 
 
 	sample_iterator beginSample() {
@@ -124,6 +149,8 @@ public:
 		return marker_iterator(_markers.begin(), _markers.end());}
 	family_iterator beginFamily() {
 		return family_iterator(_families.begin(), _families.end());}
+	trait_iterator beginTrait() {
+		return trait_iterator(_trait_map.begin(), _trait_map.end());}
 
 	sample_iterator endSample() {
 		return sample_iterator(_samples.end(), _samples.end());}
@@ -131,6 +158,8 @@ public:
 		return marker_iterator(_markers.end(), _markers.end());}
 	family_iterator endFamily() {
 		return family_iterator(_families.end(), _families.end());}
+	trait_iterator endTrait() {
+		return trait_iterator(_trait_map.end(), _trait_map.end());}
 
 	Marker* addMarker(const std::string& chrom, unsigned int loc, const std::string& id);
 	Sample* addSample(const std::string& famid, const std::string& id, unsigned int n_genos=0);
@@ -138,6 +167,7 @@ public:
 	Family* addFamily(const std::string& id);
 	bool addTrait(const std::string& trait, const Sample* samp, float val);
 	float getTrait(const std::string& trait, const Sample* samp) const;
+	bool setTraitEnabled(const std::string& trait, bool isEnabled=true);
 	bool isTrait(const std::string& trait) const { return _trait_map.find(trait) != _trait_map.end();}
 
 	void sortMarkers();
@@ -167,7 +197,7 @@ private:
 	std::map<std::string, Family*> _family_map;
 
 	std::map<const Sample*, unsigned int> _sample_idx_map;
-	std::map<std::string, std::deque<float> > _trait_map;
+	std::map<std::string, std::pair<bool, std::deque<float> > > _trait_map;
 
 	unsigned int _marker_idx;
 

@@ -1,6 +1,8 @@
 #ifndef UTILITY_MISSING_H
 #define UTILITY_MISSING_H
 
+#include <string>
+
 namespace PLATO{
 
 namespace Data{
@@ -18,6 +20,7 @@ class Missing{
 public:
 	static double markerMissing(const Data::DataSet& ds, const Data::Marker& m);
 	static double sampleMissing(const Data::DataSet& ds, const Data::Sample& s);
+	static double traitMissing(const Data::DataSet& ds, const std::string& t);
 };
 
 }

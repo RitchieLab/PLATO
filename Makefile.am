@@ -48,8 +48,11 @@ process/MarkerMissingFilter.h \
 process/MarkerMissingFilter.cpp \
 process/AlleleFreqFilter.h \
 process/AlleleFreqFilter.cpp \
+process/TraitMissingFilter.h \
+process/TraitMissingFilter.cpp \
 process/ConcordanceProcess.h \
-process/ConcordanceProcess.cpp
+process/ConcordanceProcess.cpp 
+
 
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)
