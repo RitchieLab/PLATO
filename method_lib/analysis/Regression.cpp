@@ -556,7 +556,7 @@ Regression::Model* Regression::parseModelStr(const std::string& model_str, const
 	Model* model = new Model();
 
 	for(unsigned int i=0; i < model_elements.size(); i++){
-		Marker* const m = ds.getMarker(model_elements[i]);
+		const Marker* m = ds.getMarker(model_elements[i]);
 		if(m != 0){
 			model->markers.push_back(m);
 		}else if(ds.isTrait(model_elements[i])){

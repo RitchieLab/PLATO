@@ -99,17 +99,27 @@ Family* DataSet::addFamily(const std::string& id){
 	return new_fam;
 }
 
-Sample* const DataSet::getSample(const string& id) const{
+Sample* DataSet::getSample(const string& id){
 	map<pair<string, string>,Sample*>::const_iterator s_itr = _sample_map.find(std::make_pair(id, id));
 	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
 }
 
-Sample* const DataSet::getSample(const string& fid, const string& iid) const{
+const Sample* DataSet::getSample(const string& id) const{
+	map<pair<string, string>,Sample*>::const_iterator s_itr = _sample_map.find(std::make_pair(id, id));
+	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
+}
+
+Sample* DataSet::getSample(const string& fid, const string& iid){
 	map<pair<string, string>,Sample*>::const_iterator s_itr = _sample_map.find(std::make_pair(fid, iid));
 	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
 }
 
-Marker* const DataSet::getMarker(const std::string& id) const{
+const Sample* DataSet::getSample(const string& fid, const string& iid) const{
+	map<pair<string, string>,Sample*>::const_iterator s_itr = _sample_map.find(std::make_pair(fid, iid));
+	return s_itr == _sample_map.end() ? 0 : (*s_itr).second;
+}
+
+Marker* DataSet::getMarker(const std::string& id){
 	map<string,Marker*>::const_iterator m_itr = _marker_map.find(id);
 	Marker* m = 0;
 	if(m_itr != _marker_map.end()){
@@ -130,12 +140,44 @@ Marker* const DataSet::getMarker(const std::string& id) const{
 	return m;
 }
 
-Family* const DataSet::getFamily(const std::string& id) const{
+const Marker* DataSet::getMarker(const std::string& id) const{
+	map<string,Marker*>::const_iterator m_itr = _marker_map.find(id);
+	const Marker* m = 0;
+	if(m_itr != _marker_map.end()){
+		m = (*m_itr).second;
+	}else{
+		// try to find with chr:pos instead!
+		vector<string> chr_pos;
+		boost::algorithm::split(chr_pos, id, boost::is_any_of(":"), boost::token_compress_off);
+		if(chr_pos.size() == 2){
+			unsigned int pos;
+			std::stringstream pos_ss(chr_pos[1]);
+			pos_ss >> pos;
+			if(pos_ss.eof()){
+				m = getMarker(chr_pos[0], pos);
+			}
+		}
+	}
+	return m;
+}
+
+Family* DataSet::getFamily(const std::string& id){
 	map<string,Family*>::const_iterator f_itr = _family_map.find(id);
 	return f_itr == _family_map.end() ? 0 : (*f_itr).second;
 }
 
-Marker* const DataSet::getMarker(const std::string& chrom, unsigned int loc) const{
+const Family* DataSet::getFamily(const std::string& id) const{
+	map<string,Family*>::const_iterator f_itr = _family_map.find(id);
+	return f_itr == _family_map.end() ? 0 : (*f_itr).second;
+}
+
+Marker* DataSet::getMarker(const std::string& chrom, unsigned int loc){
+	map<pair<unsigned short, unsigned int>,Marker*>::const_iterator m_itr =
+			_marker_pos_map.find(std::make_pair(InputManager::chrStringToInt(chrom), loc));
+	return m_itr == _marker_pos_map.end() ? 0 : (*m_itr).second;
+}
+
+const Marker* DataSet::getMarker(const std::string& chrom, unsigned int loc) const{
 	map<pair<unsigned short, unsigned int>,Marker*>::const_iterator m_itr =
 			_marker_pos_map.find(std::make_pair(InputManager::chrStringToInt(chrom), loc));
 	return m_itr == _marker_pos_map.end() ? 0 : (*m_itr).second;

@@ -172,12 +172,17 @@ public:
 
 	void sortMarkers();
 
-	Sample* const getSample(const std::string& id) const;
-	Sample* const getSample(const std::string& fid, const std::string& id) const;
-	Marker* const getMarker(const std::string& id) const;
-	Family* const getFamily(const std::string& id) const;
+	const Sample* getSample(const std::string& id) const;
+	const Sample* getSample(const std::string& fid, const std::string& id) const;
+	const Marker* getMarker(const std::string& id) const;
+	const Family* getFamily(const std::string& id) const;
+	const Marker* getMarker(const std::string& chrom, unsigned int loc) const;
 
-	Marker* const getMarker(const std::string& chrom, unsigned int loc) const;
+	Sample* getSample(const std::string& id);
+	Sample* getSample(const std::string& fid, const std::string& id);
+	Marker* getMarker(const std::string& id);
+	Family* getFamily(const std::string& id);
+	Marker* getMarker(const std::string& chrom, unsigned int loc);
 
 	unsigned int num_loci() const {return _markers.size();}
 	unsigned int num_pedigrees() const {return _families.size();}
