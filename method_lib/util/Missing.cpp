@@ -1,5 +1,7 @@
 #include "Missing.h"
 
+#include <cmath>
+
 #include "data/DataSet.h"
 #include "data/Marker.h"
 #include "data/Sample.h"

@@ -38,7 +38,7 @@ void InputManager::parseGlobalOptions(const po::variables_map& vm){
 	while(curr_chr < max_chrom){
 		++curr_chr;
 		s_chr_map[boost::lexical_cast<string>(curr_chr)] = curr_chr;
-		// let's also add "chrX" to our map
+		// let's also add "chr" to our map
 		s_chr_map[string("chr") + boost::lexical_cast<string>(curr_chr)] = curr_chr;
 
 		// let's add the int -> chromosome map, too!
@@ -56,6 +56,12 @@ void InputManager::parseGlobalOptions(const po::variables_map& vm){
 
 		boost::tokenizer < boost::char_separator<char> > alias_tok(*beg, alias_sep);
 		s_chrint_map[curr_chr] = *(alias_tok.begin());
+
+		// let's allow this to be referenced by the chromosome number (i.e., "23" is the same as "X")
+		s_chr_map[boost::lexical_cast<string>(curr_chr)] = curr_chr;
+		// let's also add "chrN" to our map
+		s_chr_map[string("chr") + boost::lexical_cast<string>(curr_chr)] = curr_chr;
+
 		for (boost::tokenizer<boost::char_separator<char> >::iterator a_beg =
 				alias_tok.begin(); a_beg != alias_tok.end(); ++a_beg) {
 			s_chr_map[*a_beg] = curr_chr;
