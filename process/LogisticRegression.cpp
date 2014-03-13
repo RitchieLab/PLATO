@@ -249,6 +249,9 @@ Regression::Result* LogisticRegression::calculate(
 	} // complete iteration
 
 	if(!std::isfinite(LL) || numIterations >= maxIterations || LL-LLn > 0){
+		if(offset == 0){
+			Logger::log_err("WARNING: Logistic regression model did not converge");
+		}
 		r->converged = false;
 	}
 
@@ -319,10 +322,9 @@ Regression::Result* LogisticRegression::calculate(
 			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
 			* (1 + pairwise);
 
-	if (!r->converged) {
-		Logger::log_err("WARNING: Logistic regression model did not converge");
+	if (!std::isfinite(LL) || LL-LLn > 0){
 		r->p_val = 1.0;
-		r->log_likelihood = 0.0;
+		r->log_likelihood = std::isfinite(LL) ? LL : -std::numeric_limits<float>::infinity();
 	} else {
 		if(df == 0){
 			r->p_val = 1;
