@@ -248,7 +248,7 @@ private:
 	 * This function takes a ModelGenerator and iterates through it, constantly
 	 * adding results to the result deque.
 	 */
-	void start(ModelGenerator& mg, const Data::DataSet& ds);
+	void start(ModelGenerator& mg, const Data::DataSet& ds, const std::string& outcome);
 
 	void printMarkerHeader(const std::string& var_name);
 	void printHeader(unsigned int n_snp, unsigned int n_trait);
@@ -272,6 +272,9 @@ private:
 
 	//! are we threaded?
 	bool _threaded;
+
+	//! Do we want to do a pheWAS??
+	bool _phewas;
 
 	//! List of markers to include
 	std::set<std::string> incl_marker_name;
@@ -300,7 +303,7 @@ protected:
 	//! covariates to use in the regression
 	std::set<std::string> covar_names;
 	//! A string of the outcome name
-	std::string outcome_name;
+	std::set<std::string> outcome_names;
 
 	//! separator to use while printing output
 	std::string sep;

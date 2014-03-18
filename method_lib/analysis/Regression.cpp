@@ -82,7 +82,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 	regress_opts.add_options()
 		("covariates", po::value<vector<string> >()->composing(),
 			"A list of covariates to use in the model")
-		("outcome", po::value<string>(&outcome_name)->default_value(""),
+		("outcome", po::value<vector<string> >(),
 			"Use a given covariate as the regression model outcome")
 		("exclude-markers", po::bool_switch(&exclude_markers),
 			"Do not include markers in the generated models (use for EWAS)")
@@ -104,6 +104,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
 		("incl-markers", po::value<vector<string> >()->composing(), "Comma-separated list of markers to include")
 		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
+		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
 		;
 
 	opts.add(regress_opts);
@@ -147,6 +148,21 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		InputManager::parseInput(vm["incl-markers"].as<vector<string> >(), incl_marker_name);
 	}
 
+	if(vm.count("outcome")){
+		InputManager::parseInput(vm["outcome"].as<vector<string> >(), outcome_names);
+	}
+
+	if(_phewas){
+		if(vm.count("outcome")){
+			Logger::log_err("WARNING: --outcome and --phewas are incompatible, ignoring --phewas");
+			_phewas = false;
+		} else if(include_traits && !vm.count("incl-traits")){
+			Logger::log_err("WARNING: --phewas used with --use-traits and without --incl-traits, ignoring --phewas");
+			_phewas = false;
+		}
+
+
+	}
 
 	out_f.open(out_fn.c_str());
 	if(!out_f){
@@ -194,6 +210,51 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 }
 
 void Regression::runRegression(const DataSet& ds){
+
+	if(_phewas){
+		// I want the outcome_names to consist of all (enabled) traits, except for those
+		// specifically excluded, included (in the case of use_traits), or used as covariates
+
+		// outcome_names should be empty at this point, but let's make sure
+		outcome_names.clear();
+
+		outcome_names.insert(ds.beginTrait(), ds.endTrait());
+
+		set<string> outcome_tmp;
+		std::set_difference(outcome_names.begin(), outcome_names.end(),
+				            excl_traits.begin(), excl_traits.end(),
+				            std::inserter(outcome_tmp, outcome_tmp.begin()));
+
+		outcome_names.clear();
+
+		std::set_difference(outcome_tmp.begin(), outcome_tmp.end(),
+						    covar_names.begin(), covar_names.end(),
+						    std::inserter(outcome_names, outcome_names.begin()));
+
+		if(include_traits){
+			outcome_tmp.clear();
+			std::set_difference(outcome_names.begin(), outcome_names.end(),
+					            incl_traits.begin(), incl_traits.end(),
+					            std::inserter(outcome_tmp, outcome_tmp.begin()));
+
+			outcome_names.clear();
+			outcome_names.insert(outcome_tmp.begin(), outcome_tmp.end());
+		}
+
+	}
+
+	// Make sure all the outcomes are actual traits
+	set<string>::iterator out_itr = outcome_names.begin();
+	while(out_itr != outcome_names.end()){
+		if(!ds.isTrait(*out_itr)){
+			Logger::log_err("WARNING: '" + *out_itr + "' is not a recognized covariate, ignoring.");
+			outcome_names.erase(out_itr++);
+		} else{
+			++out_itr;
+		}
+	}
+
+
 	set<string> all_traits;
 	if(_onesided){
 		all_traits.insert(ds.beginTrait(), ds.endTrait());
@@ -210,11 +271,14 @@ void Regression::runRegression(const DataSet& ds){
 				            covar_names.begin(), covar_names.end(),
 				            std::inserter(all_traits, all_traits.begin()));
 
-		// remove the outcome variable
-		set<string>::iterator alltrait_out_itr = all_traits.find(outcome_name);
-		if(alltrait_out_itr != all_traits.end()){
-			all_traits.erase(alltrait_out_itr);
-		}
+		tmp_alltrait.clear();
+		// remove the outcome variable(s)
+		std::set_difference(all_traits.begin(), all_traits.end(),
+							outcome_names.begin(), outcome_names.end(),
+							std::inserter(tmp_alltrait, tmp_alltrait.begin()));
+
+		all_traits.clear();
+		all_traits.insert(tmp_alltrait.begin(), tmp_alltrait.end());
 	}
 
 	if(include_traits){
@@ -236,11 +300,14 @@ void Regression::runRegression(const DataSet& ds){
 						    covar_names.begin(), covar_names.end(),
 						    std::inserter(incl_traits, incl_traits.begin()));
 
-		// And finally, remove the outcome variable
-		tmp_itr = incl_traits.find(outcome_name);
-		if(tmp_itr != incl_traits.end()){
-			incl_traits.erase(tmp_itr);
-		}
+		// now, take out the outcomes
+		tmp_trait.clear();
+		std::set_difference(incl_traits.begin(), incl_traits.end(),
+						    outcome_names.begin(), outcome_names.end(),
+						    std::inserter(tmp_trait, tmp_trait.begin()));
+
+		incl_traits.clear();
+		incl_traits.insert(tmp_trait.begin(), tmp_trait.end());
 
 	}else{
 		incl_traits.clear();
@@ -280,11 +347,6 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	}
 
-	if(outcome_name.size() > 0 && !ds.isTrait(outcome_name)){
-		Utility::Logger::log_err("ERROR: Outcome '" + outcome_name + "' is not a recognized trait, aborting.", true);
-	}
-
-
 	unsigned int n_snp = 0;
 	unsigned int n_trait = 0;
 
@@ -314,21 +376,25 @@ void Regression::runRegression(const DataSet& ds){
 
 	printHeader(n_snp, n_trait);
 
-	// Now, set up the outcome variable and the covariates
 	DataSet::const_sample_iterator si = ds.beginSample();
-	while(si != ds.endSample()){
 
-		// set up the outcome vector
-		if(outcome_name.size() == 0){
-			if((*si)->isAffectedKnown()){
+	// set up the outcome vector
+	if(outcome_names.size() == 0){
+		while (si != ds.endSample()) {
+			if ((*si)->isAffectedKnown()) {
 				_pheno.push_back((*si)->isAffected());
-			}else{
+			} else {
 				_pheno.push_back(numeric_limits<float>::quiet_NaN());
 			}
-		}else{
-			_pheno.push_back(ds.getTrait(outcome_name,*si));
+			++si;
 		}
+		outcome_names.insert("");
+		// put it back!!
+		si = ds.beginSample();
+	}
 
+	// Now, set up the outcome variable and the covariates
+	while(si != ds.endSample()){
 		// now, set up the covariate vector(s)
 		_covars.resize(covar_names.size());
 		set<string>::const_iterator covar_itr = covar_names.begin();
@@ -341,45 +407,66 @@ void Regression::runRegression(const DataSet& ds){
 		++si;
 	}
 
-	this->initData(ds);
+	set<string>::const_iterator output_itr = outcome_names.begin();
+	while(output_itr != outcome_names.end()){
+		// set up the phenotype (if we haven't already!)
+		si = ds.beginSample();
+		if(*output_itr != ""){
+			_pheno.clear();
+			while(si != ds.endSample()){
+				_pheno.push_back(ds.getTrait(*output_itr,*si));
+				++si;
+			}
+		}
 
-	ModelGenerator* mgp;
+		// clear the data structures that depend on the phenotype
+		_marker_uni_result.clear();
+		_trait_uni_result.clear();
+		categ_weight.clear();
 
-	if(_models.size() == 0){
-		if(_onesided){
-			mgp = new OneSidedModelGenerator(ds, marker_incl, incl_traits, all_traits, exclude_markers);
-		} else if(marker_incl.size() > 0){
-			mgp = new BasicModelGenerator<set<const Marker*>::const_iterator>(ds, marker_incl.begin(), marker_incl.end(), incl_traits, pairwise, exclude_markers);
+		this->initData(ds);
+
+		// create a new model generator
+		ModelGenerator* mgp;
+
+		if(_models.size() == 0){
+			if(_onesided){
+				mgp = new OneSidedModelGenerator(ds, marker_incl, incl_traits, all_traits, exclude_markers);
+			} else if(marker_incl.size() > 0){
+				mgp = new BasicModelGenerator<set<const Marker*>::const_iterator>(ds, marker_incl.begin(), marker_incl.end(), incl_traits, pairwise, exclude_markers);
+			} else {
+				mgp = new BasicModelGenerator<DataSet::const_marker_iterator>(ds, ds.beginMarker(), ds.endMarker(), incl_traits, pairwise, exclude_markers);
+			}
+		}else{
+			mgp = new TargetedModelGenerator(ds, _models);
+		}
+
+
+		if (_threaded) {
+			boost::thread_group all_threads;
+
+			for (unsigned int i = 0; i < n_threads; i++) {
+				boost::thread* t = new boost::thread(&Regression::start,this,boost::ref(*mgp), boost::cref(ds), boost::cref(*output_itr));
+				all_threads.add_thread(t);
+
+				//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
+			}
+			all_threads.join_all();
+
 		} else {
-			mgp = new BasicModelGenerator<DataSet::const_marker_iterator>(ds, ds.beginMarker(), ds.endMarker(), incl_traits, pairwise, exclude_markers);
+			// go here for debugging purposes, i.e. set --threads to 0
+			start(*mgp, ds, *output_itr);
 		}
-	}else{
-		mgp = new TargetedModelGenerator(ds, _models);
+
+		delete mgp;
+
+		++output_itr;
 	}
-
-
-	if (_threaded) {
-		boost::thread_group all_threads;
-
-		for (unsigned int i = 0; i < n_threads; i++) {
-			boost::thread* t = new boost::thread(&Regression::start,this,boost::ref(*mgp), boost::cref(ds));
-			all_threads.add_thread(t);
-
-			//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
-		}
-		all_threads.join_all();
-
-	} else {
-		// go here for debugging purposes, i.e. set --threads to 0
-		start(*mgp, ds);
-	}
-
-	delete mgp;
 
 	printResults();
 }
 
-void Regression::start(ModelGenerator& mg, const DataSet& ds){
+void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outcome){
 
 	Model* nm;
 
@@ -430,6 +517,8 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 				r->stderr.push_front((*m_itr).second->stderr[0]);
 			}
 		}
+		// put the outcome right at the beginning of the prefix!
+		r->prefix = outcome + sep + r->prefix;
 
 		// synchronize
 		_result_mutex.lock();
@@ -453,6 +542,8 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds){
 
 void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 	// Now, print the header
+	out_f << "Outcome" << sep;
+
 	for (unsigned int i = 0; i < n_snp; i++) {
 		out_f << "Var" << i + 1 << "_ID" << sep << "Var" << i + 1 << "_Pos"
 				<< sep << "Var" << i + 1 << "_MAF" << sep;

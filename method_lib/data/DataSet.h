@@ -82,7 +82,7 @@ public:
 	private:
 		friend class boost::iterator_core_access;
 
-		void increment() { while(_itr != _end && !(*_itr).second.first) {++_itr;}}
+		void increment() { while(_itr != _end && ++_itr != _end && !(*_itr).second.first);}
 		bool equal(const const_trait_iterator& other) const { return _itr == other._itr; }
 		const std::string& dereference() const { return (*_itr).first;}
 
