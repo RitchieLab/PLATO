@@ -82,7 +82,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 	regress_opts.add_options()
 		("covariates", po::value<vector<string> >()->composing(),
 			"A list of covariates to use in the model")
-		("outcome", po::value<vector<string> >(),
+		("outcome", po::value<vector<string> >()->composing(),
 			"Use a given covariate as the regression model outcome")
 		("exclude-markers", po::bool_switch(&exclude_markers),
 			"Do not include markers in the generated models (use for EWAS)")
