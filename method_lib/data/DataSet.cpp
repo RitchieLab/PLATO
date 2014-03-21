@@ -120,7 +120,7 @@ const Sample* DataSet::getSample(const string& fid, const string& iid) const{
 }
 
 Marker* DataSet::getMarker(const std::string& id){
-	map<string,Marker*>::const_iterator m_itr = _marker_map.find(id);
+	MarkerIDMap::const_iterator m_itr = _marker_map.find(id);
 	Marker* m = 0;
 	if(m_itr != _marker_map.end()){
 		m = (*m_itr).second;

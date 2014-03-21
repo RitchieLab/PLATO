@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <boost/iterator/iterator_facade.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "Sample.h"
 
@@ -193,10 +194,16 @@ private:
 	DataSet& operator=(const DataSet& other);
 
 private:
+	template<typename T>
+		struct ci_less:std::binary_function<T,T,bool>
+		  { bool operator() (const T& s1,const T& s2) const { return boost::ilexicographical_compare(s1,s2); }};
+
+	typedef std::map<std::string, Marker*, ci_less<std::string> > MarkerIDMap;
+
 	std::vector<Marker*> _markers;
 	std::vector<Sample*> _samples;
 	std::vector<Family*> _families;
-	std::map<std::string, Marker*> _marker_map;
+	MarkerIDMap _marker_map;
 	std::map<std::pair<unsigned short, unsigned int>, Marker*> _marker_pos_map;
 	std::map<std::pair<std::string, std::string>, Sample*> _sample_map;
 	std::map<std::string, Family*> _family_map;
