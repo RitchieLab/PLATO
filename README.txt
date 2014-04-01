@@ -3,10 +3,7 @@ Building PLATO
 
 To build PLATO, from this directory, type:
 
-autoreconf -i
-mkdir -p build
-cd build
-../configure
+./configure
 make
 make install
 
