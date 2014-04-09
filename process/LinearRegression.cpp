@@ -23,6 +23,7 @@ using PLATO::Analysis::Encoding;
 using PLATO::Utility::Logger;
 
 using std::vector;
+//using std::isfinite;
 using std::string;
 using std::fabs;
 using std::log;
@@ -51,6 +52,19 @@ po::options_description& LinearRegression::appendOptions(po::options_description
 
 void LinearRegression::parseOptions(const po::variables_map& vm){
 	Regression::parseOptions(vm);
+}
+
+bool LinearRegression::initData(const PLATO::Data::DataSet& ds){
+
+	vector<float>::const_iterator first_nonmiss = _pheno.begin();
+	while(first_nonmiss != _pheno.end() && !std::isfinite(*first_nonmiss)){
+		++first_nonmiss;
+	}
+	bool good_pheno = (first_nonmiss != _pheno.end());
+	if(!good_pheno){
+		Logger::log_err("ERROR: Given phenotype is completely missing", outcome_names.size() <= 1);
+	}
+	return good_pheno;
 }
 
 Regression::Result* LinearRegression::calculate(
@@ -179,7 +193,7 @@ Regression::Result* LinearRegression::calculate(
 				// this assumes that as df -> /inf, T -> Norm, and Norm^2 = ChiSq
 				r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) , 2));
 			}else{
-				r->p_vals.push_back(2*(1-gsl_cdf_tdist_P(fabs(c / se),n_rows-n_cols+1)));
+				r->p_vals.push_back(2*gsl_cdf_tdist_Q(fabs(c / se),n_rows-n_cols+1));
 			}
 		} else {
 			// If this is true, this column was dropped from analysis!
@@ -220,13 +234,13 @@ Regression::Result* LinearRegression::calculate(
 	if(df == 0){
 		r->p_val = 1;
 	} else {
-		r->p_val = 1-gsl_cdf_fdist_P(std::max(0.0, F),df+extra_df,n_rows-n_indep-extra_df);
+		r->p_val = gsl_cdf_fdist_Q(std::max(0.0, F),df+extra_df,n_rows-n_indep-extra_df);
 	}
 
 	// I have no idea if the log_likelihood is correct!!
 	r->log_likelihood = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(chisq)));
 
-	double pv_test = gsl_cdf_chisq_Q(r->log_likelihood,1);
+	//double pv_test = gsl_cdf_chisq_Q(r->log_likelihood,1);
 
 	//r->log_likelihood = r_full->log_likelihood;
 	//r->p_val = r_full->p_val;

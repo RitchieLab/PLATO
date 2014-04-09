@@ -63,8 +63,9 @@ void LogisticRegression::printVarHeader(const std::string& var_name){
 	}
 }
 
-void LogisticRegression::initData(const DataSet& ds){
+bool LogisticRegression::initData(const DataSet& ds){
 
+	bool good_pheno = true;
 	//transform the phenotype from [0,1]
 	set<float> uniq_pheno;
 	for(unsigned int i=0; i<_pheno.size(); i++){
@@ -80,7 +81,8 @@ void LogisticRegression::initData(const DataSet& ds){
 	if(uniq_pheno.size() < 2){
 		Utility::Logger::log_err("ERROR: Desired phenotype has only " +
 				boost::lexical_cast<string>(uniq_pheno.size()) +
-				" unique value(s); logistic regression will almost certainly fail!", true);
+				" unique value(s); logistic regression will almost certainly fail!", outcome_names.size() <= 1);
+		good_pheno = false;
 	}
 
 	float min_pheno = *(uniq_pheno.begin());
@@ -92,6 +94,7 @@ void LogisticRegression::initData(const DataSet& ds){
 		_pheno[i] = (_pheno[i] - min_pheno) / pheno_dist;
 	}
 
+	return good_pheno;
 }
 
 Regression::Result* LogisticRegression::calculate(
@@ -181,10 +184,18 @@ Regression::Result* LogisticRegression::calculate(
 
 	unsigned int numIterations = 0;
 
+	// set the tolerances in single precision, but do work in double precision!
 	double TOL= numeric_limits<float>::epsilon();
+	double MAX_vec = numeric_limits<float>::max();
 	// 2*numeric_limits<double>::epsilon() ??
 
-	while (fabs(LLp - LL) > TOL*LLn && ++numIterations < maxIterations ) {
+	// check for the following:
+	// 1) convergence of the likelihood
+	// 2) divergence of one (or more) coefficients
+	// 3) maximum number of iterations
+	while (fabs(LLp - LL) > TOL*LLn &&
+		   gsl_blas_dnrm2(&b.vector) < MAX_vec &&
+		   ++numIterations < maxIterations ) {
 
 		// First, let's initialize the RHS to X*beta_t (rhs = 1 * X * b + 0* rhs)
 		gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &b.vector, 0, rhs);
@@ -242,7 +253,7 @@ Regression::Result* LogisticRegression::calculate(
 		}
 
 		// Look, magic!
-		int res = gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
+		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
 
 		LL += 0;
 

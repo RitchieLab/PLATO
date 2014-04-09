@@ -424,41 +424,50 @@ void Regression::runRegression(const DataSet& ds){
 		_trait_uni_result.clear();
 		categ_weight.clear();
 
-		this->initData(ds);
+		if (this->initData(ds)) {
 
-		// create a new model generator
-		ModelGenerator* mgp;
+			// create a new model generator
+			ModelGenerator* mgp;
 
-		if(_models.size() == 0){
-			if(_onesided){
-				mgp = new OneSidedModelGenerator(ds, marker_incl, incl_traits, all_traits, exclude_markers);
-			} else if(marker_incl.size() > 0){
-				mgp = new BasicModelGenerator<set<const Marker*>::const_iterator>(ds, marker_incl.begin(), marker_incl.end(), incl_traits, pairwise, exclude_markers);
+			if (_models.size() == 0) {
+				if (_onesided) {
+					mgp = new OneSidedModelGenerator(ds, marker_incl,
+							incl_traits, all_traits, exclude_markers);
+				} else if (marker_incl.size() > 0) {
+					mgp = new BasicModelGenerator<
+							set<const Marker*>::const_iterator> (ds,
+							marker_incl.begin(), marker_incl.end(),
+							incl_traits, pairwise, exclude_markers);
+				} else {
+					mgp = new BasicModelGenerator<
+							DataSet::const_marker_iterator> (ds,
+							ds.beginMarker(), ds.endMarker(), incl_traits,
+							pairwise, exclude_markers);
+				}
 			} else {
-				mgp = new BasicModelGenerator<DataSet::const_marker_iterator>(ds, ds.beginMarker(), ds.endMarker(), incl_traits, pairwise, exclude_markers);
+				mgp = new TargetedModelGenerator(ds, _models);
 			}
-		}else{
-			mgp = new TargetedModelGenerator(ds, _models);
-		}
 
+			if (_threaded) {
+				boost::thread_group all_threads;
 
-		if (_threaded) {
-			boost::thread_group all_threads;
+				for (unsigned int i = 0; i < n_threads; i++) {
+					boost::thread* t = new boost::thread(&Regression::start,
+							this, boost::ref(*mgp), boost::cref(ds),
+							boost::cref(*output_itr));
+					all_threads.add_thread(t);
 
-			for (unsigned int i = 0; i < n_threads; i++) {
-				boost::thread* t = new boost::thread(&Regression::start,this,boost::ref(*mgp), boost::cref(ds), boost::cref(*output_itr));
-				all_threads.add_thread(t);
+					//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
+				}
+				all_threads.join_all();
 
-				//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
+			} else {
+				// go here for debugging purposes, i.e. set --threads to 0
+				start(*mgp, ds, *output_itr);
 			}
-			all_threads.join_all();
 
-		} else {
-			// go here for debugging purposes, i.e. set --threads to 0
-			start(*mgp, ds, *output_itr);
+			delete mgp;
 		}
-
-		delete mgp;
 
 		++output_itr;
 	}
@@ -553,7 +562,7 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 		out_f << "Var" << n_snp + i + 1 << "_ID" << sep;
 	}
 
-	out_f << "N_Missing" << sep;
+	out_f << "Num_Missing" << sep;
 
 	printExtraHeader();
 

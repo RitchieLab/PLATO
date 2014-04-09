@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <stdexcept>
+#include <set>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -19,6 +20,7 @@ using std::string;
 using std::vector;
 using std::stringstream;
 using std::ifstream;
+using std::set;
 
 using boost::algorithm::split;
 using boost::algorithm::is_any_of;
@@ -51,6 +53,8 @@ void TraitLoader::process(DataSet& ds) {
 		vector<string> values;
 		values.reserve(headers.size());
 		int lineno = 1;
+		set<const Sample*> enabled_samples(ds.beginSample(), ds.endSample());
+
 		while (getline(input, line)) {
 			++lineno;
 			split(values, line, is_any_of(" \n\t"), boost::token_compress_on);
@@ -75,6 +79,8 @@ void TraitLoader::process(DataSet& ds) {
 					}
 				}
 
+			} else {
+				enabled_samples.erase(s);
 			}
 
 			if (s) {
@@ -96,6 +102,10 @@ void TraitLoader::process(DataSet& ds) {
 		}
 
 		input.close();
+
+		if(enabled_samples.size() > 0){
+			Logger::log_err("Trait data not given in " + *fn_itr + " for some previously loaded samples.", require_complete);
+		}
 		++fn_itr;
 	}
 
@@ -105,17 +115,13 @@ po::options_description& TraitLoader::appendOptions(
 		po::options_description& opts) {
 	po::options_description trait_opts("Trait Loading Options");
 
-	trait_opts.add_options()("file",
-			po::value<vector<string> >(&trait_fns)->composing(),
-			"Trait file to load")("missing", po::value<string>(&missing_val),
-			"Missing value")("no-fid", po::bool_switch(&no_fid),
-			"If given, trait file has no FamID column")("ignore-error",
-			po::bool_switch(&ignore_error),
-			"If given, treat any conversion errors as missing")(
-			"extra-samples", po::bool_switch(&extra_samples),
-			"If given, ignore any samples that cannot be mapped to existing data")(
-			"dummy-samples", po::bool_switch(&dummy_samples),
-			"If given, create samples for any that cannot be mapped to existing data");
+	trait_opts.add_options()("file", po::value<vector<string> >(&trait_fns)->composing(),"Trait file to load")
+			("missing", po::value<string>(&missing_val),"Missing value")
+			("no-fid", po::bool_switch(&no_fid),"If given, trait file has no FamID column")
+			("ignore-error",po::bool_switch(&ignore_error),"If given, treat any conversion errors as missing")
+			("extra-samples", po::bool_switch(&extra_samples),"If given, ignore any samples that cannot be mapped to existing data")
+			("dummy-samples", po::bool_switch(&dummy_samples),"If given, create samples for any that cannot be mapped to existing data")
+			("require-complete", po::bool_switch(&require_complete), "If given, require trait data for all (enabled) samples loaded so far");
 
 	opts.add(trait_opts);
 

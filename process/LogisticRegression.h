@@ -25,7 +25,7 @@ protected:
 			unsigned int n_covars);
 
 	virtual void printVarHeader(const std::string& var_name);
-	virtual void initData(const Data::DataSet& ds);
+	virtual bool initData(const Data::DataSet& ds);
 
 	virtual void printExtraHeader();
 	virtual void printExtraResults(const Result& r);
