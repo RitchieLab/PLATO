@@ -194,7 +194,7 @@ Regression::Result* LogisticRegression::calculate(
 	// 2) divergence of one (or more) coefficients
 	// 3) maximum number of iterations
 	while (fabs(LLp - LL) > TOL*LLn &&
-		   gsl_blas_dnrm2(&b.vector) < MAX_vec &&
+			gsl_blas_dasum(&b.vector) < MAX_vec &&
 		   ++numIterations < maxIterations ) {
 
 		// First, let's initialize the RHS to X*beta_t (rhs = 1 * X * b + 0* rhs)
