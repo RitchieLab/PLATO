@@ -863,7 +863,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		float maf = maf_sum[i] / (2*static_cast<float>(n_samples-n_missing));
 		ss << m->markers[i]->getID() << sep
 		   << m->markers[i]->getChromStr() << ":" << m->markers[i]->getLoc()
-		   << sep << std::min(maf, 1-maf) << sep;
+		   << sep << m->markers[i]->getAltAllele() << ":" << maf << sep;
 	}
 	for(unsigned int i=0; i<numTraits; i++){
 		ss << m->traits[i] << sep;
