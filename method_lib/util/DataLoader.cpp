@@ -42,22 +42,23 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 	po::options_description data_opts("Data Input Options");
 
 	data_opts.add_options()
-		("file", value<string>(&(this->file_base)), "Filename base for reading PED/MAP files")
-		("ped", value<string>(&(this->ped_fn)), "Filename of a PED file")
-		("map", value<string>(&(this->map_fn)), "Filename of a MAP file")
-		("bfile",value<string>(&(this->bfile_base)), "Filename base for reading BED/BIM/FAM files")
-		("bed", value<string>(&(this->bed_fn)), "Filename of a BED file")
-		("bim", value<string>(&(this->bim_fn)), "Filename of a BIM file")
-		("fam", value<string>(&(this->fam_fn)), "Filename of a FAM file")
-		("tfile",value<string>(&(this->tfile_base)), "Filename base for reading TPED/TFAM files")
-		("tped", value<string>(&(this->tped_fn)), "Filename of a TPED file")
-		("tfam", value<string>(&(this->tfam_fn)), "Filename of a TFAM file")
-		("no-sex", bool_switch(&(this->_ped_no_gender)), "PED file does not contain gender")
-		("no-parents", bool_switch(&(this->_ped_no_parents)), "PED file does not contain parental information")
-		("no-fid", bool_switch(&(this->_ped_no_fid)), "PED file does not contain fid")
-		("no-pheno", bool_switch(&(this->_ped_no_pheno)), "PED file does not contain phenotype information")
-		("map3", bool_switch(&(this->_map_no_distance)), "Specify 3-column MAP file format (no genetic distance)")
-		("control0", bool_switch(&(this->_ped_control0)), "Case/Control status is encoded as 0/1, not 1/2");
+		("file", value<string>(&file_base), "Filename base for reading PED/MAP files")
+		("ped", value<string>(&ped_fn), "Filename of a PED file")
+		("map", value<string>(&map_fn), "Filename of a MAP file")
+		("bfile",value<string>(&bfile_base), "Filename base for reading BED/BIM/FAM files")
+		("bed", value<string>(&bed_fn), "Filename of a BED file")
+		("bim", value<string>(&bim_fn), "Filename of a BIM file")
+		("fam", value<string>(&fam_fn), "Filename of a FAM file")
+		("tfile",value<string>(&tfile_base), "Filename base for reading TPED/TFAM files")
+		("tped", value<string>(&tped_fn), "Filename of a TPED file")
+		("tfam", value<string>(&tfam_fn), "Filename of a TFAM file")
+		("no-sex", bool_switch(&_ped_no_gender), "PED file does not contain gender")
+		("no-parents", bool_switch(&_ped_no_parents), "PED file does not contain parental information")
+		("no-fid", bool_switch(&_ped_no_fid), "PED file does not contain fid")
+		("no-pheno", bool_switch(&_ped_no_pheno), "PED file does not contain phenotype information")
+		("map3", bool_switch(&_map_no_distance), "Specify 3-column MAP file format (no genetic distance)")
+		("control0", bool_switch(&_ped_control0), "Case/Control status is encoded as 0/1, not 1/2")
+		("quant", bool_switch(&_quant), "Phenotype is a quantitative value, not case/control status (unparseable is converted to missing)");
 
 	return opts.add(data_opts);
 }
@@ -246,10 +247,18 @@ void DataLoader::readPed(const string& fn){
 			}
 
 			if(!_ped_no_pheno){
-				if(pheno == (_ped_control0 ? "0" : "1")){
-					samp->setAffected(false);
-				}else if(pheno == (_ped_control0 ? "1" : "2")){
-					samp -> setAffected(true);
+				if(_quant){
+					float f;
+					if(stringstream(pheno) >> f){
+						samp->setPheno(f);
+					}
+				} else {
+					// kept this way to preserve "unknown" status
+					if(pheno == (_ped_control0 ? "0" : "1")){
+						samp->setAffected(false);
+					}else if(pheno == (_ped_control0 ? "1" : "2")){
+						samp->setAffected(true);
+					}
 				}
 			}
 

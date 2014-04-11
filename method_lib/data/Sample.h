@@ -49,8 +49,9 @@ public:
 	bool addChild(Sample* child) {return _children.insert(child).second;}
 
 	void setFounder(bool founder){_founder = founder;}
-	void setAffected(bool affected){_affected_known = true; _affected = affected;}
+	void setAffected(bool affected){_affected_known = true; _pheno = _affected = affected;}
 	void setGender(bool is_male){_sex_known = true; _male = is_male;}
+	void setPheno(float pheno){_pheno = pheno;}
 
 	const std::string& getFID() const {return _famid;}
 	const std::string& getID() const {return _id;}
@@ -64,6 +65,8 @@ public:
 	bool isFemale() const {return _sex_known && !_male;}
 	bool isAffected() const {return _affected_known && _affected;}
 	bool isAffectedKnown() const {return _affected_known;}
+
+	float getPheno() const {return _pheno;}
 
 	void setEnabled(bool enabled=true){_enabled = enabled;}
 	bool isEnabled() const {return _enabled;}
@@ -80,6 +83,8 @@ private:
 	Sample* _mom;
 	Sample* _dad;
 	std::set<Sample*> _children;
+
+	float _pheno;
 
 	bool _sex_known;
 	bool _affected_known;

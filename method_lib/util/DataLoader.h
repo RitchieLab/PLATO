@@ -73,6 +73,8 @@ private:
 	// is the control value in the phenotype "1" (-> case is "2")
 	// or is the control "0" (-> case is "1")
 	bool _ped_control0;
+	// is the phenotype value quantitative (float)?
+	bool _quant;
 
 	// bitset dictating the inclusion/exclusion of markers in the dataset
 	boost::dynamic_bitset<> _marker_incl;

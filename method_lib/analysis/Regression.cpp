@@ -381,11 +381,9 @@ void Regression::runRegression(const DataSet& ds){
 	// set up the outcome vector
 	if(outcome_names.size() == 0){
 		while (si != ds.endSample()) {
-			if ((*si)->isAffectedKnown()) {
-				_pheno.push_back((*si)->isAffected());
-			} else {
-				_pheno.push_back(numeric_limits<float>::quiet_NaN());
-			}
+			// This will be NaN for missing, 0/1 for case/control
+			// or a quantitative value as appropriate
+			_pheno.push_back((*si)->getPheno());
 			++si;
 		}
 		outcome_names.insert("");

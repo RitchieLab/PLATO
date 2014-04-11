@@ -1,5 +1,7 @@
 #include "Sample.h"
 
+#include <limits>
+
 #include "Marker.h"
 
 #include "PhasedBiallelicSample.h"
@@ -19,7 +21,9 @@ const unsigned char Sample::missing_allele = static_cast<unsigned char>(-1);
 const std::pair<unsigned char, unsigned char> Sample::missing_geno = std::make_pair(Sample::missing_allele, Sample::missing_allele);
 
 Sample::Sample(const string& famid, const string& id) :
-	_famid(famid), _id(id), _mom(NULL), _dad(NULL), _sex_known(false), _affected_known(false), _founder(true), _enabled(true){
+	_famid(famid), _id(id), _mom(NULL), _dad(NULL),
+	_pheno(std::numeric_limits<float>::quiet_NaN()),
+	_sex_known(false), _affected_known(false), _founder(true), _enabled(true){
 }
 
 Sample* Sample::create(const string& famid, const string& id, unsigned int n_genos){
