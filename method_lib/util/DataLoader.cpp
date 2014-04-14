@@ -57,6 +57,8 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("no-fid", bool_switch(&_ped_no_fid), "PED file does not contain fid")
 		("no-pheno", bool_switch(&_ped_no_pheno), "PED file does not contain phenotype information")
 		("map3", bool_switch(&_map_no_distance), "Specify 3-column MAP file format (no genetic distance)")
+		("map-ref", bool_switch(&_map_ref), "Map file contains referent allele information")
+		("map-alt", bool_switch(&_map_alt), "Map file contains alternate allele information")
 		("control0", bool_switch(&_ped_control0), "Case/Control status is encoded as 0/1, not 1/2")
 		("quant", bool_switch(&_quant), "Phenotype is a quantitative value, not case/control status (unparseable is converted to missing)");
 

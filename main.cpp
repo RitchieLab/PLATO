@@ -38,16 +38,6 @@ using PLATO::Utility::CommandLineParser;
 using PLATO::Process;
 using PLATO::ProcessFactory;
 
-/*
- *Function: Initialize()
- *Return: void
- *Description:
- *Initializes the batch file options enumeration.
- */
-void Initialize() {
-	srand((unsigned) time(0));
-}
-
 int main(int argc, char** argv) {
 
 	string logfn;
