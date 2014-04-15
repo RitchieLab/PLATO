@@ -101,6 +101,9 @@ Regression::Result* LogisticRegression::calculate(
 		const double* Y, const double* data,
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
 		unsigned int n_covars){
+
+
+
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
 
@@ -154,9 +157,10 @@ Regression::Result* LogisticRegression::calculate(
 	// zero out the beta
 	gsl_vector_set_zero (&b.vector);
 
+	// Actually, it worked better to just use the zero vector as an initial guess!
 	// Add up all the values in Y
-	double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
-	beta[0] = log(sum_Y / (n_rows - sum_Y)); // use natural log of the ratio
+	//double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
+	//beta[0] = log(sum_Y / (n_rows - sum_Y)); // use natural log of the ratio
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
