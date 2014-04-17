@@ -99,7 +99,7 @@ public:
 	 * Sort by chromosome, then position
 	 */
 	bool operator<(const Marker& o) const {
-		return (getChrom() == o.getChrom()) ? (_loc < o._loc) : (_chr < o._chr);
+		return (getChrom() == o.getChrom()) ? (_loc < o._loc) : (getChrom() < o.getChrom());
 	}
 
 	bool isEnabled() const {return _chr & ENABLED_MASK;	}

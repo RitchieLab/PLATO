@@ -16,7 +16,7 @@
 namespace PLATO{
 namespace ProcessLib {
 
-class ConcordanceProcess : public ProcessImpl<ConcordanceProcess>, private Utility::DataLoader {
+class ConcordanceProcess : public ProcessImpl<ConcordanceProcess>, public Utility::DataLoader {
 
 private:
 	const static std::string stepname;

@@ -221,5 +221,13 @@ bool DataSet::setTraitEnabled(const std::string& trait, bool isEnabled){
 	return false;
 }
 
+void DataSet::sortMarkers() {
+	 std::sort(_markers.begin(), _markers.end(), std::less<Marker*>());
+}
+
+void DataSet::sortSamples() {
+	 std::sort(_samples.begin(), _samples.end(), std::less<Sample*>());
+}
+
 }
 }

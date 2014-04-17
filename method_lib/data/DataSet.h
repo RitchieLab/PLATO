@@ -17,13 +17,12 @@ namespace PLATO{
 
 namespace Data{
 
-class Marker;
 class Family;
 
 class DataSet{
 
 public:
-	DataSet() : _marker_idx(0) {}
+	DataSet() : _marker_idx(0), _biallelic(false), _phased(false) {}
 	~DataSet();
 
 	template <class T>
@@ -192,8 +191,8 @@ public:
 	unsigned int num_pedigrees() const {return _families.size();}
 	unsigned int num_inds() const {return _samples.size();}
 
-	void sortMarkers() {std::sort(_markers.begin(), _markers.end());}
-	void sortSamples() {std::sort(_samples.begin(), _samples.end());}
+	void sortMarkers();
+	void sortSamples();
 
 private:
 	DataSet(const DataSet& other);
@@ -219,8 +218,8 @@ private:
 
 	unsigned int _marker_idx;
 
-	bool _phased;
 	bool _biallelic;
+	bool _phased;
 
 };
 

@@ -115,10 +115,10 @@ void ConcordanceProcess::process(DataSet& ds){
 	DataSet::const_marker_iterator ame = alt_ds.endMarker();
 
 	while(mi != me && ami != ame){
-		if(ami == ame || *mi < *ami){
+		if(ami == ame || **mi < **ami){
 			outputMarkerMismatch(m_mismatch_f, *mi, true);
 			++mi;
-		} else if (mi == me || *ami < *mi){
+		} else if (mi == me || **ami < **mi){
 			outputMarkerMismatch(m_mismatch_f, *ami, false);
 			++ami;
 		} else {
@@ -144,10 +144,10 @@ void ConcordanceProcess::process(DataSet& ds){
 	DataSet::const_sample_iterator ase = alt_ds.endSample();
 
 	while(si != se && asi != ase){
-		if(asi == ase || *si < *asi){
+		if(asi == ase || **si < **asi){
 			outputSampleMismatch(s_mismatch_f, *si, true);
 			++si;
-		} else if (mi == me || *asi < *si){
+		} else if (si == se || **asi < **si){
 			outputSampleMismatch(s_mismatch_f, *asi, false);
 			++asi;
 		} else {
@@ -184,7 +184,7 @@ void ConcordanceProcess::process(DataSet& ds){
 
 	if(_marker_fn != ""){
 		marker_f = new ofstream(_marker_fn.c_str());
-		(*marker_f) << "Chr" << _sep << "rsID" << "bploc" << _sep << "Errors"
+		(*marker_f) << "Chr" << _sep << "rsID" << _sep << "bploc" << _sep << "Errors"
 				<< _sep << "Total_Compared" << _sep << "%Concordance" << endl;
 	}
 
@@ -215,7 +215,7 @@ void ConcordanceProcess::process(DataSet& ds){
 		if(marker_f){
 			printMarker(*marker_f, *((*mmi).first));
 			(*marker_f) << _sep << n_err << _sep << n_comp << _sep
-					    << 100 * n_err / static_cast<float>(n_comp) << endl;
+					    << 100 * (n_comp - n_err) / static_cast<float>(n_comp) << endl;
 		}
 
 		++mmi;
@@ -241,7 +241,9 @@ void ConcordanceProcess::process(DataSet& ds){
 			(*sample_f) << _sep
 					    << (*sc_itr).second.first << _sep
 					    << (*sc_itr).second.second << _sep
-					    << 100 * (*sc_itr).second.first / static_cast<float>((*sc_itr).second.second) << endl;
+					    << 100 * ((*sc_itr).second.second - (*sc_itr).second.first) / static_cast<float>((*sc_itr).second.second) << endl;
+
+			++sc_itr;
 		}
 
 		sample_f->close();
@@ -256,7 +258,7 @@ unsigned char ConcordanceProcess::match(ofstream* error_f, const Marker* m, cons
 	pair<unsigned char, unsigned char> g2 = a_s->getGeno(*a_m);
 
 	bool err = false;
-	bool missing = s->isMissing(*m) || a_s->isMissing(*a_m);
+	bool present = !(s->isMissing(*m) || a_s->isMissing(*a_m));
 
 	const string& a11 = m->getAllele(g1.first);
 	const string& a12 = m->getAllele(g1.second);
@@ -283,7 +285,9 @@ unsigned char ConcordanceProcess::match(ofstream* error_f, const Marker* m, cons
 				<< a21 << (phased ? "|" : "/") << a22 << endl;
 	}
 
-	return (missing * 2) | (err * 1);
+	unsigned char ret= (present * 2) | (err * 1);
+
+	return ret;
 }
 
 void ConcordanceProcess::outputMarkerMismatch(ofstream* f, const Marker* m, bool in_base) const {
