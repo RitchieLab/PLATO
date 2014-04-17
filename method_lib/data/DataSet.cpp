@@ -48,11 +48,6 @@ DataSet::~DataSet(){
 
 }
 
-void DataSet::sortMarkers(){
-	// Sort the Marker deque (note that operator< is defined for Marker* objects)
-	std::sort(_markers.begin(), _markers.end());
-}
-
 Marker* DataSet::addMarker(const std::string& chrom, unsigned int loc, const std::string& id){
 	// maybe do some sanity checks here...
 
@@ -69,7 +64,7 @@ Marker* DataSet::addMarker(const std::string& chrom, unsigned int loc, const std
 }
 
 Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsigned int n_genos){
-	Sample* new_samp = Sample::create(famid,id,n_genos);
+	Sample* new_samp = Sample::create(*this,famid,id,n_genos);
 
 	_sample_idx_map[new_samp] = _samples.size();
 	_samples.push_back(new_samp);

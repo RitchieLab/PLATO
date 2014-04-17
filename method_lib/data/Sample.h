@@ -5,6 +5,8 @@
 #include <string>
 #include <set>
 
+#include <boost/unordered_set.hpp>
+
 #include <utility>
 
 namespace PLATO{
@@ -23,7 +25,7 @@ protected:
 	Sample(const std::string& famid, const std::string& id);
 
 public:
-	static Sample* create(const std::string& famid, const std::string& id, unsigned int n_genos=0);
+	static Sample* create(const DataSet& ds, const std::string& famid, const std::string& id, unsigned int n_genos=0);
 	//static Sample* create(const std::string& id, unsigned int n_genos=0){return create(id, id, n_genos);}
 
 private:
@@ -71,8 +73,6 @@ public:
 	void setEnabled(bool enabled=true){_enabled = enabled;}
 	bool isEnabled() const {return _enabled;}
 
-	friend class DataSet;
-
 private:
 
 	//! Family ID
@@ -82,7 +82,7 @@ private:
 
 	Sample* _mom;
 	Sample* _dad;
-	std::set<Sample*> _children;
+	boost::unordered_set<Sample*> _children;
 
 	float _pheno;
 
@@ -93,8 +93,6 @@ private:
 	bool _founder;
 	bool _enabled;
 
-	static bool _biallelic;
-	static bool _phased;
 
 public:
 	static const unsigned char missing_allele;
@@ -104,5 +102,23 @@ public:
 }
 }
 
+// define an ordering for Sample pointers
+namespace std{
+template<>
+struct less<PLATO::Data::Sample*> {
+	bool operator()(const PLATO::Data::Sample* x,
+			const PLATO::Data::Sample* y) const {
+		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
+	}
+};
+
+template<>
+struct less<const PLATO::Data::Sample*> {
+	bool operator()(const PLATO::Data::Sample* x,
+			const PLATO::Data::Sample* y) const {
+		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
+	}
+};
+}
 
 #endif

@@ -138,6 +138,14 @@ struct less<PLATO::Data::Marker*> {
 		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
 	}
 };
+
+template<>
+struct less<const PLATO::Data::Marker*> {
+	bool operator()(const PLATO::Data::Marker* x,
+			const PLATO::Data::Marker* y) const {
+		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
+	}
+};
 }
 
 #endif

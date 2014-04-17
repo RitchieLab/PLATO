@@ -5,11 +5,13 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include "Sample.h"
+#include "Marker.h"
 
 namespace PLATO{
 
@@ -122,8 +124,11 @@ public:
 	typedef iterator<Marker> marker_iterator;
 	typedef iterator<Family> family_iterator;
 
-	void setBiallelic(bool enabled=true){Sample::_biallelic = enabled;}
-	void setPhased(bool enabled=true){Sample::_phased = enabled;}
+	void setBiallelic(bool enabled=true){_biallelic = enabled;}
+	void setPhased(bool enabled=true){_phased = enabled;}
+	bool isPhased() const {return _phased;}
+	bool isBiallelic() const {return _biallelic;}
+
 
 	const_sample_iterator beginSample() const{
 		return const_sample_iterator(_samples.begin(), _samples.end());}
@@ -171,8 +176,6 @@ public:
 	bool setTraitEnabled(const std::string& trait, bool isEnabled=true);
 	bool isTrait(const std::string& trait) const { return _trait_map.find(trait) != _trait_map.end();}
 
-	void sortMarkers();
-
 	const Sample* getSample(const std::string& id) const;
 	const Sample* getSample(const std::string& fid, const std::string& id) const;
 	const Marker* getMarker(const std::string& id) const;
@@ -188,6 +191,9 @@ public:
 	unsigned int num_loci() const {return _markers.size();}
 	unsigned int num_pedigrees() const {return _families.size();}
 	unsigned int num_inds() const {return _samples.size();}
+
+	void sortMarkers() {std::sort(_markers.begin(), _markers.end());}
+	void sortSamples() {std::sort(_samples.begin(), _samples.end());}
 
 private:
 	DataSet(const DataSet& other);
@@ -212,6 +218,9 @@ private:
 	std::map<std::string, std::pair<bool, std::deque<float> > > _trait_map;
 
 	unsigned int _marker_idx;
+
+	bool _phased;
+	bool _biallelic;
 
 };
 
