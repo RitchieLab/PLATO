@@ -38,6 +38,8 @@ namespace ProcessLib{
 const std::string ConcordanceProcess::stepname = ConcordanceProcess::doRegister("concordance");
 
 po::options_description& ConcordanceProcess::appendOptions(po::options_description& opts){
+	DataLoader::addOptions(opts);
+
 	po::options_description concord_opts("Concordance Options");
 
 	concord_opts.add_options()
@@ -52,8 +54,7 @@ po::options_description& ConcordanceProcess::appendOptions(po::options_descripti
 		("sep", po::value<string>(&_sep)->default_value("\t"), "Separator for output files")
 	;
 
-
-	return DataLoader::addOptions(opts);
+	return (opts.add(concord_opts));
 }
 
 void ConcordanceProcess::parseOptions(const po::variables_map& vm){

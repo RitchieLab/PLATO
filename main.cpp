@@ -15,8 +15,10 @@
 #include <iomanip>
 #include <string>
 #include <vector>
+#include <list>
 
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "ProcessFactory.h"
 #include "Process.h"
@@ -24,16 +26,19 @@
 #include "util/InputManager.h"
 #include "util/CommandLineParser.h"
 #include "data/DataSet.h"
+#include "util/Logger.h"
 
 namespace po = boost::program_options;
 
 using std::cout;
+using std::cerr;
 using std::string;
 using std::vector;
 
 using PLATO::Data::DataSet;
 using PLATO::Utility::InputManager;
 using PLATO::Utility::CommandLineParser;
+using PLATO::Utility::Logger;
 
 using PLATO::Process;
 using PLATO::ProcessFactory;
@@ -113,7 +118,10 @@ int main(int argc, char** argv) {
 
 	// TODO: set up the logger here
 
+	vector<string> cmd_input;
 	vector<string> unrec_opt = po::collect_unrecognized(parsed.options, po::include_positional);
+	vector<string> leftover_opts;
+
 	vector<Process*> process_list;
 
 	// OK, now we create the list of processes that we want to create
@@ -133,6 +141,7 @@ int main(int argc, char** argv) {
 			p->addOptions(subopts);
 
 			// pop off the first string, which is the name of the command
+			string cmd_name = unrec_opt[0];
 			unrec_opt.erase(unrec_opt.begin());
 
 			// now, parse the remaining options, stopping at the name of the next command
@@ -143,12 +152,25 @@ int main(int argc, char** argv) {
 
 			p->parseOptions(subvm);
 
-			unrec_opt = po::collect_unrecognized(subparsed.options, po::include_positional);
+			leftover_opts = po::collect_unrecognized(subparsed.options, po::include_positional);
+			cmd_input.push_back(cmd_name + " " +
+				boost::algorithm::join(
+					std::list<string>(unrec_opt.begin(),
+						unrec_opt.begin() + (unrec_opt.size() - leftover_opts.size())),
+					" "));
+			unrec_opt = leftover_opts;
 		}
 
 		process_list.push_back(p);
 
 	}
+
+	// Log the commands
+	Logger::log("Commands as given on the the command line:");
+	for(unsigned int i=0; i<cmd_input.size(); i++){
+		Logger::log(cmd_input[i]);
+	}
+
 
 	// Create a global DataSet for our use
 	DataSet global_ds;

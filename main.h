@@ -5,7 +5,6 @@
 
 int main(int, char**);
 
-static void Initialize();
 void print_steps();
 
 /*
