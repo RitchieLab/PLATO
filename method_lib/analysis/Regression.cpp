@@ -105,6 +105,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("incl-markers", po::value<vector<string> >()->composing(), "Comma-separated list of markers to include")
 		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
 		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
+		("permutations", po::value<unsigned int>(&n_perms)->default_value(0), "Number of permutations to use in permutation testing (disabled by default - set to 0 to disable permutation)")
 		;
 
 	opts.add(regress_opts);
@@ -872,6 +873,32 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	if(n_cols <= n_samples - n_missing){
 		r = calculate(regress_output, &regress_data[0][0],
 					n_cols, n_samples - n_missing, 0, red_vars);
+
+		// Let's do some permutation testing here!
+		if(n_perms > 0){
+			unsigned int n_nonmiss = n_samples - n_missing;
+			float thresh = r->p_val;
+			unsigned int n_sig = 0;
+			double* perm_output = new double[n_nonmiss];
+			Result * n_r = 0;
+			std::memcpy(regress_output, perm_output, sizeof(double) * (n_nonmiss));
+			for(unsigned int i = 0; i<n_perms; i++){
+				// shuffle the output
+				std::random_shuffle(perm_output, perm_output + n_nonmiss);
+				// run the regression of choice
+				n_r  = calculate(perm_output, &regress_data[0][0],
+						n_cols, n_samples - n_missing, 0, red_vars);
+				// determine significance of this version
+				n_sig += (n_r->p_val < thresh);
+				delete n_r;
+			}
+
+			r->p_val = n_sig / static_cast<float>(n_perms);
+			delete[] perm_output;
+
+		}
+
+
 	}else{
 		Logger::log_err("WARNING: not enough samples in model: '" + ss.str() + "'!");
 		r = new Result();

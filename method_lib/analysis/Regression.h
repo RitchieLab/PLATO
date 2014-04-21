@@ -281,6 +281,10 @@ private:
 
 	unsigned int n_threads;
 
+	// number of permutations to calculate p-values - set to 0 to disable
+	// permutation testing.
+	unsigned int n_perms;
+
 	boost::mutex _result_mutex;
 	boost::mutex _model_gen_mutex;
 
