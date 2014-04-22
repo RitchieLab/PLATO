@@ -4,6 +4,8 @@
 #include "Process.h"
 #include "analysis/Regression.h"
 
+#include <boost/array.hpp>
+
 namespace PLATO{
 namespace ProcessLib{
 
@@ -29,6 +31,9 @@ protected:
 
 	virtual void printExtraHeader();
 	virtual void printExtraResults(const Result& r);
+
+private:
+	boost::array<double, 4> linkFunction(double v) const;
 
 private:
 	bool show_odds;

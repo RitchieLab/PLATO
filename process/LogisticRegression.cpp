@@ -27,6 +27,8 @@ using std::log;
 using std::exp;
 using std::pow;
 
+using boost::array;
+
 namespace po=boost::program_options;
 
 namespace PLATO{
@@ -131,7 +133,7 @@ Regression::Result* LogisticRegression::calculate(
 	// log_val and log_val_c are log(val) and log(1-val), respectively.
 	// NOTE: the reason we do them here is to prevent underflow; for large values
 	// of the exponent, we need to use approximations for log_val and log_val_c
-	double val, deriv, log_val, log_val_c;
+	//double val, deriv, log_val, log_val_c;
 
 	// This is the current estimate of the parameters
 	// Note: position 0 is reserved for the intercept
@@ -153,14 +155,13 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
 	// gsl beta vector
 	gsl_vector_view b = gsl_vector_view_array(beta, n_cols);
+	// this is the previous beta vector, for checking convergence
+	gsl_vector* b_prev = gsl_vector_alloc(n_cols);
+	// make this b_prev nonzero to begin
+	gsl_vector_set_all(b_prev, 1.0);
 
 	// zero out the beta
 	gsl_vector_set_zero (&b.vector);
-
-	// Actually, it worked better to just use the zero vector as an initial guess!
-	// Add up all the values in Y
-	//double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
-	//beta[0] = log(sum_Y / (n_rows - sum_Y)); // use natural log of the ratio
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
@@ -186,6 +187,21 @@ Regression::Result* LogisticRegression::calculate(
 
 	LLn = (null_result) ? null_result->log_likelihood : 0;
 
+	if(!null_result){
+
+		// Add up all the values in Y
+		double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
+
+		// get the exponent (and derivative, log and 1-log values) for the
+		// null model (i.e., best fit of the intercept parameter)
+		array<double, 4> null_v = linkFunction(log(sum_Y / (n_rows - sum_Y)));
+
+		for(unsigned int i=0; i<n_rows; i++){
+			LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
+		}
+
+	}
+
 	unsigned int numIterations = 0;
 
 	// set the tolerances in single precision, but do work in double precision!
@@ -195,11 +211,15 @@ Regression::Result* LogisticRegression::calculate(
 
 	// check for the following:
 	// 1) convergence of the likelihood
+	// 1a) convergence of the beta vector (distance stored in b_prev)
 	// 2) divergence of one (or more) coefficients
 	// 3) maximum number of iterations
-	while (fabs(LLp - LL) > TOL*LLn &&
-			gsl_blas_dasum(&b.vector) < MAX_vec &&
+	while ((fabs(LLp - LL) > TOL*LLn || gsl_blas_dasum(b_prev) > TOL*n_cols*gsl_blas_dasum(&b.vector)) &&
+		   gsl_blas_dasum(&b.vector) < MAX_vec &&
 		   ++numIterations < maxIterations ) {
+
+		// save the old beta vector in b_prev
+		gsl_vector_memcpy(b_prev, &b.vector);
 
 		// First, let's initialize the RHS to X*beta_t (rhs = 1 * X * b + 0* rhs)
 		gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &b.vector, 0, rhs);
@@ -210,54 +230,33 @@ Regression::Result* LogisticRegression::calculate(
 		// add to LL for each row
 		for (unsigned int i = 0; i < n_rows; i++) {
 
+
 			// calculate the value of the exponent for the individual
 			double v = gsl_vector_get(rhs, i);
 
 			// At this point, v is the value of the exponent
 
-			// max_val is the maximum value of v above that will not result in
-			// loss of precision. (with a factor of 2 in there for good luck)
-			static const double max_val = -log(numeric_limits<double>::epsilon());
-
-			if(v > max_val){
-				val = 1;
-				deriv = exp(-v);
-				// log(f(x)) obtained by Taylor series expansion of log(x) at x=1
-				// note that f(x) - 1 = -exp(-x)/(1+exp(-x)) ~= -exp(-x)
-				// Also, that shows the log(1-f(x)) ~= exp(-x)
-				log_val = -exp(-v);
-				log_val_c = -v;
-			} else {
-				// we won't underflow here
-				val = 1/(1+exp(-v));
-				log_val = log(val);
-				// however, we might underflow when calculating derivatives and log
-				if(-v > max_val){
-					// the traditional derivative WILL underflow
-					deriv = exp(v);
-					log_val_c = -exp(v);
-				} else{
-					deriv = val*(1-val);
-					log_val_c = log(1-val);
-				}
-			}
+			array<double, 4> v_arr = linkFunction(v);
 
 			// calculate LL for this ind and add to running total
-			LL -= 2 *(Y[i] * log_val + (1-Y[i]) * log_val_c);
+			LL -= 2 *(Y[i] * v_arr[2] + (1-Y[i]) * v_arr[3]);
 
 			// get the weight and update the rhs for IRLS
-			weight[i] = deriv;
-			gsl_vector_set(rhs, i, v + 1/deriv * (Y[i] - val));
+			weight[i] = v_arr[1];
+			gsl_vector_set(rhs, i, v + 1/v_arr[1] * (Y[i] - v_arr[0]));
 
 		}
 
 		// when this is the first iteration, set LLn (null model) to be the current value of LL
-		if (null_result == 0 && numIterations == 1) {
-			LLn = LL;
-		}
+		//if (null_result == 0 && numIterations == 1) {
+		//	LLn = LL;
+		//}
 
 		// Look, magic!
 		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
+
+		// get the difference between the old beta and the new beta
+		gsl_vector_sub(b_prev, &b.vector);
 
 		LL += 0;
 
@@ -353,6 +352,7 @@ Regression::Result* LogisticRegression::calculate(
 		delete null_result;
 	}
 
+	gsl_vector_free(b_prev);
 	gsl_vector_free(rhs);
 	gsl_matrix_free(cov_mat);
 	gsl_matrix_free(P);
@@ -372,6 +372,39 @@ void LogisticRegression::printExtraHeader(){
 
 void LogisticRegression::printExtraResults(const Result& r){
 	out_f << r.converged << sep;
+}
+
+array<double, 4> LogisticRegression::linkFunction(double v) const{
+	// returns val, deriv (val * 1-val), log(val), 1-log(val)
+
+	array<double, 4> retval;
+	// max_val is the maximum value of v above that will not result in
+	// loss of precision. (with a factor of 2 in there for good luck)
+	static const double max_val = -log(numeric_limits<double>::epsilon());
+
+	if (v > max_val) {
+		retval[0] = 1;
+		retval[1] = exp(-v);
+		// log(f(x)) obtained by Taylor series expansion of log(x) at x=1
+		// note that f(x) - 1 = -exp(-x)/(1+exp(-x)) ~= -exp(-x)
+		// Also, that shows the log(1-f(x)) ~= exp(-x)
+		retval[2] = -exp(-v);
+		retval[3] = -v;
+	} else {
+		// we won't underflow here
+		retval[0] = 1 / (1 + exp(-v));
+		retval[2] = log(retval[0]);
+		// however, we might underflow when calculating derivatives and log
+		if (-v > max_val) {
+			// the traditional derivative WILL underflow
+			retval[1] = exp(v);
+			retval[3] = -exp(v);
+		} else {
+			retval[1] = retval[0] * (1 - retval[0]);
+			retval[3] = log(1 - retval[0]);
+		}
+	}
+	return retval;
 }
 
 }
