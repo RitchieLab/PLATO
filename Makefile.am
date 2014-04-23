@@ -51,7 +51,9 @@ process/AlleleFreqFilter.cpp \
 process/TraitMissingFilter.h \
 process/TraitMissingFilter.cpp \
 process/ConcordanceProcess.h \
-process/ConcordanceProcess.cpp 
+process/ConcordanceProcess.cpp \
+process/OutputEigenstrat.h \
+process/OutputEigenstrat.cpp 
 
 
 
