@@ -58,6 +58,10 @@ public:
 		return _alt_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_alt_idx];
 	}
 
+	bool isAlleleMissing(unsigned char idx) const {
+		return idx == _missing_allele_idx;
+	}
+
 	const std::string& getAllele(unsigned char idx) const{
 		return idx >= _alleles.size() ? _missing_allele : _alleles[idx];
 	}
@@ -127,6 +131,7 @@ private:
 	std::vector<std::string> _alleles;
 
 	static std::string _missing_allele;
+	static const unsigned char _missing_allele_idx = static_cast<unsigned char>(-1);
 	static const unsigned short ENABLED_MASK = 1 << (sizeof(unsigned short)*8 - 1);
 };
 

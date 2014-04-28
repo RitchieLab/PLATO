@@ -60,7 +60,11 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("map-ref", bool_switch(&_map_ref), "Map file contains referent allele information")
 		("map-alt", bool_switch(&_map_alt), "Map file contains alternate allele information")
 		("control0", bool_switch(&_ped_control0), "Case/Control status is encoded as 0/1, not 1/2")
-		("quant", bool_switch(&_quant), "Phenotype is a quantitative value, not case/control status (unparseable is converted to missing)");
+		("quant", bool_switch(&_quant), "Phenotype is a quantitative value, not case/control status (unparseable is converted to missing)")
+
+
+		;
+
 
 	return opts.add(data_opts);
 }
