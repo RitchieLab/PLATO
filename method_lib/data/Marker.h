@@ -70,6 +70,10 @@ public:
 		return _alt_idx;
 	}
 
+	unsigned int getNumAlleles() const {
+		return _alleles.size();
+	}
+
 	/*!
 	 * Returns the index into the chromosome array
 	 */
@@ -83,7 +87,7 @@ public:
 	/*!
 	 * Returns the chromosome string
 	 */
-	std::string getChromStr() const {return PLATO::Utility::InputManager::chrIntToString(_chr & ~(ENABLED_MASK));}
+	const std::string& getChromStr() const {return PLATO::Utility::InputManager::chrIntToString(_chr & ~(ENABLED_MASK));}
 
 	/*!
 	 * Returns the location

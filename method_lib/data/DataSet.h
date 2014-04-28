@@ -56,7 +56,7 @@ public:
 			_itr(itr), _end(end) {}
 
 		// Make sure I can convert an iterator<T> to a const_iterator<T>
-		operator const_iterator<T>() {
+		operator const_iterator<T>() const {
 			return const_iterator<T>(_itr, _end);
 		}
 

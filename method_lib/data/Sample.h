@@ -20,8 +20,9 @@ class Sample{
 public:
 	virtual ~Sample(){}
 
-protected:
+	typedef boost::unordered_set<Sample*>::const_iterator const_child_iterator;
 
+protected:
 	Sample(const std::string& famid, const std::string& id);
 
 public:
@@ -45,7 +46,6 @@ public:
 
 	unsigned char getAdditiveGeno(const Marker&) const;
 
-
 	bool addMother(Sample* mom) {return mom == (_mom = (_mom == NULL) ? mom : _mom);}
 	bool addFather(Sample* dad) {return dad == (_dad = (_dad == NULL) ? dad : _dad);}
 	bool addChild(Sample* child) {return _children.insert(child).second;}
@@ -60,6 +60,9 @@ public:
 
 	Sample* getFather() const {return _dad;}
 	Sample* getMother() const {return _mom;}
+
+	const_child_iterator beginChild() const {return _children.begin();}
+	const_child_iterator endChild() const {return _children.end();}
 
 	bool isFounder() const {return _founder;}
 	bool isGenderKnown() const {return _sex_known;}

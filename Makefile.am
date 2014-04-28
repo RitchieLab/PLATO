@@ -53,7 +53,9 @@ process/TraitMissingFilter.cpp \
 process/ConcordanceProcess.h \
 process/ConcordanceProcess.cpp \
 process/OutputEigenstrat.h \
-process/OutputEigenstrat.cpp 
+process/OutputEigenstrat.cpp \
+process/OutputBeagle.h \
+process/OutputBeagle.cpp
 
 
 

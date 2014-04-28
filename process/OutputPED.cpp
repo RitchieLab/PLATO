@@ -14,6 +14,7 @@
 #include "data/Marker.h"
 
 #include "util/InputManager.h"
+#include "util/Logger.h"
 
 namespace po=boost::program_options;
 
@@ -21,6 +22,7 @@ using PLATO::Data::DataSet;
 using PLATO::Data::Sample;
 using PLATO::Data::Marker;
 using PLATO::Utility::InputManager;
+using PLATO::Utility::Logger;
 
 using std::string;
 using std::ofstream;
@@ -57,7 +59,7 @@ void OutputPED::process(DataSet& ds){
 	ofstream map_f(map_fn.c_str());
 
 	if(!ped_f.good() || !map_f.good()){
-		throw std::logic_error("Unable to open PED/MAP file(s)");
+		Logger::log_err("Unable to open PED/MAP file(s)", true);
 	}
 
 	// Let's print the map file first
