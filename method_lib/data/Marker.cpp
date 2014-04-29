@@ -35,6 +35,7 @@ unsigned int Marker::addAllele(const string& allele){
 	return idx;
 }
 
+/*
 bool Marker::setRefAllele(const string& allele){
 	bool to_ret = false;
 	vector<string>::const_iterator itr = find(_alleles.begin(), _alleles.end(), allele);
@@ -62,6 +63,7 @@ bool Marker::setAltAllele(const string& allele){
 	}
 	return to_ret;
 }
+*/
 
 float Marker::calcMAF(const DataSet& ds) const{
 	DataSet::const_sample_iterator si = ds.beginSample();

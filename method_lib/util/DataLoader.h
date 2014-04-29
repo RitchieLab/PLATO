@@ -10,6 +10,8 @@
 
 #include <string>
 
+#include <bitset>
+
 #include <boost/dynamic_bitset.hpp>
 #include <boost/program_options.hpp>
 
@@ -31,7 +33,8 @@ public:
 		PED,
 		BED,
 		TPED,
-		LGEN
+		LGEN,
+		BEAGLE
 	};
 
 	DataLoader();
@@ -51,8 +54,13 @@ private:
 	void readTPed(const std::string& fn);
 	void readLGen(const std::string& fn);
 
+	void readBeagle();
+
+
 	PLATO::Data::Marker* parseMap(std::stringstream& ss);
-	void parseSample(PLATO::Data::Marker* m, PLATO::Data::Sample* samp, const std::string& s1, const std::string& s2);
+	void parseSample(PLATO::Data::Marker* m, PLATO::Data::Sample* samp,
+			const std::string& s1, const std::string& s2,
+			bool append = true, bool phased=false);
 
 
 	// does the map file contain a distance column?
@@ -61,6 +69,8 @@ private:
 	bool _map_ref;
 	// does the map file contain an alternate allele column?
 	bool _map_alt;
+	// does the map file contain even more alleles?
+	bool _map_others;
 
 	// does the ped file contain genotype information (false when reading fam)?
 	bool _ped_genotype;
@@ -104,6 +114,24 @@ private:
 	std::string tfam_fn;
 	std::string lfile_base;
 	std::string lgen_fn;
+
+	// BEAGLE options
+	std::string beagle_prefix;
+	std::string beagle_suffix;
+	std::string marker_suffix;
+
+	std::string bgl_missing_allele;
+
+	std::vector<std::string> beagle_fns;
+	std::vector<std::string> marker_fns;
+	std::vector<std::string> chroms;
+
+	std::bitset<3> _fns_provided;
+
+	bool bgl_trio;
+	bool bgl_pair;
+	bool bgl_phased;
+	bool bgl_poly;
 
 };
 

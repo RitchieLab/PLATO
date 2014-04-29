@@ -11,22 +11,30 @@
 #include "data/Family.h"
 #include "data/Sample.h"
 #include "data/Marker.h"
-#include "util/Logger.h"
+
+#include "Logger.h"
+#include "InputManager.h"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <map>
+#include <set>
+#include <limits>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/regex.hpp>
 
 using std::multimap;
 using std::map;
+using std::set;
 using std::string;
 using std::ifstream;
 using std::stringstream;
+using std::vector;
 
 using PLATO::Data::Marker;
 using PLATO::Data::Sample;
@@ -35,13 +43,17 @@ using PLATO::Data::Family;
 using PLATO::Utility::Logger;
 
 namespace po=boost::program_options;
+namespace fs=boost::filesystem;
 using po::value;
 using po::bool_switch;
+using boost::regex;
+using boost::regex_match;
 
 namespace PLATO{
 namespace Utility{
 
-DataLoader::DataLoader() : _ped_genotype(true), _ped_missing_geno("0"), input(UNKNOWN) {}
+DataLoader::DataLoader() : _map_others(false), _ped_genotype(true),
+		_ped_missing_geno("0"), input(UNKNOWN) {}
 
 po::options_description& DataLoader::addOptions(po::options_description& opts){
 	po::options_description data_opts("Data Input Options");
@@ -70,12 +82,27 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("map-alt", bool_switch(&_map_alt), "Map file contains alternate allele information")
 		("control0", bool_switch(&_ped_control0), "Case/Control status is encoded as 0/1, not 1/2")
 		("quant", bool_switch(&_quant), "Phenotype is a quantitative value, not case/control status (unparseable is converted to missing)")
-
-
 		;
 
 	data_opts.add(plink_opts);
 
+	po::options_description beagle_opts("BEAGLE file input options");
+
+	beagle_opts.add_options()
+		("beagle-prefix", value<string>(&beagle_prefix), "Prefix for all BEAGLE files")
+		("beagle-suffix", value<string>(&beagle_suffix)->default_value("bgl"), "Suffix for all BEAGLE genotype files")
+		("marker-suffix", value<string>(&marker_suffix)->default_value("markers"), "Suffix for all BEAGLE marker files")
+		("beagle-files", value<vector<string> >(&beagle_fns)->composing(), "Comma-separated list of all BEAGLE genotype files")
+		("marker-files", value<vector<string> >(&marker_fns)->composing(), "Comma-separated list of all BEAGLE marker files")
+		("beagle-chroms", value<vector<string> >(&chroms)->composing(), "Comma-separated list of chromosomes corresponding to genotype/marker files")
+		("trio", bool_switch(&bgl_trio), "Genotype data given is trio data")
+		("pair", bool_switch(&bgl_pair), "Genotype data given is pair data")
+		("bgl-phased", bool_switch(&bgl_phased), "Genotype data is phased")
+		("bgl-poly", bool_switch(&bgl_poly), "Genotype data is polyallelic")
+		("beagle-missing", value<string>(&bgl_missing_allele)->default_value("0"), "String for missing allele")
+		;
+
+	data_opts.add(beagle_opts);
 
 	return opts.add(data_opts);
 }
@@ -123,6 +150,86 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		}
 	}
 
+	_fns_provided[0] = beagle_fns.size() > 0;
+	_fns_provided[1] = marker_fns.size() > 0;
+	_fns_provided[2] = chroms.size() > 0;
+
+	if(_fns_provided.any()){
+		if(_fns_provided.count() != _fns_provided.size()){
+			Logger::log_err("ERROR: If you provide filenames for BEAGLE files, you must provide all genotype, marker, and chromosome files", true);
+		}
+		vector<string> tmp_fnvec;
+		InputManager::parseInput(beagle_fns, tmp_fnvec);
+		beagle_fns = tmp_fnvec;
+		tmp_fnvec.clear();
+		InputManager::parseInput(marker_fns, tmp_fnvec);
+		marker_fns = tmp_fnvec;
+		tmp_fnvec.clear();
+		InputManager::parseInput(chroms, tmp_fnvec);
+		chroms = tmp_fnvec;
+
+		if(beagle_fns.size() != marker_fns.size() || marker_fns.size() != chroms.size()){
+			Logger::log_err("ERROR: genotypes, markers, and chromosome lists must be the same size", true);
+		}
+
+	} else if(beagle_prefix.size() > 0){
+		// OK, we need to build the file lists from directory listings
+		// also, we need to make sure that the chromosomes match!
+
+		// first, build a file object from the prefix (to include any directories)
+		fs::path prefix_dir = fs::absolute(beagle_prefix).parent_path();
+		if(!fs::is_directory(prefix_dir)){
+			Logger::log_err("ERROR: could not find the directory containing BEAGLE files", true);
+		}
+
+		set<string> beagle_chroms;
+		set<string> marker_chroms;
+		// now, list all files in the directory of the above path
+		fs::directory_iterator end_itr;
+
+		regex esc("[\\^\\.\\$\\|\\(\\)\\[\\]\\*\\+\\?\\/\\\\]");
+		const string rep("\\\\\\1&");
+		string bgl_prefix_regex = boost::regex_replace(fs::path(beagle_prefix).filename().string() + ".", esc, rep,boost::match_default | boost::format_sed);
+		string bgl_suffix_regex = boost::regex_replace("." + beagle_suffix, esc, rep, boost::match_default | boost::format_sed);
+		string bgl_marker_regex = boost::regex_replace("." + marker_suffix, esc, rep, boost::match_default | boost::format_sed);
+
+		regex bgl_re(bgl_prefix_regex + "(.*)" + bgl_suffix_regex);
+		regex marker_re(bgl_prefix_regex + "(.*)" + bgl_marker_regex);
+
+		boost::smatch match_obj;
+
+		for(fs::directory_iterator dir_itr(prefix_dir); dir_itr != end_itr; dir_itr++){
+			if(fs::is_regular_file(dir_itr->status())){
+				// check for regex of beagle file
+				if(regex_match(dir_itr->path().filename().string(), match_obj, bgl_re)){
+					beagle_chroms.insert(match_obj[1]);
+				// check for regex of marker file
+				} else if (regex_match(dir_itr->path().filename().string(), match_obj, marker_re)){
+					marker_chroms.insert(match_obj[1]);
+				}
+			}
+		}
+
+		if(!(beagle_chroms == marker_chroms)){
+			Logger::log_err("ERROR: Chromosomes for marker and genotype files do not match", true);
+		} else if(beagle_chroms.size() == 0){
+			Logger::log_err("ERROR: could not find BEAGLE genotype or marker files", true);
+		}else {
+
+			chroms.clear();
+			chroms.reserve(beagle_chroms.size());
+			chroms.insert(chroms.begin(), beagle_chroms.begin(), beagle_chroms.end());
+			beagle_fns.clear();
+			beagle_fns.reserve(beagle_chroms.size());
+			marker_fns.clear();
+			marker_fns.reserve(beagle_chroms.size());
+			for(unsigned int i=0; i<chroms.size(); i++){
+				beagle_fns.push_back(beagle_prefix + "." + chroms[i] + "." + beagle_suffix);
+				marker_fns.push_back(beagle_prefix + "." + chroms[i] + "." + marker_suffix);
+			}
+		}
+	}
+
 	// decide what the style of input we're reading
 	if(ped_fn.size() && map_fn.size()){
 		input = PED;
@@ -132,6 +239,8 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		input = TPED;
 	}else if(lgen_fn.size() && map_fn.size() && fam_fn.size()){
 		input = LGEN;
+	}else if(beagle_fns.size()){
+		input = BEAGLE;
 	}
 
 }
@@ -170,7 +279,7 @@ void DataLoader::read(DataSet& ds){
 		readPed(fam_fn);
 		readLGen(lgen_fn);
 	default:
-		throw std::logic_error("Unknown input type");
+		Logger::log_err("Unknown input type", true);
 	}
 
 }
@@ -317,7 +426,7 @@ void DataLoader::readPed(const string& fn){
 							Logger::log_err("Error: marker not loaded!", true);
 						}
 
-						parseSample(*mi, samp, g1, g2);
+						parseSample(*mi, samp, g1, g2, false);
 
 						// Advance the marker
 						++mi;
@@ -396,7 +505,7 @@ void DataLoader::readBinPed(const string& fn){
 	ifstream BIT(fn.c_str(), std::ios::in | std::ios::binary);
 
 	if(!BIT.good()){
-		throw std::invalid_argument("Error opening genotype bitfile: " + fn);
+		Logger::log_err<std::invalid_argument>("Error opening genotype bitfile: " + fn, true);
 	}
 
 	char byte_val;
@@ -423,6 +532,7 @@ void DataLoader::readBinPed(const string& fn){
 		while(_sample_incl.size() % 4 != 0){
 			_sample_incl.push_back(false);
 		}
+		DataSet::marker_iterator mi = ds_ptr->beginMarker();
 		for(unsigned int m = 0; m < _marker_incl.size(); m++){
 			if(!_marker_incl[m]){
 				// If I'm not including this marker, seek the appropriate number
@@ -435,20 +545,18 @@ void DataLoader::readBinPed(const string& fn){
 					char ch;
 					BIT.read(&ch, 1);
 					if (!BIT.good()) {
-						throw std::logic_error(
-								"Problem with the bed file - unexpected EOF.");
+						Logger::log_err("Problem with the bed file - unexpected EOF.", true);
 					}
 
 					for (int i = 0; i < 4; i++) {
 						if (_sample_incl[s * 4 + i]) {
 							if (si == ds_ptr->endSample()) {
-								throw std::logic_error(
-										"Problem with the bed file - not enough samples.");
+								Logger::log_err("Problem with the bed file - not enough samples.", true);
 							}
 							if ((ch & GENO_2) && !(ch & GENO_1)) {
-								(*si)->appendMissingGenotype();
+								(*si)->setMissingGenotype(**mi);
 							} else {
-								(*si)->appendGenotype((ch & GENO_1) >> 1, ch
+								(*si)->setGenotype(**mi, (ch & GENO_1) >> 1, ch
 										& GENO_2);
 							}
 
@@ -458,6 +566,7 @@ void DataLoader::readBinPed(const string& fn){
 						ch >>= 2;
 					}
 				}
+				++mi;
 			}
 		}
 	} else {
@@ -471,27 +580,31 @@ void DataLoader::readBinPed(const string& fn){
 				BIT.seekg(_marker_incl.size() / 4, BIT.cur);
 			} else {
 				if (si == ds_ptr->endSample()) {
-					throw std::logic_error("Problem with the bed file - not enough samples.");
+					Logger::log_err("Problem with the bed file - not enough samples.", true);
 				}
 
 				// I KNOW that _marker_incl.size() is a multiple of 4!
+				DataSet::marker_iterator mi = ds_ptr->beginMarker();
 				for (unsigned int m = 0; m * 4 < _marker_incl.size(); s++) {
 					char ch;
 					BIT.read(&ch, 1);
 					if (!BIT.good()) {
-						throw std::logic_error("Problem with the bed file - unexpected EOF.");
+						Logger::log_err("Problem with the bed file - unexpected EOF.", true);
 					}
 
 					for (int i = 0; i < 4; i++) {
 						if (_marker_incl[m * 4 + i]) {
 							if ((ch & GENO_2) && !(ch & GENO_1)) {
-								(*si)->appendMissingGenotype();
+								(*si)->setMissingGenotype(**mi);
 							} else {
-								(*si)->appendGenotype((ch & GENO_2) >> 1, ch & GENO_1);
+								(*si)->setGenotype(**mi,(ch & GENO_2) >> 1, ch & GENO_1);
 							}
 						}
 						// shift bits two places and go again!
 						ch >>= 2;
+						if(mi != ds_ptr->endMarker()){
+							++mi;
+						}
 					}
 				}
 				++si;
@@ -510,7 +623,7 @@ void DataLoader::readTPed(const string& fn){
     ifstream input(fn.c_str());
 
 	if(!input.is_open()){
-		throw std::invalid_argument("Error opening pedfile: " + fn);
+		Logger::log_err<std::invalid_argument>("Error opening TPEDfile: " + fn, true);
 	}
 
 	string line;
@@ -589,12 +702,174 @@ void DataLoader::readLGen(const std::string& fn){
 				Logger::log_err("ERROR: Marker not found on line " + boost::lexical_cast<string>(lineno), true);
 			}
 
-			parseSample(mark, samp, g1, g2);
+			parseSample(mark, samp, g1, g2, false);
 		}
 
 	}
 
 	input.close();
+}
+
+void DataLoader::readBeagle(){
+
+	string currChrom;
+	ifstream genof;
+	ifstream markerf;
+	_map_others = _map_ref = _map_alt = true;
+	_ped_missing_geno = bgl_missing_allele;
+	_map_no_distance = true;
+
+	ds_ptr->setBiallelic(!bgl_poly);
+	ds_ptr->setPhased(bgl_phased);
+
+	// read all the marker files first
+	for(unsigned int i=0; i<chroms.size(); i++){
+		currChrom = chroms[i];
+		markerf.open(marker_fns[i].c_str());
+
+		string markerline;
+		while(getline(markerf, markerline)){
+			boost::algorithm::trim(markerline);
+			if(markerline.size() > 0 && markerline[0] != '#'){
+				stringstream s(currChrom + " " + markerline);
+				_marker_incl.push_back(parseMap(s));
+			}
+		}
+		markerf.close();
+
+	}
+
+	set<string> ids;
+	vector<Sample*> curr_samps;
+
+	// now read all the genotype information
+	Sample* samp = 0;
+	bool affect = false;
+	for(unsigned int i=0; i<chroms.size(); i++){
+		genof.open(beagle_fns[i].c_str());
+		curr_samps.clear();
+		string line;
+		int lineno = 0;
+		while(getline(genof, line)){
+			boost::algorithm::trim(line);
+			if(line.size() > 0 && line[0] != '#'){
+
+				++lineno;
+				stringstream s(line);
+
+				// On the 1st line, we MUST have the ID line
+				if(lineno == 1){
+					if(line[0] != 'I' && line[0] != 'i'){
+						Logger::log_err("ERROR: PLATO requires the ID line in all BEAGLE files", true);
+					}
+
+					string id1, id2; // these better match!!
+					s >> id1 >> id2; // 1st 2 are "I id", which we don't care about
+					while(s){
+						s >> id1 >> id2;
+						if(id1 != id2){
+							Logger::log_err("ERROR: consecutive IDs do not match in " + beagle_fns[i], true);
+						}
+
+						if(i == 0){
+							ids.insert(id1);
+							samp = ds_ptr->addSample(id1, _marker_incl.count());
+							curr_samps.push_back(samp);
+
+							if(bgl_pair || bgl_trio){
+								unsigned int fam_sz = 2 + bgl_trio;
+								if(curr_samps.size() % (fam_sz) == 0){
+									Family* f = ds_ptr->addFamily(boost::lexical_cast<string>(curr_samps.size() / fam_sz));
+									f->addFounder(curr_samps[curr_samps.size() - fam_sz]);
+									f->addNonFounder(samp);
+									samp->addMother(curr_samps[curr_samps.size() - fam_sz]);
+									curr_samps[curr_samps.size() - fam_sz]->addChild(samp);
+
+									if(bgl_trio){
+										f->addFounder(curr_samps[curr_samps.size() - 2]);
+										samp->addFather(curr_samps[curr_samps.size() - 2]);
+										curr_samps[curr_samps.size() - 2]->addChild(samp);
+									}
+								}
+							} else {
+								ds_ptr->addFamily(id1)->addFounder(samp);
+							}
+
+						} else if((samp = ds_ptr->getSample(id1)) != 0) {
+							curr_samps.push_back(samp);
+						} else {
+							Logger::log_err("ERROR: ID '" + id1 + "' in file '"
+									+ beagle_fns[i] + "' not found in first genotype file", true);
+						}
+					}
+				}
+
+				// load up the affection status
+				if(i==0 && !affect && (line[0] == 'A' || line[0] == 'a')){
+					string a1, a2;
+					s >> a1 >> a2; // ignore the 1st 2 strings - we don't need them!
+					for(unsigned int j=0; j<curr_samps.size(); j++){
+						s >> a1 >> a2;
+						if(a1 != a2){
+							Logger::log_err("WARNING: discordant affection status, making unknown");
+						} else{
+							if(a1 == "1"){
+								curr_samps[j]->setAffected(false);
+							} else if(a1 == "2"){
+								curr_samps[j]->setAffected(true);
+							}
+						}
+					}
+
+				} else if(i==0 && (line[0] == 'T' || line[0] == 't' || line[0] == 'A' || line[0] == 'a')){
+					string miss_val = "";
+					if(line[0] == 'a' || line[0] == 'A'){
+						Logger::log_err("WARNING: multiple affection statuses seen, loading as a trait");
+						miss_val = "0";
+					}
+					string trait_id, t1, t2;
+					s >> trait_id;
+					s >> trait_id;
+
+					for(unsigned int j=0; j<curr_samps.size(); j++){
+						s >> t1 >> t2;
+						float tval = std::numeric_limits<float>::quiet_NaN();
+						if(t1 != t2){
+							Logger::log_err("WARNING: discordant trait values, making unknown");
+						} else if (!(stringstream(t1) >> tval)){
+							tval = std::numeric_limits<float>::quiet_NaN();
+						}
+
+						ds_ptr->addTrait(trait_id,curr_samps[j],tval);
+					}
+
+				} else if (line[0] == 'M' || line[0] == 'm'){
+					string mid, g1, g2;
+					s >> mid; // ignore the "M"
+					s >> mid;
+
+					Marker* curr_mark = ds_ptr->getMarker(mid);
+					if(curr_mark != 0){
+						for(unsigned int j=0; j<curr_samps.size(); j++){
+							s >> g1 >> g2;
+							parseSample(curr_mark, curr_samps[j], g1, g2, false, bgl_phased);
+						}
+
+					} else {
+						Logger::log_err("WARNING: unknown marker found on line " +
+								boost::lexical_cast<string>(lineno) + " of '" +
+								beagle_fns[i] + "', ignoring");
+					}
+				} else if (i == 0 && !(line[0] == 'a' || line[0] == 'A' || line[0] == 'T' || line[0] == 't')){
+					Logger::log_err("WARNING: unknown line identifier on line " +
+							boost::lexical_cast<string>(lineno) + " of '" + beagle_fns[i] +
+							"': PLATO only recognizes 'A', 'T', and 'M' lines");
+				}
+			}
+		}
+		genof.close();
+	}
+
 }
 
 Marker* DataLoader::parseMap(stringstream& ss) {
@@ -635,27 +910,40 @@ Marker* DataLoader::parseMap(stringstream& ss) {
 
 		if (_map_ref) {
 			m->addAllele(ref);
-			m->setRefAllele(ref);
+			//m->setRefAllele(ref);
 		}
 		if (_map_alt) {
 			m->addAllele(alt);
-			m->setAltAllele(alt);
+			//m->setAltAllele(alt);
+		}
+		if(_map_others) {
+			while(ss >> alt){
+				m->addAllele(alt);
+			}
 		}
 	}
 	return m;
 }
 
-void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const string& g2){
+void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const string& g2, bool append, bool phased){
 
-	if (g1 == _ped_missing_geno || g2 == _ped_missing_geno) {
-		s->appendMissingGenotype();
+	if ((g1 == _ped_missing_geno) + (g2 == _ped_missing_geno) >= (1 + phased)) {
+		if(append){
+			s->appendMissingGenotype();
+		} else {
+			s->setMissingGenotype(*m);
+		}
 	} else {
-		unsigned char g_idx1 =
+		unsigned char g_idx1 = (g1 == _ped_missing_geno) ? Sample::missing_allele :
 				static_cast<unsigned char> (m->addAllele(g1));
-		unsigned char g_idx2 =
+		unsigned char g_idx2 = (g2 == _ped_missing_geno) ? Sample::missing_allele :
 				static_cast<unsigned char> (m->addAllele(g2));
 
-		s->appendGenotype(g_idx1, g_idx2);
+		if(append){
+			s->appendGenotype(g_idx1, g_idx2);
+		} else {
+			s->setGenotype(*m, g_idx1, g_idx2);
+		}
 	}
 
 }

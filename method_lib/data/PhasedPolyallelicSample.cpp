@@ -17,6 +17,9 @@ namespace Data{
 
 PhasedPolyallelicSample::PhasedPolyallelicSample(const string& famid, const string& id, unsigned int n_genos) :
 	Sample(famid, id) {
+	for(unsigned int i=0; i<2*n_genos; i++){
+		_genotype.push_back(missing_allele);
+	}
 }
 
 void PhasedPolyallelicSample::appendGenotype(unsigned char geno1, unsigned char geno2){
@@ -27,6 +30,18 @@ void PhasedPolyallelicSample::appendGenotype(unsigned char geno1, unsigned char 
 void PhasedPolyallelicSample::appendMissingGenotype(){
 	_genotype.push_back(missing_allele);
 	_genotype.push_back(missing_allele);
+}
+
+void PhasedPolyallelicSample::setGenotype(const Marker& m, unsigned char geno1, unsigned char geno2){
+	unsigned int pos = m.getIndex();
+	_genotype[2*pos] = geno1;
+	_genotype[2*pos + 1] = geno2;
+}
+
+void PhasedPolyallelicSample::setMissingGenotype(const Marker& m){
+	unsigned int pos = m.getIndex();
+	_genotype[2*pos] = missing_allele;
+	_genotype[2*pos + 1] = missing_allele;
 }
 
 bool PhasedPolyallelicSample::isMissing(const Marker& m) const{

@@ -21,6 +21,8 @@ public:
 
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2);
 	virtual void appendMissingGenotype();
+	virtual void setGenotype(const Marker& m, unsigned char geno1, unsigned char geno2);
+	virtual void setMissingGenotype(const Marker& m);
 	virtual bool isMissing(const Marker&) const;
 	virtual std::pair<unsigned char, unsigned char> getGeno(const Marker&) const;
 

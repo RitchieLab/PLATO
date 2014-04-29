@@ -40,6 +40,8 @@ public:
 	}
 
 	virtual void appendGenotype(unsigned char geno1, unsigned char geno2) = 0;
+	virtual void setGenotype(const Marker&, unsigned char geno1, unsigned char geno2) = 0;
+	virtual void setMissingGenotype(const Marker&) = 0;
 	virtual void appendMissingGenotype() = 0;
 	virtual bool isMissing(const Marker&) const = 0;
 	virtual std::pair<unsigned char, unsigned char> getGeno(const Marker&) const = 0;

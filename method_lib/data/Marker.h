@@ -26,14 +26,16 @@ public:
 	 * Sets the given allele as the referent allele.  Returns false if the given
 	 * allele is not found in the Marker
 	 */
-	bool setRefAllele(const std::string& allele);
+	// NOTE: if we allow this, we have to go through and recode all the samples!
+	//bool setRefAllele(const std::string& allele);
 
 	/*!
 	 * Sets the given allele as the alternate allele (in biallelic analysis).
 	 * Returns false if only one allele is available or if the given allele is
 	 * not found in the allele list.
 	 */
-	bool setAltAllele(const std::string& allele);
+	// see note above
+	//bool setAltAllele(const std::string& allele);
 
 	bool setMAF(float maf){return -1 != (_maf = (maf >= 0 && maf <= 1) ? maf : -1);}
 
@@ -47,7 +49,7 @@ public:
 	 * Note that the first allele added is by default the reference allele.
 	 */
 	const std::string& getRefAllele() const{
-		return _ref_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_ref_idx];
+		return _ref_idx == missing_allele_idx ? _missing_allele : _alleles[_ref_idx];
 	}
 
 	/*!
@@ -55,11 +57,11 @@ public:
 	 * is not the reference allele.  Returns "0" if no available allele
 	 */
 	const std::string& getAltAllele() const{
-		return _alt_idx == static_cast<unsigned char>(-1) ? _missing_allele : _alleles[_alt_idx];
+		return _alt_idx == missing_allele_idx ? _missing_allele : _alleles[_alt_idx];
 	}
 
 	bool isAlleleMissing(unsigned char idx) const {
-		return idx == _missing_allele_idx;
+		return idx == missing_allele_idx;
 	}
 
 	const std::string& getAllele(unsigned char idx) const{
@@ -91,7 +93,7 @@ public:
 	/*!
 	 * Returns the chromosome string
 	 */
-	const std::string& getChromStr() const {return PLATO::Utility::InputManager::chrIntToString(_chr & ~(ENABLED_MASK));}
+	const std::string& getChromStr() const {return PLATO::Utility::InputManager::chrIntToString(getChrom());}
 
 	/*!
 	 * Returns the location
@@ -131,8 +133,11 @@ private:
 	std::vector<std::string> _alleles;
 
 	static std::string _missing_allele;
-	static const unsigned char _missing_allele_idx = static_cast<unsigned char>(-1);
 	static const unsigned short ENABLED_MASK = 1 << (sizeof(unsigned short)*8 - 1);
+
+public:
+	static const unsigned char missing_allele_idx = static_cast<unsigned char>(-1);
+
 };
 
 }
