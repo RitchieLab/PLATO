@@ -116,7 +116,10 @@ void OutputBeagle::process(DataSet& ds){
 		sg->reset();
 		while( (s = sg->next()) != 0){
 			std::pair<unsigned char, unsigned char> geno = s->getGeno(**mi);
-			genof << _sep << (*mi)->getAllele(geno.first) << _sep << (*mi)->getAllele(geno.second);
+			genof << _sep << ((*mi)->isAlleleMissing(geno.first) ?
+						string(".") : (*mi)->getAllele(geno.first))
+				  << _sep << ((*mi)->isAlleleMissing(geno.second) ?
+						string(".") : (*mi)->getAllele(geno.second));
 		}
 		genof << endl;
 
