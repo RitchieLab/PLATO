@@ -17,7 +17,7 @@ namespace po=boost::program_options;
 namespace PLATO{
 namespace ProcessLib{
 
-const string AlleleFreqFilter::stepname = AlleleFreqFilter::doRegister("maf-filter");
+const string AlleleFreqFilter::stepname = AlleleFreqFilter::doRegister("filter-maf");
 
 //PrintSummary()
 //used to output results after processing the data

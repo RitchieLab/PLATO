@@ -17,7 +17,7 @@ namespace po=boost::program_options;
 namespace PLATO{
 namespace ProcessLib{
 
-const string MarkerMissingFilter::stepname = MarkerMissingFilter::doRegister("marker-call-filter");
+const string MarkerMissingFilter::stepname = MarkerMissingFilter::doRegister("filter-marker-call");
 
 //PrintSummary()
 //used to output results after processing the data

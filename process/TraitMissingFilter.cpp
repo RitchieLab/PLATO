@@ -16,7 +16,7 @@ namespace po=boost::program_options;
 namespace PLATO{
 namespace ProcessLib{
 
-const string TraitMissingFilter::stepname = TraitMissingFilter::doRegister("triat-missing-filter");
+const string TraitMissingFilter::stepname = TraitMissingFilter::doRegister("filter-trait-missing");
 
 //PrintSummary()
 //used to output results after processing the data

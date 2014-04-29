@@ -16,7 +16,7 @@ namespace po=boost::program_options;
 namespace PLATO{
 namespace ProcessLib{
 
-const string SampleMissingFilter::stepname = SampleMissingFilter::doRegister("sample-call-filter");
+const string SampleMissingFilter::stepname = SampleMissingFilter::doRegister("filter-sample-call");
 
 //PrintSummary()
 //used to output results after processing the data
