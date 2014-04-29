@@ -30,7 +30,8 @@ public:
 		UNKNOWN,
 		PED,
 		BED,
-		TPED
+		TPED,
+		LGEN
 	};
 
 	DataLoader();
@@ -48,6 +49,7 @@ private:
 	void readMap(const std::string& fn);
 	void readBinPed(const std::string& fn);
 	void readTPed(const std::string& fn);
+	void readLGen(const std::string& fn);
 
 	PLATO::Data::Marker* parseMap(std::stringstream& ss);
 	void parseSample(PLATO::Data::Marker* m, PLATO::Data::Sample* samp, const std::string& s1, const std::string& s2);
@@ -100,6 +102,8 @@ private:
 	std::string tfile_base;
 	std::string tped_fn;
 	std::string tfam_fn;
+	std::string lfile_base;
+	std::string lgen_fn;
 
 };
 

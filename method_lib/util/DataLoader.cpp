@@ -11,12 +11,16 @@
 #include "data/Family.h"
 #include "data/Sample.h"
 #include "data/Marker.h"
+#include "util/Logger.h"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <map>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 using std::multimap;
 using std::map;
@@ -28,6 +32,7 @@ using PLATO::Data::Marker;
 using PLATO::Data::Sample;
 using PLATO::Data::DataSet;
 using PLATO::Data::Family;
+using PLATO::Utility::Logger;
 
 namespace po=boost::program_options;
 using po::value;
@@ -41,7 +46,9 @@ DataLoader::DataLoader() : _ped_genotype(true), _ped_missing_geno("0"), input(UN
 po::options_description& DataLoader::addOptions(po::options_description& opts){
 	po::options_description data_opts("Data Input Options");
 
-	data_opts.add_options()
+	po::options_description plink_opts("PLINK file input options");
+
+	plink_opts.add_options()
 		("file", value<string>(&file_base), "Filename base for reading PED/MAP files")
 		("ped", value<string>(&ped_fn), "Filename of a PED file")
 		("map", value<string>(&map_fn), "Filename of a MAP file")
@@ -52,6 +59,8 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("tfile",value<string>(&tfile_base), "Filename base for reading TPED/TFAM files")
 		("tped", value<string>(&tped_fn), "Filename of a TPED file")
 		("tfam", value<string>(&tfam_fn), "Filename of a TFAM file")
+		("lfile", value<string>(&lfile_base), "Filename base for reading LGEN/MAP/FAM files")
+		("lgen", value<string>(&lgen_fn), "Filename of an LGEN file")
 		("no-sex", bool_switch(&_ped_no_gender), "PED file does not contain gender")
 		("no-parents", bool_switch(&_ped_no_parents), "PED file does not contain parental information")
 		("no-fid", bool_switch(&_ped_no_fid), "PED file does not contain fid")
@@ -64,6 +73,8 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 
 
 		;
+
+	data_opts.add(plink_opts);
 
 
 	return opts.add(data_opts);
@@ -100,6 +111,18 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		}
 	}
 
+	if(vm.count("lfile")){
+		if(lgen_fn.size() == 0){
+			lgen_fn = lfile_base + ".lgen";
+		}
+		if(map_fn.size() == 0){
+			map_fn = lfile_base + ".map";
+		}
+		if(fam_fn.size() == 0){
+			fam_fn = lfile_base + ".fam";
+		}
+	}
+
 	// decide what the style of input we're reading
 	if(ped_fn.size() && map_fn.size()){
 		input = PED;
@@ -107,6 +130,8 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		input = BED;
 	}else if(tped_fn.size() && tfam_fn.size()){
 		input = TPED;
+	}else if(lgen_fn.size() && map_fn.size() && fam_fn.size()){
+		input = LGEN;
 	}
 
 }
@@ -139,6 +164,11 @@ void DataLoader::read(DataSet& ds){
 		readPed(tfam_fn);
 		readTPed(tped_fn);
 		break;
+	case LGEN:
+		_ped_genotype = false;
+		readMap(map_fn);
+		readPed(fam_fn);
+		readLGen(lgen_fn);
 	default:
 		throw std::logic_error("Unknown input type");
 	}
@@ -284,7 +314,7 @@ void DataLoader::readPed(const string& fn){
 					if (_marker_incl[i]) {
 						if (mi == mi_end) {
 							//This is a problem!!
-							throw std::logic_error("Error: marker not loaded!");
+							Logger::log_err("Error: marker not loaded!", true);
 						}
 
 						parseSample(*mi, samp, g1, g2);
@@ -294,7 +324,7 @@ void DataLoader::readPed(const string& fn){
 					}
 				}
 				if (mi != mi_end) {
-					throw std::logic_error("Error: not enough markers!");
+					Logger::log_err("Error: not enough markers!", true);
 				}
 			}
 
@@ -381,6 +411,7 @@ void DataLoader::readBinPed(const string& fn){
 	} else {
 		//throw std::invalid_argument("Incorrect magic number in Binary PED file: " + fn);
 		// Maybe just warn here - assume v0.99 BED
+		Logger::log_err("WARNING: BED magic number not found, assuming v0.99 BED file");
 		BIT.seekg(0);
 	}
 
@@ -520,6 +551,50 @@ void DataLoader::readTPed(const string& fn){
 
 
 	}
+}
+
+void DataLoader::readLGen(const std::string& fn){
+	ifstream input(fn.c_str());
+
+	if(!input.is_open()){
+		Logger::log_err<std::invalid_argument>("Error opening LGEN file: " + fn, true);
+	}
+
+	string line;
+
+	int lineno = 0;
+	while(getline(input, line)){
+		++lineno;
+
+		boost::algorithm::trim(line);
+		if(line[0] != '#'){
+			stringstream s(line);
+			string fid, iid, mid, g1, g2;
+
+			if(!_ped_no_fid){
+				s >> fid;
+			}
+			s >> iid >> mid >> g1 >> g2;
+			Sample* samp;
+			if(!_ped_no_fid){
+				samp = ds_ptr->getSample(fid, iid);
+			} else {
+				samp = ds_ptr->getSample(iid);
+			}
+			if(!samp){
+				Logger::log_err("ERROR: Sample not found on line " + boost::lexical_cast<string>(lineno), true);
+			}
+			Marker* mark = ds_ptr->getMarker(mid);
+			if(!mark){
+				Logger::log_err("ERROR: Marker not found on line " + boost::lexical_cast<string>(lineno), true);
+			}
+
+			parseSample(mark, samp, g1, g2);
+		}
+
+	}
+
+	input.close();
 }
 
 Marker* DataLoader::parseMap(stringstream& ss) {
