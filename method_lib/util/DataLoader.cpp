@@ -14,6 +14,7 @@
 
 #include "Logger.h"
 #include "InputManager.h"
+#include "ICompressedFile.h"
 
 #include <iostream>
 #include <fstream>
@@ -158,6 +159,7 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		if(_fns_provided.count() != _fns_provided.size()){
 			Logger::log_err("ERROR: If you provide filenames for BEAGLE files, you must provide all genotype, marker, and chromosome files", true);
 		}
+
 		vector<string> tmp_fnvec;
 		InputManager::parseInput(beagle_fns, tmp_fnvec);
 		beagle_fns = tmp_fnvec;
@@ -171,8 +173,13 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		if(beagle_fns.size() != marker_fns.size() || marker_fns.size() != chroms.size()){
 			Logger::log_err("ERROR: genotypes, markers, and chromosome lists must be the same size", true);
 		}
+		if(beagle_prefix.size() > 0){
+			Logger::log_err("WARNING: beagle files were given along with a beagle prefix, ignoring the prefix directive");
+			beagle_prefix = "";
+		}
 
 	} else if(beagle_prefix.size() > 0){
+
 		// OK, we need to build the file lists from directory listings
 		// also, we need to make sure that the chromosomes match!
 
@@ -193,8 +200,8 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		string bgl_suffix_regex = boost::regex_replace("." + beagle_suffix, esc, rep, boost::match_default | boost::format_sed);
 		string bgl_marker_regex = boost::regex_replace("." + marker_suffix, esc, rep, boost::match_default | boost::format_sed);
 
-		regex bgl_re(bgl_prefix_regex + "(.*)" + bgl_suffix_regex);
-		regex marker_re(bgl_prefix_regex + "(.*)" + bgl_marker_regex);
+		regex bgl_re(bgl_prefix_regex + "(.*)" + bgl_suffix_regex + "\\.?(z|gz|bz)?");
+		regex marker_re(bgl_prefix_regex + "(.*)" + bgl_marker_regex + "\\.?(z|gz|bz)?");
 
 		boost::smatch match_obj;
 
@@ -717,8 +724,8 @@ void DataLoader::readLGen(const std::string& fn){
 void DataLoader::readBeagle(){
 
 	string currChrom;
-	ifstream genof;
-	ifstream markerf;
+	ICompressedFile genof;
+	ICompressedFile markerf;
 	_map_others = _map_ref = _map_alt = true;
 	_ped_missing_geno = bgl_missing_allele;
 	_map_no_distance = true;
