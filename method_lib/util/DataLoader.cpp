@@ -278,6 +278,10 @@ void DataLoader::read(DataSet& ds){
 		readMap(map_fn);
 		readPed(fam_fn);
 		readLGen(lgen_fn);
+		break;
+	case BEAGLE:
+		readBeagle();
+		break;
 	default:
 		Logger::log_err("Unknown input type", true);
 	}
@@ -765,8 +769,7 @@ void DataLoader::readBeagle(){
 
 					string id1, id2; // these better match!!
 					s >> id1 >> id2; // 1st 2 are "I id", which we don't care about
-					while(s){
-						s >> id1 >> id2;
+					while( (s >> id1 >> id2) ){
 						if(id1 != id2){
 							Logger::log_err("ERROR: consecutive IDs do not match in " + beagle_fns[i], true);
 						}
@@ -860,7 +863,7 @@ void DataLoader::readBeagle(){
 								boost::lexical_cast<string>(lineno) + " of '" +
 								beagle_fns[i] + "', ignoring");
 					}
-				} else if (i == 0 && !(line[0] == 'a' || line[0] == 'A' || line[0] == 'T' || line[0] == 't')){
+				} else if (i == 0 && lineno != 1 && !(line[0] == 'a' || line[0] == 'A' || line[0] == 'T' || line[0] == 't')){
 					Logger::log_err("WARNING: unknown line identifier on line " +
 							boost::lexical_cast<string>(lineno) + " of '" + beagle_fns[i] +
 							"': PLATO only recognizes 'A', 'T', and 'M' lines");

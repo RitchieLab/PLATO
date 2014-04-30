@@ -5,11 +5,11 @@
 #include <vector>
 
 #include "util/InputManager.h"
+#include "Sample.h"
 
 namespace PLATO{
 namespace Data{
 
-class Sample;
 class DataSet;
 
 class Marker{
@@ -49,7 +49,7 @@ public:
 	 * Note that the first allele added is by default the reference allele.
 	 */
 	const std::string& getRefAllele() const{
-		return _ref_idx == missing_allele_idx ? _missing_allele : _alleles[_ref_idx];
+		return _ref_idx == Sample::missing_allele ? _missing_allele : _alleles[_ref_idx];
 	}
 
 	/*!
@@ -57,11 +57,7 @@ public:
 	 * is not the reference allele.  Returns "0" if no available allele
 	 */
 	const std::string& getAltAllele() const{
-		return _alt_idx == missing_allele_idx ? _missing_allele : _alleles[_alt_idx];
-	}
-
-	bool isAlleleMissing(unsigned char idx) const {
-		return idx == missing_allele_idx;
+		return _alt_idx == Sample::missing_allele ? _missing_allele : _alleles[_alt_idx];
 	}
 
 	const std::string& getAllele(unsigned char idx) const{
@@ -134,9 +130,6 @@ private:
 
 	static std::string _missing_allele;
 	static const unsigned short ENABLED_MASK = 1 << (sizeof(unsigned short)*8 - 1);
-
-public:
-	static const unsigned char missing_allele_idx = static_cast<unsigned char>(-1);
 
 };
 

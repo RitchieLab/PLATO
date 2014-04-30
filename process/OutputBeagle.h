@@ -81,9 +81,11 @@ private:
 	std::string _suffix;
 	std::string _marker_suff;
 	std::string _sep;
+	std::string _miss_val;
 	bool _incl_trait;
 	bool _pair;
 	bool _trio;
+
 
 };
 

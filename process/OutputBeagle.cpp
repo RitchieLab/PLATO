@@ -30,6 +30,7 @@ po::options_description& OutputBeagle::appendOptions(po::options_description& op
 		("incl-traits", po::bool_switch(&_incl_trait), "Include traits in the genotype output data")
 		("pair", po::bool_switch(&_pair), "Data to output is pair data")
 		("trio", po::bool_switch(&_trio), "Data to output is trio data")
+		("missing", po::value<string>(&_miss_val)->default_value("0"), "Character to print for missing data")
 		;
 
 	opts.add(subopts);
@@ -116,10 +117,10 @@ void OutputBeagle::process(DataSet& ds){
 		sg->reset();
 		while( (s = sg->next()) != 0){
 			std::pair<unsigned char, unsigned char> geno = s->getGeno(**mi);
-			genof << _sep << ((*mi)->isAlleleMissing(geno.first) ?
-						string(".") : (*mi)->getAllele(geno.first))
-				  << _sep << ((*mi)->isAlleleMissing(geno.second) ?
-						string(".") : (*mi)->getAllele(geno.second));
+			genof << _sep << (geno.first == Sample::missing_allele ?
+						_miss_val : (*mi)->getAllele(geno.first))
+				  << _sep << (geno.second == Sample::missing_allele ?
+						_miss_val : (*mi)->getAllele(geno.second));
 		}
 		genof << endl;
 
