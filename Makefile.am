@@ -59,7 +59,7 @@ process/OutputBeagle.cpp
 
 
 
-plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB)
+plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_REGEX_LIB)
 
 
 orig_plato_src = cdflib.h \
