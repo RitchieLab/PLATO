@@ -26,6 +26,7 @@ using std::fabs;
 using std::log;
 using std::exp;
 using std::pow;
+using std::pair;
 
 using boost::array;
 
@@ -110,7 +111,8 @@ Regression::Result* LogisticRegression::calculate(
 	// 1 + # of predictor variables
 
 	// Find the number of predictor variables in the reduced model
-	Result* null_result = 0;
+
+	Result* r = new Result();
 	unsigned int reduced_vars = n_covars + 1;
 
 	// If this is the case, we need to find the result for running the regression
@@ -123,10 +125,9 @@ Regression::Result* LogisticRegression::calculate(
 		unsigned int new_covars = n_covars > covar_names.size() ? covar_names.size() : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		null_result = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - reduced_vars, new_covars);
+		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - reduced_vars, new_covars);
 	}
 
-	Result* r = new Result();
 
 	// val is the value of the logit function
 	// deriv is the derivative of the logit
@@ -156,7 +157,7 @@ Regression::Result* LogisticRegression::calculate(
 	// gsl beta vector
 	gsl_vector_view b = gsl_vector_view_array(beta, n_cols);
 	// this is the previous beta vector, for checking convergence
-	gsl_vector* b_prev = gsl_vector_alloc(n_cols);
+	gsl_vector* b_prev = gsl_vector_alloc(n_indep);
 	// make this b_prev nonzero to begin
 	gsl_vector_set_all(b_prev, 1.0);
 
@@ -185,21 +186,17 @@ Regression::Result* LogisticRegression::calculate(
 	double LLp = numeric_limits<double>::infinity(); // stores previous value of LL to check for convergence
 	double LLn, LL = 0;
 
-	LLn = (null_result) ? null_result->log_likelihood : 0;
+	LLn = 0;
 
-	if(!null_result){
+	// Add up all the values in Y
+	double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
 
-		// Add up all the values in Y
-		double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
+	// get the exponent (and derivative, log and 1-log values) for the
+	// null model (i.e., best fit of the intercept parameter)
+	array<double, 4> null_v = linkFunction(log(sum_Y / (n_rows - sum_Y)));
 
-		// get the exponent (and derivative, log and 1-log values) for the
-		// null model (i.e., best fit of the intercept parameter)
-		array<double, 4> null_v = linkFunction(log(sum_Y / (n_rows - sum_Y)));
-
-		for(unsigned int i=0; i<n_rows; i++){
-			LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
-		}
-
+	for(unsigned int i=0; i<n_rows; i++){
+		LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
 	}
 
 	unsigned int numIterations = 0;
@@ -246,11 +243,6 @@ Regression::Result* LogisticRegression::calculate(
 			gsl_vector_set(rhs, i, v + 1/v_arr[1] * (Y[i] - v_arr[0]));
 
 		}
-
-		// when this is the first iteration, set LLn (null model) to be the current value of LL
-		//if (null_result == 0 && numIterations == 1) {
-		//	LLn = LL;
-		//}
 
 		// Look, magic!
 		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
@@ -318,39 +310,33 @@ Regression::Result* LogisticRegression::calculate(
 		}
 	}
 
-	addResult(r, null_result);
+	addResult(r);
 
-	unsigned int df = n_indep - reduced_vars;
-	if (null_result){
-		df += null_result->n_dropped;
-	}
+	r->df = findDF(P, reduced_vars, r->n_dropped);
+	r->log_likelihood = std::isfinite(LL) ? LL : -std::numeric_limits<float>::infinity();
 
-	// We want to see if there are extra degrees of freedom, which can happen in
-	// the case of the "categorical" model
-	// we have an extra df per marker in the categorically encoded model
-	// We only have markers if we are not excluding markers and the
-	// number of columns is at least as many as the number of covariates
-	// (i.e. this isn;t the "null" model)
-	unsigned int extra_df = (encoding == Encoding::WEIGHTED)
-			* (!interactions || offset != 0)
-			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
-			* (1 + pairwise);
+	Result* curr_res = r;
 
-	if (!std::isfinite(LL) || LL-LLn > 0){
-		r->p_val = 1.0;
-		r->log_likelihood = std::isfinite(LL) ? LL : -std::numeric_limits<float>::infinity();
-	} else {
-		if(df == 0){
-			r->p_val = 1;
-		} else {
-			r->p_val = gsl_cdf_chisq_Q(fabs(LLn - LL), df+extra_df);
+	string extraSuff = "";
+
+	unsigned int df = 0;
+	while (curr_res) {
+		df += curr_res->df;
+		pair<float, float> pv_rsq = calcPVal(r, curr_res, df, LLn);
+
+		if (curr_res == r) {
+			r->p_val = pv_rsq.first;
+			r->r_squared = pv_rsq.second;
+		} else if (curr_res->submodel) {
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep
+					+ extraSuff;
 		}
-		r->log_likelihood = LL;
+
+		curr_res = curr_res->submodel;
 	}
 
-	if(null_result){
-		delete null_result;
-	}
+
+	r->suffix += extraSuff;
 
 	gsl_vector_free(b_prev);
 	gsl_vector_free(rhs);
@@ -405,6 +391,24 @@ array<double, 4> LogisticRegression::linkFunction(double v) const{
 		}
 	}
 	return retval;
+}
+
+pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, unsigned int df, float null_ll){
+	pair<float, float> pv_rsq(1,1);
+	double LLn = null_ll;
+
+	if(curr_res->submodel){
+		LLn = curr_res->submodel->log_likelihood;
+	}
+
+	if (std::isfinite(r->log_likelihood) && r->log_likelihood-LLn <= 0){
+		if(df != 0){
+			pv_rsq.first = gsl_cdf_chisq_Q(fabs(LLn - r->log_likelihood), df);
+		}
+	}
+
+	return pv_rsq;
+
 }
 
 }

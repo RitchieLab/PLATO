@@ -6,13 +6,10 @@
 #include <set>
 #include <algorithm>
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_blas.h>
-#include <gsl/gsl_linalg.h>
 
 #include "util/Logger.h"
 #include "util/GSLUtils.h"
@@ -23,12 +20,12 @@ using PLATO::Analysis::Encoding;
 using PLATO::Utility::Logger;
 
 using std::vector;
-//using std::isfinite;
 using std::string;
 using std::fabs;
 using std::log;
 using std::exp;
 using std::set;
+using std::pair;
 
 namespace po=boost::program_options;
 
@@ -75,7 +72,8 @@ Regression::Result* LinearRegression::calculate(
 	// 1 + # of predictor variables
 
 	// Find the number of predictor variables in the reduced model
-	Result* null_result = 0;
+
+	Result* r = new Result();
 	unsigned int reduced_vars = n_covars + 1;
 
 	// If this is the case, we need to find the result for running the regression
@@ -88,10 +86,10 @@ Regression::Result* LinearRegression::calculate(
 		unsigned int new_covars = n_covars > covar_names.size() ? covar_names.size() : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		null_result = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - (reduced_vars), new_covars);
+		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - (reduced_vars), new_covars);
+
 	}
 
-	Result* r = new Result();
 
 	r->beta_vec = new double[n_cols];
 	// We want to calculate the best fit for X*b = y
@@ -204,41 +202,43 @@ Regression::Result* LinearRegression::calculate(
 
 	}
 
-	addResult(r, null_result);
-
-
-	double tss = gsl_stats_tss(Y, 1, n_rows);
-	r->r_squared = 1 - chisq/tss;
-	double null_rss = tss;
-	unsigned int df = n_indep - reduced_vars;
-	if (null_result){
-		null_rss *= 1-null_result->r_squared;
-		df += null_result->n_dropped;
-	}
-
-
-	double F=((null_rss - chisq) * (n_rows - n_indep))/(chisq * (df));
-
 	// We want to see if there are extra degrees of freedom, which can happen in
 	// the case of the "categorical" model
 	// we have an extra df per marker in the categorically encoded model
 	// We only have markers if we are not excluding markers and the
 	// number of columns is at least as many as the number of covariates
 	// (i.e. this isn;t the "null" model)
-	unsigned int extra_df = (encoding == Encoding::WEIGHTED)
-			* (!interactions || offset != 0)
-			* (!exclude_markers) * (n_cols > covar_names.size() + 1)
-			* (1 + pairwise);
 
+	// first, start off with just the number of independent columns
+	r->df = findDF(P, reduced_vars, r->n_dropped);
 
-	if(df == 0){
-		r->p_val = 1;
-	} else {
-		r->p_val = gsl_cdf_fdist_Q(std::max(0.0, F),df+extra_df,n_rows-n_indep-extra_df);
+	addResult(r);
+	Result* curr_res = r;
+
+	double tss = gsl_stats_tss(Y, 1, n_rows);
+	string extraSuff = "";
+
+	unsigned int df = 0;
+	while(curr_res){
+		df += curr_res->df;
+		pair<float, float> pv_rsq = calcPVal(r, curr_res, chisq, tss, n_rows, df);
+
+		if(curr_res == r){
+			r->p_val = pv_rsq.first;
+			r->r_squared = pv_rsq.second;
+		} else if(curr_res->submodel) {
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep + extraSuff;
+		}
+
+		curr_res = curr_res->submodel;
 	}
+
+	r->suffix += extraSuff;
+
 
 	// I have no idea if the log_likelihood is correct!!
 	r->log_likelihood = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(chisq)));
+
 
 	//double pv_test = gsl_cdf_chisq_Q(r->log_likelihood,1);
 
@@ -247,9 +247,6 @@ Regression::Result* LinearRegression::calculate(
 	//r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
 
 	// Make sure to clean up after yourself!
-	if(null_result){
-		delete null_result;
-	}
 
 	gsl_matrix_free(A);
 	gsl_matrix_free(P);
@@ -258,6 +255,25 @@ Regression::Result* LinearRegression::calculate(
 	gsl_multifit_linear_free(ws);
 
 	return r;
+}
+
+pair<float, float> LinearRegression::calcPVal(Result* r, Result* curr_res, double chisq, double tss, unsigned int n_rows, unsigned int df){
+	pair<float, float> pv_rsq;
+	pv_rsq.first = 1;
+	pv_rsq.second = 1 - chisq/tss;
+
+	double null_rss = tss;
+	if(curr_res->submodel){
+		null_rss *= curr_res->submodel->r_squared;
+	}
+
+	if(df != 0){
+		double F=((null_rss - chisq) * (n_rows - df))/(chisq * (df));
+		pv_rsq.first = gsl_cdf_fdist_Q(std::max(0.0, F),df,n_rows-df);
+	}
+
+	return pv_rsq;
+
 }
 
 void LinearRegression::process(DataSet& ds){

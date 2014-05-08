@@ -6,6 +6,8 @@
 
 #include <boost/array.hpp>
 
+#include <utility>
+
 namespace PLATO{
 namespace ProcessLib{
 
@@ -34,6 +36,8 @@ protected:
 
 private:
 	boost::array<double, 4> linkFunction(double v) const;
+
+	std::pair<float, float> calcPVal(Result* r, Result* submodel, unsigned int df, float null_ll);
 
 private:
 	bool show_odds;

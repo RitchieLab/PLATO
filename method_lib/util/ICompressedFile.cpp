@@ -12,10 +12,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
-//#include <boost/filesystem.hpp>
-
-//namespace fs=boost::filesystem;
-//using std::ifstream;
 
 namespace PLATO {
 namespace Utility {

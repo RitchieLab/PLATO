@@ -25,6 +25,10 @@ protected:
 			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
 			unsigned int n_covars);
 
+private:
+	std::pair<float, float> calcPVal(Result* r, Result* submodel, double chisq, double tss,
+			                         unsigned int n_rows, unsigned int n_indep);
+
 };
 
 }

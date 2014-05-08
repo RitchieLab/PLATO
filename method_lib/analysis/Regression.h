@@ -18,6 +18,8 @@
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
 
+#include <gsl/gsl_matrix.h>
+
 #include "Correction.h"
 #include "Encoding.h"
 
@@ -161,8 +163,11 @@ protected:
 	 */
 	class Result{
 	public:
-		Result() : beta_vec(0), n_dropped(0), converged(true) {}
-		~Result(){ if(beta_vec){delete[] beta_vec;}}
+		Result() : submodel(0), beta_vec(0), n_dropped(0), converged(true) {}
+		~Result(){
+			if(beta_vec){delete[] beta_vec;}
+			if(submodel){delete submodel;}
+		}
 
 		std::deque<float> coeffs;
 		std::deque<float> p_vals;
@@ -171,6 +176,8 @@ protected:
 		float p_val;
 		float log_likelihood;
 		float r_squared;
+
+		Result* submodel;
 
 		// An array of beta values (including intercept + covariate)
 		// we want to use this as a starting point for iterations of expanded
@@ -183,6 +190,9 @@ protected:
 		std::string suffix;
 
 		unsigned int n_dropped;
+
+		// the degrees of freedom in this model
+		unsigned int df;
 
 		// Did we converge (logistic regression only)?
 		bool converged;
@@ -239,7 +249,8 @@ protected:
 	virtual void printExtraHeader() {}
 	virtual void printExtraResults(const Result& r) {}
 
-	void addResult(Result* curr_result, const Result* null_result);
+	void addResult(Result* curr_result);
+	unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars, unsigned int n_dropped);
 
 private:
 	Result* run(const Model* m, const Data::DataSet& ds);
@@ -340,6 +351,9 @@ protected:
 	// univariate results by marker and trait
 	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
 	std::map<std::string, Result*> _trait_uni_result;
+
+	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
+	std::map<unsigned int, unsigned int> _extra_df_map;
 
 };
 

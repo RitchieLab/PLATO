@@ -22,6 +22,8 @@
 #include <iostream>
 
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_vector.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -375,6 +377,13 @@ void Regression::runRegression(const DataSet& ds){
 		n_trait = (incl_traits.size() > 0) * (1 + pairwise * exclude_markers);
 	}
 
+	// Add in  the extra dfs, along with their column IDs
+	if(encoding == Encoding::WEIGHTED){
+		for(unsigned int i=0; i<n_snp; i++){
+			_extra_df_map[covar_names.size() + i] = 1;
+		}
+	}
+
 	printHeader(n_snp, n_trait);
 
 	DataSet::const_sample_iterator si = ds.beginSample();
@@ -619,7 +628,8 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 				}
 			}
 
-			out_f << "Red_Model_Pval" << sep;
+			// These will come in the suffix of the result!
+			out_f << "Red_Model_Pval" << sep << "Full_Model_Pval" << sep;
 		}
 	}
 
@@ -924,14 +934,14 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	return r;
 }
 
-void Regression::addResult(Result* curr_result, const Result* null_result){
-	if(null_result){
-		unsigned int s = null_result->coeffs.size();
+void Regression::addResult(Result* curr_result){
+	if(curr_result->submodel){
+		unsigned int s = curr_result->submodel->coeffs.size();
 
 		for(int i=s-1; i >= 0; --i){
-			curr_result->coeffs.push_front(null_result->coeffs[i]);
-			curr_result->stderr.push_front(null_result->stderr[i]);
-			curr_result->p_vals.push_front(null_result->p_vals[i]);
+			curr_result->coeffs.push_front(curr_result->submodel->coeffs[i]);
+			curr_result->stderr.push_front(curr_result->submodel->stderr[i]);
+			curr_result->p_vals.push_front(curr_result->submodel->p_vals[i]);
 		}
 
 		// If we have coefficients, it means that the null model is a
@@ -939,9 +949,9 @@ void Regression::addResult(Result* curr_result, const Result* null_result){
 		// the reduced model's p-value
 		if(s > 0){
 			stringstream ss;
-			ss << null_result->p_val << sep;
+			ss << curr_result->submodel->p_val << sep;
 
-			curr_result->suffix = ss.str();
+			curr_result->suffix += ss.str();
 		}
 	}
 }
@@ -1112,6 +1122,45 @@ Regression::Model* Regression::OneSidedModelGenerator::next() {
 	// IN targeted mode, m != 0, but m->markers.size() == 0 && m->traits.size() == 0 in the case of a "bad" model
 	return m;
 
+}
+
+unsigned int Regression::findDF(const gsl_matrix* P,
+		unsigned int reduced_vars,
+		unsigned int n_dropped) {
+	unsigned int edf = 0;
+
+	unsigned int n_cols = P->size1;
+
+	// Now, we need to actually find the column indices that were kept
+	gsl_vector* df_check = gsl_vector_calloc(n_cols);
+	gsl_vector* df_check_t = gsl_vector_calloc(n_cols);
+	for (unsigned int i = reduced_vars; i < n_cols; i++) {
+		gsl_vector_set(df_check, i, 1);
+	}
+
+	// Now, permute the df_check
+	gsl_blas_dgemv(CblasNoTrans, 1.0, P, df_check, 0.0, df_check_t);
+
+	// unset the last # dropped
+	for (unsigned int i = 1; i <= n_dropped; i++) {
+		gsl_vector_set(df_check_t, n_cols - i, 0);
+	}
+
+	// unpermute
+	gsl_blas_dgemv(CblasTrans, 1.0, P, df_check_t, 0.0, df_check);
+
+	edf = gsl_blas_dasum(df_check);
+
+	// Now, iterate over all of the elements in the extra_df_map:
+	for (std::map<unsigned int, unsigned int>::const_iterator itr =
+			_extra_df_map.begin(); itr != _extra_df_map.end(); itr++) {
+		edf += gsl_vector_get(df_check, (*itr).first) * (*itr).second;
+	}
+
+	gsl_vector_free(df_check);
+	gsl_vector_free(df_check_t);
+
+	return edf;
 }
 
 }
