@@ -1153,7 +1153,7 @@ unsigned int Regression::findDF(const gsl_matrix* P,
 
 	// Now, iterate over all of the elements in the extra_df_map:
 	for (std::map<unsigned int, unsigned int>::const_iterator itr =
-			_extra_df_map.begin(); itr != _extra_df_map.end(); itr++) {
+			_extra_df_map.begin(); itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
 		edf += gsl_vector_get(df_check, (*itr).first) * (*itr).second;
 	}
 
