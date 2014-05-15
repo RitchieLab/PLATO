@@ -244,7 +244,7 @@ pair<float, float> LinearRegression::calcPVal(Result* r, Result* curr_res, doubl
 
 	double null_rss = tss;
 	if(curr_res->submodel){
-		null_rss *= curr_res->submodel->r_squared;
+		null_rss *= 1 - curr_res->submodel->r_squared;
 	}
 
 	if(df != 0){
