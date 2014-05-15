@@ -55,7 +55,9 @@ process/ConcordanceProcess.cpp \
 process/OutputEigenstrat.h \
 process/OutputEigenstrat.cpp \
 process/OutputBeagle.h \
-process/OutputBeagle.cpp
+process/OutputBeagle.cpp \
+process/RecodeAlleles.h \
+process/RecodeAlleles.cpp
 
 
 

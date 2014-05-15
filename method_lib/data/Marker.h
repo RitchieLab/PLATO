@@ -45,6 +45,15 @@ public:
 	float getMAF() const {return _maf;}
 	float calcMAF(const DataSet& ds) const;
 	/*!
+	 * Calculates the allele frequency of the referent allele
+	 */
+	float calcRefAF(const DataSet& ds) const;
+	/*!
+	 * Finds the index of the major allele
+	 */
+	unsigned char majorAlleleIdx(const DataSet& ds) const;
+
+	/*!
 	 * Returns the reference allele, or "0" if no reference allele is available.
 	 * Note that the first allele added is by default the reference allele.
 	 */
@@ -63,6 +72,9 @@ public:
 	const std::string& getAllele(unsigned char idx) const{
 		return idx >= _alleles.size() ? _missing_allele : _alleles[idx];
 	}
+
+	bool setRefAllele(const std::string& allele);
+	bool setRefAlleleIdx(unsigned char idx);
 
 	unsigned char getRefIdx() const{
 		return _ref_idx;
@@ -124,7 +136,7 @@ private:
 	unsigned int _loc;
 	// NOTE: this must NEVER change!! It is the index into the genotype memory array!
 	const unsigned int _idx;
-	float _maf;
+	mutable float _maf;
 	std::string _id;
 	std::vector<std::string> _alleles;
 

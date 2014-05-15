@@ -35,13 +35,20 @@ unsigned int Marker::addAllele(const string& allele){
 	return idx;
 }
 
-/*
 bool Marker::setRefAllele(const string& allele){
 	bool to_ret = false;
 	vector<string>::const_iterator itr = find(_alleles.begin(), _alleles.end(), allele);
 	if(itr != _alleles.end()){
-		unsigned int old_ref = _ref_idx;
-		_ref_idx = itr - _alleles.begin();
+		to_ret = setRefAlleleIdx(itr - _alleles.begin());
+	}
+	return to_ret;
+}
+
+bool Marker::setRefAlleleIdx(unsigned char idx){
+	bool to_ret = false;
+	if(idx < _alleles.size()){
+		unsigned char old_ref = _ref_idx;
+		_ref_idx = idx;
 		if(_ref_idx == _alt_idx){
 			_alt_idx = old_ref;
 		}
@@ -50,6 +57,7 @@ bool Marker::setRefAllele(const string& allele){
 	return to_ret;
 }
 
+/*
 bool Marker::setAltAllele(const string& allele){
 	bool to_ret = false;
 	vector<string>::const_iterator itr = find(_alleles.begin(), _alleles.end(), allele);
@@ -66,18 +74,44 @@ bool Marker::setAltAllele(const string& allele){
 */
 
 float Marker::calcMAF(const DataSet& ds) const{
+	float af = calcRefAF(ds);
+	return _maf = std::min(af, 1-af);
+}
+
+float Marker::calcRefAF(const DataSet& ds) const{
 	DataSet::const_sample_iterator si = ds.beginSample();
 	int n_sample = 0;
-	int n_allele = 0;
+	int n_ref_allele = 0;
 	while(si != ds.endSample()){
-		n_allele += (*si)->getAdditiveGeno(*this);
+		n_ref_allele += 2-(*si)->getAdditiveGeno(*this);
 		++n_sample;
 		++si;
 	}
 
-	float maf = n_allele / static_cast<float>(2 * n_sample);
+	float af = n_ref_allele / static_cast<float>(2 * n_sample);
 
-	return std::min(maf, 1-maf);
+	return af;
+}
+
+unsigned char Marker::majorAlleleIdx(const DataSet& ds) const{
+	vector<unsigned int> af_sum(_alleles.size(),0);
+
+	DataSet::const_sample_iterator si = ds.beginSample();
+	std::pair<unsigned char, unsigned char> geno;
+
+	while(si != ds.endSample()){
+		geno = (*si)->getGeno(*this);
+		if(geno.first != Sample::missing_allele){
+			++af_sum[geno.first];
+		}
+		if(geno.second != Sample::missing_allele){
+			++af_sum[geno.second];
+		}
+		++si;
+	}
+
+	return std::distance(af_sum.begin(), std::max_element(af_sum.begin(), af_sum.end()));
+
 }
 
 }

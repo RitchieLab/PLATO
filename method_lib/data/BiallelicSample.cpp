@@ -95,8 +95,7 @@ pair<unsigned char, unsigned char> BiallelicSample::getGeno(const Marker& m) con
 	if(isMissing(m)){
 		return missing_geno;
 	}else{
-		return make_pair(_genotype[2*pos] ? m.getAltIdx() : m.getRefIdx(),
-				_genotype[2*pos + 1] ? m.getAltIdx() : m.getRefIdx());
+		return make_pair(_genotype[2*pos], _genotype[2*pos + 1]);
 	}
 }
 

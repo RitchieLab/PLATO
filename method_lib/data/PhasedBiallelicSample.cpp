@@ -69,11 +69,8 @@ bool PhasedBiallelicSample::isMissing(const Marker& m) const{
 
 pair<unsigned char, unsigned char> PhasedBiallelicSample::getGeno(const Marker& m) const{
 	unsigned int pos = m.getIndex();
-	unsigned char ref_idx = m.getRefIdx();
-	unsigned char alt_idx = m.getAltIdx();
-
-	return make_pair(_missing[2*pos] ? missing_allele : (_genotype[2*pos] ? alt_idx : ref_idx),
-			_missing[2*pos+1] ? missing_allele : (_genotype[2*pos+1] ? alt_idx : ref_idx));
+	return make_pair(_missing[2*pos] ? missing_allele : _genotype[2*pos],
+			_missing[2*pos+1] ? missing_allele : _genotype[2*pos+1] );
 }
 
 }
