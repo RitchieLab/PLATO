@@ -73,8 +73,8 @@ Regression::Result* LinearRegression::calculate(
 
 	// Find the number of predictor variables in the reduced model
 
-	Result* r = new Result();
 	unsigned int reduced_vars = n_covars + 1;
+	Result* r = new Result(n_cols - 1 - covar_names.size());
 
 	// If this is the case, we need to find the result for running the regression
 	// on the reduced model
@@ -90,16 +90,8 @@ Regression::Result* LinearRegression::calculate(
 
 	}
 
-
-	r->beta_vec = new double[n_cols];
 	// We want to calculate the best fit for X*b = y
-	//double Y[n_rows];
 
-	// We want to check for colinear columns in our data.  We will do that with
-	// the SVD.  If no colinear columns are found, we couls always use that
-	// to run our regression if we so choose (to save time)
-
-	// NOTE: I don't want X to be const! hence the leading _
 	gsl_matrix_const_view data_mv = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 
 	gsl_matrix* P = gsl_matrix_alloc(n_cols, n_cols);
@@ -119,15 +111,13 @@ Regression::Result* LinearRegression::calculate(
 
 	// At this point, we have our X matrix set appropriately
 	// Let's set up our other data
-
 	gsl_vector_const_view y_vec = gsl_vector_const_view_array(Y, n_rows);
 
 	// First, let's make sure to initialize everything to 0, please!
-	gsl_vector_view bv = gsl_vector_view_array(r->beta_vec, n_cols);
-	gsl_vector_set_zero(&bv.vector);
+	gsl_vector* beta = gsl_vector_calloc(n_cols);
 
 	// now, get the proper sized array
-	bv = gsl_vector_view_array(r->beta_vec, n_indep);
+	gsl_vector_view bv = gsl_vector_subvector(beta, 0, n_indep);
 	gsl_vector* resid = gsl_vector_alloc(n_rows);
 
 	// Again, let's make that covariance matrix all 0's!
@@ -150,7 +140,7 @@ Regression::Result* LinearRegression::calculate(
 
 	// Note: to unpermute, multiply by P transpose!
 	// Also, we need to unpermute both the rows AND columns of cov_mat
-	bv = gsl_vector_view_array(r->beta_vec, n_cols);
+	//bv = gsl_vector_view_array(r->beta_vec, n_cols);
 	gsl_matrix* _cov_work = gsl_matrix_calloc(n_cols, n_cols);
 	// permute columns
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, cov_mat, P, 0.0, _cov_work);
@@ -159,18 +149,12 @@ Regression::Result* LinearRegression::calculate(
 	gsl_matrix_free(_cov_work);
 
 	gsl_vector* _bv_work = gsl_vector_alloc(n_cols);
-	gsl_vector_memcpy(_bv_work, &bv.vector);
-	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, &bv.vector);
-
-
-	r->coeffs.clear();
-	r->stderr.clear();
-	r->p_vals.clear();
-	// add all the non-covariate coefficients
+	gsl_vector_memcpy(_bv_work, beta);
+	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, beta);
 
 	// create a set of all of the removed indices
 	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
-	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
+/*	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
 	for(unsigned int i=0; i<n_cols; i++){
 		gsl_vector_set(_bv_work, i, i);
 	}
@@ -178,26 +162,29 @@ Regression::Result* LinearRegression::calculate(
 	set<unsigned int> permu_idx_set(idx_permu->data + n_indep, idx_permu->data + n_cols);
 
 	gsl_vector_free(idx_permu);
-	gsl_vector_free(_bv_work);
+*/	gsl_vector_free(_bv_work);
 
-	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
-		if(permu_idx_set.find(i) == permu_idx_set.end()){
-			double c = gsl_vector_get(&bv.vector, i);
-			double se = sqrt(gsl_matrix_get(cov_mat, i, i));
-			r->coeffs.push_back(c);
-			r->stderr.push_back(se);
+	unsigned int idx_offset = 1+covar_names.size();
+	for(unsigned int i=0; i<n_cols-idx_offset; i++){
+		double c = gsl_vector_get(beta, i+idx_offset);
+		double se = sqrt(gsl_matrix_get(cov_mat, i+idx_offset, i+idx_offset));
+
+		if(se > 0){
+
+			r->coeffs[i] = c;
+			r->stderr[i] = se;
 			// t-val = | beta / stderr |
 			if(encoding == Encoding::WEIGHTED){
 				// this assumes that as df -> /inf, T -> Norm, and Norm^2 = ChiSq
-				r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) , 2));
+				r->p_vals[i] = gsl_cdf_chisq_Q( pow( c/se , 2) , 2);
 			}else{
-				r->p_vals.push_back(2*gsl_cdf_tdist_Q(fabs(c / se),n_rows-n_cols+1));
+				r->p_vals[i] = 2*gsl_cdf_tdist_Q(fabs(c / se),n_rows-n_cols+1);
 			}
 		} else {
 			// If this is true, this column was dropped from analysis!
-			r->coeffs.push_back(std::numeric_limits<float>::quiet_NaN());
-			r->stderr.push_back(std::numeric_limits<float>::quiet_NaN());
-			r->p_vals.push_back(std::numeric_limits<float>::quiet_NaN());
+			r->coeffs[i] = std::numeric_limits<float>::quiet_NaN();
+			r->stderr[i] = std::numeric_limits<float>::quiet_NaN();
+			r->p_vals[i] = std::numeric_limits<float>::quiet_NaN();
 		}
 
 	}
@@ -212,7 +199,6 @@ Regression::Result* LinearRegression::calculate(
 	// first, start off with just the number of independent columns
 	r->df = findDF(P, reduced_vars, r->n_dropped);
 
-	addResult(r);
 	Result* curr_res = r;
 
 	double tss = gsl_stats_tss(Y, 1, n_rows);
@@ -227,7 +213,8 @@ Regression::Result* LinearRegression::calculate(
 			r->p_val = pv_rsq.first;
 			r->r_squared = pv_rsq.second;
 		} else if(curr_res->submodel) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep + extraSuff;
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep;
+			break;
 		}
 
 		curr_res = curr_res->submodel;
@@ -235,16 +222,9 @@ Regression::Result* LinearRegression::calculate(
 
 	r->suffix += extraSuff;
 
-
 	// I have no idea if the log_likelihood is correct!!
 	r->log_likelihood = 0.5 * (-n_rows * (log(2*M_PI)+1 - log(n_rows) + log(chisq)));
-
-
 	//double pv_test = gsl_cdf_chisq_Q(r->log_likelihood,1);
-
-	//r->log_likelihood = r_full->log_likelihood;
-	//r->p_val = r_full->p_val;
-	//r->p_val = gsl_cdf_chisq_Q(r->log_likelihood,1);
 
 	// Make sure to clean up after yourself!
 

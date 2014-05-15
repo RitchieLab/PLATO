@@ -32,7 +32,7 @@ protected:
 	virtual bool initData(const Data::DataSet& ds);
 
 	virtual void printExtraHeader();
-	virtual void printExtraResults(const Result& r);
+	virtual std::string printExtraResults(const Result& r);
 
 private:
 	boost::array<double, 4> linkFunction(double v) const;

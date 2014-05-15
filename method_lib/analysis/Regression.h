@@ -14,9 +14,14 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <cstdio>
 
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
+
+#define BOOST_IOSTREAMS_USE_DEPRECATED
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
 
 #include <gsl/gsl_matrix.h>
 
@@ -163,36 +168,43 @@ protected:
 	 */
 	class Result{
 	public:
-		Result() : submodel(0), beta_vec(0), n_dropped(0), converged(true) {}
+		Result(unsigned short n) : coeffs(0), p_vals(0), stderr(0),
+				submodel(0), n_dropped(0), n_vars(n), converged(true) {
+			if(n > 0){
+				coeffs = new float[n];
+				p_vals = new float[n];
+				stderr = new float[n];
+			}
+		}
 		~Result(){
-			if(beta_vec){delete[] beta_vec;}
+			if(coeffs){delete[] coeffs;}
+			if(p_vals){delete[] p_vals;}
+			if(stderr){delete[] stderr;}
 			if(submodel){delete submodel;}
 		}
 
-		std::deque<float> coeffs;
-		std::deque<float> p_vals;
-		std::deque<float> stderr;
-
-		float p_val;
-		float log_likelihood;
-		float r_squared;
+		float* coeffs;
+		float* p_vals;
+		float* stderr;
 
 		Result* submodel;
-
-		// An array of beta values (including intercept + covariate)
-		// we want to use this as a starting point for iterations of expanded
-		// models
-		double* beta_vec;
 
 		// A string to print before anything (variable IDs, MAF, etc)
 		std::string prefix;
 		// A string to print AFTER all of the variables, but BEFORE p-value
 		std::string suffix;
 
-		unsigned int n_dropped;
+		float p_val;
+		float log_likelihood;
+		float r_squared;
+
+		unsigned short n_dropped;
 
 		// the degrees of freedom in this model
-		unsigned int df;
+		unsigned short df;
+
+		// # of coefficients int the model
+		unsigned short n_vars;
 
 		// Did we converge (logistic regression only)?
 		bool converged;
@@ -202,7 +214,7 @@ protected:
 
 public:
 
-	Regression() : out_f(NULL) {}
+	Regression() {}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -247,9 +259,8 @@ protected:
 	virtual void printVarHeader(const std::string& var_name);
 	// Use this to print extra column information, like convergence..
 	virtual void printExtraHeader() {}
-	virtual void printExtraResults(const Result& r) {}
+	virtual std::string printExtraResults(const Result& r) {return "";}
 
-	void addResult(Result* curr_result);
 	unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars, unsigned int n_dropped);
 
 private:
@@ -263,6 +274,9 @@ private:
 
 	void printMarkerHeader(const std::string& var_name);
 	void printHeader(unsigned int n_snp, unsigned int n_trait);
+
+	void printResult(const Result& r, std::ostream& of);
+	void printResultLine(const Result& r, std::ostream& of);
 
 private:
 	//! a file of models to use
@@ -287,6 +301,13 @@ private:
 	//! Do we want to do a pheWAS??
 	bool _phewas;
 
+	//! Do we want to reduce our memory footprint (print to file, keeping
+	// only the p-values, then sort and print individual lines)
+	bool _lowmem;
+
+	//boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_buf;
+	boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_f;
+
 	//! List of markers to include
 	std::set<std::string> incl_marker_name;
 
@@ -301,10 +322,33 @@ private:
 
 	std::map<const PLATO::Data::Marker*, float> categ_weight;
 
+	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
+	std::map<unsigned int, unsigned int> _extra_df_map;
+
+	// vector of all covariates
+	std::vector<std::vector<float> > _covars;
+
+	//! list of results
+	std::deque<Result*> results;
+	//! list of p-values (used in lowmem setting)
+	std::deque<float> result_pvals;
+
 	struct result_sorter{
 		inline bool operator() (const Result* const & x, const Result* const& y) const{
 			return (x && y) ? x->p_val < y->p_val : x < y;
 		}
+	};
+
+	class pval_sorter{
+	public:
+		pval_sorter(const std::deque<float>& v) : _v(v) {}
+
+		bool operator() (size_t i, size_t j){
+			return _v[i] < _v[j];
+		}
+
+	private:
+		const std::deque<float>& _v;
 	};
 
 protected:
@@ -339,11 +383,6 @@ protected:
 
 	// vector of all phenotypes
 	std::vector<float> _pheno;
-	// vector of all covariates
-	std::vector<std::vector<float> > _covars;
-
-	//! list of results
-	std::deque<Result*> results;
 
 	//! output stream to print results to
 	std::ofstream out_f;
@@ -351,9 +390,6 @@ protected:
 	// univariate results by marker and trait
 	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
 	std::map<std::string, Result*> _trait_uni_result;
-
-	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
-	std::map<unsigned int, unsigned int> _extra_df_map;
 
 };
 
@@ -455,7 +491,5 @@ Regression::Model* Regression::BasicModelGenerator<M_iter>::next() {
 
 }
 }
-
-
 
 #endif /* REGRESSION_H_ */

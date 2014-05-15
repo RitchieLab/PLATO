@@ -20,11 +20,13 @@
 #include <limits>
 #include <sstream>
 #include <iostream>
+#include <cstdio>
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_vector.h>
 
+#include <boost/iostreams/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/multi_array.hpp>
@@ -76,6 +78,9 @@ Regression::~Regression() {
 	_trait_uni_result.clear();
 
 	out_f.close();
+	if(_lowmem){
+		tmp_f.close();
+	}
 }
 
 po::options_description& Regression::addOptions(po::options_description& opts){
@@ -108,6 +113,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
 		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
 		("permutations", po::value<unsigned int>(&n_perms)->default_value(0), "Number of permutations to use in permutation testing (disabled by default - set to 0 to disable permutation)")
+		("lowmem", po::bool_switch(&_lowmem), "Reduce the memory footprint (at a potential performance penalty)")
 		;
 
 	opts.add(regress_opts);
@@ -208,6 +214,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 
 		input.close();
 		++mf_itr;
+	}
+
+	if(_lowmem){
+		tmp_f.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())));
 	}
 
 }
@@ -512,10 +522,15 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 							std::make_pair(nm->traits[i-1], run(&m, ds)));
 				}
 
-				// Add the result to the front of the deque
-				r->coeffs.push_front((*t_itr).second->coeffs[0]);
-				r->p_vals.push_front((*t_itr).second->p_vals[0]);
-				r->stderr.push_front((*t_itr).second->stderr[0]);
+				Result *t_r = r;
+				Result *u_r = new Result(1);
+				while(t_r->submodel){
+					t_r = t_r->submodel;
+				}
+				u_r->coeffs[0] = (*t_itr).second->coeffs[0];
+				u_r->p_vals[0] = (*t_itr).second->p_vals[0];
+				u_r->stderr[0] = (*t_itr).second->stderr[0];
+				t_r->submodel = u_r;
 			}
 
 			for(unsigned int i=nm->markers.size(); i>0; i--){
@@ -528,10 +543,15 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 							std::make_pair(nm->markers[i-1], run(&m, ds)));
 				}
 
-				// Add the result to the front of the deque
-				r->coeffs.push_front((*m_itr).second->coeffs[0]);
-				r->p_vals.push_front((*m_itr).second->p_vals[0]);
-				r->stderr.push_front((*m_itr).second->stderr[0]);
+				Result *t_r = r;
+				Result *u_r = new Result(1);
+				while(t_r->submodel){
+					t_r = t_r->submodel;
+				}
+				u_r->coeffs[0] = (*m_itr).second->coeffs[0];
+				u_r->p_vals[0] = (*m_itr).second->p_vals[0];
+				u_r->stderr[0] = (*m_itr).second->stderr[0];
+				t_r->submodel = u_r;
 			}
 		}
 		// put the outcome right at the beginning of the prefix!
@@ -539,7 +559,14 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 
 		// synchronize
 		_result_mutex.lock();
-		results.push_back(r);
+		if(_lowmem){
+			result_pvals.push_back(r->p_val);
+			printResultLine(*r, tmp_f);
+			tmp_f << "\n";
+			delete r;
+		} else {
+			results.push_back(r);
+		}
 		_result_mutex.unlock();
 		// end synchronize
 
@@ -911,7 +938,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 	}else{
 		Logger::log_err("WARNING: not enough samples in model: '" + ss.str() + "'!");
-		r = new Result();
+		r = new Result(0);
 		r->p_val = 1;
 		r->log_likelihood = r->r_squared = std::numeric_limits<float>::quiet_NaN();
 	}
@@ -934,32 +961,37 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	return r;
 }
 
-void Regression::addResult(Result* curr_result){
-	if(curr_result->submodel){
-		unsigned int s = curr_result->submodel->coeffs.size();
-
-		for(int i=s-1; i >= 0; --i){
-			curr_result->coeffs.push_front(curr_result->submodel->coeffs[i]);
-			curr_result->stderr.push_front(curr_result->submodel->stderr[i]);
-			curr_result->p_vals.push_front(curr_result->submodel->p_vals[i]);
-		}
-
-		// If we have coefficients, it means that the null model is a
-		// model with explanatory variables, and we need to add a suffix containing
-		// the reduced model's p-value
-		if(s > 0){
-			stringstream ss;
-			ss << curr_result->submodel->p_val << sep;
-
-			curr_result->suffix += ss.str();
-		}
-	}
-}
-
 void Regression::printResults(){
-	// Perhaps sort the deque of results based on overall p-values
 
-	std::sort(results.begin(), results.end(), result_sorter());
+	vector<unsigned int> file_pos;
+	vector<unsigned int> idx_pos;
+	unsigned int n_results = _lowmem ? result_pvals.size() : results.size();
+	string tmpf_line;
+
+	if (_lowmem) {
+		idx_pos.reserve(n_results);
+
+		for(unsigned int i=0; i<n_results; i++){
+			idx_pos.push_back(i);
+		}
+
+		std::sort(idx_pos.begin(), idx_pos.end(), pval_sorter(result_pvals));
+
+		file_pos.reserve(n_results+1);
+		// get the positions of the beginning of every line
+		tmp_f.flush();
+		tmp_f.seekg(0);
+		file_pos.push_back(tmp_f.tellg());
+		while(std::getline(tmp_f, tmpf_line)){
+			file_pos.push_back(tmp_f.tellg());
+		}
+		tmp_f->seek(0, std::ios_base::beg);
+		tmp_f.clear();
+		//int res = boost::iostreams::seek(tmp_f, 0, std::ios_base::beg);
+	} else {
+		// Perhaps sort the deque of results based on overall p-values
+		std::sort(results.begin(), results.end(), result_sorter());
+	}
 
 	// Now, let's do some multiple test correction!
 	map<CorrectionModel, vector<float> > pval_corr;
@@ -968,42 +1000,48 @@ void Regression::printResults(){
 	if (corr_methods.size()) {
 
 		vector<float> pv_in;
-		pv_in.reserve(results.size());
-		for (unsigned int i = 0; i < results.size(); i++) {
-			pv_in.push_back(results[i]->p_val);
+		if (_lowmem) {
+			pv_in.reserve(n_results);
+			for(unsigned int i=0; i<n_results; i++){
+				pv_in.push_back(result_pvals[idx_pos[i]]);
+			}
+		} else {
+			pv_in.reserve(n_results);
+			for (unsigned int i = 0; i < n_results; i++) {
+				pv_in.push_back(results[i]->p_val);
+			}
 		}
 
 		set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
-		while(c_itr != corr_methods.end()){
-			Correction::getCorrectionMethod(*c_itr)->correct(pv_in, pval_corr[(*c_itr)]);
+		while (c_itr != corr_methods.end()) {
+			Correction::getCorrectionMethod(*c_itr)->correct(pv_in,	pval_corr[(*c_itr)]);
 			++c_itr;
 		}
-
 	}
 
-
-	for(unsigned int i=0; i<results.size(); i++){
+	for (unsigned int i = 0; i < n_results; i++) {
 		// If we've gone over the threshold, stop printing!
-		if(results[i]->p_val > cutoff_p){
+		if ((_lowmem ? result_pvals[idx_pos[i]] : results[i]->p_val)  > cutoff_p) {
 			break;
 		}
-		// print a single line
-		out_f << results[i]->prefix;
 
-		printExtraResults(*(results[i]));
-
-		for(unsigned int j=0;j<results[i]->coeffs.size(); j++){
-			out_f << results[i]->p_vals[j] << sep
-				  << results[i]->coeffs[j] << sep
-				  << results[i]->stderr[j] << sep;
+		if(_lowmem){
+			int newpos = file_pos[idx_pos[i]];
+			tmp_f->seek(newpos, std::ios_base::beg);
+			std::getline(tmp_f, tmpf_line);
+			tmp_f.clear();
+			out_f << tmpf_line;
+			out_f << result_pvals[idx_pos[i]];
+		} else {
+			printResultLine(*(results[i]), out_f);
+			out_f << results[i]->p_val;
 		}
-
-		out_f << results[i]->suffix << results[i]->p_val;
 
 		// print some creected p-values!
 		// NOTE: we assume that "set" and "map" use the same ordering!!
-		map<CorrectionModel, vector<float> >::const_iterator p_itr = pval_corr.begin();
-		while(p_itr != pval_corr.end()){
+		map<CorrectionModel, vector<float> >::const_iterator p_itr =
+				pval_corr.begin();
+		while (p_itr != pval_corr.end()) {
 			out_f << sep << (*p_itr).second[i];
 			++p_itr;
 		}
@@ -1127,40 +1165,69 @@ Regression::Model* Regression::OneSidedModelGenerator::next() {
 unsigned int Regression::findDF(const gsl_matrix* P,
 		unsigned int reduced_vars,
 		unsigned int n_dropped) {
-	unsigned int edf = 0;
 
 	unsigned int n_cols = P->size1;
+	unsigned int edf = n_cols - reduced_vars;
 
-	// Now, we need to actually find the column indices that were kept
-	gsl_vector* df_check = gsl_vector_calloc(n_cols);
-	gsl_vector* df_check_t = gsl_vector_calloc(n_cols);
-	for (unsigned int i = reduced_vars; i < n_cols; i++) {
-		gsl_vector_set(df_check, i, 1);
+	// Now, we need to actually find the column indices that were kept, but only
+	// if we dropped any
+	if (n_dropped > 0) {
+		gsl_vector* df_check = gsl_vector_calloc(n_cols);
+		gsl_vector* df_check_t = gsl_vector_calloc(n_cols);
+		for (unsigned int i = reduced_vars; i < n_cols; i++) {
+			gsl_vector_set(df_check, i, 1);
+		}
+
+		// Now, permute the df_check
+		gsl_blas_dgemv(CblasNoTrans, 1.0, P, df_check, 0.0, df_check_t);
+
+		// unset the last # dropped
+		for (unsigned int i = 1; i <= n_dropped; i++) {
+			gsl_vector_set(df_check_t, n_cols - i, 0);
+		}
+
+		// unpermute
+		gsl_blas_dgemv(CblasTrans, 1.0, P, df_check_t, 0.0, df_check);
+
+		edf = gsl_blas_dasum(df_check);
+
+		// Now, iterate over all of the elements in the extra_df_map:
+		for (std::map<unsigned int, unsigned int>::const_iterator itr = _extra_df_map.begin();
+				itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
+			edf += gsl_vector_get(df_check, (*itr).first) * (*itr).second;
+		}
+		gsl_vector_free(df_check);
+		gsl_vector_free(df_check_t);
+	} else if(_extra_df_map.size() > 0) {
+		for (std::map<unsigned int, unsigned int>::const_iterator itr = _extra_df_map.begin();
+				itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
+			edf += (*itr).second;
+		}
 	}
-
-	// Now, permute the df_check
-	gsl_blas_dgemv(CblasNoTrans, 1.0, P, df_check, 0.0, df_check_t);
-
-	// unset the last # dropped
-	for (unsigned int i = 1; i <= n_dropped; i++) {
-		gsl_vector_set(df_check_t, n_cols - i, 0);
-	}
-
-	// unpermute
-	gsl_blas_dgemv(CblasTrans, 1.0, P, df_check_t, 0.0, df_check);
-
-	edf = gsl_blas_dasum(df_check);
-
-	// Now, iterate over all of the elements in the extra_df_map:
-	for (std::map<unsigned int, unsigned int>::const_iterator itr =
-			_extra_df_map.begin(); itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
-		edf += gsl_vector_get(df_check, (*itr).first) * (*itr).second;
-	}
-
-	gsl_vector_free(df_check);
-	gsl_vector_free(df_check_t);
 
 	return edf;
+}
+
+void Regression::printResult(const Result& r, std::ostream& of){
+	if(r.submodel){
+		printResult(*(r.submodel), of);
+	}
+
+	for(unsigned int j=0;j<r.n_vars; j++){
+		of << r.p_vals[j] << sep
+			  << r.coeffs[j] << sep
+			  << r.stderr[j] << sep;
+	}
+}
+
+void Regression::printResultLine(const Result& r, std::ostream& of){
+	of << r.prefix;
+	of << printExtraResults(r);
+	printResult(r, of);
+	if(r.submodel && r.submodel->n_vars > 0){\
+		of << r.submodel->p_val << sep;
+	}
+	of << r.suffix;
 }
 
 }

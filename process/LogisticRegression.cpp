@@ -6,6 +6,8 @@
 #include <cstring>
 #include <numeric>
 
+#include <boost/lexical_cast.hpp>
+
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
@@ -112,8 +114,8 @@ Regression::Result* LogisticRegression::calculate(
 
 	// Find the number of predictor variables in the reduced model
 
-	Result* r = new Result();
 	unsigned int reduced_vars = n_covars + 1;
+	Result* r = new Result(n_cols - 1 - covar_names.size());
 
 	// If this is the case, we need to find the result for running the regression
 	// on the reduced model
@@ -138,8 +140,8 @@ Regression::Result* LogisticRegression::calculate(
 
 	// This is the current estimate of the parameters
 	// Note: position 0 is reserved for the intercept
-	r->beta_vec = new double [n_cols];
-	double* beta = r->beta_vec;
+
+	gsl_vector* beta = gsl_vector_calloc(n_cols);
 
 	// weight vector used for IRLS procedure
 	double weight[n_rows];
@@ -154,15 +156,6 @@ Regression::Result* LogisticRegression::calculate(
 
 	// gsl weight vector for IRLS procedure
 	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
-	// gsl beta vector
-	gsl_vector_view b = gsl_vector_view_array(beta, n_cols);
-	// this is the previous beta vector, for checking convergence
-	gsl_vector* b_prev = gsl_vector_alloc(n_indep);
-	// make this b_prev nonzero to begin
-	gsl_vector_set_all(b_prev, 1.0);
-
-	// zero out the beta
-	gsl_vector_set_zero (&b.vector);
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
@@ -179,8 +172,11 @@ Regression::Result* LogisticRegression::calculate(
 	// Let's perform our permutation ans set A = data * P
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mat.matrix, P, 0.0, A);
 
-	b = gsl_vector_view_array(beta, n_indep);
-
+	// this is the previous beta vector, for checking convergence
+	gsl_vector* b_prev = gsl_vector_alloc(n_indep);
+	// make this b_prev nonzero to begin
+	gsl_vector_set_all(b_prev, 1.0);
+	gsl_vector_view b = gsl_vector_subvector(beta, 0, n_indep);
 	gsl_matrix_const_view X = gsl_matrix_const_submatrix(A, 0, 0, n_rows, n_indep);
 
 	double LLp = numeric_limits<double>::infinity(); // stores previous value of LL to check for convergence
@@ -264,7 +260,7 @@ Regression::Result* LogisticRegression::calculate(
 	// OK, now time to unpermute everything!
 	// Note: to unpermute, multiply by P transpose!
 	// Also, we need to unpermute both the rows AND columns of cov_mat
-	b = gsl_vector_view_array(r->beta_vec, n_cols);
+	//b = gsl_vector_view_array(r->beta_vec, n_cols);
 	gsl_matrix* _cov_work = gsl_matrix_calloc(n_cols, n_cols);
 	// permute columns
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, cov_mat, P, 0.0, _cov_work);
@@ -273,16 +269,12 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_matrix_free(_cov_work);
 
 	gsl_vector* _bv_work = gsl_vector_alloc(n_cols);
-	gsl_vector_memcpy(_bv_work, &b.vector);
-	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, &b.vector);
-
-	r->stderr.clear();
-	r->coeffs.clear();
-	r->p_vals.clear();
+	gsl_vector_memcpy(_bv_work, beta);
+	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, beta);
 
 	// create a set of all of the removed indices
 	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
-	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
+/*	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
 	for(unsigned int i=0; i<n_cols; i++){
 		gsl_vector_set(_bv_work, i, i);
 	}
@@ -290,27 +282,29 @@ Regression::Result* LogisticRegression::calculate(
 	set<unsigned int> permu_idx_set(idx_permu->data + n_indep, idx_permu->data + n_cols);
 
 	gsl_vector_free(idx_permu);
+*/
 	gsl_vector_free(_bv_work);
 
-	for(unsigned int i=1+covar_names.size(); i<n_cols; i++){
-		if(permu_idx_set.find(i) == permu_idx_set.end()){
+	unsigned int idx_offset = 1 + covar_names.size();
+	for (unsigned int i = 0; i < n_cols - idx_offset; i++) {
+		double c = gsl_vector_get(beta, i + idx_offset);
+		double se = sqrt(gsl_matrix_get(cov_mat, i + idx_offset, i + idx_offset));
 
-			double c = beta[i];
-			double se = sqrt( gsl_matrix_get(cov_mat, i, i));
+		if (se > 0) {
 
-			r->coeffs.push_back(show_odds ? exp(c) : c);
-			r->stderr.push_back(se);
+			r->coeffs[i] = show_odds ? exp(c) : c;
+			r->stderr[i] = se;
+
 			// use the wald statistic to get p-values for each coefficient
-			r->p_vals.push_back( gsl_cdf_chisq_Q( pow( c/se , 2) ,1 + (encoding == Encoding::WEIGHTED)) );
+			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c/se , 2) ,1 + (encoding == Encoding::WEIGHTED));
 		} else {
 			// If this is true, this column was dropped from analysis!
-			r->coeffs.push_back(std::numeric_limits<float>::quiet_NaN());
-			r->stderr.push_back(std::numeric_limits<float>::quiet_NaN());
-			r->p_vals.push_back(std::numeric_limits<float>::quiet_NaN());
+			r->coeffs[i] = std::numeric_limits<float>::quiet_NaN();
+			r->stderr[i] = std::numeric_limits<float>::quiet_NaN();
+			r->p_vals[i] = std::numeric_limits<float>::quiet_NaN();
 		}
-	}
 
-	addResult(r);
+	}
 
 	r->df = findDF(P, reduced_vars, r->n_dropped);
 	r->log_likelihood = std::isfinite(LL) ? LL : -std::numeric_limits<float>::infinity();
@@ -328,8 +322,8 @@ Regression::Result* LogisticRegression::calculate(
 			r->p_val = pv_rsq.first;
 			r->r_squared = pv_rsq.second;
 		} else if (curr_res->submodel) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep
-					+ extraSuff;
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep;
+			break;
 		}
 
 		curr_res = curr_res->submodel;
@@ -338,6 +332,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	r->suffix += extraSuff;
 
+	gsl_vector_free(beta);
 	gsl_vector_free(b_prev);
 	gsl_vector_free(rhs);
 	gsl_matrix_free(cov_mat);
@@ -356,8 +351,8 @@ void LogisticRegression::printExtraHeader(){
 	out_f << "Converged" << sep;
 }
 
-void LogisticRegression::printExtraResults(const Result& r){
-	out_f << r.converged << sep;
+string LogisticRegression::printExtraResults(const Result& r){
+	return boost::lexical_cast<string>(r.converged) + sep;
 }
 
 array<double, 4> LogisticRegression::linkFunction(double v) const{
