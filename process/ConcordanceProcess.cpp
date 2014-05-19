@@ -51,7 +51,7 @@ po::options_description& ConcordanceProcess::appendOptions(po::options_descripti
 		("sample-mismatch", po::value<string>(&_smismatch_fn)->default_value("sample-mismatch"), "Suffix for sample mismatch file")
 		("extension", po::value<string>(&_ext)->default_value("txt"), "Extension for concordance files")
 		("inc-missing", po::bool_switch(&_incl_missing), "Consider missing genotypes in the concordance checks")
-		("sep", po::value<string>(&_sep)->default_value("\t"), "Separator for output files")
+		("sep", po::value<string>(&_sep)->default_value("\t", "<TAB>"), "Separator for output files")
 	;
 
 	return (opts.add(concord_opts));

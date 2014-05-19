@@ -117,11 +117,11 @@ po::options_description& TraitLoader::appendOptions(
 
 	trait_opts.add_options()("file", po::value<vector<string> >(&trait_fns)->composing(),"Trait file to load")
 			("missing", po::value<string>(&missing_val),"Missing value")
-			("no-fid", po::bool_switch(&no_fid),"If given, trait file has no FamID column")
-			("ignore-error",po::bool_switch(&ignore_error),"If given, treat any conversion errors as missing")
-			("extra-samples", po::bool_switch(&extra_samples),"If given, ignore any samples that cannot be mapped to existing data")
-			("dummy-samples", po::bool_switch(&dummy_samples),"If given, create samples for any that cannot be mapped to existing data")
-			("require-complete", po::bool_switch(&require_complete), "If given, require trait data for all (enabled) samples loaded so far");
+			("no-fid", po::bool_switch(&no_fid),"Trait file has no FamID column")
+			("ignore-error",po::bool_switch(&ignore_error),"Treat any conversion errors as missing")
+			("extra-samples", po::bool_switch(&extra_samples),"Ignore any samples that cannot be mapped to existing data")
+			("dummy-samples", po::bool_switch(&dummy_samples),"Create samples for any that cannot be mapped to existing data")
+			("require-complete", po::bool_switch(&require_complete), "Require trait data for all (enabled) samples loaded so far");
 
 	opts.add(trait_opts);
 

@@ -214,7 +214,7 @@ protected:
 
 public:
 
-	Regression() {}
+	Regression() : _lowmem(false) {}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
