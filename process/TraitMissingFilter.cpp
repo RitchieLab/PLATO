@@ -45,7 +45,7 @@ po::options_description& TraitMissingFilter::appendOptions(po::options_descripti
 	po::options_description subopts("Sample Call Rate Options");
 
 	subopts.add_options()
-		("threshold", po::value<double>(&_thresh),"Drop all traits with a missing rate below this threshold")
+		("threshold", po::value<double>(&_thresh)->default_value(0.99, "0.99"),"Drop all traits with a missing rate below this threshold")
 		;
 
 	opts.add(subopts);

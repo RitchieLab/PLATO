@@ -45,7 +45,7 @@ po::options_description& SampleMissingFilter::appendOptions(po::options_descript
 	po::options_description subopts("Sample Call Rate Options");
 
 	subopts.add_options()
-		("threshold", po::value<double>(&_thresh),"Drop all samples with a call rate below this threshold")
+		("threshold", po::value<double>(&_thresh)->default_value(0.99, "0.99"),"Drop all samples with a call rate below this threshold")
 		;
 
 	opts.add(subopts);

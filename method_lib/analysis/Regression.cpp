@@ -103,21 +103,18 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 	po::options_description regress_opts("Regression Options");
 
 	regress_opts.add_options()
-		("covariates", po::value<vector<string> >()->composing(),
-					"A list of covariates to use in the model")
-		("outcome", po::value<vector<string> >()->composing(),
-			"Use a given covariate as the regression model outcome")
-		("interactions", po::bool_switch(&interactions),
-				"Include interactions in the models generated")
-		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
-		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
-		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
-		("separator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
+		("interactions", po::bool_switch(&interactions), "Include interactions in the models generated")
+		("covariates", po::value<vector<string> >()->composing(), "A list of covariates to use in the model")
+		("outcome", po::value<vector<string> >()->composing(), "Use a given covariate as the regression model outcome")
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
-		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
-		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
+		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
+		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
 		("permutations", po::value<unsigned int>(&n_perms)->default_value(0), "Number of permutations to use in permutation testing (disabled by default - set to 0 to disable permutation)")
+		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
+		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
+		("separator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
+		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
 		("lowmem", po::bool_switch(&_lowmem), "Reduce the memory footprint (at a potential performance penalty)")
 		;
 
