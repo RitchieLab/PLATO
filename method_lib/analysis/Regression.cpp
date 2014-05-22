@@ -392,7 +392,7 @@ void Regression::runRegression(const DataSet& ds){
 	// Add in  the extra dfs, along with their column IDs
 	if(encoding == Encoding::WEIGHTED){
 		for(unsigned int i=0; i<n_snp; i++){
-			_extra_df_map[covar_names.size() + i] = 1;
+			_extra_df_map[covar_names.size() + 1 + i] = 1;
 		}
 	}
 
@@ -1201,7 +1201,7 @@ unsigned int Regression::findDF(const gsl_matrix* P,
 		gsl_vector_free(df_check);
 		gsl_vector_free(df_check_t);
 	} else if(_extra_df_map.size() > 0) {
-		for (std::map<unsigned int, unsigned int>::const_iterator itr = _extra_df_map.begin();
+		for (std::map<unsigned int, unsigned int>::const_iterator itr = _extra_df_map.lower_bound(reduced_vars);
 				itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
 			edf += (*itr).second;
 		}
