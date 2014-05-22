@@ -143,8 +143,10 @@ Regression::Result* LogisticRegression::calculate(
 
 	gsl_vector* beta = gsl_vector_calloc(n_cols);
 
+	gsl_vector* weight = gsl_vector_calloc(n_rows);
+
 	// weight vector used for IRLS procedure
-	double weight[n_rows];
+	//double weight[n_rows];
 
 	gsl_matrix_const_view data_mat = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 
@@ -155,7 +157,7 @@ Regression::Result* LogisticRegression::calculate(
 	unsigned int n_indep = n_cols - r->n_dropped;
 
 	// gsl weight vector for IRLS procedure
-	gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
+	//gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
@@ -235,13 +237,14 @@ Regression::Result* LogisticRegression::calculate(
 			LL -= 2 *(Y[i] * v_arr[2] + (1-Y[i]) * v_arr[3]);
 
 			// get the weight and update the rhs for IRLS
-			weight[i] = v_arr[1];
+			//weight[i] = v_arr[1];
+			gsl_vector_set(weight, i, v_arr[1] );
 			gsl_vector_set(rhs, i, v + 1/v_arr[1] * (Y[i] - v_arr[0]));
 
 		}
 
 		// Look, magic!
-		gsl_multifit_wlinear(&X.matrix, &w.vector, rhs, &b.vector, cov, &tmp_chisq, ws);
+		gsl_multifit_wlinear(&X.matrix, weight, rhs, &b.vector, cov, &tmp_chisq, ws);
 
 		// get the difference between the old beta and the new beta
 		gsl_vector_sub(b_prev, &b.vector);
@@ -332,6 +335,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	r->suffix += extraSuff;
 
+	gsl_vector_free(weight);
 	gsl_vector_free(beta);
 	gsl_vector_free(b_prev);
 	gsl_vector_free(rhs);
