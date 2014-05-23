@@ -775,8 +775,8 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	//  array_type A(boost::extents[3][4][2])
 
 	double* row_data = new double[n_cols];
-	unsigned char geno[numLoci];
-	float maf_sum[numLoci];
+	unsigned char* geno = new unsigned char[numLoci];
+	float* maf_sum = new float[numLoci];
 
 	DataSet::const_sample_iterator si = ds.beginSample();
 	DataSet::const_sample_iterator se = ds.endSample();
@@ -956,6 +956,8 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
 	}
 
+	delete[] geno;
+	delete[] maf_sum;
 	delete[] regress_output;
 	delete[] regress_buf;
 	delete[] row_data;
