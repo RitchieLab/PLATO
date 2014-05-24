@@ -2,9 +2,19 @@ ACLOCAL_AMFLAGS= -I ./make/m4
 
 SUBDIRS=method_lib
 
-EXTRA_DIST=CREATED CHANGELOG README.txt
+EXTRA_DIST=doc/manual.doc \
+process/ExampleModule.h \
+process/ExampleModule.cpp \
+CREATED \
+CHANGELOG \
+README.txt
 
-CLEANFILES=CREATED CHANGELOG README.txt
+CLEANFILES=doc/manual.doc \
+process/ExampleModule.h \
+process/ExampleModule.cpp \
+CREATED \
+CHANGELOG \
+README.txt
 
 dist-hook:
 	chmod u+w $(distdir)/CREATED
@@ -30,8 +40,6 @@ process/BatchProcess.cpp \
 process/BatchProcess.h \
 process/OutputPED.cpp \
 process/OutputPED.h \
-process/ExampleModule.cpp \
-process/ExampleModule.h \
 process/OutputBED.cpp \
 process/OutputBED.h \
 process/OutputTPED.cpp \
@@ -59,10 +67,12 @@ process/OutputBeagle.cpp \
 process/RecodeAlleles.h \
 process/RecodeAlleles.cpp
 
-
-
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_REGEX_LIB)
 
+
+############################################################################
+# Everything below this line is from Plato 1.x, before the rewrite
+############################################################################
 
 orig_plato_src = cdflib.h \
 dcdflib.cpp \

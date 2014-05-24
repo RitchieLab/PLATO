@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
 				delete p;
 				//cout << "\tThresh: " << mystep.getThreshold() << endl;
 			}
+			return 0;
 		} else {
 			Process* p = f.Create(cmd_str);
 			if (!p) {
@@ -166,9 +167,13 @@ int main(int argc, char** argv) {
 	}
 
 	// Log the commands
-	Logger::log("Commands as given on the the command line:");
-	for(unsigned int i=0; i<cmd_input.size(); i++){
-		Logger::log(cmd_input[i]);
+	if(cmd_input.size() == 0){
+		Logger::log_err("ERROR: No commands given, nothing to do!", true);
+	} else {
+		Logger::log("Commands as given on the the command line:");
+		for(unsigned int i=0; i<cmd_input.size(); i++){
+			Logger::log(cmd_input[i]);
+		}
 	}
 
 
