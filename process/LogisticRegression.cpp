@@ -166,6 +166,7 @@ Regression::Result* LogisticRegression::calculate(
 	// I need these to work with the default values
 	gsl_multifit_linear_workspace *ws = gsl_multifit_linear_alloc(n_rows, n_indep);
 	gsl_matrix* cov_mat = gsl_matrix_calloc(n_cols, n_cols);
+	gsl_matrix_set_all(cov_mat, -1);
 	gsl_matrix_view cov_view = gsl_matrix_submatrix(cov_mat, 0, 0, n_indep, n_indep);
 	gsl_matrix* cov = &cov_view.matrix;
 	gsl_matrix* A = gsl_matrix_calloc(n_rows, n_cols);
@@ -291,15 +292,15 @@ Regression::Result* LogisticRegression::calculate(
 	unsigned int idx_offset = 1 + covar_names.size();
 	for (unsigned int i = 0; i < n_cols - idx_offset; i++) {
 		double c = gsl_vector_get(beta, i + idx_offset);
-		double se = sqrt(gsl_matrix_get(cov_mat, i + idx_offset, i + idx_offset));
+		double se = gsl_matrix_get(cov_mat, i + idx_offset, i + idx_offset);
 
-		if (se > 0) {
+		if (se >= 0) {
 
 			r->coeffs[i] = show_odds ? exp(c) : c;
-			r->stderr[i] = se;
+			r->stderr[i] = sqrt(se);
 
 			// use the wald statistic to get p-values for each coefficient
-			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c/se , 2) ,1 + (encoding == Encoding::WEIGHTED));
+			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c / r->stderr[i] , 2) ,1 + (encoding == Encoding::WEIGHTED));
 		} else {
 			// If this is true, this column was dropped from analysis!
 			r->coeffs[i] = std::numeric_limits<float>::quiet_NaN();
@@ -322,7 +323,7 @@ Regression::Result* LogisticRegression::calculate(
 		pair<float, float> pv_rsq = calcPVal(r, curr_res, df, LLn);
 
 		if (curr_res == r) {
-			r->p_val = pv_rsq.first;
+			r->p_val = r->converged ? pv_rsq.first : 1.0f;
 			r->r_squared = pv_rsq.second;
 		} else if (curr_res->submodel) {
 			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep;

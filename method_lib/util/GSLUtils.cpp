@@ -1,6 +1,7 @@
 #include "GSLUtils.h"
 
 #include <vector>
+#include <set>
 #include <limits>
 #include <cmath>
 
@@ -9,6 +10,7 @@
 
 using std::vector;
 using std::fabs;
+using std::set;
 
 namespace PLATO{
 namespace Utility{
@@ -30,7 +32,7 @@ unsigned int GSLUtils::checkColinear(const gsl_matrix* X, gsl_matrix* P){
 	// OK, now we look for all singular values less than machine epsilon
 	// (we'll use float epsilon for double precision - lots of willge room there)
 	unsigned int n_indep = n_cols;
-	vector<unsigned int> idx_permu;
+	set<unsigned int> idx_set;
 	while(gsl_vector_get(S,n_indep - 1) < std::numeric_limits<float>::epsilon()){
 		// If we're here, the "n_indep - 1" column of V is a linear combination
 		// of columns that adds to 0, so we want the last non-zero coefficient
@@ -39,11 +41,21 @@ unsigned int GSLUtils::checkColinear(const gsl_matrix* X, gsl_matrix* P){
 
 		// At the end of this (empty) loop, p_idx will be the index of the column
 		// to drop
-		while(--p_idx > 0 && fabs(gsl_matrix_get(V,p_idx,n_indep-1)) < std::numeric_limits<float>::epsilon());
+		while(--p_idx > 0){
+			double val = fabs(gsl_matrix_get(V,p_idx,n_indep-1));
+			if(val > std::numeric_limits<float>::epsilon() && idx_set.count(p_idx) == 0){
+				break;
+			}
+		}
 
-		idx_permu.push_back(p_idx);
+		idx_set.insert(p_idx);
 		--n_indep;
 	}
+
+	vector<unsigned int> idx_permu(idx_set.begin(), idx_set.end());
+
+
+
 
 	gsl_matrix* _P_ret = gsl_matrix_alloc(n_cols,n_cols);
 
@@ -89,6 +101,44 @@ unsigned int GSLUtils::checkColinear(const gsl_matrix* X, gsl_matrix* P){
 	gsl_matrix_free(__ws_m);
 
 	return n_cols - n_indep;
+
+	/*
+	unsigned int n_indep = n_cols;
+		while(gsl_vector_get(S,n_indep - 1) < std::numeric_limits<float>::epsilon()){
+			--n_indep;
+		}
+
+		if(n_indep < n_cols){
+
+			gsl_permutation* permu = gsl_permutation_alloc(n_cols);
+			gsl_permutation* p_inv = gsl_permutation_alloc(n_cols);
+			// OK, now we have the number of linearly dependent columns, let's find
+			// them using a QR with column pivoting algorithm
+			gsl_matrix_view V2 = gsl_matrix_submatrix(V, 0, n_indep, n_cols, n_cols - n_indep);
+			gsl_matrix* VT = gsl_matrix_alloc(n_cols - n_indep, n_cols);
+			int signum = 0;
+			gsl_vector* tau = gsl_vector_alloc(n_cols - n_indep);
+			gsl_vector* norm = gsl_vector_alloc(n_cols);
+
+			gsl_linalg_QRPT_decomp(VT, tau, permu, &signum, norm);
+
+			gsl_permutation_inverse(p_inv, permu);
+			//gsl_matrix* _P_ret = gsl_matrix_alloc(n_cols,n_cols);
+			gsl_matrix_free(VT);
+			gsl_vector_free(tau);
+			gsl_vector_free(norm);
+
+			// P is our permutation matrix
+			for(unsigned int i=0; i<n_cols; i++){
+				gsl_permute_inverse(permu->data, &P->data[i*n_cols], 1, n_cols);
+			}
+
+			gsl_permutation_free(permu);
+			gsl_permutation_free(p_inv);
+			//gsl_matrix_free(_P_ret);
+
+		}
+*/
 }
 
 
