@@ -724,7 +724,8 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 	Result* r = run(&mod, ds);
 
 	// NOTE: this assigns to the map at the same step
-	float toret = (categ_weight[m] = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]));
+	float toret = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]);
+	categ_weight.insert(std::make_pair(m, toret));
 
 	delete r;
 

@@ -54,9 +54,6 @@ unsigned int GSLUtils::checkColinear(const gsl_matrix* X, gsl_matrix* P){
 
 	vector<unsigned int> idx_permu(idx_set.begin(), idx_set.end());
 
-
-
-
 	gsl_matrix* _P_ret = gsl_matrix_alloc(n_cols,n_cols);
 
 	// P is our permutation matrix
@@ -101,44 +98,6 @@ unsigned int GSLUtils::checkColinear(const gsl_matrix* X, gsl_matrix* P){
 	gsl_matrix_free(__ws_m);
 
 	return n_cols - n_indep;
-
-	/*
-	unsigned int n_indep = n_cols;
-		while(gsl_vector_get(S,n_indep - 1) < std::numeric_limits<float>::epsilon()){
-			--n_indep;
-		}
-
-		if(n_indep < n_cols){
-
-			gsl_permutation* permu = gsl_permutation_alloc(n_cols);
-			gsl_permutation* p_inv = gsl_permutation_alloc(n_cols);
-			// OK, now we have the number of linearly dependent columns, let's find
-			// them using a QR with column pivoting algorithm
-			gsl_matrix_view V2 = gsl_matrix_submatrix(V, 0, n_indep, n_cols, n_cols - n_indep);
-			gsl_matrix* VT = gsl_matrix_alloc(n_cols - n_indep, n_cols);
-			int signum = 0;
-			gsl_vector* tau = gsl_vector_alloc(n_cols - n_indep);
-			gsl_vector* norm = gsl_vector_alloc(n_cols);
-
-			gsl_linalg_QRPT_decomp(VT, tau, permu, &signum, norm);
-
-			gsl_permutation_inverse(p_inv, permu);
-			//gsl_matrix* _P_ret = gsl_matrix_alloc(n_cols,n_cols);
-			gsl_matrix_free(VT);
-			gsl_vector_free(tau);
-			gsl_vector_free(norm);
-
-			// P is our permutation matrix
-			for(unsigned int i=0; i<n_cols; i++){
-				gsl_permute_inverse(permu->data, &P->data[i*n_cols], 1, n_cols);
-			}
-
-			gsl_permutation_free(permu);
-			gsl_permutation_free(p_inv);
-			//gsl_matrix_free(_P_ret);
-
-		}
-*/
 }
 
 
