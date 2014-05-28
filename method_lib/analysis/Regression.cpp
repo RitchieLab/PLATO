@@ -711,23 +711,27 @@ Regression::Model* Regression::parseModelStr(const std::string& model_str, const
 
 float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
+	float toret = 0.5;
+
+	_categ_mutex.lock();
 	map<const Marker*, float>::const_iterator w_itr = categ_weight.find(m);
 	if(w_itr != categ_weight.end()){
-		return (*w_itr).second;
+		toret = (*w_itr).second;
+	} else {
+
+		// OK, at this point, we know we don't have the categorical value
+
+		Model mod;
+		mod.markers.push_back(m);
+		mod.categorical = true;
+		Result* r = run(&mod, ds);
+
+		// NOTE: this assigns to the map at the same step
+		toret = categ_weight[m] = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]);
+
+		delete r;
 	}
-
-	// OK, at this point, we know we don't have the categorical value
-
-	Model mod;
-	mod.markers.push_back(m);
-	mod.categorical = true;
-	Result* r = run(&mod, ds);
-
-	// NOTE: this assigns to the map at the same step
-	float toret = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]);
-	categ_weight.insert(std::make_pair(m, toret));
-
-	delete r;
+	_categ_mutex.unlock();
 
 	return toret;
 

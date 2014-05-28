@@ -319,6 +319,7 @@ private:
 
 	boost::mutex _result_mutex;
 	boost::mutex _model_gen_mutex;
+	boost::mutex _categ_mutex;
 
 	std::map<const PLATO::Data::Marker*, float> categ_weight;
 
