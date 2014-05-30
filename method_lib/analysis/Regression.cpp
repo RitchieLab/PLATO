@@ -973,14 +973,14 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 void Regression::printResults(){
 
 	vector<std::iostream::pos_type> file_pos;
-	vector<unsigned int> idx_pos;
-	unsigned int n_results = _lowmem ? result_pvals.size() : results.size();
+	vector<size_t> idx_pos;
+	size_t n_results = _lowmem ? result_pvals.size() : results.size();
 	string tmpf_line;
 
 	if (_lowmem) {
 		idx_pos.reserve(n_results);
 
-		for(unsigned int i=0; i<n_results; i++){
+		for(size_t i=0; i<n_results; i++){
 			idx_pos.push_back(i);
 		}
 
@@ -1011,12 +1011,12 @@ void Regression::printResults(){
 		vector<float> pv_in;
 		if (_lowmem) {
 			pv_in.reserve(n_results);
-			for(unsigned int i=0; i<n_results; i++){
+			for(size_t i=0; i<n_results; i++){
 				pv_in.push_back(result_pvals[idx_pos[i]]);
 			}
 		} else {
 			pv_in.reserve(n_results);
-			for (unsigned int i = 0; i < n_results; i++) {
+			for (size_t i = 0; i < n_results; i++) {
 				pv_in.push_back(results[i]->p_val);
 			}
 		}
@@ -1028,7 +1028,7 @@ void Regression::printResults(){
 		}
 	}
 
-	for (unsigned int i = 0; i < n_results; i++) {
+	for (size_t i = 0; i < n_results; i++) {
 		// If we've gone over the threshold, stop printing!
 		if ((_lowmem ? result_pvals[idx_pos[i]] : results[i]->p_val)  > cutoff_p) {
 			break;
