@@ -972,7 +972,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 void Regression::printResults(){
 
-	vector<unsigned int> file_pos;
+	vector<std::iostream::pos_type> file_pos;
 	vector<unsigned int> idx_pos;
 	unsigned int n_results = _lowmem ? result_pvals.size() : results.size();
 	string tmpf_line;
@@ -1035,8 +1035,7 @@ void Regression::printResults(){
 		}
 
 		if(_lowmem){
-			int newpos = file_pos[idx_pos[i]];
-			tmp_f->seek(newpos, std::ios_base::beg);
+			tmp_f->seek(file_pos[idx_pos[i]], std::ios_base::beg);
 			std::getline(tmp_f, tmpf_line);
 			tmp_f.clear();
 			out_f << tmpf_line;
