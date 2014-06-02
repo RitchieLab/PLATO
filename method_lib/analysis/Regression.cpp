@@ -219,7 +219,8 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	}
 
 	if(_lowmem){
-		tmp_f.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())));
+		tmp_f.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
+				std::ios_base::binary | std::ios_base::in | std::ios_base::out);
 	}
 
 }
@@ -992,7 +993,7 @@ void Regression::printResults(){
 		tmp_f.flush();
 		tmp_f.seekg(0);
 		file_pos.push_back(tmp_f.tellg());
-		while(std::getline(tmp_f, tmpf_line)){
+		while( getline(tmp_f, tmpf_line) ){
 			file_pos.push_back(tmp_f.tellg());
 		}
 		tmp_f->seek(0, std::ios_base::beg);
