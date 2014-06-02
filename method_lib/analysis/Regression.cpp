@@ -565,6 +565,7 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 			result_pvals.push_back(r->p_val);
 			printResultLine(*r, tmp_f);
 			tmp_f << "\n";
+			tmp_f.flush();
 			delete r;
 		} else {
 			results.push_back(r);
