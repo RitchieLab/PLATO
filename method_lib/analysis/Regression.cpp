@@ -566,7 +566,6 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 			result_pvals.push_back(r->p_val);
 			printResultLine(*r, tmp_f);
 			tmp_f << "\n";
-			tmp_f.flush();
 			delete r;
 		} else {
 			results.push_back(r);
@@ -991,12 +990,12 @@ void Regression::printResults(){
 		file_pos.reserve(n_results+1);
 		// get the positions of the beginning of every line
 		tmp_f.flush();
-		tmp_f.seekg(0);
+		tmp_f.seekg(0, std::ios_base::beg);
 		file_pos.push_back(tmp_f.tellg());
 		while( getline(tmp_f, tmpf_line) ){
 			file_pos.push_back(tmp_f.tellg());
 		}
-		tmp_f->seek(0, std::ios_base::beg);
+		tmp_f.seekg(0, std::ios_base::beg);
 		tmp_f.clear();
 		//int res = boost::iostreams::seek(tmp_f, 0, std::ios_base::beg);
 	} else {
@@ -1037,7 +1036,7 @@ void Regression::printResults(){
 		}
 
 		if(_lowmem){
-			tmp_f->seek(file_pos[idx_pos[i]], std::ios_base::beg);
+			tmp_f.seekg(file_pos[idx_pos[i]], std::ios_base::beg);
 			tmpf_line = "";
 			std::getline(tmp_f, tmpf_line);
 			out_f << tmpf_line;
@@ -1058,7 +1057,6 @@ void Regression::printResults(){
 		}
 
 		out_f << std::endl;
-		out_f.flush();
 	}
 }
 
