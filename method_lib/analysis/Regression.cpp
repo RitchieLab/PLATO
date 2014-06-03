@@ -1068,6 +1068,8 @@ Regression::Model* Regression::TargetedModelGenerator::next() {
 		m = Regression::parseModelStr(*_mitr, _ds);
 		if(m->markers.size() == 0 && m->traits.size() == 0){
 			Logger::log_err("WARNING: Model '" + *_mitr + "' has elements not in the dataset, ignoring");
+			delete m;
+			m = 0;
 		}
 		++_mitr;
 	}
