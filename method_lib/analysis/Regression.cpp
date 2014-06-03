@@ -1038,10 +1038,11 @@ void Regression::printResults(){
 
 		if(_lowmem){
 			tmp_f->seek(file_pos[idx_pos[i]], std::ios_base::beg);
+			tmpf_line = "";
 			std::getline(tmp_f, tmpf_line);
-			tmp_f.clear();
 			out_f << tmpf_line;
 			out_f << result_pvals[idx_pos[i]];
+			tmp_f.clear();
 		} else {
 			printResultLine(*(results[i]), out_f);
 			out_f << results[i]->p_val;
@@ -1057,6 +1058,7 @@ void Regression::printResults(){
 		}
 
 		out_f << std::endl;
+		out_f.flush();
 	}
 }
 
