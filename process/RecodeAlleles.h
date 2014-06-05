@@ -26,7 +26,11 @@ protected:
 
 private:
 	std::string recode_fn;
+	std::string out_fn;
 	bool auto_recode;
+	bool map_input;
+	bool map3;
+	bool map_output;
 
 };
 
