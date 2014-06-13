@@ -16,8 +16,8 @@ namespace PLATO{
 namespace Utility{
 
 double Missing::sampleMissing(const DataSet& ds, const Sample& s){
-	int n_marker;
-	int n_missing;
+	unsigned int n_marker = 0;
+	unsigned int n_missing = 0;
 
 	DataSet::const_marker_iterator mi = ds.beginMarker();
 	while(mi != ds.endMarker()){
@@ -33,8 +33,8 @@ double Missing::sampleMissing(const DataSet& ds, const Sample& s){
 }
 
 double Missing::markerMissing(const DataSet& ds, const Marker& m){
-	int n_sample;
-	int n_missing;
+	unsigned int n_sample = 0;
+	unsigned int n_missing = 0;
 
 	DataSet::const_sample_iterator si = ds.beginSample();
 	while(si != ds.endSample()){
@@ -50,8 +50,8 @@ double Missing::markerMissing(const DataSet& ds, const Marker& m){
 }
 
 double Missing::traitMissing(const DataSet& ds, const string& t){
-	int n_sample;
-	int n_missing;
+	unsigned int n_sample = 0;
+	unsigned int n_missing = 0;
 
 	DataSet::const_sample_iterator si = ds.beginSample();
 	while(si != ds.endSample()){
