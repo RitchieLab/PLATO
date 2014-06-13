@@ -114,7 +114,7 @@ void ConcordanceProcess::process(DataSet& ds){
 	DataSet::const_marker_iterator me = ds.endMarker();
 	DataSet::const_marker_iterator ame = alt_ds.endMarker();
 
-	while(mi != me && ami != ame){
+	while(mi != me || ami != ame){
 		if(ami == ame || **mi < **ami){
 			outputMarkerMismatch(m_mismatch_f, *mi, true);
 			++mi;
@@ -143,7 +143,7 @@ void ConcordanceProcess::process(DataSet& ds){
 	DataSet::const_sample_iterator se = ds.endSample();
 	DataSet::const_sample_iterator ase = alt_ds.endSample();
 
-	while(si != se && asi != ase){
+	while(si != se || asi != ase){
 		if(asi == ase || **si < **asi){
 			outputSampleMismatch(s_mismatch_f, *si, true);
 			++si;
