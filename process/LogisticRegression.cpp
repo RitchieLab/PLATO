@@ -254,7 +254,15 @@ Regression::Result* LogisticRegression::calculate(
 
 	} // complete iteration
 
-	if(!std::isfinite(LL) || numIterations >= maxIterations || LL-LLn > 0){
+	// nonconvergence happens if:
+	// -Log likelihood is not finite (inf or NaN)
+	// too many iteratons
+	// The current log likelihood is less than the null model
+	// a submodel did not converge
+	if(!std::isfinite(LL) ||
+	   numIterations >= maxIterations ||
+	   LL-LLn > 0 ||
+	   (r->submodel && !r->submodel->converged)){
 		if(offset == 0){
 			Logger::log_err("WARNING: Logistic regression model did not converge");
 		}

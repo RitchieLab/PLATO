@@ -510,68 +510,77 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 	while( nm ){
 		Result* r = run(nm, ds);
 
-		// Run some univariate models
-		if(show_uni && nm->markers.size() + nm->traits.size() > 1){
-			// Here, we are going to reverse the order of marker/trait variables
-			// because we're adding the results onto the FRONT of the model
+		// run will return 0 if something went wrong (i.e. did not run anything)
+		if (r) {
 
-			for(unsigned int i=nm->traits.size(); i>0; i--){
-				map<string, Result*>::const_iterator t_itr = _trait_uni_result.find(nm->traits[i-1]);
-				// If this is the case, we have not seen this marker before
-				if(t_itr == _trait_uni_result.end()){
-					Model m;
-					m.traits.push_back(nm->traits[i-1]);
-					t_itr = _trait_uni_result.insert(_trait_uni_result.begin(),
-							std::make_pair(nm->traits[i-1], run(&m, ds)));
+			// Run some univariate models
+			if (show_uni && nm->markers.size() + nm->traits.size() > 1) {
+				// Here, we are going to reverse the order of marker/trait variables
+				// because we're adding the results onto the FRONT of the model
+
+				for (unsigned int i = nm->traits.size(); i > 0; i--) {
+					map<string, Result*>::const_iterator t_itr =
+							_trait_uni_result.find(nm->traits[i - 1]);
+					// If this is the case, we have not seen this marker before
+					if (t_itr == _trait_uni_result.end()) {
+						Model m;
+						m.traits.push_back(nm->traits[i - 1]);
+						t_itr = _trait_uni_result.insert(
+								_trait_uni_result.begin(),
+								std::make_pair(nm->traits[i - 1], run(&m, ds)));
+					}
+
+					Result *t_r = r;
+					Result *u_r = new Result(1);
+					while (t_r->submodel) {
+						t_r = t_r->submodel;
+					}
+					u_r->coeffs[0] = (*t_itr).second->coeffs[0];
+					u_r->p_vals[0] = (*t_itr).second->p_vals[0];
+					u_r->stderr[0] = (*t_itr).second->stderr[0];
+					t_r->submodel = u_r;
 				}
 
-				Result *t_r = r;
-				Result *u_r = new Result(1);
-				while(t_r->submodel){
-					t_r = t_r->submodel;
+				for (unsigned int i = nm->markers.size(); i > 0; i--) {
+					map<const Marker*, Result*>::const_iterator m_itr =
+							_marker_uni_result.find(nm->markers[i - 1]);
+					// If this is the case, we have not seen this marker before
+					if (m_itr == _marker_uni_result.end()) {
+						Model m;
+						m.markers.push_back(nm->markers[i - 1]);
+						m_itr = _marker_uni_result.insert(
+								_marker_uni_result.begin(),
+								std::make_pair(nm->markers[i - 1], run(&m, ds)));
+					}
+
+					Result *t_r = r;
+					Result *u_r = new Result(1);
+					while (t_r->submodel) {
+						t_r = t_r->submodel;
+					}
+					u_r->coeffs[0] = (*m_itr).second->coeffs[0];
+					u_r->p_vals[0] = (*m_itr).second->p_vals[0];
+					u_r->stderr[0] = (*m_itr).second->stderr[0];
+					t_r->submodel = u_r;
 				}
-				u_r->coeffs[0] = (*t_itr).second->coeffs[0];
-				u_r->p_vals[0] = (*t_itr).second->p_vals[0];
-				u_r->stderr[0] = (*t_itr).second->stderr[0];
-				t_r->submodel = u_r;
 			}
+			// put the outcome right at the beginning of the prefix!
 
-			for(unsigned int i=nm->markers.size(); i>0; i--){
-				map<const Marker*, Result*>::const_iterator m_itr = _marker_uni_result.find(nm->markers[i-1]);
-				// If this is the case, we have not seen this marker before
-				if(m_itr == _marker_uni_result.end()){
-					Model m;
-					m.markers.push_back(nm->markers[i-1]);
-					m_itr = _marker_uni_result.insert(_marker_uni_result.begin(),
-							std::make_pair(nm->markers[i-1], run(&m, ds)));
-				}
+			r->prefix = outcome + sep + r->prefix;
 
-				Result *t_r = r;
-				Result *u_r = new Result(1);
-				while(t_r->submodel){
-					t_r = t_r->submodel;
-				}
-				u_r->coeffs[0] = (*m_itr).second->coeffs[0];
-				u_r->p_vals[0] = (*m_itr).second->p_vals[0];
-				u_r->stderr[0] = (*m_itr).second->stderr[0];
-				t_r->submodel = u_r;
+			// synchronize
+			_result_mutex.lock();
+			if (_lowmem) {
+				result_pvals.push_back(r->p_val);
+				printResultLine(*r, tmp_f);
+				tmp_f << "\n";
+				delete r;
+			} else {
+				results.push_back(r);
 			}
+			_result_mutex.unlock();
+			// end synchronize
 		}
-		// put the outcome right at the beginning of the prefix!
-		r->prefix = outcome + sep + r->prefix;
-
-		// synchronize
-		_result_mutex.lock();
-		if(_lowmem){
-			result_pvals.push_back(r->p_val);
-			printResultLine(*r, tmp_f);
-			tmp_f << "\n";
-			delete r;
-		} else {
-			results.push_back(r);
-		}
-		_result_mutex.unlock();
-		// end synchronize
 
 		delete nm;
 
@@ -728,9 +737,13 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 		Result* r = run(&mod, ds);
 
 		// NOTE: this assigns to the map at the same step
-		toret = categ_weight[m] = r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]);
+		// Make sure to check for existence of the result!
+		// If nonexistent (you probably have bigger problems), default to 1/2 (additive encoding)
+		toret = categ_weight[m] = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
 
-		delete r;
+		if(r){
+			delete r;
+		}
 	}
 	_categ_mutex.unlock();
 
@@ -940,15 +953,11 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 			r->p_val = n_sig / static_cast<float>(n_perms);
 			delete[] perm_output;
-
 		}
 
-
 	}else{
-		Logger::log_err("WARNING: not enough samples in model: '" + ss.str() + "'!");
-		r = new Result(0);
-		r->p_val = 1;
-		r->log_likelihood = r->r_squared = std::numeric_limits<float>::quiet_NaN();
+		Logger::log_err("WARNING: not enough samples in model: '" + m->getID() + "'!");
+		return 0;
 	}
 
 	// print the # missing from this model

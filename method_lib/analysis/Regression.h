@@ -52,6 +52,18 @@ protected:
 		Model() : categorical(false){}
 		Model(const std::vector<std::string>& tv) : traits(tv) {}
 
+		std::string getID() const{
+			unsigned int n_str = 0;
+			std::string toRet = "";
+			for(unsigned int i=0; i<markers.size(); i++,n_str++){
+				toRet += (n_str > 0 ? " " : "") + markers[i]->getID();
+			}
+			for(unsigned int i=0; i<traits.size(); i++,n_str++){
+				toRet += (n_str > 0 ? " " : "") + traits[i];
+			}
+			return toRet;
+		}
+
 		std::vector<const PLATO::Data::Marker*> markers;
 		std::vector<std::string> traits;
 
