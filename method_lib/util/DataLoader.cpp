@@ -23,6 +23,8 @@
 #include <map>
 #include <set>
 #include <limits>
+#include <deque>
+#include <algorithm>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -36,6 +38,8 @@ using std::string;
 using std::ifstream;
 using std::stringstream;
 using std::vector;
+using std::deque;
+using std::find;
 
 using PLATO::Data::Marker;
 using PLATO::Data::Sample;
@@ -49,6 +53,7 @@ using po::value;
 using po::bool_switch;
 using boost::regex;
 using boost::regex_match;
+using boost::algorithm::split;
 
 namespace PLATO{
 namespace Utility{
@@ -104,6 +109,18 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		;
 
 	data_opts.add(beagle_opts);
+
+	po::options_description vcf_opts("VCF file input options");
+
+	vcf_opts.add_options()
+		("vcf-file", value<string>(&vcf_fn), "VCF file to load")
+		("no-filter-marker", bool_switch(&no_filter_marker), "Load markers that fail a filter in the FILTER field")
+		("no-filter-geno", bool_switch(&no_filter_geno), "Load genotypes that fail a filter in the FT annotation field")
+		("vcf-phased", bool_switch(&vcf_phased), "Flag indicating that the VCF file is phased")
+		("vcf-poly", bool_switch(&vcf_poly), "Flag indicating that the VCF file is polyalleleic")
+		;
+
+	data_opts.add(vcf_opts);
 
 	return opts.add(data_opts);
 }
@@ -248,6 +265,8 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		input = LGEN;
 	}else if(beagle_fns.size()){
 		input = BEAGLE;
+	}else if(vcf_fn.size()){
+		input = VCF;
 	}
 
 }
@@ -288,6 +307,9 @@ void DataLoader::read(DataSet& ds){
 		break;
 	case BEAGLE:
 		readBeagle();
+		break;
+	case VCF:
+		readVCF();
 		break;
 	default:
 		Logger::log_err("Unknown input type", true);
@@ -879,6 +901,159 @@ void DataLoader::readBeagle(){
 		}
 		genof.close();
 	}
+
+}
+
+void DataLoader::readVCF(){
+
+	Logger::log_err("INFO: The VCF loader in PLATO only uses some of the "
+			"information in a VCF file: details may be lost.  "
+			"Please keep the original VCF file for completeness.");
+
+	ICompressedFile vcf_f(vcf_fn.c_str());
+
+	// have we already warned about flags and VCF inconsistencies?
+	bool poly_warn = vcf_poly;
+	bool phase_warn = false;
+
+	string geno_sep = vcf_phased ? "|" : "/";
+	string alt_geno_sep = vcf_phased ? "/" : "|";
+
+	ds_ptr->setBiallelic(!vcf_poly);
+	ds_ptr->setPhased(vcf_phased);
+
+	string curr_line;
+	deque<Sample*> samp_list;
+	vector<bool> incl_sample;
+
+	unsigned int lineno = 0;
+	unsigned int n_fields;
+	while(getline(vcf_f, curr_line)){
+		++lineno;
+		vector<string> fields;
+		if(curr_line.size() > 2 && curr_line[0] == '#' && curr_line[1] != '#'){
+			// In this case, we are looking at the "#CHROM" line (we hope!)
+			split(fields, curr_line, boost::is_any_of("\t"));
+			n_fields = fields.size();
+
+			// Sanity check here! Note that I never use the "QUAL" or "INFO"
+			// fields, so I'm not going to check for them!
+			if(n_fields < 9 || fields[0] != "#CHROM" || fields[1] != "POS" ||
+					fields[2] != "ID" || fields[3] != "REF" || fields[4] != "ALT" ||
+					fields[6] != "FILTER" || fields[8] != "FORMAT"){
+				Logger::log_err("ERROR: VCF header line is malformed, please check your VCF input.", true);
+			}
+
+			// by default, include all samples
+			incl_sample.resize(n_fields - 9, true);
+
+			for(unsigned int i=9; i<n_fields; i++){
+				samp_list.push_back(ds_ptr->addSample(fields[i], 0));
+			}
+
+		} else if(curr_line.size() > 2 && curr_line[0] != '#'){
+			// In this case, we're looking at a marker
+
+			split(fields, curr_line, boost::is_any_of("\t"));
+			if(fields.size() != n_fields){
+				Logger::log_err("ERROR: Mismatched number of fields on line "
+						+ boost::lexical_cast<string>(lineno), true);
+			}
+
+			string chr, id, ref, alt, filter, format;
+			unsigned int bploc = 0;
+			int g1, g2;
+			chr = fields[0];
+			bploc = boost::lexical_cast<unsigned int>(fields[1]);
+			id = fields[2];
+			ref = fields[3];
+			alt = fields[4];
+			filter = fields[6];
+			format = fields[8];
+
+			// check for inclusion based on the marker-level data
+			bool use = true;
+			use &= (no_filter_marker || filter == "." || filter == "PASS");
+			use &= (bploc != 0);
+
+			if(use){
+				Marker* m = ds_ptr->addMarker(chr,bploc,id);
+				m->addAllele(ref);
+				vector<string> alt_list;
+				split(alt_list, alt, boost::is_any_of(","));
+				if(!poly_warn && alt_list.size() > 1){
+					Logger::log_err("WARNING: VCF appears polyallelic, but "
+							"--vcf-poly was not given.  Alternate alleles will "
+							"be collapsed to the first alternate.");
+					poly_warn = true;
+				}
+				for(unsigned int i=0; i<alt_list.size(); i++){
+					m->addAllele(alt_list[i]);
+				}
+
+				// parse the format string
+				unsigned int gt_idx;
+				unsigned int ft_idx;
+
+				vector<string> format_list;
+				split(format_list, format, boost::is_any_of(":"));
+				gt_idx = (find(format_list.begin(), format_list.end(), "GT") - format_list.begin());
+				ft_idx = (find(format_list.begin(), format_list.end(), "FT") - format_list.begin());
+				ft_idx = (ft_idx == format_list.size()) ? static_cast<unsigned int>(-1) : ft_idx;
+
+				if(gt_idx == format_list.size()){
+					Logger::log_err("ERROR: No 'GT' format on line " +
+							boost::lexical_cast<string>(lineno) +
+							", cannot continue.", true);
+				}
+
+				deque<Sample*>::const_iterator si = samp_list.begin();
+				for(unsigned int i=0; i<n_fields-9; i++){
+					if(incl_sample[i]){
+						// parse the individual call
+						vector<string> geno_list;
+						split(geno_list, fields[i+9], boost::is_any_of(":"));
+
+						if(no_filter_geno || ft_idx == static_cast<unsigned int>(-1) ||
+						   geno_list[ft_idx] == "PASS"){
+							vector<string> call_list;
+							split(call_list, geno_list[gt_idx], boost::is_any_of(geno_sep));
+							if(call_list.size() == 1){
+								split(call_list, geno_list[gt_idx], boost::is_any_of(alt_geno_sep));
+								if(!phase_warn && call_list.size() != 1){
+									Logger::log_err("WARNING: VCF phasing is "
+											"inconsistent with arguments passed "
+											"to the loader, genotype data may "
+											"have unexpected results.");
+								}
+							}
+
+
+							if(call_list.size() != 2){
+								Logger::log_err("WARNING: Non-diploid found on line " +
+										boost::lexical_cast<string>(lineno) + ", setting to missing");
+								(*si)->appendMissingGenotype();
+							} else {
+								// If we can't convert to an integer, set to -1 (missing genotype)
+								(*si)->appendGenotype(
+									static_cast<unsigned char>((stringstream(call_list[0]) >> g1) ? g1 : -1),
+									static_cast<unsigned char>((stringstream(call_list[1]) >> g2) ? g2 : -1));
+							}
+						} else {
+							(*si)->appendMissingGenotype();
+						}
+						++si;
+					}
+
+				} // end iterating over genotypes
+
+			} // end if(use)
+
+		} // end if (header) else if (regular line)
+	} // end while(getline)
+
+	vcf_f.close();
+
 
 }
 

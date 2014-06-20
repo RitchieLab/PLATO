@@ -144,10 +144,13 @@ void ConcordanceProcess::process(DataSet& ds){
 	DataSet::const_sample_iterator ase = alt_ds.endSample();
 
 	while(si != se || asi != ase){
-		if(asi == ase || **si < **asi){
+		if(asi == ase || si == se){
+			outputSampleMismatch(s_mismatch_f, ((asi == ase) ? *si : *asi), asi == ase);
+			(asi == ase) ? ++si : ++asi;
+		} else if (**si < **asi){
 			outputSampleMismatch(s_mismatch_f, *si, true);
 			++si;
-		} else if (si == se || **asi < **si){
+		} else if (**asi < **si){
 			outputSampleMismatch(s_mismatch_f, *asi, false);
 			++asi;
 		} else {
@@ -156,6 +159,7 @@ void ConcordanceProcess::process(DataSet& ds){
 			++si;
 			++asi;
 		}
+
 	}
 	if(s_mismatch_f){
 		s_mismatch_f->close();

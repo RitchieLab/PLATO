@@ -44,7 +44,8 @@ void ICompressedFile::open(const char* fn, std::ios_base::openmode mode){
 
 		this->rdbuf(_infile.rdbuf());
 	} else {
-		this->setstate(std::ios_base::failbit);
+		this->rdbuf(_base_f.rdbuf());
+		this->setstate(_base_f.rdstate());
 	}
 
 }

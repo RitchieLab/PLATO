@@ -34,7 +34,8 @@ public:
 		BED,
 		TPED,
 		LGEN,
-		BEAGLE
+		BEAGLE,
+		VCF
 	};
 
 	DataLoader();
@@ -55,6 +56,8 @@ private:
 	void readLGen(const std::string& fn);
 
 	void readBeagle();
+
+	void readVCF();
 
 
 	PLATO::Data::Marker* parseMap(std::stringstream& ss);
@@ -132,6 +135,12 @@ private:
 	bool bgl_pair;
 	bool bgl_phased;
 	bool bgl_poly;
+
+	std::string vcf_fn;
+	bool no_filter_marker;
+	bool no_filter_geno;
+	bool vcf_phased;
+	bool vcf_poly;
 
 };
 
