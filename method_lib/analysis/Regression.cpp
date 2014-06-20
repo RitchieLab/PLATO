@@ -957,18 +957,20 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 	}else{
 		Logger::log_err("WARNING: not enough samples in model: '" + m->getID() + "'!");
-		return 0;
+		r = 0;
 	}
 
-	// print the # missing from this model
-	ss << n_missing << sep;
+	if(r){
+		// print the # missing from this model
+		ss << n_missing << sep;
 
-	r->prefix = ss.str();
+		r->prefix = ss.str();
 
-	ss.clear();
-	if(encoding == Encoding::WEIGHTED && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
-		//ss << categ_weight[0] << sep;
-		r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
+		ss.clear();
+		if(encoding == Encoding::WEIGHTED && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
+			//ss << categ_weight[0] << sep;
+			r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
+		}
 	}
 
 	delete[] geno;
