@@ -843,14 +843,20 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 					row_data[pos++] = (geno[i] == 2);
 				}else if (encoding == Encoding::WEIGHTED){
 
+					// works if w in [0,1]
+					row_data[pos++] = categ_weight[i] * (geno[i] == 1) + (geno[i] == 2);
+
 					// Returns:
 					// {0,w,1}    , w in [0,1]
 					// {1,1-w,0}  , w in [-1,0]
 					// {0,1,1/w}  , w in [1, inf)
 					// {1,0,1-1/w}, w in [-inf, -1]
-					row_data[pos++] = (categ_weight[i] < 0)
-							        + max(min(1.0, categ_weight[i]),-1.0) * (geno[i]==1)
-							        + max(min(1.0, 1/categ_weight[i]),-1.0) * (geno[i]==2);
+					//row_data[pos++] = (categ_weight[i] < 0)
+					//		        + max(min(1.0, categ_weight[i]),-1.0) * (geno[i]==1)
+					//		        + max(min(1.0, 1/categ_weight[i]),-1.0) * (geno[i]==2);
+
+
+
 				} else {
 					row_data[pos++] = encoding(geno[i]);
 				}
