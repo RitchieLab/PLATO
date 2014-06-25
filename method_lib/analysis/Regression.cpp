@@ -739,7 +739,8 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 		// NOTE: this assigns to the map at the same step
 		// Make sure to check for existence of the result!
 		// If nonexistent (you probably have bigger problems), default to 1/2 (additive encoding)
-		toret = categ_weight[m] = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
+		toret = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
+		toret = categ_weight[m] = (std::isfinite(toret) ? toret : 0.5);
 
 		if(r){
 			delete r;

@@ -40,6 +40,7 @@ using std::stringstream;
 using std::vector;
 using std::deque;
 using std::find;
+using std::pair;
 
 using PLATO::Data::Marker;
 using PLATO::Data::Sample;
@@ -57,6 +58,10 @@ using boost::algorithm::split;
 
 namespace PLATO{
 namespace Utility{
+
+// Define the "Group Separator" string as the separation between FID and IID!
+// Do this b/c it's legal ASCII, but darn near impossible to include on the cmd line
+const string DataLoader::sampl_field_sep = "\x1d";
 
 DataLoader::DataLoader() : _map_others(false), _ped_genotype(true),
 		_ped_missing_geno("0"), input(UNKNOWN) {}
@@ -121,6 +126,19 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		;
 
 	data_opts.add(vcf_opts);
+
+	po::options_description filter_opts("Pre-filtering options");
+	filter_opts.add_options()
+		("chrom", value<vector<string> >(&chrom_list)->composing(), "Chromosome(s) to include")
+		("bp-window", value<vector<string> >(&bp_window)->composing(), "Base pair window(s) to include")
+		("incl-marker", value<vector<string> >(&incl_marker_str)->composing(), "Marker ID(s) to include")
+		("excl-marker", value<vector<string> >(&excl_marker_str)->composing(), "Marker ID(s) to exclude")
+		("incl-marker-fn", value<vector<string> >(&incl_marker_fns)->composing(), "File containing marker ID(s) to include")
+		("excl-marker-fn", value<vector<string> >(&excl_marker_fns)->composing(), "File containing marker ID(s) to exclude")
+		("incl-sample", value<vector<string> >(&incl_sample_str)->composing(), "Sample(s) to include")
+		("excl-sample", value<vector<string> >(&excl_sample_str)->composing(), "Sample(s) to exclude")
+		;
+
 
 	return opts.add(data_opts);
 }
@@ -269,6 +287,89 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 		input = VCF;
 	}
 
+	// load up some pre-filters, please!
+	if(chrom_list.size() > 0){
+		vector<string> all_chroms;
+		InputManager::parseInput(chrom_list,all_chroms);
+		for(unsigned int i=0; i<all_chroms.size(); i++){
+			unsigned short chr = InputManager::chrStringToInt(all_chroms[i]);
+			if(chr != 0){
+				chrom_ids.insert(chr);
+			}
+		}
+		// no sense taking up unneeded space
+		chrom_list.clear();
+	}
+
+	if(bp_window.size() > 0){
+		vector<string> all_window;
+		InputManager::parseInput(bp_window, all_window);
+
+		// fix this, please!!!
+		vector<string> single_window;
+		for(unsigned int i=0; i<all_window.size(); i++){
+			boost::algorithm::split(single_window, all_window[i], boost::is_any_of("-"));
+			if(single_window.size() != 2){
+				Logger::log_err("WARNING: Base pair window '" + all_window[i] +
+						"' does not have exactly one dash (-), ignoring.");
+			} else {
+				unsigned int start = std::numeric_limits<unsigned int>::max();
+				unsigned int stop = std::numeric_limits<unsigned int>::max();
+				bool good = true;
+				if(single_window[0] != ""){
+					stringstream(single_window[0].c_str()) >> start;
+					if(start == std::numeric_limits<unsigned int>::max()){
+						good = false;
+						Logger::log_err("WARNING: could not parse '" + single_window[0] + "', ignoring window.");
+					}
+				} else {
+					start = 0;
+				}
+
+				if(single_window[1] != ""){
+					stringstream(single_window[1].c_str()) >> stop;
+					if(stop == std::numeric_limits<unsigned int>::max()){
+						good = false;
+						Logger::log_err("WARNING: could not parse '" + single_window[0] + "', ignoring window.");
+					}
+				}
+
+				if(good){
+					bp_window_set.insert(std::make_pair(start, stop));
+				}
+			}
+		}
+
+		if(!bp_window_set.empty()){
+			// OK, now make sure everything is not overlapping
+			set<pair<unsigned int, unsigned int> >::iterator bp_it = bp_window_set.begin();
+			set<pair<unsigned int, unsigned int> >::iterator bp_next = ++bp_window_set.begin();
+
+			while(bp_next != bp_window_set.end()){
+				if((*bp_it).second >= (*bp_next).first){
+					// insert a new element (which I KNOW will go in between
+					// bp_it and bp_next!
+					bp_window_set.insert(std::make_pair((*bp_it).first, (*bp_next).second));
+					// erase and increment bp_it and bp_next
+					bp_window_set.erase(bp_it++);
+					bp_window_set.erase(bp_next++);
+					// NOTE: at this point bp_it will point to the newly inserted
+					// element, and bp_next will point to the next element!
+				} else{
+					++bp_next;
+					++bp_it;
+				}
+			}
+		}
+	}
+
+	readSampleList(incl_sample_str, incl_sample_set);
+	readSampleList(excl_sample_str, excl_sample_set);
+
+	InputManager::parseInput(incl_marker_str, incl_marker_set);
+	readMarkerFile(incl_marker_fns, incl_marker_set);
+	InputManager::parseInput(excl_marker_str, excl_marker_set);
+	readMarkerFile(excl_marker_fns, excl_marker_set);
 }
 
 void DataLoader::read(DataSet& ds){
@@ -404,7 +505,7 @@ void DataLoader::readPed(const string& fn){
 			s >> pheno;
 		}
 
-		bool use = true;
+		bool use = filterSample(iid, fid);
 
 		// check for filters at this point, before we add the sample
 		if(use){
@@ -765,14 +866,17 @@ void DataLoader::readBeagle(){
 			boost::algorithm::trim(markerline);
 			if(markerline.size() > 0 && markerline[0] != '#'){
 				stringstream s(currChrom + " " + markerline);
-				_marker_incl.push_back(parseMap(s));
+				Marker* m = parseMap(s);
+				if(m != reinterpret_cast<Marker*>(-1)){
+					_marker_incl.push_back(m);
+				}
 			}
 		}
 		markerf.close();
 
 	}
 
-	set<string> ids;
+	map<string, Sample*> incl_ids;
 	vector<Sample*> curr_samps;
 
 	// now read all the genotype information
@@ -796,6 +900,7 @@ void DataLoader::readBeagle(){
 						Logger::log_err("ERROR: PLATO requires the ID line in all BEAGLE files", true);
 					}
 
+					unsigned int fam_sz = 2 + bgl_trio;
 					string id1, id2; // these better match!!
 					s >> id1 >> id2; // 1st 2 are "I id", which we don't care about
 					while( (s >> id1 >> id2) ){
@@ -804,34 +909,52 @@ void DataLoader::readBeagle(){
 						}
 
 						if(i == 0){
-							ids.insert(id1);
-							samp = ds_ptr->addSample(id1, _marker_incl.count());
-							curr_samps.push_back(samp);
+							// Append either a Sample pointer or null pointer
+							// to the list of curent samples
+							curr_samps.push_back(filterSample(id1) ? ds_ptr->addSample(id1, _marker_incl.count()) : 0);
+							// Map the id to the sample pointer (make sure to
+							// account for the null pointer, which indicates
+							// we excluded this sample from analysis!)
+							incl_ids[id1] = curr_samps[curr_samps.size() - 1];
 
 							if(bgl_pair || bgl_trio){
-								unsigned int fam_sz = 2 + bgl_trio;
 								if(curr_samps.size() % (fam_sz) == 0){
 									Family* f = ds_ptr->addFamily(boost::lexical_cast<string>(curr_samps.size() / fam_sz));
-									f->addFounder(curr_samps[curr_samps.size() - fam_sz]);
-									f->addNonFounder(samp);
-									samp->addMother(curr_samps[curr_samps.size() - fam_sz]);
-									curr_samps[curr_samps.size() - fam_sz]->addChild(samp);
+									if(curr_samps[curr_samps.size() - fam_sz] && samp){
+										curr_samps[curr_samps.size() - fam_sz]->addChild(samp);
+										samp->addMother(curr_samps[curr_samps.size() - fam_sz]);
+									}
+									if(samp){
+										f->addNonFounder(samp);
+									}
+									if(curr_samps[curr_samps.size() - fam_sz]){
+										f->addFounder(curr_samps[curr_samps.size() - fam_sz]);
+									}
 
 									if(bgl_trio){
-										f->addFounder(curr_samps[curr_samps.size() - 2]);
-										samp->addFather(curr_samps[curr_samps.size() - 2]);
-										curr_samps[curr_samps.size() - 2]->addChild(samp);
+										if(curr_samps[curr_samps.size() - 2]){
+											if(samp){
+												samp->addFather(curr_samps[curr_samps.size() - 2]);
+												curr_samps[curr_samps.size() - 2]->addChild(samp);
+											}
+											f->addFounder(curr_samps[curr_samps.size() - 2]);
+										}
 									}
 								}
-							} else {
+							} else if (samp) {
 								ds_ptr->addFamily(id1)->addFounder(samp);
 							}
 
-						} else if((samp = ds_ptr->getSample(id1)) != 0) {
-							curr_samps.push_back(samp);
-						} else {
-							Logger::log_err("ERROR: ID '" + id1 + "' in file '"
-									+ beagle_fns[i] + "' not found in first genotype file", true);
+
+						} else{
+							map<string, Sample*>::const_iterator id_itr = incl_ids.find(id1);
+							if(id_itr == incl_ids.end()){
+								Logger::log_err("ERROR: ID '" + id1 + "' in file '"
+												+ beagle_fns[i] + "' not found in first genotype file", true);
+							} else{
+								curr_samps.push_back((*id_itr).second);
+							}
+
 						}
 					}
 				}
@@ -844,7 +967,7 @@ void DataLoader::readBeagle(){
 						s >> a1 >> a2;
 						if(a1 != a2){
 							Logger::log_err("WARNING: discordant affection status, making unknown");
-						} else{
+						} else if(curr_samps[j]){
 							if(a1 == "1"){
 								curr_samps[j]->setAffected(false);
 							} else if(a1 == "2"){
@@ -871,8 +994,9 @@ void DataLoader::readBeagle(){
 						} else if (!(stringstream(t1) >> tval)){
 							tval = std::numeric_limits<float>::quiet_NaN();
 						}
-
-						ds_ptr->addTrait(trait_id,curr_samps[j],tval);
+						if(curr_samps[j]){
+							ds_ptr->addTrait(trait_id,curr_samps[j],tval);
+						}
 					}
 
 				} else if (line[0] == 'M' || line[0] == 'm'){
@@ -884,7 +1008,9 @@ void DataLoader::readBeagle(){
 					if(curr_mark != 0){
 						for(unsigned int j=0; j<curr_samps.size(); j++){
 							s >> g1 >> g2;
-							parseSample(curr_mark, curr_samps[j], g1, g2, false, bgl_phased);
+							if(curr_samps[j]){
+								parseSample(curr_mark, curr_samps[j], g1, g2, false, bgl_phased);
+							}
 						}
 
 					} else {
@@ -948,7 +1074,11 @@ void DataLoader::readVCF(){
 			incl_sample.resize(n_fields - 9, true);
 
 			for(unsigned int i=9; i<n_fields; i++){
-				samp_list.push_back(ds_ptr->addSample(fields[i], 0));
+				if(filterSample(fields[i])){
+					samp_list.push_back(ds_ptr->addSample(fields[i], 0));
+				}else{
+					incl_sample[i] = false;
+				}
 			}
 
 		} else if(curr_line.size() > 2 && curr_line[0] != '#'){
@@ -972,9 +1102,8 @@ void DataLoader::readVCF(){
 			format = fields[8];
 
 			// check for inclusion based on the marker-level data
-			bool use = true;
+			bool use = filterMarker(chr, bploc, id);
 			use &= (no_filter_marker || filter == "." || filter == "PASS");
-			use &= (bploc != 0);
 
 			if(use){
 				Marker* m = ds_ptr->addMarker(chr,bploc,id);
@@ -1057,7 +1186,7 @@ void DataLoader::readVCF(){
 
 }
 
-Marker* DataLoader::parseMap(stringstream& ss) {
+Marker* DataLoader::parseMap(stringstream& ss) const {
 	string chr;
 	ss >> chr;
 
@@ -1083,10 +1212,8 @@ Marker* DataLoader::parseMap(stringstream& ss) {
 		ss >> alt;
 	}
 
-	// If location is negative, exclude the marker
-	bool use = bploc > 0;
-
-	// check for other conditions of use here!
+	// check for conditions of use here!
+	bool use = filterMarker(chr, bploc, id);
 
 	Marker* m = 0;
 	if (use) {
@@ -1110,7 +1237,7 @@ Marker* DataLoader::parseMap(stringstream& ss) {
 	return m;
 }
 
-void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const string& g2, bool append, bool phased){
+void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const string& g2, bool append, bool phased) const{
 
 	if ((g1 == _ped_missing_geno) + (g2 == _ped_missing_geno) >= (1 + phased)) {
 		if(append){
@@ -1131,6 +1258,81 @@ void DataLoader::parseSample(Marker* m, Sample* s, const string& g1, const strin
 		}
 	}
 
+}
+
+bool DataLoader::filterMarker(const string& chrom, int bploc, const string& id) const{
+	// do not use if bploc <= 0
+	bool toret = bploc > 0;
+
+	// do not use if chromosome is not in the given chrom list
+	toret = toret && (chrom_ids.empty() || chrom_ids.count(InputManager::chrStringToInt(chrom)));
+
+	// do not use if not found in the given include list
+	toret = toret && (incl_marker_set.empty() || incl_marker_set.count(id));
+
+	// do not use if found in the given exclude list
+	toret = toret && (excl_marker_set.empty() || !excl_marker_set.count(id));
+
+	// do not use if it falls outside the given base pair range
+	if(toret && !bp_window_set.empty()){
+		// at this point, assume false - prove me wrong!
+		toret = false;
+
+		// get the element strictly larger than the current base pair
+		set<pair<unsigned int, unsigned int> >::const_iterator bp_itr =
+			bp_window_set.upper_bound(pair<unsigned int, unsigned int>(bploc, bploc));
+
+		// subtract one (now, the 1st element of the pair is <= bploc)
+		// and make sure that the second element is >= bploc
+		if(bp_itr != bp_window_set.begin()){
+			--bp_itr;
+			if(static_cast<unsigned int>(bploc) <= (*bp_itr).second){
+				toret = true;
+			}
+		}
+	}
+
+	return toret;
+}
+
+bool DataLoader::filterSample(const string& id, const string& fid) const{
+
+	// Make sure we are in the include list
+	bool toret = (incl_sample_set.empty() || incl_sample_set.count(id + sampl_field_sep + fid));
+
+	// Make sure we aren't in the exclude list!
+	toret = toret && (excl_sample_set.empty() || !excl_sample_set.count(id + sampl_field_sep + fid));
+
+	return toret;
+}
+
+void DataLoader::readSampleList(const vector<string>& in_list, set<string>& out_set) const{
+	vector<string> all_samps;
+	InputManager::parseInput(in_list, all_samps);
+
+	for(unsigned int i=0; i<all_samps.size(); i++){
+		stringstream ss(all_samps[i]);
+		string id, fid;
+		if(ss >> id){
+			fid = id;
+			if(ss >> fid){
+				Logger::log_err("WARNING: Sample '" + all_samps[i] +
+						"' has more than an 'FID IID', "
+						"ignoring everything after 2nd space!");
+			}
+		}
+		out_set.insert(id + sampl_field_sep + fid);
+	}
+}
+
+void DataLoader::readMarkerFile(const vector<string>& fn_list, set<string>& out_set) const{
+	string marker_id;
+	for(unsigned int i=0; i<fn_list.size(); i++){
+		ifstream f(fn_list[i].c_str());
+		while(f >> marker_id){
+			out_set.insert(marker_id);
+		}
+	}
 }
 
 }

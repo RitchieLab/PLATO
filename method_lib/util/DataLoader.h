@@ -59,12 +59,29 @@ private:
 
 	void readVCF();
 
-
-	PLATO::Data::Marker* parseMap(std::stringstream& ss);
+	PLATO::Data::Marker* parseMap(std::stringstream& ss) const;
 	void parseSample(PLATO::Data::Marker* m, PLATO::Data::Sample* samp,
 			const std::string& s1, const std::string& s2,
-			bool append = true, bool phased=false);
+			bool append = true, bool phased=false) const;
 
+	/*!
+	 * \brief Determines wheter to use the given marker
+	 * Enables a pre-filter for loading the given marker based solely on the
+	 * chromosome, base pair and ID.  Returns true if the given marker passes
+	 * all pre-filter steps.
+	 */
+	bool filterMarker(const std::string& chrom, int bploc, const std::string& id) const;
+
+	/*!
+	 * \brief Determines wheter to use the given marker
+	 * Enables a pre-filter for loading the given marker based solely on the
+	 * chromosome, base pair and ID.  Returns true if the given marker passes
+	 * all pre-filter steps.
+	 */
+	bool filterSample(const std::string& id, const std::string& fid="") const;
+
+	void readSampleList(const std::vector<std::string>& in_list, std::set<std::string>& out_set) const;
+	void readMarkerFile(const std::vector<std::string>& fn_list, std::set<std::string>& out_set) const;
 
 	// does the map file contain a distance column?
 	bool _map_no_distance;
@@ -142,6 +159,23 @@ private:
 	bool vcf_phased;
 	bool vcf_poly;
 
+	std::vector<std::string> chrom_list;
+	std::vector<std::string> bp_window;
+	std::vector<std::string> incl_marker_str;
+	std::vector<std::string> excl_marker_str;
+	std::vector<std::string> incl_marker_fns;
+	std::vector<std::string> excl_marker_fns;
+	std::vector<std::string> incl_sample_str;
+	std::vector<std::string> excl_sample_str;
+
+	std::set<unsigned short> chrom_ids;
+	std::set<std::pair<unsigned int, unsigned int> > bp_window_set;
+	std::set<std::string> incl_sample_set;
+	std::set<std::string> excl_sample_set;
+	std::set<std::string> incl_marker_set;
+	std::set<std::string> excl_marker_set;
+
+	static const std::string sampl_field_sep;
 };
 
 }
