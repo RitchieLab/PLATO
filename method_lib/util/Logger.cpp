@@ -18,7 +18,11 @@ Logger::~Logger(){
 }
 
 void Logger::setLogFile(const string& fn){
-	getLogger().resetFile(fn);
+	if(_log){
+		_log->resetFile(fn);
+	} else {
+		logfn = fn;
+	}
 }
 
 void Logger::resetFile(const string& fn){
