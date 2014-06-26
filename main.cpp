@@ -118,6 +118,7 @@ int main(int argc, char** argv) {
 	}
 
 	// TODO: set up the logger here
+	Logger::setLogFile(logfn);
 
 	vector<string> cmd_input;
 	vector<string> unrec_opt = po::collect_unrecognized(parsed.options, po::include_positional);
