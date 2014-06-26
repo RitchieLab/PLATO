@@ -139,6 +139,7 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("excl-sample", value<vector<string> >(&excl_sample_str)->composing(), "Sample(s) to exclude")
 		;
 
+	data_opts.add(filter_opts);
 
 	return opts.add(data_opts);
 }
