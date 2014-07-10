@@ -34,6 +34,10 @@ main.cpp \
 main.h \
 ProcessFactory.cpp \
 ProcessFactory.h \
+MPIProcess.h \
+MPIProcess.cpp \
+MPIProcessFactory.h \
+MPIProcessFactory.cpp \
 process/InputProcess.cpp \
 process/InputProcess.h \
 process/BatchProcess.cpp \
@@ -67,7 +71,9 @@ process/OutputBeagle.cpp \
 process/RecodeAlleles.h \
 process/RecodeAlleles.cpp
 
-plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_REGEX_LIB)
+plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) \
+$(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_REGEX_LIB) \
+$(BOOST_SERIALIZATION_LIB)
 
 
 ############################################################################

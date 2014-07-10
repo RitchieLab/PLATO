@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/serialization/export.hpp>
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
@@ -29,15 +30,20 @@ using std::log;
 using std::exp;
 using std::pow;
 using std::pair;
+using std::map;
 
 using boost::array;
 
 namespace po=boost::program_options;
 
+
+BOOST_CLASS_EXPORT(PLATO::ProcessLib::LogisticRegression::ExtraData)
+
 namespace PLATO{
 namespace ProcessLib{
 
 const std::string LogisticRegression::stepname = LogisticRegression::doRegister("logistic");
+const std::string LogisticRegression::MPIname = LogisticRegression::registerMPI("logistic");
 
 po::options_description& LogisticRegression::appendOptions(po::options_description& opts){
 	Regression::addOptions(opts);
@@ -102,12 +108,30 @@ bool LogisticRegression::initData(const DataSet& ds){
 	return good_pheno;
 }
 
+Regression::calc_fn& LogisticRegression::getCalcFn() const{
+	return (LogisticRegression::calculate);
+}
+
+const Regression::ExtraData* LogisticRegression::getExtraData() const{
+	if(!class_data){
+		class_data = new ExtraData(*Regression::getExtraData());
+		class_data->show_odds = show_odds;
+		class_data->maxIterations = maxIterations;
+	}
+
+	return class_data;
+}
+
 Regression::Result* LogisticRegression::calculate(
 		const double* Y, const double* data,
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-		unsigned int n_covars){
+		unsigned int n_covars, const Regression::ExtraData* other_data){
 
-
+	const ExtraData* extra_data = dynamic_cast<const ExtraData*>(other_data);
+	if(!extra_data){
+		// something went VERY wrong here!
+		return 0;
+	}
 
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
@@ -115,7 +139,7 @@ Regression::Result* LogisticRegression::calculate(
 	// Find the number of predictor variables in the reduced model
 
 	unsigned int reduced_vars = n_covars + 1;
-	Result* r = new Result(n_cols - 1 - covar_names.size());
+	Result* r = new Result(n_cols - 1 - extra_data->base_covars);
 
 	// If this is the case, we need to find the result for running the regression
 	// on the reduced model
@@ -124,10 +148,10 @@ Regression::Result* LogisticRegression::calculate(
 		// If this is the case, we have a situation where the reduced model is
 		// not quite down to our covariates, so our "new_covars" should be
 		// the size of the covariates
-		unsigned int new_covars = n_covars > covar_names.size() ? covar_names.size() : 0;
+		unsigned int new_covars = n_covars > extra_data->base_covars ? extra_data->base_covars : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - reduced_vars, new_covars);
+		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - reduced_vars, new_covars, other_data);
 	}
 
 
@@ -212,7 +236,7 @@ Regression::Result* LogisticRegression::calculate(
 	// 3) maximum number of iterations
 	while ((fabs(LLp - LL) > TOL*LLn || gsl_blas_dasum(b_prev) > TOL*n_cols*gsl_blas_dasum(&b.vector)) &&
 		   gsl_blas_dasum(&b.vector) < MAX_vec &&
-		   ++numIterations < maxIterations ) {
+		   ++numIterations < extra_data->maxIterations ) {
 
 		// save the old beta vector in b_prev
 		gsl_vector_memcpy(b_prev, &b.vector);
@@ -260,7 +284,7 @@ Regression::Result* LogisticRegression::calculate(
 	// The current log likelihood is less than the null model
 	// a submodel did not converge
 	if(!std::isfinite(LL) ||
-	   numIterations >= maxIterations ||
+	   numIterations >= extra_data->maxIterations ||
 	   LL-LLn > 0 ||
 	   (r->submodel && !r->submodel->converged)){
 		if(offset == 0){
@@ -297,18 +321,18 @@ Regression::Result* LogisticRegression::calculate(
 */
 	gsl_vector_free(_bv_work);
 
-	unsigned int idx_offset = 1 + covar_names.size();
+	unsigned int idx_offset = 1 + extra_data->base_covars;
 	for (unsigned int i = 0; i < n_cols - idx_offset; i++) {
 		double c = gsl_vector_get(beta, i + idx_offset);
 		double se = gsl_matrix_get(cov_mat, i + idx_offset, i + idx_offset);
 
 		if (se >= 0) {
 
-			r->coeffs[i] = show_odds ? exp(c) : c;
+			r->coeffs[i] = extra_data->show_odds ? exp(c) : c;
 			r->stderr[i] = sqrt(se);
 
 			// use the wald statistic to get p-values for each coefficient
-			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c / r->stderr[i] , 2) ,1 + (encoding == Encoding::WEIGHTED));
+			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c / r->stderr[i] , 2) ,1 + (extra_data->encoding == Encoding::WEIGHTED));
 		} else {
 			// If this is true, this column was dropped from analysis!
 			r->coeffs[i] = std::numeric_limits<float>::quiet_NaN();
@@ -318,7 +342,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	}
 
-	r->df = findDF(P, reduced_vars, r->n_dropped);
+	r->df = findDF(P, reduced_vars, r->n_dropped, extra_data->extra_df_col, extra_data->n_extra_df_col);
 	r->log_likelihood = std::isfinite(LL) ? LL : -std::numeric_limits<float>::infinity();
 
 	Result* curr_res = r;
@@ -334,7 +358,7 @@ Regression::Result* LogisticRegression::calculate(
 			r->p_val = r->converged ? pv_rsq.first : 1.0f;
 			r->r_squared = pv_rsq.second;
 		} else if (curr_res->n_vars > 0) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep;
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + extra_data->sep;
 			break;
 		}
 
@@ -368,7 +392,7 @@ string LogisticRegression::printExtraResults(const Result& r){
 	return boost::lexical_cast<string>(r.converged) + sep;
 }
 
-array<double, 4> LogisticRegression::linkFunction(double v) const{
+array<double, 4> LogisticRegression::linkFunction(double v){
 	// returns val, deriv (val * 1-val), log(val), 1-log(val)
 
 	array<double, 4> retval;
@@ -417,6 +441,10 @@ pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, uns
 
 	return pv_rsq;
 
+}
+
+pair<unsigned int, const char*> LogisticRegression::calculate_MPI(unsigned int bufsz, const char* buf){
+	return Regression::calculate_MPI(bufsz, buf, LogisticRegression::calculate);
 }
 
 }

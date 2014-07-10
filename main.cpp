@@ -28,6 +28,12 @@
 #include "data/DataSet.h"
 #include "util/Logger.h"
 
+#include "config.h"
+
+#ifdef HAVE_CXX_MPI
+#include <mpi.h>
+#endif
+
 namespace po = boost::program_options;
 
 using std::cout;
@@ -43,7 +49,55 @@ using PLATO::Utility::Logger;
 using PLATO::Process;
 using PLATO::ProcessFactory;
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv){
+
+	int rank = 0;
+	int retval;
+#ifdef HAVE_CXX_MPI
+	MPI_Init(NULL, NULL);
+	MPI_Comm_rank(MPI_WORLD_COMM, &rank);
+#endif
+	if(rank == 0){
+		retval = master_main(argc, argv);
+	} else {
+#ifdef HAVE_CXX_MPI
+		// If this is the case, we want to listen for requests and use the
+		// MPIProcessFactory to process them.
+		MPI_Status m_stat;
+		int bufsz;
+		char* buf;
+		pair<unsigned int, const char*> response;
+		while(true){
+			MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
+			// If we get a 0 tag, break out of the receive loop
+			if(m_stat.MPI_TAG == 0){
+				break;
+			}
+
+			MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
+
+			buf = new char[bufsz];
+			MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);
+
+			response = MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf);
+
+			MPI_Send(response.second, response.first, 0, m_stat.MPI_TAG, MPI_COMM_WORLD);
+			delete[] response.second;
+		}
+
+#endif
+		retval = 0;
+	}
+
+#ifdef HAVE_CXX_MPI
+	MPI_Finalize();
+#endif
+
+	return retval;
+
+}
+
+int master_main(int argc, char** argv) {
 
 	string logfn;
 

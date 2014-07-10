@@ -41,7 +41,7 @@ analysis/Encoding.cpp \
 analysis/Regression.h \
 analysis/Regression.cpp
 
-libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_IOSTREAMS_LIB)
+libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_IOSTREAMS_LIB) $(BOOST_SERIALIZATION_LIB)
 
 libmethods_orig_src=AlleleFrequency.cc \
 AlleleFrequency.h \

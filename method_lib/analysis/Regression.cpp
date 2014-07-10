@@ -32,6 +32,15 @@
 #include <boost/multi_array.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/export.hpp>
+
+
+#include "config.h"
+#ifdef HAVE_CXX_MPI
+#include <mpi.h>
+#endif
 
 using std::string;
 using std::vector;
@@ -43,6 +52,9 @@ using std::min;
 using std::max;
 using std::ifstream;
 using std::deque;
+using std::multimap;
+using std::pair;
+using std::make_pair;
 
 using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
@@ -52,10 +64,13 @@ using PLATO::Utility::Logger;
 
 namespace po=boost::program_options;
 
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::ExtraData)
 
 namespace PLATO{
 
 namespace Analysis{
+
+//BOOST_CLASS_EXPORT_GUID(Regression::ExtraData,"red")
 
 Regression::~Regression() {
 	for (unsigned int i = 0; i < results.size(); i++){
@@ -80,6 +95,10 @@ Regression::~Regression() {
 	out_f.close();
 	if(_lowmem){
 		tmp_f.close();
+	}
+
+	if(mgp){
+		delete mgp;
 	}
 }
 
@@ -179,6 +198,19 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(!out_f){
 		throw std::logic_error("Cannot open regression output file '" + out_fn + "'");
 	}
+
+#ifdef HAVE_CXX_MPI
+	int n_procs = 1;
+	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
+
+	if(n_procs > 1){
+		if(n_threads > 1){
+			Logger::log_err("WARNING: --threads used with MPI, setting number of threads to 0");
+		}
+		n_threads = 0;
+		_use_mpi = true;
+	}
+#endif
 
 	_threaded = n_threads > 0;
 	if(model_files.size() == 0){
@@ -428,158 +460,95 @@ void Regression::runRegression(const DataSet& ds){
 		++si;
 	}
 
-	set<string>::const_iterator output_itr = outcome_names.begin();
-	while(output_itr != outcome_names.end()){
-		// set up the phenotype (if we haven't already!)
-		si = ds.beginSample();
-		if(*output_itr != ""){
-			_pheno.clear();
-			while(si != ds.endSample()){
-				_pheno.push_back(ds.getTrait(*output_itr,*si));
-				++si;
-			}
+	// set up the model generator
+	if (_models.size() == 0) {
+		if (_onesided) {
+			mgp = new OneSidedModelGenerator(ds, marker_incl,
+					incl_traits, all_traits, exclude_markers);
+		} else if (marker_incl.size() > 0) {
+			mgp = new BasicModelGenerator<
+					set<const Marker*>::const_iterator> (ds,
+					marker_incl.begin(), marker_incl.end(),
+					incl_traits, pairwise, exclude_markers);
+		} else {
+			mgp = new BasicModelGenerator<
+					DataSet::const_marker_iterator> (ds,
+					ds.beginMarker(), ds.endMarker(), incl_traits,
+					pairwise, exclude_markers);
 		}
+	} else {
+		mgp = new TargetedModelGenerator(ds, _models);
+	}
 
-		// clear the data structures that depend on the phenotype
-		_marker_uni_result.clear();
-		_trait_uni_result.clear();
-		categ_weight.clear();
+	output_itr = outcome_names.begin();
 
-		if (this->initData(ds)) {
+	ds_ptr = &ds;
 
-			// create a new model generator
-			ModelGenerator* mgp;
+	if(_use_mpi){
+		processMPI();
+	} else {
+		while(output_itr != outcome_names.end()){
+			// set up the phenotype (if we haven't already!)
+			si = ds.beginSample();
+			if(*output_itr != ""){
+				resetPheno(*output_itr);
+			}
 
-			if (_models.size() == 0) {
-				if (_onesided) {
-					mgp = new OneSidedModelGenerator(ds, marker_incl,
-							incl_traits, all_traits, exclude_markers);
-				} else if (marker_incl.size() > 0) {
-					mgp = new BasicModelGenerator<
-							set<const Marker*>::const_iterator> (ds,
-							marker_incl.begin(), marker_incl.end(),
-							incl_traits, pairwise, exclude_markers);
+			mgp->reset();
+
+			if (this->initData(ds)) {
+
+				if (_threaded) {
+					boost::thread_group all_threads;
+
+					for (unsigned int i = 0; i < n_threads; i++) {
+						boost::thread* t = new boost::thread(&Regression::start,
+								this, boost::cref(ds),	boost::cref(*output_itr));
+						all_threads.add_thread(t);
+
+						//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
+					}
+					all_threads.join_all();
+
 				} else {
-					mgp = new BasicModelGenerator<
-							DataSet::const_marker_iterator> (ds,
-							ds.beginMarker(), ds.endMarker(), incl_traits,
-							pairwise, exclude_markers);
+					// go here for debugging purposes, i.e. set --threads to 0
+					start(ds, *output_itr);
 				}
-			} else {
-				mgp = new TargetedModelGenerator(ds, _models);
+
 			}
 
-			if (_threaded) {
-				boost::thread_group all_threads;
-
-				for (unsigned int i = 0; i < n_threads; i++) {
-					boost::thread* t = new boost::thread(&Regression::start,
-							this, boost::ref(*mgp), boost::cref(ds),
-							boost::cref(*output_itr));
-					all_threads.add_thread(t);
-
-					//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
-				}
-				all_threads.join_all();
-
-			} else {
-				// go here for debugging purposes, i.e. set --threads to 0
-				start(*mgp, ds, *output_itr);
-			}
-
-			delete mgp;
+			++output_itr;
 		}
-
-		++output_itr;
 	}
 
 	printResults();
 }
 
-void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outcome){
+void Regression::start(const DataSet& ds, const string& outcome){
 
 	Model* nm;
 
 	// synchronize
 	_model_gen_mutex.lock();
 	unsigned int lc=1;
-	nm = mg();
+	nm = mgp->next();
 	_model_gen_mutex.unlock();
 	// end synchronize
 
 	while( nm ){
-		Result* r = run(nm, ds);
+		Result* r = run(*nm);
 
 		// run will return 0 if something went wrong (i.e. did not run anything)
 		if (r) {
 
 			// Run some univariate models
 			if (show_uni && nm->markers.size() + nm->traits.size() > 1) {
-				// Here, we are going to reverse the order of marker/trait variables
-				// because we're adding the results onto the FRONT of the model
-
-				for (unsigned int i = nm->traits.size(); i > 0; i--) {
-					map<string, Result*>::const_iterator t_itr =
-							_trait_uni_result.find(nm->traits[i - 1]);
-					// If this is the case, we have not seen this marker before
-					if (t_itr == _trait_uni_result.end()) {
-						Model m;
-						m.traits.push_back(nm->traits[i - 1]);
-						t_itr = _trait_uni_result.insert(
-								_trait_uni_result.begin(),
-								std::make_pair(nm->traits[i - 1], run(&m, ds)));
-					}
-
-					Result *t_r = r;
-					Result *u_r = new Result(1);
-					while (t_r->submodel) {
-						t_r = t_r->submodel;
-					}
-					u_r->coeffs[0] = (*t_itr).second->coeffs[0];
-					u_r->p_vals[0] = (*t_itr).second->p_vals[0];
-					u_r->stderr[0] = (*t_itr).second->stderr[0];
-					t_r->submodel = u_r;
-				}
-
-				for (unsigned int i = nm->markers.size(); i > 0; i--) {
-					map<const Marker*, Result*>::const_iterator m_itr =
-							_marker_uni_result.find(nm->markers[i - 1]);
-					// If this is the case, we have not seen this marker before
-					if (m_itr == _marker_uni_result.end()) {
-						Model m;
-						m.markers.push_back(nm->markers[i - 1]);
-						m_itr = _marker_uni_result.insert(
-								_marker_uni_result.begin(),
-								std::make_pair(nm->markers[i - 1], run(&m, ds)));
-					}
-
-					Result *t_r = r;
-					Result *u_r = new Result(1);
-					while (t_r->submodel) {
-						t_r = t_r->submodel;
-					}
-					u_r->coeffs[0] = (*m_itr).second->coeffs[0];
-					u_r->p_vals[0] = (*m_itr).second->p_vals[0];
-					u_r->stderr[0] = (*m_itr).second->stderr[0];
-					t_r->submodel = u_r;
-				}
+				addUnivariate(*r, *nm);
 			}
 			// put the outcome right at the beginning of the prefix!
-
 			r->prefix = outcome + sep + r->prefix;
 
-			// synchronize
-			_result_mutex.lock();
-			if (_lowmem) {
-				result_pvals.push_back(r->p_val);
-				printResultLine(*r, tmp_f);
-				tmp_f << "\n";
-				delete r;
-			} else {
-				results.push_back(r);
-			}
-			_result_mutex.unlock();
-			// end synchronize
+			addResult(r);
 		}
 
 		delete nm;
@@ -590,10 +559,41 @@ void Regression::start(ModelGenerator& mg, const DataSet& ds, const string& outc
 		// synchronize
 		_model_gen_mutex.lock();
 		++lc;
-		nm = mg();
+		nm = mgp->next();
 		_model_gen_mutex.unlock();
 		// end synchronize
 	}
+}
+
+void Regression::addResult(Result* r){
+	if(r){
+		_result_mutex.lock();
+		if (_lowmem) {
+			result_pvals.push_back(r->p_val);
+			printResultLine(*r, tmp_f);
+			tmp_f << "\n";
+			delete r;
+		} else {
+			results.push_back(r);
+		}
+		_result_mutex.unlock();
+	}
+
+}
+
+void Regression::resetPheno(const string& pheno){
+
+	_pheno.clear();
+	DataSet::const_sample_iterator si = ds_ptr->beginSample();
+	while(si != ds_ptr->endSample()){
+		_pheno.push_back(ds_ptr->getTrait(pheno,*si));
+		++si;
+	}
+
+	// clear the data structures that depend on the phenotype
+	_marker_uni_result.clear();
+	_trait_uni_result.clear();
+	categ_weight.clear();
 }
 
 void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
@@ -719,7 +719,43 @@ Regression::Model* Regression::parseModelStr(const std::string& model_str, const
 	return model;
 }
 
-float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
+void Regression::addUnivariate(Result& r, const Model& m){
+	for (unsigned int i = 0; i < m.markers.size(); i++) {
+		_univar_mmutex.lock();
+		map<const Marker*, Result*>::const_iterator m_itr =
+				_marker_uni_result.find(m.markers[i]);
+		// If this is the case, we have not seen this marker before
+		if (m_itr == _marker_uni_result.end()) {
+			Model m;
+			m.markers.push_back(m.markers[i]);
+			m_itr = _marker_uni_result.insert(
+					_marker_uni_result.begin(),
+					std::make_pair(m.markers[i], run(m)));
+		}
+		_univar_mmutex.unlock();
+
+		r.unimodel.push_back((*m_itr).second);
+	}
+
+	for (unsigned int i = 0; i < m.traits.size(); i++) {
+		_univar_tmutex.lock();
+		map<string, Result*>::const_iterator t_itr =
+				_trait_uni_result.find(m.traits[i]);
+		// If this is the case, we have not seen this marker before
+		if (t_itr == _trait_uni_result.end()) {
+			Model m;
+			m.traits.push_back(m.traits[i]);
+			t_itr = _trait_uni_result.insert(
+					_trait_uni_result.begin(),
+					std::make_pair(m.traits[i], run(m)));
+		}
+		_univar_tmutex.unlock();
+
+		r.unimodel.push_back((*t_itr).second);
+	}
+}
+
+float Regression::getCategoricalWeight(const Marker* m){
 
 	float toret = 0.5;
 
@@ -734,7 +770,7 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 		Model mod;
 		mod.markers.push_back(m);
 		mod.categorical = true;
-		Result* r = run(&mod, ds);
+		Result* r = run(mod);
 
 		// NOTE: this assigns to the map at the same step
 		// Make sure to check for existence of the result!
@@ -752,54 +788,53 @@ float Regression::getCategoricalWeight(const Marker* m, const DataSet& ds){
 
 }
 
-Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
+Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
+	calc_matrix* ret_val = new calc_matrix();
 
-	unsigned int numLoci = m->markers.size();
+	unsigned int numLoci = m.markers.size();
 	unsigned int numCovars = covar_names.size();
-	unsigned int numTraits = m->traits.size();
+	unsigned int numTraits = m.traits.size();
 	unsigned int n_vars = numLoci + numTraits;
 	unsigned int n_interact = 0;
 
 	// determine size of row for each sample in dataset
-	unsigned int n_cols = 1 + numCovars + numLoci + numTraits ;
-	if(m->categorical){
-		n_cols += numLoci - numTraits;
+	ret_val->n_cols = 1 + numCovars + numLoci + numTraits ;
+	if(m.categorical){
+		ret_val->n_cols += numLoci - numTraits;
 	} else if (interactions){
 		n_interact += (n_vars * (n_vars - 1))/2;
-		n_cols += n_interact;
+		ret_val->n_cols += n_interact;
 	}
 
 	if(encoding == Encoding::CODOMINANT){
 		// If we have codominant encoding, we need an extra column for every SNP
-		n_cols += numLoci;
+		ret_val->n_cols += numLoci;
 
 		// If we have interactions (bleh!), we need an extra column for every
 		// SNP-Trait pair and 3 extra columns for every SNP-SNP pair!
 		if(interactions){
 			unsigned int toadd = numLoci * numTraits + 3 * numLoci * (numLoci - 1) / 2;
 			n_interact += toadd;
-			n_cols += toadd;
+			ret_val->n_cols += toadd;
 		}
-
-
 	}
 
 	// Allocate a huge amount of memory for the regression here
-	double* regress_output = new double[_pheno.size()];
+	ret_val->outcome = new double[_pheno.size()];
+	ret_val->data = new double[_pheno.size()* ret_val->n_cols];
 
-	double* regress_buf = new double[_pheno.size()* n_cols];
-
-	boost::multi_array_ref<double, 2> regress_data(regress_buf, boost::extents[_pheno.size()][n_cols]);
+	boost::multi_array_ref<double, 2> regress_data(ret_val->data, boost::extents[_pheno.size()][ret_val->n_cols]);
 	//typedef boost::multi_array<double, 3> array_type;
 	//typedef array_type::index index;
 	//  array_type A(boost::extents[3][4][2])
 
-	double* row_data = new double[n_cols];
-	unsigned char* geno = new unsigned char[numLoci];
-	float* maf_sum = new float[numLoci];
+	double row_data[ret_val->n_cols];
+	unsigned char geno[numLoci];
+	float maf_sum[numLoci];
+	double categ_weight[numLoci];
 
-	DataSet::const_sample_iterator si = ds.beginSample();
-	DataSet::const_sample_iterator se = ds.endSample();
+	DataSet::const_sample_iterator si = ds_ptr->beginSample();
+	DataSet::const_sample_iterator se = ds_ptr->endSample();
 
 	unsigned int n_samples = 0;
 	unsigned int n_missing = 0;
@@ -808,10 +843,9 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		maf_sum[i] = 0;
 	}
 
-	double categ_weight[numLoci];
-	if ((!m->categorical) && encoding == Encoding::WEIGHTED){
+	if ((!m.categorical) && encoding == Encoding::WEIGHTED){
 		for (unsigned int i = 0; i<numLoci; i++){
-			categ_weight[i] = getCategoricalWeight(m->markers[i], ds);
+			categ_weight[i] = getCategoricalWeight(m.markers[i]);
 		}
 	}
 	//DataSet::const_sample_iterator se = ds.endSample();
@@ -828,36 +862,23 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 
 		// Now, work through the markers
 		for (unsigned int i = 0; i<numLoci; i++){
-			geno[i] = (*si)->getAdditiveGeno(*(m->markers[i]));
+			geno[i] = (*si)->getAdditiveGeno(*(m.markers[i]));
 
 			if(geno[i] == Sample::missing_allele){
 				row_data[pos++] = numeric_limits<double>::quiet_NaN();
-				if(m->categorical || encoding == Encoding::CODOMINANT){
+				if(m.categorical || encoding == Encoding::CODOMINANT){
 					row_data[pos++] = numeric_limits<double>::quiet_NaN();
 				}
 			} else {
-				if(m->categorical){
+				if(m.categorical){
 					row_data[pos++] = EncodingModel(Encoding::DOMINANT)(geno[i]);
 					row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(geno[i]);
 				} else if (encoding == Encoding::CODOMINANT){
 					row_data[pos++] = (geno[i] == 1);
 					row_data[pos++] = (geno[i] == 2);
 				}else if (encoding == Encoding::WEIGHTED){
-
 					// works if w in [0,1]
 					row_data[pos++] = categ_weight[i] * (geno[i] == 1) + (geno[i] == 2);
-
-					// Returns:
-					// {0,w,1}    , w in [0,1]
-					// {1,1-w,0}  , w in [-1,0]
-					// {0,1,1/w}  , w in [1, inf)
-					// {1,0,1-1/w}, w in [-inf, -1]
-					//row_data[pos++] = (categ_weight[i] < 0)
-					//		        + max(min(1.0, categ_weight[i]),-1.0) * (geno[i]==1)
-					//		        + max(min(1.0, 1/categ_weight[i]),-1.0) * (geno[i]==2);
-
-
-
 				} else {
 					row_data[pos++] = encoding(geno[i]);
 				}
@@ -865,12 +886,12 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 		}
 
 		// Now, work through the traits
-		for(unsigned int i = 0; (!m->categorical) && i < numTraits; i++){
-			row_data[pos++] = ds.getTrait(m->traits[i], *si);
+		for(unsigned int i = 0; (!m.categorical) && i < numTraits; i++){
+			row_data[pos++] = ds_ptr->getTrait(m.traits[i], *si);
 		}
 
 		// Now, the interaction terms
-		for (unsigned int i = 0; interactions && (!m->categorical) && i	< (n_vars); i++) {
+		for (unsigned int i = 0; interactions && (!m.categorical) && i	< (n_vars); i++) {
 			for (unsigned int j = i + 1; j < (n_vars); j++) {
 
 				if(encoding == Encoding::CODOMINANT){
@@ -907,7 +928,7 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 			}
 			// do a fast memory copy into the data for regression
 			std::memcpy(&regress_data[n_samples - n_missing][0], row_data, sizeof(double) * (pos));
-			regress_output[n_samples - n_missing] = _pheno[n_samples];
+			ret_val->outcome[n_samples - n_missing] = _pheno[n_samples];
 		} else {
 			++n_missing;
 		}
@@ -919,72 +940,63 @@ Regression::Result* Regression::run(const Model* m, const DataSet& ds) {
 	// The number of variables in the "reduced" model is:
 	// # of covariates if no interactions
 	// # of main effects (total columns - # interactions) o/w
-	unsigned int red_vars = n_interact == 0 ? numCovars : n_cols - n_interact - 1;
+	ret_val->red_vars = n_interact == 0 ? numCovars : ret_val->n_cols - n_interact - 1;
+	ret_val->n_sampl = n_samples - n_missing;
 
-	stringstream ss;
+	if(ret_val->n_sampl < ret_val->n_cols){
+		// If this is the case, we CANNOT run this!
+		delete ret_val;
+		ret_val = 0;
+	} else {
+		// Print some summary data helpful for the result that we get when
+		// calculating the matrix to send.
+		stringstream ss;
+		for(unsigned int i=0; i<numLoci; i++){
+			float maf = maf_sum[i] / (2*static_cast<float>(n_samples-n_missing));
+			ss << m.markers[i]->getID() << sep
+			   << m.markers[i]->getChromStr() << ":" << m.markers[i]->getLoc()
+			   << sep << m.markers[i]->getAltAllele() << ":" << maf << sep;
+		}
+		for(unsigned int i=0; i<numTraits; i++){
+			ss << m.traits[i] << sep;
+		}
+		ss << n_missing << sep;
+		ret_val->prefix = ss.str();
+		ss.clear();
+	}
 
-	for(unsigned int i=0; i<numLoci; i++){
-		float maf = maf_sum[i] / (2*static_cast<float>(n_samples-n_missing));
-		ss << m->markers[i]->getID() << sep
-		   << m->markers[i]->getChromStr() << ":" << m->markers[i]->getLoc()
-		   << sep << m->markers[i]->getAltAllele() << ":" << maf << sep;
-	}
-	for(unsigned int i=0; i<numTraits; i++){
-		ss << m->traits[i] << sep;
-	}
+	return ret_val;
+}
+
+Regression::Result* Regression::run(const Model& m) {
+
+	calc_matrix* all_data = getCalcMatrix(m);
 
 	Result* r = 0;
 
-	if(n_cols <= n_samples - n_missing){
-		r = calculate(regress_output, &regress_data[0][0],
-					n_cols, n_samples - n_missing, 0, red_vars);
+	calc_fn& calculate = (getCalcFn());
 
-		// Let's do some permutation testing here!
-		if(n_perms > 0){
-			unsigned int n_nonmiss = n_samples - n_missing;
-			float thresh = r->p_val;
-			unsigned int n_sig = 0;
-			double* perm_output = new double[n_nonmiss];
-			Result * n_r = 0;
-			std::memcpy(regress_output, perm_output, sizeof(double) * (n_nonmiss));
-			for(unsigned int i = 0; i<n_perms; i++){
-				// shuffle the output
-				std::random_shuffle(perm_output, perm_output + n_nonmiss);
-				// run the regression of choice
-				n_r  = calculate(perm_output, &regress_data[0][0],
-						n_cols, n_samples - n_missing, 0, red_vars);
-				// determine significance of this version
-				n_sig += (n_r->p_val < thresh);
-				delete n_r;
-			}
-
-			r->p_val = n_sig / static_cast<float>(n_perms);
-			delete[] perm_output;
-		}
-
+	if(all_data){
+		r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
+				all_data->n_sampl, 0, all_data->red_vars, getExtraData());
 	}else{
-		Logger::log_err("WARNING: not enough samples in model: '" + m->getID() + "'!");
+		Logger::log_err("WARNING: not enough samples in model: '" + m.getID() + "'!");
 		r = 0;
 	}
 
 	if(r){
 		// print the # missing from this model
-		ss << n_missing << sep;
+		r->prefix = all_data->prefix;
 
-		r->prefix = ss.str();
-
-		ss.clear();
-		if(encoding == Encoding::WEIGHTED && m->markers.size() == 1 && m->traits.size() == 0 && !m->categorical){
+		if(encoding == Encoding::WEIGHTED && m.markers.size() == 1 && m.traits.size() == 0 && !m.categorical){
 			//ss << categ_weight[0] << sep;
 			r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
 		}
 	}
 
-	delete[] geno;
-	delete[] maf_sum;
-	delete[] regress_output;
-	delete[] regress_buf;
-	delete[] row_data;
+	if(all_data){
+		delete all_data;
+	}
 
 	return r;
 }
@@ -1095,6 +1107,10 @@ Regression::Model* Regression::TargetedModelGenerator::next() {
 	return m;
 }
 
+void Regression::TargetedModelGenerator::reset() {
+	_mitr = _mbegin;
+}
+
 Regression::Model* Regression::OneSidedModelGenerator::next() {
 
 	Model* m = 0;
@@ -1192,9 +1208,43 @@ Regression::Model* Regression::OneSidedModelGenerator::next() {
 
 }
 
+void Regression::OneSidedModelGenerator::reset() {
+	 //_m_set(m_set),
+	//			_t_set(trait), _tall_set(all_traits),
+	_mi1 = _m_set.begin();
+	_mi2 = _ds.beginMarker();
+	_titr = _t_set.begin();
+	_ti2 = _tall_set.begin();
+}
+
+const Regression::ExtraData* Regression::getExtraData() const{
+	if(!class_data){
+		class_data = new ExtraData();
+		class_data->encoding = encoding;
+		class_data->base_covars = covar_names.size();
+		class_data->sep = sep;
+		class_data->n_extra_df_col = 0;
+		for(map<unsigned int, unsigned int>::const_iterator dfi = _extra_df_map.begin();
+				dfi != _extra_df_map.end(); dfi++){
+			class_data->n_extra_df_col += (*dfi).second;
+		}
+		unsigned int* colptr = class_data->extra_df_col = new unsigned int[class_data->n_extra_df_col];
+		for(map<unsigned int, unsigned int>::const_iterator dfi = _extra_df_map.begin();
+				dfi != _extra_df_map.end(); dfi++){
+			for(unsigned int i=0; i<(*dfi).second; i++){
+				*(colptr++) = (*dfi).second;
+			}
+		}
+	}
+
+	return class_data;
+}
+
 unsigned int Regression::findDF(const gsl_matrix* P,
 		unsigned int reduced_vars,
-		unsigned int n_dropped) {
+		unsigned int n_dropped,
+		unsigned int* extra_cols,
+		unsigned int n_extra_cols) {
 
 	unsigned int n_cols = P->size1;
 	unsigned int edf = n_cols - reduced_vars;
@@ -1222,16 +1272,14 @@ unsigned int Regression::findDF(const gsl_matrix* P,
 		edf = gsl_blas_dasum(df_check);
 
 		// Now, iterate over all of the elements in the extra_df_map:
-		for (std::map<unsigned int, unsigned int>::const_iterator itr = _extra_df_map.begin();
-				itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
-			edf += gsl_vector_get(df_check, (*itr).first) * (*itr).second;
+		for (unsigned int i=0; i<n_extra_cols && extra_cols[i] < n_cols; i++){
+			edf += gsl_vector_get(df_check, extra_cols[i]);
 		}
 		gsl_vector_free(df_check);
 		gsl_vector_free(df_check_t);
-	} else if(_extra_df_map.size() > 0) {
-		for (std::map<unsigned int, unsigned int>::const_iterator itr = _extra_df_map.lower_bound(reduced_vars);
-				itr != _extra_df_map.end() && (*itr).first < n_cols; itr++) {
-			edf += (*itr).second;
+	} else if(n_extra_cols > 0) {
+		for (unsigned int i=0; i<n_extra_cols && extra_cols[i] < n_cols; i++){
+			edf += (extra_cols[i] >= reduced_vars);
 		}
 	}
 
@@ -1253,11 +1301,269 @@ void Regression::printResult(const Result& r, std::ostream& of){
 void Regression::printResultLine(const Result& r, std::ostream& of){
 	of << r.prefix;
 	of << printExtraResults(r);
+
+	for(unsigned int i=0; i<r.unimodel.size(); i++){
+		if(r.unimodel[i]){
+			printResult(*r.unimodel[i], of);
+		} else{
+			// If we're here, we couldn't run the univariate model
+			// (likely something VERY bad has happened)
+			of << numeric_limits<float>::quiet_NaN() << sep
+			   << numeric_limits<float>::quiet_NaN() << sep
+			   << numeric_limits<float>::quiet_NaN() << sep;
+		}
+	}
+
 	printResult(r, of);
 	if(r.submodel && r.submodel->n_vars > 0){\
 		of << r.submodel->p_val << sep;
 	}
 	of << r.suffix;
+}
+
+pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
+	pair<unsigned int, const char*> retval(0,0);
+
+	calc_matrix* data = getCalcMatrix(m);
+
+	// do the voodoo that you do so well here
+	if(data){
+		++msg_id;
+		stringstream ss;
+		boost::archive::binary_oarchive oa(ss);
+		mpi_query q;
+		q.msg_id = msg_id;
+		q.calc_data = data;
+		q.class_data = getExtraData();
+
+		// save this to the archive
+		oa << q;
+
+		retval.first = ss.tellp();
+		char* output = new char[ss.tellp()];
+		ss.read(output,retval.first);
+		retval.second = output;
+
+		work_map[msg_id] = &m;
+	} else {
+		// If we can't run this model, go back to square 1 (which will come back here, incidentially)
+		retval = nextQuery();
+	}
+
+	return retval;
+}
+
+// MPI stuff here!
+pair<unsigned int, const char*> Regression::nextQuery(){
+	pair<unsigned int, const char*> retval(0,0);
+
+	const Model * m;
+	// If we have models queued up, please send them
+	if(!model_queue.empty()){
+		m = model_queue.front();
+		model_queue.pop_front();
+		retval = generateMsg(*m);
+	// otherwise, generate a new model
+	} else if( (m = mgp->next()) != 0) {
+		// check for pre-locks (caused by weighted encoding)
+		if(encoding == Encoding::WEIGHTED){
+			int * n_val_ptr = 0;
+			for(unsigned int i=0; i<m->markers.size(); i++){
+				if(categ_weight.find(m->markers[i]) == categ_weight.end()){
+					Model *pm = new Model;
+					pm->markers.push_back(m->markers[i]);
+
+					if(n_val_ptr == 0){
+						n_val_ptr = new int(0);
+						pre_lock_map.insert(make_pair(m, n_val_ptr));
+					}
+
+					++(*n_val_ptr);
+					work_lock_map.insert(make_pair(pm->getID(), n_val_ptr));
+					model_queue.push_back(pm);
+				}
+			}
+		}
+
+		// if there ARE pre-locks, I will have added them to the queue
+		if(!model_queue.empty()){
+			m = model_queue.front();
+			model_queue.pop_front();
+		}
+		// OK, now we can generate our message to send
+		retval = generateMsg(*m);
+	} else if (pre_lock_map.size() != 0){
+		// if I'm done with models, but I'm waiting on data, send that
+		retval = pair<unsigned int, const char*>(pre_lock_map.size(), 0);
+	} else if(show_uni && !work_map.empty()){
+		// If I'm here, I might generate some post-locking models, so
+		// send a "please wait" message
+		retval = pair<unsigned int, const char*>(work_map.size(), 0);
+	} else if(++output_itr != outcome_names.end()){
+		// If I'm here, I have another phenotype to run!
+		mgp->reset();
+		resetPheno(*output_itr);
+		// I don't want to recreate the logic above by creating a new model,
+		// so just send a "we have more" signal and prepare to generate a new model
+		retval = pair<unsigned int, const char*>(-1,0);
+	}
+	// empty else statement means that there is really NOTHING else to run!
+
+	return retval;
+}
+
+void Regression::processResponse(unsigned int bufsz, const char* buf){
+	// Turn this into a msg_id + Result
+	stringstream ss;
+	boost::archive::binary_iarchive ia(ss);
+	ss.write(buf, bufsz);
+	mpi_response resp;
+	ia >> resp;
+	unsigned int msg = resp.msg_id;
+	Result* r = resp.result;
+
+	// Get the Model associated with the message
+	const Model* m = 0;
+	map<unsigned int, const Model*>::const_iterator witr = work_map.find(msg);
+	if(witr != work_map.end()){
+		m = witr->second;
+	}
+
+	// if this is found in the lock map, it's not a result!
+	pair<multimap<string, int*>::const_iterator, multimap<string, int*>::const_iterator> lm_range = work_lock_map.equal_range(m->getID());
+	bool is_result = (lm_range.first == lm_range.second);
+	// decrement any locks we found!
+	while(lm_range.first != lm_range.second){
+		--(*((lm_range.first++)->second));
+	}
+
+	// if this was a categorical test, add it as appropriate:
+	if(m->categorical && m->markers.size() == 1){
+		float wt = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
+		categ_weight[m->markers[0]] = (std::isfinite(wt) ? wt : 0.5);
+	} else if (!is_result &&  m->markers.size() +  m->traits.size() == 1){
+		// if this is true, then the result should be added to the univariate
+		// results
+		if(m->markers.size() == 1){
+			_marker_uni_result[m->markers[0]] = r;
+		} else {
+			_trait_uni_result[m->traits[0]] = r;
+		}
+	}
+
+	// now that locks are decremented, see if anything needs to be placed
+	// into the model queue.
+	for(map<const Model*, int*>::iterator it = pre_lock_map.begin(); it != pre_lock_map.end(); it++){
+		if(*(it->second) == 0){
+			delete it->second;
+			model_queue.push_back(it->first);
+			pre_lock_map.erase(it++);
+		} else {
+			++it;
+		}
+	}
+
+	// Also, see if anything needs to be placed in the result list
+	for(map<Result*, int*>::iterator it = post_lock_map.begin(); it != post_lock_map.end(); it++){
+		if(*(it->second) == 0){
+			delete it->second;
+			if(show_uni){
+				addUnivariate(*(it->first), *m);
+			}
+			addResult(it->first);
+			post_lock_map.erase(it++);
+		} else {
+			++it;
+		}
+	}
+
+	vector<Model*> pl_needed;
+	// check for post-locks needed, and add them to the queue
+	if(show_uni && m->markers.size() +  m->traits.size() > 1){
+		Model *uni_m;
+		for (unsigned int i = 0; i < m->markers.size(); i++) {
+			map<const Marker*, Result*>::const_iterator m_itr =
+					_marker_uni_result.find(m->markers[i]);
+			// If this is the case, we have not seen this marker before
+			if (m_itr == _marker_uni_result.end()) {
+				uni_m = new Model();
+				uni_m->markers.push_back(m->markers[i]);
+				pl_needed.push_back(uni_m);
+			}
+		}
+
+		for (unsigned int i = 0; i < m->traits.size(); i++) {
+			map<string, Result*>::const_iterator t_itr =
+					_trait_uni_result.find(m->traits[i]);
+			// If this is the case, we have not seen this marker before
+			if (t_itr == _trait_uni_result.end()) {
+				uni_m = new Model();
+				uni_m->traits.push_back(m->traits[i]);
+				pl_needed.push_back(uni_m);
+			}
+		}
+	}
+
+	for(unsigned int i=0; i<pl_needed.size(); i++){
+		// I know that the post-lock models can't need a pre-lock, phew!
+		Model* plmod = pl_needed[i];
+		int* val_ptr = new int(pl_needed.size());
+		post_lock_map.insert(make_pair(r, val_ptr));
+		work_lock_map.insert(make_pair(plmod->getID(), val_ptr));
+		// Only add this to the model
+		if(work_lock_map.count(plmod->getID()) == 1){
+			model_queue.push_back(plmod);
+		} else {
+			delete plmod;
+		}
+		// if I needed post-locks, I'm not ready to push the result!
+		is_result = false;
+	}
+
+	if(is_result){
+		//is a result and I don't need any post-locks, add the result to the list
+		addResult(r);
+	}
+
+	// now we're done with this model, so delete it
+	delete m;
+}
+
+pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* buf, calc_fn& func){
+	pair<unsigned int, const char*> retval(0,0);
+
+	// first, let's get our data backet unpacked, please!
+	stringstream ss_in;
+	boost::archive::binary_iarchive ia(ss_in);
+	ss_in.write(buf, bufsz);
+	mpi_query q;
+	ia >> q;
+
+	Result* r = func(q.calc_data->outcome, q.calc_data->data,
+			q.calc_data->n_cols, q.calc_data->n_sampl, 0, q.calc_data->red_vars,
+			q.class_data);
+
+	if(r){
+		r->prefix = q.calc_data->prefix;
+	}
+
+	delete q.calc_data;
+	delete q.class_data;
+
+	stringstream ss_out;
+	boost::archive::binary_oarchive oa(ss_out);
+	mpi_response resp;
+	resp.msg_id = q.msg_id;
+	resp.result = r;
+
+	oa << resp;
+
+	retval.first = ss_out.tellp();
+	char* buf_out = new char[retval.first];
+	ss_out.read(buf_out,retval.first);
+	retval.second = buf;
+
+	return retval;
 }
 
 }

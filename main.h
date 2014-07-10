@@ -3,6 +3,10 @@
 
 #include "config.h"
 
+// this is the entry point for the "master" (this is essentially the "old" main)
+int master_main(int, char**);
+
+// handles both MPI and regular invocations
 int main(int, char**);
 
 void print_steps();

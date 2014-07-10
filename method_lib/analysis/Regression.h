@@ -22,11 +22,17 @@
 #define BOOST_IOSTREAMS_USE_DEPRECATED
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/string.hpp>
 
 #include <gsl/gsl_matrix.h>
 
 #include "Correction.h"
 #include "Encoding.h"
+
+#include "MPIProcess.h"
 
 #include "data/DataSet.h"
 
@@ -41,7 +47,50 @@ namespace Analysis{
 /*!
  * \brief A base class for any regression analysis - really any statistical test
  */
-class Regression {
+class Regression : virtual public MPIProcess {
+
+public:
+	class ExtraData{
+	public:
+		unsigned int base_covars;
+		std::string sep;
+		Analysis::EncodingModel encoding;
+		unsigned int* extra_df_col;
+		unsigned int n_extra_df_col;
+
+		ExtraData(unsigned int n=0) : base_covars(0), extra_df_col(0), n_extra_df_col(n){
+			if(n>0){
+				extra_df_col = new unsigned int[n];
+			}
+		}
+
+		ExtraData(const ExtraData& o){
+			base_covars = o.base_covars;
+			sep = o.sep;
+			encoding = o.encoding;
+			n_extra_df_col = o.n_extra_df_col;
+			extra_df_col = new unsigned int[n_extra_df_col];
+			std::memcpy(extra_df_col,o.extra_df_col,sizeof(unsigned int)*n_extra_df_col);
+		}
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & base_covars;
+			ar & sep;
+			ar & encoding;
+			ar & n_extra_df_col;
+			if(Archive::is_loading::value){
+				extra_df_col = new unsigned int[n_extra_df_col];
+			}
+			for(unsigned int i=0; i<n_extra_df_col; i++){
+				ar & extra_df_col[i];
+			}
+		}
+
+		virtual ~ExtraData(){
+			delete[] extra_df_col;
+		}
+	};
 
 protected:
 	/*!
@@ -49,25 +98,30 @@ protected:
 	 */
 	class Model{
 	public:
-		Model() : categorical(false){}
+		Model() : categorical(false), id(""), n_vars(0){}
 		Model(const std::vector<std::string>& tv) : traits(tv) {}
 
 		std::string getID() const{
-			unsigned int n_str = 0;
-			std::string toRet = "";
-			for(unsigned int i=0; i<markers.size(); i++,n_str++){
-				toRet += (n_str > 0 ? " " : "") + markers[i]->getID();
+			if(n_vars != markers.size() + traits.size() || id.empty()){
+				id = "";
+				n_vars = 0;
+				for(unsigned int i=0; i<markers.size(); i++){
+					id += (++n_vars > 1 ? " " : "") + markers[i]->getID();
+				}
+				for(unsigned int i=0; i<traits.size(); i++){
+					id += (++n_vars > 1 ? " " : "") + traits[i];
+				}
 			}
-			for(unsigned int i=0; i<traits.size(); i++,n_str++){
-				toRet += (n_str > 0 ? " " : "") + traits[i];
-			}
-			return toRet;
+			return id;
 		}
 
 		std::vector<const PLATO::Data::Marker*> markers;
 		std::vector<std::string> traits;
-
 		bool categorical;
+
+	private:
+		mutable std::string id;
+		mutable unsigned int n_vars;
 
 	};
 
@@ -79,9 +133,8 @@ protected:
 		virtual ~ModelGenerator() {}
 
 		virtual Model* next() = 0;
+		virtual void reset() = 0;
 
-		// Return a new Model* object, or NULL if finished
-		Model* operator() () {return next();};
 	protected:
 
 		const Data::DataSet& _ds;
@@ -96,27 +149,33 @@ protected:
 				const M_iter& begin, const M_iter& end,
 				const std::set<std::string>& trait, bool pw,
 				bool nomarker) : ModelGenerator(ds),
-			_mbegin(begin), _mi1(begin), _mi2(begin), _mend(end),
+			_mbegin(begin), _mi1(begin), _mi2(begin), _mend(end), _tbegin(trait.begin()),
 			_titr(trait.begin()), _tend(trait.end()), _ti2(trait.begin()),
 			_pairwise(pw), _traits(trait.size()> 0), _nomarker(nomarker) {
 
 			if(_mi2 != _mend){
 				++_mi2;
 			}
+
+			if(_ti2 != _tend){
+				++_ti2;
+			}
 		}
 		virtual ~BasicModelGenerator() {}
 
 		virtual Model* next();
+		virtual void reset();
 
 	private:
 
-		M_iter _mbegin;
+		const M_iter _mbegin;
 		M_iter _mi1;
 		M_iter _mi2;
-		M_iter _mend;
+		const M_iter _mend;
 
+		const std::set<std::string>::const_iterator _tbegin;
 		std::set<std::string>::const_iterator _titr;
-		std::set<std::string>::const_iterator _tend;
+		const std::set<std::string>::const_iterator _tend;
 		std::set<std::string>::const_iterator _ti2;
 
 		bool _pairwise;
@@ -128,15 +187,17 @@ protected:
 	public:
 		// use this for targeted
 		TargetedModelGenerator(const Data::DataSet& ds, const std::deque<std::string>& models) :
-			ModelGenerator(ds),	_mitr(models.begin()), _mend(models.end()) {}
+			ModelGenerator(ds),	_mbegin(models.begin()), _mitr(models.begin()), _mend(models.end()) {}
 		virtual ~TargetedModelGenerator() {}
 
 
 		virtual Model* next();
+		virtual void reset();
 	private:
 
+		const std::deque<std::string>::const_iterator _mbegin;
 		std::deque<std::string>::const_iterator _mitr;
-		std::deque<std::string>::const_iterator _mend;
+		const std::deque<std::string>::const_iterator _mend;
 	};
 
 	class OneSidedModelGenerator : public ModelGenerator{
@@ -154,6 +215,7 @@ protected:
 		virtual ~OneSidedModelGenerator() {}
 
 		virtual Model* next();
+		virtual void reset();
 
 		private:
 			const std::set<const Data::Marker*>& _m_set;
@@ -180,7 +242,7 @@ protected:
 	 */
 	class Result{
 	public:
-		Result(unsigned short n) : coeffs(0), p_vals(0), stderr(0),
+		Result(unsigned short n = 0) : coeffs(0), p_vals(0), stderr(0),
 				submodel(0), n_dropped(0), n_vars(n), converged(true) {
 			if(n > 0){
 				coeffs = new float[n];
@@ -195,11 +257,42 @@ protected:
 			if(submodel){delete submodel;}
 		}
 
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			// get all the primitives first
+			ar & p_val;
+			ar & log_likelihood;
+			ar & r_squared;
+			ar & n_dropped;
+			ar & df;
+			ar & n_vars;
+			ar & converged;
+
+			// now, the STL types
+			ar & prefix;
+			ar & suffix;
+			// NOTE: do NOT synchronize the unimodel!!
+			// It will always come back empty
+
+			// now, the arrays of data - be sure to allocate them!
+			if(Archive::is_loading::value && n_vars > 0){
+				coeffs = new float[n_vars];
+				p_vals = new float[n_vars];
+				stderr = new float[n_vars];
+			}
+			for(unsigned int i=0; i<n_vars; i++){
+				ar & coeffs[i];
+				ar & p_vals[i];
+				ar & stderr[i];
+			}
+		}
+
 		float* coeffs;
 		float* p_vals;
 		float* stderr;
 
 		Result* submodel;
+		std::vector<Result*> unimodel;
 
 		// A string to print before anything (variable IDs, MAF, etc)
 		std::string prefix;
@@ -222,11 +315,81 @@ protected:
 		bool converged;
 
 		bool operator<(const Result& o) const {return p_val < o.p_val;}
+
 	};
 
+	// This structure contains all the data we need to run a regression using the
+	// calculate function (with the exception of the extraData)
+	struct calc_matrix{
+		unsigned int n_cols;
+		unsigned int n_sampl;
+		unsigned int red_vars;
+		std::string prefix;
+		double* outcome;
+		double* data;
+
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & n_cols;
+			ar & n_sampl;
+			ar & red_vars;
+			ar & prefix;
+			if(Archive::is_loading::value){
+				outcome = new double[n_sampl];
+				data = new double[n_sampl * n_cols];
+			}
+			for(unsigned int i=0; i<n_sampl; i++){
+				ar & outcome[i];
+			}
+			// yes, I know that data is conceptually a 2-D matrix, but
+			// we're just passing pointers and data around!
+			for(unsigned int i=0; i<n_sampl*n_cols; i++){
+				ar & data[i];
+			}
+		}
+
+		calc_matrix() : n_cols(0), n_sampl(0), red_vars(0), outcome(0), data(0)  {}
+
+		~calc_matrix(){
+			if(outcome){delete[] outcome;}
+			if(data){delete[] data;}
+		}
+
+	};
+
+	/*!
+	 * A structure that holds everything we need to run an MPI query
+	 */
+	struct mpi_query{
+		unsigned int msg_id;
+		calc_matrix* calc_data;
+		const ExtraData* class_data;
+
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & msg_id;
+			ar & calc_data;
+			ar & class_data;
+		}
+	};
+
+	/*!
+	 * A structure that holds the response to a query
+	 */
+	struct mpi_response{
+		unsigned int msg_id;
+		Result* result;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & msg_id;
+			ar & result;
+		}
+
+	};
 public:
 
-	Regression() : _lowmem(false) {}
+	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), msg_id(0), mgp(0) {}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -238,6 +401,8 @@ public:
 	static Model* parseModelStr(const std::string& model_str, const PLATO::Data::DataSet& ds);
 
 protected:
+
+	typedef Result* (calc_fn)(const double*, const double*, unsigned int, unsigned int, unsigned int, unsigned int, const Regression::ExtraData*);
 
 	/*! \brief Runs the regression calculation
 	 * This function actually runs the regression (or appropriate statistical
@@ -260,10 +425,15 @@ protected:
 	 * this method will call calculate again.  For an example, see the definition
 	 * in LinearRegression.
 	 */
-	virtual Result* calculate(const double* result, const double* data,
+	virtual calc_fn& getCalcFn() const = 0;
+
+	virtual const ExtraData* getExtraData() const;
+
+	/*virtual Result* calculate(const double* result, const double* data,
 			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-			unsigned int n_covars=0) = 0;
-	float getCategoricalWeight(const PLATO::Data::Marker* m, const PLATO::Data::DataSet& ds);
+			unsigned int n_covars) = 0;
+	*/
+	float getCategoricalWeight(const PLATO::Data::Marker* m);
 
 	virtual bool initData(const PLATO::Data::DataSet& ds) = 0;
 	virtual void printResults();
@@ -273,16 +443,28 @@ protected:
 	virtual void printExtraHeader() {}
 	virtual std::string printExtraResults(const Result& r) {return "";}
 
-	unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars, unsigned int n_dropped);
+	static unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars,
+			unsigned int n_dropped, unsigned int* extra_cols, unsigned int n_extra_cols);
+
+	virtual void processResponse(unsigned int bufsz, const char* buf);
+	virtual std::pair<unsigned int, const char*> nextQuery();
+
+	static std::pair<unsigned int, const char*> calculate_MPI(unsigned int bufsz, const char* buf, calc_fn& func);
 
 private:
-	Result* run(const Model* m, const Data::DataSet& ds);
+	Result* run(const Model& m);
 
 	/*! \brief A function to be used for threading
 	 * This function takes a ModelGenerator and iterates through it, constantly
 	 * adding results to the result deque.
 	 */
-	void start(ModelGenerator& mg, const Data::DataSet& ds, const std::string& outcome);
+	void start(const Data::DataSet& ds, const std::string& outcome);
+
+	void addResult(Result* r);
+	calc_matrix* getCalcMatrix(const Model& m);
+
+	void resetPheno(const std::string& pheno);
+	void addUnivariate(Result& r, const Model& m);
 
 	void printMarkerHeader(const std::string& var_name);
 	void printHeader(unsigned int n_snp, unsigned int n_trait);
@@ -290,7 +472,11 @@ private:
 	void printResult(const Result& r, std::ostream& of);
 	void printResultLine(const Result& r, std::ostream& of);
 
+	std::pair<unsigned int, const char*> generateMsg(const Model& m);
+
 private:
+	std::set<std::string>::const_iterator output_itr;
+
 	//! a file of models to use
 	std::vector<std::string> model_files;
 	//! a list of models from the model files
@@ -309,6 +495,8 @@ private:
 
 	//! are we threaded?
 	bool _threaded;
+	//! or using MPI?
+	bool _use_mpi;
 
 	//! Do we want to do a pheWAS??
 	bool _phewas;
@@ -316,8 +504,6 @@ private:
 	//! Do we want to reduce our memory footprint (print to file, keeping
 	// only the p-values, then sort and print individual lines)
 	bool _lowmem;
-
-	//boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_buf;
 	boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_f;
 
 	//! List of markers to include
@@ -332,11 +518,10 @@ private:
 	boost::mutex _result_mutex;
 	boost::mutex _model_gen_mutex;
 	boost::mutex _categ_mutex;
+	boost::mutex _univar_mmutex;
+	boost::mutex _univar_tmutex;
 
 	std::map<const PLATO::Data::Marker*, float> categ_weight;
-
-	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
-	std::map<unsigned int, unsigned int> _extra_df_map;
 
 	// vector of all covariates
 	std::vector<std::vector<float> > _covars;
@@ -345,6 +530,8 @@ private:
 	std::deque<Result*> results;
 	//! list of p-values (used in lowmem setting)
 	std::deque<float> result_pvals;
+
+	mutable ExtraData* class_data;
 
 	struct result_sorter{
 		inline bool operator() (const Result* const & x, const Result* const& y) const{
@@ -364,7 +551,34 @@ private:
 		const std::deque<float>& _v;
 	};
 
+	// The following data structures are needed for MPI to work properly
+	//! A mapping of id -> models for all things currently running
+	std::map<unsigned int, const Model*> work_map;
+	//! mapping of models to locks signifying what they are waiting on
+	//! Note that models in this map have not been queued
+	std::map<const Model*, int*> pre_lock_map;
+	//! mapping of results to locks that they are waiting on to add them to the
+	//! result list.
+	std::map<Result*, int*> post_lock_map;
+	//! mapping for results->generating models for post lock results
+	std::map<Result*, const Model*> post_lock_models;
+	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
+	std::multimap<std::string, int*> work_lock_map;
+
+	//! a queue of models that need to be run
+	std::deque<const Model*> model_queue;
+
+	// current message ID
+	unsigned int msg_id;
+
+	ModelGenerator* mgp;
+
+	const Data::DataSet* ds_ptr;
+
+
 protected:
+	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
+	std::map<unsigned int, unsigned int> _extra_df_map;
 
 	//! List of traits to include
 	std::set<std::string> incl_traits;
@@ -500,6 +714,22 @@ Regression::Model* Regression::BasicModelGenerator<M_iter>::next() {
 	// NOTE: m == 0 if no more models can be generated!
 	return m;
 
+}
+
+template <class M_iter>
+void Regression::BasicModelGenerator<M_iter>::reset() {
+	_mi1 = _mbegin;
+	_mi2 = _mbegin;
+	_titr = _tbegin;
+	_ti2 = _tbegin;
+
+	if(_mi2 != _mend){
+		++_mi2;
+	}
+
+	if(_ti2 != _tend){
+		++_ti2;
+	}
 }
 
 }

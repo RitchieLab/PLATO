@@ -26,6 +26,7 @@ using std::log;
 using std::exp;
 using std::set;
 using std::pair;
+using std::map;
 
 namespace po=boost::program_options;
 
@@ -33,6 +34,8 @@ namespace PLATO{
 namespace ProcessLib{
 
 const std::string LinearRegression::stepname = LinearRegression::doRegister("linear");
+const std::string LinearRegression::MPIName = LinearRegression::registerMPI("logistic");
+
 
 po::options_description& LinearRegression::appendOptions(po::options_description& opts){
 	Regression::addOptions(opts);
@@ -64,17 +67,24 @@ bool LinearRegression::initData(const PLATO::Data::DataSet& ds){
 	return good_pheno;
 }
 
+Regression::calc_fn& LinearRegression::getCalcFn() const{
+	return (LinearRegression::calculate);
+}
+
 Regression::Result* LinearRegression::calculate(
 		const double* Y, const double* data,
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-		unsigned int n_covars){
+		unsigned int n_covars, const Regression::ExtraData* extra_data){
+
+	//const extraData* extra_data = (const extraData*) (other_data);
+
 	// Note: n_cols is the number of columns in the data vector, which is
 	// 1 + # of predictor variables
 
 	// Find the number of predictor variables in the reduced model
 
 	unsigned int reduced_vars = n_covars + 1;
-	Result* r = new Result(n_cols - 1 - covar_names.size());
+	Result* r = new Result(n_cols - 1 - extra_data->base_covars);
 
 	// If this is the case, we need to find the result for running the regression
 	// on the reduced model
@@ -83,10 +93,10 @@ Regression::Result* LinearRegression::calculate(
 		// If this is the case, we have a situation where the reduced model is
 		// not quite down to our covariates, so our "new_covars" should be
 		// the size of the covariates
-		unsigned int new_covars = n_covars > covar_names.size() ? covar_names.size() : 0;
+		unsigned int new_covars = n_covars > extra_data->base_covars ? extra_data->base_covars : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - (reduced_vars), new_covars);
+		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - (reduced_vars), new_covars, extra_data);
 
 	}
 
@@ -164,7 +174,7 @@ Regression::Result* LinearRegression::calculate(
 	gsl_vector_free(idx_permu);
 */	gsl_vector_free(_bv_work);
 
-	unsigned int idx_offset = 1+covar_names.size();
+	unsigned int idx_offset = 1+extra_data->base_covars;
 	for(unsigned int i=0; i<n_cols-idx_offset; i++){
 		double c = gsl_vector_get(beta, i+idx_offset);
 		double se = sqrt(gsl_matrix_get(cov_mat, i+idx_offset, i+idx_offset));
@@ -174,7 +184,7 @@ Regression::Result* LinearRegression::calculate(
 			r->coeffs[i] = c;
 			r->stderr[i] = se;
 			// t-val = | beta / stderr |
-			if(encoding == Encoding::WEIGHTED){
+			if(extra_data->encoding == Encoding::WEIGHTED){
 				// this assumes that as df -> /inf, T -> Norm, and Norm^2 = ChiSq
 				r->p_vals[i] = gsl_cdf_chisq_Q( pow( c/se , 2) , 2);
 			}else{
@@ -197,7 +207,7 @@ Regression::Result* LinearRegression::calculate(
 	// (i.e. this isn;t the "null" model)
 
 	// first, start off with just the number of independent columns
-	r->df = findDF(P, reduced_vars, r->n_dropped);
+	r->df = findDF(P, reduced_vars, r->n_dropped, extra_data->extra_df_col, extra_data->n_extra_df_col);
 
 	Result* curr_res = r;
 
@@ -213,7 +223,7 @@ Regression::Result* LinearRegression::calculate(
 			r->p_val = pv_rsq.first;
 			r->r_squared = pv_rsq.second;
 		} else if(curr_res->n_vars > 0) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + sep;
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + extra_data->sep;
 			break;
 		}
 
@@ -260,6 +270,9 @@ void LinearRegression::process(DataSet& ds){
 	runRegression(ds);
 }
 
+pair<unsigned int, const char*> LinearRegression::calculate_MPI(unsigned int bufsz, const char* buf){
+	return Regression::calculate_MPI(bufsz, buf, LinearRegression::calculate);
+}
 
 }
 }
