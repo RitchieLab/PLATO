@@ -34,7 +34,7 @@ namespace PLATO{
 namespace ProcessLib{
 
 const std::string LinearRegression::stepname = LinearRegression::doRegister("linear");
-const std::string LinearRegression::MPIName = LinearRegression::registerMPI("logistic");
+const std::string LinearRegression::MPIName = LinearRegression::registerMPI("linear");
 
 
 po::options_description& LinearRegression::appendOptions(po::options_description& opts){
@@ -238,6 +238,7 @@ Regression::Result* LinearRegression::calculate(
 
 	// Make sure to clean up after yourself!
 
+	gsl_vector_free(beta);
 	gsl_matrix_free(A);
 	gsl_matrix_free(P);
 	gsl_vector_free(resid);

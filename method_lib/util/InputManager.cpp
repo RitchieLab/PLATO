@@ -37,12 +37,14 @@ void InputManager::parseGlobalOptions(const po::variables_map& vm){
 	// Add chromosome numbers to the map
 	while(curr_chr < max_chrom){
 		++curr_chr;
-		s_chr_map[boost::lexical_cast<string>(curr_chr)] = curr_chr;
+		string chr_str = boost::lexical_cast<string>(curr_chr);
+
+		s_chr_map[chr_str] = curr_chr;
 		// let's also add "chr" to our map
-		s_chr_map[string("chr") + boost::lexical_cast<string>(curr_chr)] = curr_chr;
+		s_chr_map[string("chr") + chr_str] = curr_chr;
 
 		// let's add the int -> chromosome map, too!
-		s_chrint_map[curr_chr] = boost::lexical_cast<string>(curr_chr);
+		s_chrint_map[curr_chr] = chr_str;
 	}
 
 	// Add the extra chromosomes

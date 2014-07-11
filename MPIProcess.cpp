@@ -51,6 +51,7 @@ void MPIProcess::processMPI(){
 		// send all the messages I can:
 		while(nextval.second != 0 && !_idle_queue.empty()){
 			sendMPI(nextval);
+			delete[] nextval.second;
 			nextval = nextQuery();
 		}
 
@@ -96,6 +97,7 @@ void MPIProcess::processMPI(){
 	while(nextval.first != 0){
 		if(nextval.second != 0){
 			calc_val = MPIProcessFactory::getFactory().calculate(tag, nextval.first, nextval.second);
+			delete[] nextval.second;
 			processResponse(calc_val.first, calc_val.second);
 			delete[] calc_val.second;
 		}

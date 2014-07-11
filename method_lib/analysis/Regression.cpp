@@ -34,6 +34,12 @@
 #include <boost/ref.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
+//#define binary_iarchive text_iarchive
+//#define binary_oarchive text_oarchive
+
 #include <boost/serialization/export.hpp>
 
 
@@ -99,6 +105,10 @@ Regression::~Regression() {
 
 	if(mgp){
 		delete mgp;
+	}
+
+	if(class_data){
+		delete class_data;
 	}
 }
 
@@ -204,13 +214,17 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 
 	if(n_procs > 1){
+		_use_mpi = true;
+	}
+#endif
+
+	if(_use_mpi){
 		if(n_threads > 1){
 			Logger::log_err("WARNING: --threads used with MPI, setting number of threads to 0");
 		}
 		n_threads = 0;
-		_use_mpi = true;
 	}
-#endif
+
 
 	_threaded = n_threads > 0;
 	if(model_files.size() == 0){
@@ -484,15 +498,16 @@ void Regression::runRegression(const DataSet& ds){
 
 	ds_ptr = &ds;
 
+	if(*output_itr != ""){
+		resetPheno(*output_itr);
+	}
+
 	if(_use_mpi){
 		processMPI();
 	} else {
 		while(output_itr != outcome_names.end()){
 			// set up the phenotype (if we haven't already!)
 			si = ds.beginSample();
-			if(*output_itr != ""){
-				resetPheno(*output_itr);
-			}
 
 			mgp->reset();
 
@@ -518,6 +533,10 @@ void Regression::runRegression(const DataSet& ds){
 			}
 
 			++output_itr;
+
+			if(output_itr != outcome_names.end() && *output_itr != ""){
+				resetPheno(*output_itr);
+			}
 		}
 	}
 
@@ -1336,15 +1355,19 @@ pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
 		q.calc_data = data;
 		q.class_data = getExtraData();
 
+		ss.flush();
+
 		// save this to the archive
 		oa << q;
 
 		retval.first = ss.tellp();
-		char* output = new char[ss.tellp()];
+		char* output = new char[retval.first];
 		ss.read(output,retval.first);
 		retval.second = output;
 
 		work_map[msg_id] = &m;
+
+		delete data;
 	} else {
 		// If we can't run this model, go back to square 1 (which will come back here, incidentially)
 		retval = nextQuery();
@@ -1412,13 +1435,15 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 	return retval;
 }
 
-void Regression::processResponse(unsigned int bufsz, const char* buf){
+void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	// Turn this into a msg_id + Result
-	stringstream ss;
-	boost::archive::binary_iarchive ia(ss);
-	ss.write(buf, bufsz);
+
+	stringstream ss_resp;
+	ss_resp.write(in_buf, bufsz);
+	ss_resp.seekg(0);
+	boost::archive::binary_iarchive ia_resp(ss_resp);
 	mpi_response resp;
-	ia >> resp;
+	ia_resp >> resp;
 	unsigned int msg = resp.msg_id;
 	Result* r = resp.result;
 
@@ -1529,15 +1554,18 @@ void Regression::processResponse(unsigned int bufsz, const char* buf){
 	delete m;
 }
 
-pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* buf, calc_fn& func){
+pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func){
 	pair<unsigned int, const char*> retval(0,0);
 
 	// first, let's get our data backet unpacked, please!
 	stringstream ss_in;
-	boost::archive::binary_iarchive ia(ss_in);
-	ss_in.write(buf, bufsz);
+	ss_in.write(in_buf, bufsz);
+	ss_in.seekg(0);
+	boost::archive::binary_iarchive ia_query(ss_in);
 	mpi_query q;
-	ia >> q;
+	ia_query >> q;
+
+
 
 	Result* r = func(q.calc_data->outcome, q.calc_data->data,
 			q.calc_data->n_cols, q.calc_data->n_sampl, 0, q.calc_data->red_vars,
@@ -1557,11 +1585,15 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 	resp.result = r;
 
 	oa << resp;
-
 	retval.first = ss_out.tellp();
+	ss_out.seekg(0);
 	char* buf_out = new char[retval.first];
 	ss_out.read(buf_out,retval.first);
-	retval.second = buf;
+	retval.second = buf_out;
+
+	if(r){
+		delete r;
+	}
 
 	return retval;
 }

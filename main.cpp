@@ -174,11 +174,12 @@ int master_main(int argc, char** argv) {
 	// TODO: set up the logger here
 	Logger::setLogFile(logfn);
 
-	vector<string> cmd_input;
 	vector<string> unrec_opt = po::collect_unrecognized(parsed.options, po::include_positional);
 	vector<string> leftover_opts;
 
 	vector<Process*> process_list;
+
+	Logger::log("Commands as given on the the command line:");
 
 	// OK, now we create the list of processes that we want to create
 	while(unrec_opt.size() > 0){
@@ -192,6 +193,7 @@ int master_main(int argc, char** argv) {
 			cout << "Please use the 'list-command' option to see a list of commands available\n";
 			return 1;
 		}else{
+
 			// set up the options specific to the process
 			po::options_description subopts;
 			p->addOptions(subopts);
@@ -206,14 +208,15 @@ int master_main(int argc, char** argv) {
 			po::store(subparsed, subvm);
 			po::notify(subvm);
 
-			p->parseOptions(subvm);
-
 			leftover_opts = po::collect_unrecognized(subparsed.options, po::include_positional);
-			cmd_input.push_back(cmd_name + " " +
+			Logger::log(cmd_name + " " +
 				boost::algorithm::join(
 					std::list<string>(unrec_opt.begin(),
 						unrec_opt.begin() + (unrec_opt.size() - leftover_opts.size())),
 					" "));
+
+			p->parseOptions(subvm);
+
 			unrec_opt = leftover_opts;
 		}
 
@@ -222,13 +225,8 @@ int master_main(int argc, char** argv) {
 	}
 
 	// Log the commands
-	if(cmd_input.size() == 0){
+	if(process_list.size() == 0){
 		Logger::log_err("ERROR: No commands given, nothing to do!", true);
-	} else {
-		Logger::log("Commands as given on the the command line:");
-		for(unsigned int i=0; i<cmd_input.size(); i++){
-			Logger::log(cmd_input[i]);
-		}
 	}
 
 

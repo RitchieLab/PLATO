@@ -36,6 +36,9 @@
 
 #include "data/DataSet.h"
 
+using std::cout;
+using std::endl;
+
 namespace PLATO{
 
 namespace Data{
@@ -243,7 +246,9 @@ protected:
 	class Result{
 	public:
 		Result(unsigned short n = 0) : coeffs(0), p_vals(0), stderr(0),
-				submodel(0), n_dropped(0), n_vars(n), converged(true) {
+				submodel(0),  p_val(0),
+				log_likelihood(0), r_squared(0),
+				n_dropped(0), n_vars(n), converged(true) {
 			if(n > 0){
 				coeffs = new float[n];
 				p_vals = new float[n];
@@ -280,11 +285,15 @@ protected:
 				p_vals = new float[n_vars];
 				stderr = new float[n_vars];
 			}
+
+
 			for(unsigned int i=0; i<n_vars; i++){
 				ar & coeffs[i];
 				ar & p_vals[i];
 				ar & stderr[i];
 			}
+
+			ar & submodel;
 		}
 
 		float* coeffs;
@@ -389,7 +398,7 @@ protected:
 	};
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), msg_id(0), mgp(0) {}
+	Regression() :  _use_mpi(true), _lowmem(false), class_data(0), msg_id(0), mgp(0) {}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -446,10 +455,10 @@ protected:
 	static unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars,
 			unsigned int n_dropped, unsigned int* extra_cols, unsigned int n_extra_cols);
 
-	virtual void processResponse(unsigned int bufsz, const char* buf);
+	virtual void processResponse(unsigned int bufsz, const char* in_buf);
 	virtual std::pair<unsigned int, const char*> nextQuery();
 
-	static std::pair<unsigned int, const char*> calculate_MPI(unsigned int bufsz, const char* buf, calc_fn& func);
+	static std::pair<unsigned int, const char*> calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func);
 
 private:
 	Result* run(const Model& m);
