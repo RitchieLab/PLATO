@@ -22,7 +22,9 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
 	// Note: if we don't have MPI, you REALLY shouldn't be here!
 #ifdef HAVE_CXX_MPI
 	if(nextval.second == 0){
-		MPI_Send(nextval.second, nextval.first, MPI_CHAR, _idle_queue.pop_front(), _tag, MPI_COMM_WORLD);
+		int recv = _idle_queue.front();
+		_idle_queue.pop_front();
+		MPI_Send(nextval.second, nextval.first, MPI_CHAR, recv, _tag, MPI_COMM_WORLD);
 	}
 #endif
 }
