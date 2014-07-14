@@ -23,7 +23,7 @@ public:
 
 protected:
 	virtual void process(Data::DataSet&);
-	virtual bool initData(const PLATO::Data::DataSet& ds);
+	virtual bool initData();
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
 
 	virtual calc_fn& getCalcFn() const;

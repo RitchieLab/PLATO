@@ -114,7 +114,12 @@ protected:
 				for(unsigned int i=0; i<traits.size(); i++){
 					id += (++n_vars > 1 ? " " : "") + traits[i];
 				}
+
+				if(categorical){
+					id += "_categ";
+				}
 			}
+
 			return id;
 		}
 
@@ -398,7 +403,7 @@ protected:
 	};
 public:
 
-	Regression() :  _use_mpi(true), _lowmem(false), class_data(0), msg_id(0), mgp(0) {}
+	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), msg_id(0), mgp(0) {}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -444,7 +449,7 @@ protected:
 	*/
 	float getCategoricalWeight(const PLATO::Data::Marker* m);
 
-	virtual bool initData(const PLATO::Data::DataSet& ds) = 0;
+	virtual bool initData() = 0;
 	virtual void printResults();
 
 	virtual void printVarHeader(const std::string& var_name);
@@ -472,7 +477,7 @@ private:
 	void addResult(Result* r);
 	calc_matrix* getCalcMatrix(const Model& m);
 
-	void resetPheno(const std::string& pheno);
+	bool resetPheno(const std::string& pheno);
 	void addUnivariate(Result& r, const Model& m);
 
 	void printMarkerHeader(const std::string& var_name);
@@ -573,6 +578,7 @@ private:
 	std::map<Result*, const Model*> post_lock_models;
 	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
 	std::multimap<std::string, int*> work_lock_map;
+
 
 	//! a queue of models that need to be run
 	std::deque<const Model*> model_queue;

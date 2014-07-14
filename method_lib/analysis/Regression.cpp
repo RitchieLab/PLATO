@@ -458,6 +458,7 @@ void Regression::runRegression(const DataSet& ds){
 		outcome_names.insert("");
 		// put it back!!
 		si = ds.beginSample();
+
 	}
 
 	// Now, set up the outcome variable and the covariates
@@ -498,8 +499,11 @@ void Regression::runRegression(const DataSet& ds){
 
 	ds_ptr = &ds;
 
-	if(*output_itr != ""){
-		resetPheno(*output_itr);
+	if(*output_itr != "" || !initData()){
+		if(*output_itr == ""){
+			++output_itr;
+		}
+		while(!resetPheno(*output_itr) && ++output_itr != outcome_names.end());
 	}
 
 	if(_use_mpi){
@@ -511,32 +515,25 @@ void Regression::runRegression(const DataSet& ds){
 
 			mgp->reset();
 
-			if (this->initData(ds)) {
+			if (_threaded) {
+				boost::thread_group all_threads;
 
-				if (_threaded) {
-					boost::thread_group all_threads;
+				for (unsigned int i = 0; i < n_threads; i++) {
+					boost::thread* t = new boost::thread(&Regression::start,
+							this, boost::cref(ds),	boost::cref(*output_itr));
+					all_threads.add_thread(t);
 
-					for (unsigned int i = 0; i < n_threads; i++) {
-						boost::thread* t = new boost::thread(&Regression::start,
-								this, boost::cref(ds),	boost::cref(*output_itr));
-						all_threads.add_thread(t);
-
-						//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
-					}
-					all_threads.join_all();
-
-				} else {
-					// go here for debugging purposes, i.e. set --threads to 0
-					start(ds, *output_itr);
+					//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
 				}
+				all_threads.join_all();
 
+			} else {
+				// go here for debugging purposes, i.e. set --threads to 0
+				start(ds, *output_itr);
 			}
 
-			++output_itr;
+			while(++output_itr != outcome_names.end() && !resetPheno(*output_itr));
 
-			if(output_itr != outcome_names.end() && *output_itr != ""){
-				resetPheno(*output_itr);
-			}
 		}
 	}
 
@@ -600,7 +597,7 @@ void Regression::addResult(Result* r){
 
 }
 
-void Regression::resetPheno(const string& pheno){
+bool Regression::resetPheno(const string& pheno){
 
 	_pheno.clear();
 	DataSet::const_sample_iterator si = ds_ptr->beginSample();
@@ -613,6 +610,11 @@ void Regression::resetPheno(const string& pheno){
 	_marker_uni_result.clear();
 	_trait_uni_result.clear();
 	categ_weight.clear();
+
+	// if we have a phenotype that is not appropriate, move on to the
+	// next one
+
+	return initData();
 }
 
 void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
@@ -745,11 +747,11 @@ void Regression::addUnivariate(Result& r, const Model& m){
 				_marker_uni_result.find(m.markers[i]);
 		// If this is the case, we have not seen this marker before
 		if (m_itr == _marker_uni_result.end()) {
-			Model m;
-			m.markers.push_back(m.markers[i]);
+			Model uni_m;
+			uni_m.markers.push_back(m.markers[i]);
 			m_itr = _marker_uni_result.insert(
 					_marker_uni_result.begin(),
-					std::make_pair(m.markers[i], run(m)));
+					std::make_pair(m.markers[i], run(uni_m)));
 		}
 		_univar_mmutex.unlock();
 
@@ -1344,6 +1346,7 @@ pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
 	pair<unsigned int, const char*> retval(0,0);
 
 	calc_matrix* data = getCalcMatrix(m);
+	data->prefix = *output_itr + sep + data->prefix;
 
 	// do the voodoo that you do so well here
 	if(data){
@@ -1395,6 +1398,7 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 				if(categ_weight.find(m->markers[i]) == categ_weight.end()){
 					Model *pm = new Model;
 					pm->markers.push_back(m->markers[i]);
+					pm->categorical = true;
 
 					if(n_val_ptr == 0){
 						n_val_ptr = new int(0);
@@ -1425,7 +1429,11 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 	} else if(++output_itr != outcome_names.end()){
 		// If I'm here, I have another phenotype to run!
 		mgp->reset();
-		resetPheno(*output_itr);
+
+		// Note the empty loop here - we will check and make sure that the
+		// phenotype is good and continue until we either run out or find
+		// a good one
+		while(!resetPheno(*output_itr) && ++output_itr != outcome_names.end());
 		// I don't want to recreate the logic above by creating a new model,
 		// so just send a "we have more" signal and prepare to generate a new model
 		retval = pair<unsigned int, const char*>(-1,0);
@@ -1449,17 +1457,19 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 
 	// Get the Model associated with the message
 	const Model* m = 0;
-	map<unsigned int, const Model*>::const_iterator witr = work_map.find(msg);
+	map<unsigned int, const Model*>::iterator witr = work_map.find(msg);
 	if(witr != work_map.end()){
 		m = witr->second;
+		work_map.erase(witr);
 	}
 
 	// if this is found in the lock map, it's not a result!
-	pair<multimap<string, int*>::const_iterator, multimap<string, int*>::const_iterator> lm_range = work_lock_map.equal_range(m->getID());
+	pair<multimap<string, int*>::iterator, multimap<string, int*>::iterator> lm_range = work_lock_map.equal_range(m->getID());
 	bool is_result = (lm_range.first == lm_range.second);
 	// decrement any locks we found!
 	while(lm_range.first != lm_range.second){
-		--(*((lm_range.first++)->second));
+		--(*((lm_range.first)->second));
+		work_lock_map.erase(lm_range.first++);
 	}
 
 	// if this was a categorical test, add it as appropriate:
@@ -1478,7 +1488,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 
 	// now that locks are decremented, see if anything needs to be placed
 	// into the model queue.
-	for(map<const Model*, int*>::iterator it = pre_lock_map.begin(); it != pre_lock_map.end(); it++){
+	for(map<const Model*, int*>::iterator it = pre_lock_map.begin(); it != pre_lock_map.end(); ){
 		if(*(it->second) == 0){
 			delete it->second;
 			model_queue.push_back(it->first);
@@ -1489,11 +1499,22 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	}
 
 	// Also, see if anything needs to be placed in the result list
-	for(map<Result*, int*>::iterator it = post_lock_map.begin(); it != post_lock_map.end(); it++){
+	for(map<Result*, int*>::iterator it = post_lock_map.begin(); it != post_lock_map.end(); ){
 		if(*(it->second) == 0){
 			delete it->second;
 			if(show_uni){
-				addUnivariate(*(it->first), *m);
+				map<Result*, const Model*>::iterator plm_itr = post_lock_models.find(it->first);
+				if(plm_itr != post_lock_models.end()){
+					//this really should always be the case!!  If not, we had
+					// something very bad happen
+					addUnivariate(*(it->first), *(plm_itr->second));
+					// make sure to delete the model before erasing it from
+					// the post_lock_model map!
+					delete plm_itr->second;
+					post_lock_models.erase(plm_itr);
+				} else {
+					Logger::log_err("WARNING: Unexpected error in displaying univariate models using MPI.");
+				}
 			}
 			addResult(it->first);
 			post_lock_map.erase(it++);
@@ -1527,15 +1548,25 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 				pl_needed.push_back(uni_m);
 			}
 		}
+
+		// in this case, it's safe to add the univariate results, b/c we
+		// have already calculated them!
+		if(pl_needed.size() == 0){
+			addUnivariate(*r, *m);
+		}
 	}
 
+	int* val_ptr = 0;
 	for(unsigned int i=0; i<pl_needed.size(); i++){
+		if(!val_ptr){
+			val_ptr = new int(pl_needed.size());
+			post_lock_map.insert(make_pair(r, val_ptr));
+			post_lock_models.insert(make_pair(r,m));
+		}
 		// I know that the post-lock models can't need a pre-lock, phew!
 		Model* plmod = pl_needed[i];
-		int* val_ptr = new int(pl_needed.size());
-		post_lock_map.insert(make_pair(r, val_ptr));
 		work_lock_map.insert(make_pair(plmod->getID(), val_ptr));
-		// Only add this to the model
+		// Only add this to the model once, please!
 		if(work_lock_map.count(plmod->getID()) == 1){
 			model_queue.push_back(plmod);
 		} else {
@@ -1545,13 +1576,17 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 		is_result = false;
 	}
 
+
 	if(is_result){
 		//is a result and I don't need any post-locks, add the result to the list
 		addResult(r);
 	}
 
-	// now we're done with this model, so delete it
-	delete m;
+	// now we're done with this model, so delete it, but only if we don't need
+	// it later!
+	if(pl_needed.size() == 0){
+		delete m;
+	}
 }
 
 pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func){

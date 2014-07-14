@@ -42,7 +42,7 @@ protected:
 			unsigned int n_covars, const Regression::ExtraData* other_data);
 
 	virtual void printVarHeader(const std::string& var_name);
-	virtual bool initData(const Data::DataSet& ds);
+	virtual bool initData();
 
 	virtual void printExtraHeader();
 	virtual std::string printExtraResults(const Result& r);

@@ -74,7 +74,7 @@ void LogisticRegression::printVarHeader(const std::string& var_name){
 	}
 }
 
-bool LogisticRegression::initData(const DataSet& ds){
+bool LogisticRegression::initData(){
 
 	bool good_pheno = true;
 	//transform the phenotype from [0,1]

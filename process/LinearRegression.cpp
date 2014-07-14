@@ -54,7 +54,7 @@ void LinearRegression::parseOptions(const po::variables_map& vm){
 	Regression::parseOptions(vm);
 }
 
-bool LinearRegression::initData(const PLATO::Data::DataSet& ds){
+bool LinearRegression::initData(){
 
 	vector<float>::const_iterator first_nonmiss = _pheno.begin();
 	while(first_nonmiss != _pheno.end() && !std::isfinite(*first_nonmiss)){
