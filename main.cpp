@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "ProcessFactory.h"
+#include "MPIProcessFactory.h"
 #include "Process.h"
 
 #include "util/InputManager.h"
@@ -48,6 +49,7 @@ using PLATO::Utility::Logger;
 
 using PLATO::Process;
 using PLATO::ProcessFactory;
+using PLATO::MPIProcessFactory;
 
 int main(int argc, char** argv){
 
@@ -55,7 +57,7 @@ int main(int argc, char** argv){
 	int retval;
 #ifdef HAVE_CXX_MPI
 	MPI_Init(NULL, NULL);
-	MPI_Comm_rank(MPI_WORLD_COMM, &rank);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 	if(rank == 0){
 		retval = master_main(argc, argv);
@@ -66,7 +68,7 @@ int main(int argc, char** argv){
 		MPI_Status m_stat;
 		int bufsz;
 		char* buf;
-		pair<unsigned int, const char*> response;
+		std::pair<unsigned int, const char*> response;
 		while(true){
 			MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 			// If we get a 0 tag, break out of the receive loop
@@ -81,7 +83,7 @@ int main(int argc, char** argv){
 
 			response = MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf);
 
-			MPI_Send(response.second, response.first, 0, m_stat.MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(const_cast<char*>(response.second), response.first, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD);
 			delete[] response.second;
 		}
 
