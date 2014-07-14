@@ -18,13 +18,13 @@ using std::pair;
 
 namespace PLATO{
 
-void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
+void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval, unsigned int tag){
 	// Note: if we don't have MPI, you REALLY shouldn't be here!
 #ifdef HAVE_CXX_MPI
-	if(nextval.second == 0){
+	if(nextval.second != 0){
 		int recv = _idle_queue.front();
 		_idle_queue.pop_front();
-		MPI_Send(nextval.second, nextval.first, MPI_CHAR, recv, _tag, MPI_COMM_WORLD);
+		MPI_Send(nextval.second, nextval.first, MPI_CHAR, recv, tag, MPI_COMM_WORLD);
 	}
 #endif
 }
@@ -52,7 +52,7 @@ void MPIProcess::processMPI(){
 	while(nextval.first != 0){
 		// send all the messages I can:
 		while(nextval.second != 0 && !_idle_queue.empty()){
-			sendMPI(nextval);
+			sendMPI(nextval, tag);
 			delete[] nextval.second;
 			nextval = nextQuery();
 		}
