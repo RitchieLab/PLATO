@@ -1423,9 +1423,12 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		if(!model_queue.empty()){
 			m = model_queue.front();
 			model_queue.pop_front();
+			retval = generateMsg(*m);
+		} else {
+			retval = nextQuery();
 		}
 		// OK, now we can generate our message to send
-		retval = generateMsg(*m);
+		//retval = generateMsg(*m);
 	} else if (pre_lock_map.size() != 0){
 		// if I'm done with models, but I'm waiting on data, send that
 		retval = pair<unsigned int, const char*>(pre_lock_map.size(), 0);
