@@ -11,7 +11,7 @@
 #include "config.h"
 
 #ifdef HAVE_CXX_MPI
-#incldue <mpi.h>
+#include <mpi.h>
 #endif
 
 using std::pair;
@@ -22,7 +22,7 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
 	// Note: if we don't have MPI, you REALLY shouldn't be here!
 #ifdef HAVE_CXX_MPI
 	if(nextval.second == 0){
-		MPI_Send(nextval.second, nextval.first, MPI_CHAR, _idle_queue.pop_front(), tag, MPI_COMM_WORLD);
+		MPI_Send(nextval.second, nextval.first, MPI_CHAR, _idle_queue.pop_front(), _tag, MPI_COMM_WORLD);
 	}
 #endif
 }
@@ -56,10 +56,10 @@ void MPIProcess::processMPI(){
 		}
 
 		// at this point, I'm in need of a response...
-		MPI_Probe(MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &m_stat);
+		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];
-		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, tag, MPI_COMM_WORLD, &m_stat);
+		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		_idle_queue.push_back(m_stat.MPI_SOURCE);
 
 		processResponse(bufsz, buf);
@@ -75,7 +75,7 @@ void MPIProcess::processMPI(){
 	// If we're here, we have nothing more to process, so please wait for all
 	// outstanding responses
 	for(int j=1; j<n_procs - _idle_queue.size(); j++){
-		MPI_Probe(MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &m_stat);
+		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];
 		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, tag, MPI_COMM_WORLD, &m_stat);

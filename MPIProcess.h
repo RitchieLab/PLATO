@@ -18,7 +18,7 @@ namespace PLATO{
 
 class MPIProcess {
 protected:
-	MPIProcess() {}
+	MPIProcess() : _tag(0) {}
 
 protected:
 	virtual void processResponse(unsigned int bufsz, const char* buf) = 0;
@@ -29,19 +29,23 @@ protected:
 	void processMPI();
 
 private:
-	void sendMPI(const std::pair<unsigned int, const char*>& query);
+	void sendMPI(const std::pair<unsigned int, const char*>& query, int tag);
 	std::deque<int> _idle_queue;
+
+protected:
+	int _tag;
 };
 
 template <class T>
 class MPIProcessImpl : virtual public MPIProcess{
 
 protected:
-	MPIProcessImpl(const std::string& name) : _mpi_name(name) {}
+	MPIProcessImpl(const std::string& name) : _mpi_name(name) {
+		_tag = MPIProcessFactory::getFactory().getKeyPos(_mpi_name);
+	}
 
 protected:
 	static const std::string& registerMPI(const std::string& key_in);
-
 	virtual const std::string& getMPIName() const { return _mpi_name;}
 
 private:
