@@ -29,7 +29,7 @@ protected:
 	void processMPI();
 
 private:
-	void sendMPI(const std::pair<unsigned int, const char*>& query, int tag);
+	void sendMPI(const std::pair<unsigned int, const char*>& query);
 	std::deque<int> _idle_queue;
 
 protected:
