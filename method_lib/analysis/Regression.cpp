@@ -1407,7 +1407,14 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 
 					++(*n_val_ptr);
 					work_lock_map.insert(make_pair(pm->getID(), n_val_ptr));
-					model_queue.push_back(pm);
+
+					// only add if we aren't currently working on it!
+					if(work_lock_map.count(pm->getID) == 1){
+						model_queue.push_back(pm);
+					} else {
+						delete pm;
+					}
+
 				}
 			}
 		}
