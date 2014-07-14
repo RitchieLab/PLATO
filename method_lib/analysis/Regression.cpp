@@ -1427,13 +1427,16 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// send a "please wait" message
 		retval = pair<unsigned int, const char*>(work_map.size(), 0);
 	} else if(++output_itr != outcome_names.end()){
-		// If I'm here, I have another phenotype to run!
-		mgp->reset();
 
 		// Note the empty loop here - we will check and make sure that the
 		// phenotype is good and continue until we either run out or find
 		// a good one
 		while(!resetPheno(*output_itr) && ++output_itr != outcome_names.end());
+
+		// If I'm here, I have another phenotype to run!
+		if(output_itr != outcome_names.end()){
+			mgp->reset();
+		}
 		// I don't want to recreate the logic above by creating a new model,
 		// so just send a "we have more" signal and prepare to generate a new model
 		retval = pair<unsigned int, const char*>(-1,0);
