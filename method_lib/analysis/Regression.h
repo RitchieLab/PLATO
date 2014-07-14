@@ -352,13 +352,22 @@ protected:
 				outcome = new double[n_sampl];
 				data = new double[n_sampl * n_cols];
 			}
+			float out_v;
 			for(unsigned int i=0; i<n_sampl; i++){
-				ar & outcome[i];
+				if(!Archive::is_loading::value){
+					out_v = outcome[i];
+				}
+				ar & out_v;
+				outcome[i] = out_v;
 			}
 			// yes, I know that data is conceptually a 2-D matrix, but
 			// we're just passing pointers and data around!
 			for(unsigned int i=0; i<n_sampl*n_cols; i++){
-				ar & data[i];
+				if(!Archive::is_loading::value){
+					out_v = data[i];
+				}
+				ar & out_v;
+				data[i] = out_v;
 			}
 		}
 
