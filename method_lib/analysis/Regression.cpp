@@ -1392,8 +1392,11 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 	// otherwise, generate a new model
 	} else if( (m = mgp->next()) != 0) {
 		// check for pre-locks (caused by weighted encoding)
+
+		// NOTE: n_val_ptr will be 0 if no pre-locks were needed!
+		int * n_val_ptr = 0;
 		if(encoding == Encoding::WEIGHTED){
-			int * n_val_ptr = 0;
+
 			for(unsigned int i=0; i<m->markers.size(); i++){
 				if(categ_weight.find(m->markers[i]) == categ_weight.end()){
 					Model *pm = new Model;
@@ -1420,11 +1423,13 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		}
 
 		// if there ARE pre-locks, I will have added them to the queue
-		if(!model_queue.empty()){
+		if(n_val_ptr == 0){
+			retval = generateMsg(*m);
+		} else if(!model_queue.empty()){
 			m = model_queue.front();
 			model_queue.pop_front();
 			retval = generateMsg(*m);
-		} else {
+		} else  {
 			retval = nextQuery();
 		}
 		// OK, now we can generate our message to send
