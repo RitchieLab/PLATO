@@ -24,7 +24,7 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval, unsigne
 	if(nextval.second != 0){
 		int recv = _idle_queue.front();
 		_idle_queue.pop_front();
-		MPI_Send(nextval.second, nextval.first, MPI_CHAR, recv, tag, MPI_COMM_WORLD);
+		MPI_Send(const_cast<char*>(nextval.second), nextval.first, MPI_CHAR, recv, tag, MPI_COMM_WORLD);
 	}
 #endif
 }
