@@ -38,7 +38,6 @@ void MPIProcess::processMPI(){
 	int n_procs;
 	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 
-	int i=0;
 	// set up the list of processors currently idle
 	for(int i=0; ++i < n_procs && nextval.first != 0; ){
 		_idle_queue.push_back(i);
@@ -61,6 +60,7 @@ void MPIProcess::processMPI(){
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];
+
 		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		_idle_queue.push_back(m_stat.MPI_SOURCE);
 
@@ -76,7 +76,7 @@ void MPIProcess::processMPI(){
 
 	// If we're here, we have nothing more to process, so please wait for all
 	// outstanding responses
-	for(int j=1; j<n_procs - _idle_queue.size(); j++){
+	for(unsigned int j=1; j<n_procs - _idle_queue.size(); j++){
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];

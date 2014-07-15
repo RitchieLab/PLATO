@@ -1441,7 +1441,7 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// If I'm here, I might generate some post-locking models, so
 		// send a "please wait" message
 		retval = pair<unsigned int, const char*>(work_map.size(), 0);
-	} else if(++output_itr != outcome_names.end()){
+	} else if(output_itr != outcome_names.end() && ++output_itr != outcome_names.end()){
 
 		// Note the empty loop here - we will check and make sure that the
 		// phenotype is good and continue until we either run out or find
@@ -1451,10 +1451,10 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// If I'm here, I have another phenotype to run!
 		if(output_itr != outcome_names.end()){
 			mgp->reset();
+			// I don't want to recreate the logic above by creating a new model,
+			// so just send a "we have more" signal and prepare to generate a new model
+			retval = nextQuery();
 		}
-		// I don't want to recreate the logic above by creating a new model,
-		// so just send a "we have more" signal and prepare to generate a new model
-		retval = pair<unsigned int, const char*>(-1,0);
 	}
 	// empty else statement means that there is really NOTHING else to run!
 

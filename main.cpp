@@ -63,6 +63,7 @@ int main(int argc, char** argv){
 		retval = master_main(argc, argv);
 	} else {
 #ifdef HAVE_CXX_MPI
+
 		// If this is the case, we want to listen for requests and use the
 		// MPIProcessFactory to process them.
 		MPI_Status m_stat;
