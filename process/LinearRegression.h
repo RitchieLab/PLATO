@@ -30,7 +30,7 @@ protected:
 
 	static Result* calculate(const double* result, const double* data,
 			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-			unsigned int n_covars, const Regression::ExtraData* extra_data);
+			unsigned int n_covars, bool run_null, const Regression::ExtraData* extra_data);
 
 private:
 	static std::pair<float, float> calcPVal(Result* r, Result* submodel, double chisq, double tss,

@@ -28,6 +28,9 @@
 #include <boost/serialization/string.hpp>
 
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_permutation.h>
 
 #include "Correction.h"
 #include "Encoding.h"
@@ -55,6 +58,7 @@ class Regression : virtual public MPIProcess {
 public:
 	class ExtraData{
 	public:
+		unsigned int const_covars;
 		unsigned int base_covars;
 		std::string sep;
 		Analysis::EncodingModel encoding;
@@ -68,6 +72,7 @@ public:
 		}
 
 		ExtraData(const ExtraData& o){
+			const_covars = o.const_covars;
 			base_covars = o.base_covars;
 			sep = o.sep;
 			encoding = o.encoding;
@@ -78,6 +83,7 @@ public:
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int){
+			ar & const_covars;
 			ar & base_covars;
 			ar & sep;
 			ar & encoding;
@@ -412,7 +418,7 @@ protected:
 	};
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), msg_id(0), mgp(0) {}
+	Regression() :  _use_mpi(false), _lowmem(false), n_perms(0), class_data(0),  mgp(0), msg_id(0){}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -425,29 +431,32 @@ public:
 
 protected:
 
-	typedef Result* (calc_fn)(const double*, const double*, unsigned int, unsigned int, unsigned int, unsigned int, const Regression::ExtraData*);
-
 	/*! \brief Runs the regression calculation
-	 * This function actually runs the regression (or appropriate statistical
-	 * test) calculation based on the raw data passed in.
-	 * \param result A n_rows length vector containing the output vector
-	 * \param data A n_rows x n_cols matrix containing the independent values
-	 * for the regression.  Note that the data should be in the following order:
-	 * - intercept (a column of all 1's)
-	 * - covariates
-	 * - main effects
-	 * - interactions
-	 * Also note that the data is arranged linearly in memory, with the following
-	 * relationship: data[i][j] = data[i*(n_cols + offset) + j]
-	 * \param n_rows The number of rows in the dataset
-	 * \param n_cols The number of independent variables in the dataset
-	 * \param offset The number of extra columns in the data not included in the
-	 * particular model that we are testing.
-	 * \param n_covars The number of covariates in the "reduced" model to test
-	 * significance against.  Note that if n_covars > covar_names.size() + 1, then
-	 * this method will call calculate again.  For an example, see the definition
-	 * in LinearRegression.
-	 */
+		 * This function actually runs the regression (or appropriate statistical
+		 * test) calculation based on the raw data passed in.
+		 * \param result A n_rows length vector containing the output vector
+		 * \param data A n_rows x n_cols matrix containing the independent values
+		 * for the regression.  Note that the data should be in the following order:
+		 * - intercept (a column of all 1's)
+		 * - covariates
+		 * - main effects
+		 * - interactions
+		 * Also note that the data is arranged linearly in memory, with the following
+		 * relationship: data[i][j] = data[i*(n_cols + offset) + j]
+		 * \param n_rows The number of rows in the dataset
+		 * \param n_cols The number of independent variables in the dataset
+		 * \param offset The number of extra columns in the data not included in the
+		 * particular model that we are testing.
+		 * \param n_covars The number of covariates in the "reduced" model to test
+		 * significance against.  Note that if n_covars > covar_names.size() + 1, then
+		 * this method will call calculate again.  For an example, see the definition
+		 * in LinearRegression.
+		 * \param run_null Should we run the null model (set to false only if a permutation)
+		 */
+	typedef Result* (calc_fn)(const double*, const double*, unsigned int,
+			unsigned int, unsigned int, unsigned int, bool, const Regression::ExtraData*);
+
+
 	virtual calc_fn& getCalcFn() const = 0;
 
 	virtual const ExtraData* getExtraData() const;
@@ -484,7 +493,9 @@ private:
 	void start(const Data::DataSet& ds, const std::string& outcome);
 
 	void addResult(Result* r);
-	calc_matrix* getCalcMatrix(const Model& m);
+	calc_matrix* getCalcMatrix(const Model& m, const gsl_permutation* permu = 0);
+
+	void initPermutations();
 
 	bool resetPheno(const std::string& pheno);
 	void addUnivariate(Result& r, const Model& m);
@@ -497,57 +508,31 @@ private:
 
 	std::pair<unsigned int, const char*> generateMsg(const Model& m);
 
-private:
-	std::set<std::string>::const_iterator output_itr;
 
-	//! a file of models to use
-	std::vector<std::string> model_files;
-	//! a list of models from the model files
-	std::deque<std::string> _models;
+private:
+	//------------------------------------------------
+	// General running parameters
+
 	//! filename of output
 	std::string out_fn;
-
-	//! List of traits to exclude
-	std::set<std::string> excl_traits;
-
-	//! build models with traits as well?
-	bool include_traits;
-
-	//! generate one-sided pairwise models?
-	bool _onesided;
 
 	//! are we threaded?
 	bool _threaded;
 	//! or using MPI?
 	bool _use_mpi;
 
-	//! Do we want to do a pheWAS??
-	bool _phewas;
-
 	//! Do we want to reduce our memory footprint (print to file, keeping
 	// only the p-values, then sort and print individual lines)
 	bool _lowmem;
 	boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_f;
 
-	//! List of markers to include
-	std::set<std::string> incl_marker_name;
-
 	unsigned int n_threads;
-
 	// number of permutations to calculate p-values - set to 0 to disable
 	// permutation testing.
 	unsigned int n_perms;
 
-	boost::mutex _result_mutex;
-	boost::mutex _model_gen_mutex;
-	boost::mutex _categ_mutex;
-	boost::mutex _univar_mmutex;
-	boost::mutex _univar_tmutex;
-
-	std::map<const PLATO::Data::Marker*, float> categ_weight;
-
-	// vector of all covariates
-	std::vector<std::vector<float> > _covars;
+	// the actual vector of permutations
+	std::vector<gsl_permutation*> permutations;
 
 	//! list of results
 	std::deque<Result*> results;
@@ -555,6 +540,108 @@ private:
 	std::deque<float> result_pvals;
 
 	mutable ExtraData* class_data;
+
+	//! Encoding scheme for the SNPs in the regression
+	EncodingModel encoding;
+
+	//------------------------------------------------
+	// Data variables
+
+	// vector of all covariates
+	std::vector<std::vector<float> > _covars;
+
+	const Data::DataSet* ds_ptr;
+
+	//------------------------------------------------
+	// Result Reporting Variables
+
+	//! raw p-value cutoff for displaying models
+	float cutoff_p;
+
+	//! a set of correction methods to apply to the p-values
+	std::set<CorrectionModel> corr_methods;
+
+	// univariate results by marker and trait
+	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
+	std::map<std::string, Result*> _trait_uni_result;
+
+	std::map<const PLATO::Data::Marker*, float> categ_weight;
+
+	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
+	std::map<unsigned int, unsigned int> _extra_df_map;
+
+	//------------------------------------------------
+	// Model generation variables
+
+	// Model generator to use
+	ModelGenerator* mgp;
+	// Iterator for the current outcome being looked at
+	std::set<std::string>::const_iterator output_itr;
+
+	//! a file of models to use
+	std::vector<std::string> model_files;
+	//! a list of models from the model files
+	std::deque<std::string> _models;
+	//! List of traits to include
+	std::set<std::string> incl_traits;
+	//! List of traits to exclude
+	std::set<std::string> excl_traits;
+	//! List of markers to include
+	std::set<std::string> incl_marker_name;
+	//! covariates to use in the regression
+	std::set<std::string> covar_names;
+	//! covariates to use in the regression DO NOT PERMUTE!
+	std::set<std::string> const_covar_names;
+
+	//! build models with traits as well?
+	bool include_traits;
+	//! generate one-sided pairwise models?
+	bool _onesided;
+	//! include interactions?
+	bool interactions;
+	//! exclude markers? (only use covariates?)
+	bool exclude_markers;
+	//! autogenerate pairwise models
+	bool pairwise;
+	//! Show univariate models
+	bool show_uni;
+	//! Do we want to do a pheWAS??
+	bool _phewas;
+
+	//-----------------------------------------------
+	// Threading variables
+
+	boost::mutex _result_mutex;
+	boost::mutex _model_gen_mutex;
+	boost::mutex _categ_mutex;
+	boost::mutex _univar_mmutex;
+	boost::mutex _univar_tmutex;
+
+	//-----------------------------------------------
+	// MPI Variables
+
+	// The following data structures are needed for MPI to work properly
+	//! A mapping of id -> models for all things currently running
+	std::map<unsigned int, const Model*> work_map;
+	//! mapping of models to locks signifying what they are waiting on
+	//! Note that models in this map have not been queued
+	std::map<const Model*, int*> pre_lock_map;
+	//! mapping of results to locks that they are waiting on to add them to the
+	//! result list.
+	std::map<Result*, int*> post_lock_map;
+	//! mapping for results->generating models for post lock results
+	std::map<Result*, const Model*> post_lock_models;
+	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
+	std::multimap<std::string, int*> work_lock_map;
+
+	//! a queue of models that need to be run
+	std::deque<const Model*> model_queue;
+
+	// current message ID
+	unsigned int msg_id;
+
+	//------------------------------------------------
+	// Structures for sorting results
 
 	struct result_sorter{
 		inline bool operator() (const Result* const & x, const Result* const& y) const{
@@ -574,73 +661,18 @@ private:
 		const std::deque<float>& _v;
 	};
 
-	// The following data structures are needed for MPI to work properly
-	//! A mapping of id -> models for all things currently running
-	std::map<unsigned int, const Model*> work_map;
-	//! mapping of models to locks signifying what they are waiting on
-	//! Note that models in this map have not been queued
-	std::map<const Model*, int*> pre_lock_map;
-	//! mapping of results to locks that they are waiting on to add them to the
-	//! result list.
-	std::map<Result*, int*> post_lock_map;
-	//! mapping for results->generating models for post lock results
-	std::map<Result*, const Model*> post_lock_models;
-	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
-	std::multimap<std::string, int*> work_lock_map;
-
-
-	//! a queue of models that need to be run
-	std::deque<const Model*> model_queue;
-
-	// current message ID
-	unsigned int msg_id;
-
-	ModelGenerator* mgp;
-
-	const Data::DataSet* ds_ptr;
-
-
 protected:
-	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
-	std::map<unsigned int, unsigned int> _extra_df_map;
-
-	//! List of traits to include
-	std::set<std::string> incl_traits;
-
-
-	//! a set of correction methods to apply to the p-values
-	std::set<CorrectionModel> corr_methods;
-	//! covariates to use in the regression
-	std::set<std::string> covar_names;
 	//! A string of the outcome name
 	std::set<std::string> outcome_names;
 
 	//! separator to use while printing output
 	std::string sep;
 
-	//! raw p-value cutoff for displaying models
-	float cutoff_p;
-	//! include interactions?
-	bool interactions;
-	//! exclude markers? (only use covariates?)
-	bool exclude_markers;
-	//! autogenerate pairwise models
-	bool pairwise;
-	//! Show univariate models
-	bool show_uni;
-
-	//! Encoding scheme for the SNPs in the regression
-	EncodingModel encoding;
-
 	// vector of all phenotypes
 	std::vector<float> _pheno;
 
 	//! output stream to print results to
 	std::ofstream out_f;
-
-	// univariate results by marker and trait
-	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
-	std::map<std::string, Result*> _trait_uni_result;
 
 };
 

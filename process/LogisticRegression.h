@@ -39,7 +39,7 @@ protected:
 
 	static Result* calculate(const double* Y, const double* data,
 			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-			unsigned int n_covars, const Regression::ExtraData* other_data);
+			unsigned int n_covars, bool run_null, const Regression::ExtraData* other_data);
 
 	virtual void printVarHeader(const std::string& var_name);
 	virtual bool initData();

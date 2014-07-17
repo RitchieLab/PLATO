@@ -56,11 +56,12 @@ void LinearRegression::parseOptions(const po::variables_map& vm){
 
 bool LinearRegression::initData(){
 
-	vector<float>::const_iterator first_nonmiss = _pheno.begin();
-	while(first_nonmiss != _pheno.end() && !std::isfinite(*first_nonmiss)){
-		++first_nonmiss;
-	}
-	bool good_pheno = (first_nonmiss != _pheno.end());
+	bool good_pheno = false;
+
+	// NOTE: an empty loop where I test if a phenotype is nonmissing (i.e. not NAN)
+	// AND assign that result to good_pheno
+	for(unsigned int i=0; i<_pheno.size() && !(good_pheno = std::isfinite(_pheno[i])); i++);
+
 	if(!good_pheno){
 		Logger::log_err("ERROR: Given phenotype is completely missing", outcome_names.size() <= 1);
 	}
@@ -74,7 +75,7 @@ Regression::calc_fn& LinearRegression::getCalcFn() const{
 Regression::Result* LinearRegression::calculate(
 		const double* Y, const double* data,
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-		unsigned int n_covars, const Regression::ExtraData* extra_data){
+		unsigned int n_covars, bool run_null, const Regression::ExtraData* extra_data){
 
 	//const extraData* extra_data = (const extraData*) (other_data);
 
@@ -96,7 +97,10 @@ Regression::Result* LinearRegression::calculate(
 		unsigned int new_covars = n_covars > extra_data->base_covars ? extra_data->base_covars : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - (reduced_vars), new_covars, extra_data);
+		if(run_null || offset == 0){
+			r->submodel = calculate(Y, data, reduced_vars, n_rows,
+					offset + n_cols - (reduced_vars), new_covars, run_null, extra_data);
+		}
 
 	}
 

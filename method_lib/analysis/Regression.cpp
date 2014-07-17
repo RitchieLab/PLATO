@@ -22,9 +22,10 @@
 #include <iostream>
 #include <cstdio>
 
-#include <gsl/gsl_cdf.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_vector.h>
+#include <gsl/gsl_permute_vector.h>
+//#include <gsl/gsl_randist.h>
 
 #include <boost/iostreams/operations.hpp>
 #include <boost/algorithm/string.hpp>
@@ -110,6 +111,11 @@ Regression::~Regression() {
 	if(class_data){
 		delete class_data;
 	}
+
+	for(unsigned int i=0; i<permutations.size(); i++){
+		gsl_permutation_free(permutations[i]);
+	}
+	permutations.clear();
 }
 
 po::options_description& Regression::addOptions(po::options_description& opts){
@@ -134,6 +140,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 	regress_opts.add_options()
 		("interactions", po::bool_switch(&interactions), "Include interactions in the models generated")
 		("covariates", po::value<vector<string> >()->composing(), "A list of covariates to use in the model")
+		("const-covariates", po::value<vector<string> >()->composing(), "A list of covariates to use in the model, without permutation")
 		("outcome", po::value<vector<string> >()->composing(), "Use a given covariate as the regression model outcome")
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
@@ -176,6 +183,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		InputManager::parseInput(vm["covariates"].as<vector<string> >(), covar_names);
 	}
 
+	if(vm.count("const-covariates")){
+		InputManager::parseInput(vm["const-covariates"].as<vector<string> >(), const_covar_names);
+	}
+
 	if(vm.count("incl-traits")){
 		InputManager::parseInput(vm["incl-traits"].as<vector<string> >(), incl_traits);
 	}
@@ -190,6 +201,23 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 
 	if(vm.count("outcome")){
 		InputManager::parseInput(vm["outcome"].as<vector<string> >(), outcome_names);
+	}
+
+	// check for overlap between covariates and const-covariates
+	set<string> covar_overlap;
+	std::set_intersection(covar_names.begin(), covar_names.end(),
+			const_covar_names.begin(), const_covar_names.end(),
+			std::inserter(covar_overlap, covar_overlap.begin()));
+
+	if(covar_overlap.size() > 0){
+		Logger::log_err("WARNING: overlapping covariates and const-covariates.  "
+				"Removing overlapping covariates from the const-covariate list.");
+		set<string> tmp_set;
+		std::set_difference(const_covar_names.begin(), const_covar_names.end(),
+				covar_overlap.begin(), covar_overlap.end(),
+				std::inserter(tmp_set, tmp_set.begin()));
+		const_covar_names.clear();
+		const_covar_names.insert(tmp_set.begin(), tmp_set.end());
 	}
 
 	if(_phewas){
@@ -293,6 +321,13 @@ void Regression::runRegression(const DataSet& ds){
 						    covar_names.begin(), covar_names.end(),
 						    std::inserter(outcome_names, outcome_names.begin()));
 
+		outcome_tmp.clear();
+		std::set_difference(outcome_names.begin(), outcome_names.end(),
+				const_covar_names.begin(), const_covar_names.end(),
+				std::inserter(outcome_tmp, outcome_tmp.begin()));
+		outcome_names.clear();
+		outcome_names.insert(outcome_tmp.begin(), outcome_tmp.end());
+
 		if(include_traits){
 			outcome_tmp.clear();
 			std::set_difference(outcome_names.begin(), outcome_names.end(),
@@ -339,8 +374,11 @@ void Regression::runRegression(const DataSet& ds){
 							outcome_names.begin(), outcome_names.end(),
 							std::inserter(tmp_alltrait, tmp_alltrait.begin()));
 
+		// remove the const covariates
 		all_traits.clear();
-		all_traits.insert(tmp_alltrait.begin(), tmp_alltrait.end());
+		std::set_difference(tmp_alltrait.begin(), tmp_alltrait.end(),
+				const_covar_names.begin(), const_covar_names.end(),
+				std::inserter(all_traits, all_traits.begin()));
 	}
 
 	if(include_traits){
@@ -368,8 +406,11 @@ void Regression::runRegression(const DataSet& ds){
 						    outcome_names.begin(), outcome_names.end(),
 						    std::inserter(tmp_trait, tmp_trait.begin()));
 
+		// and take out the const covariates
 		incl_traits.clear();
-		incl_traits.insert(tmp_trait.begin(), tmp_trait.end());
+		std::set_difference(tmp_trait.begin(), tmp_trait.end(),
+				const_covar_names.begin(), const_covar_names.end(),
+				std::inserter(incl_traits, incl_traits.begin()));
 
 	}else{
 		incl_traits.clear();
@@ -409,6 +450,17 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	}
 
+	covar_itr = const_covar_names.begin();
+	while (covar_itr != const_covar_names.end()) {
+		if (!ds.isTrait(*covar_itr)) {
+			Utility::Logger::log_err("WARNING: '" + *covar_itr
+					+ "' is not a recognized covariate, ignoring.");
+			const_covar_names.erase(covar_itr++);
+		} else {
+			++covar_itr;
+		}
+	}
+
 	unsigned int n_snp = 0;
 	unsigned int n_trait = 0;
 
@@ -439,7 +491,7 @@ void Regression::runRegression(const DataSet& ds){
 	// Add in  the extra dfs, along with their column IDs
 	if(encoding == Encoding::WEIGHTED){
 		for(unsigned int i=0; i<n_snp; i++){
-			_extra_df_map[covar_names.size() + 1 + i] = 1;
+			_extra_df_map[covar_names.size() + const_covar_names.size() + 1 + i] = 1;
 		}
 	}
 
@@ -464,12 +516,22 @@ void Regression::runRegression(const DataSet& ds){
 	// Now, set up the outcome variable and the covariates
 	while(si != ds.endSample()){
 		// now, set up the covariate vector(s)
-		_covars.resize(covar_names.size());
+		_covars.reserve(covar_names.size() + const_covar_names.size());
 		set<string>::const_iterator covar_itr = covar_names.begin();
+		set<string>::const_iterator c_covar_itr = const_covar_names.begin();
 		vector<vector<float> >::iterator val_itr = _covars.begin();
+
+
 		while(covar_itr != covar_names.end()){
 			(*val_itr).push_back(ds.getTrait(*covar_itr, *si));
 			++covar_itr;
+			++val_itr;
+		}
+
+		// Put the const covariates AFTER the "regular" covariates
+		while(c_covar_itr != const_covar_names.end()){
+			(*val_itr).push_back(ds.getTrait(*c_covar_itr, *si));
+			++c_covar_itr;
 			++val_itr;
 		}
 		++si;
@@ -506,6 +568,8 @@ void Regression::runRegression(const DataSet& ds){
 		while(!resetPheno(*output_itr) && ++output_itr != outcome_names.end());
 	}
 
+	initPermutations();
+
 	if(_use_mpi){
 		processMPI();
 	} else {
@@ -538,6 +602,27 @@ void Regression::runRegression(const DataSet& ds){
 	}
 
 	printResults();
+}
+
+void Regression::initPermutations(){
+	// Initialize and save the permuations.
+	// NOTE: we are going to assume we have already set up the phenotype vector
+	 const gsl_rng_type * T;
+	 gsl_rng * r;
+
+	 gsl_rng_env_setup();
+	 T = gsl_rng_default;
+	 r = gsl_rng_alloc (T);
+
+	 permutations.reserve(n_perms);
+
+	 for(unsigned int i=0; i<n_perms; i++){
+		 gsl_permutation* p = gsl_permutation_alloc(_pheno.size());
+		 gsl_permutation_init(p);
+		 gsl_ran_shuffle(r, p->data, p->size, sizeof(size_t));
+		 permutations.push_back(p);
+	 }
+
 }
 
 void Regression::start(const DataSet& ds, const string& outcome){
@@ -809,11 +894,12 @@ float Regression::getCategoricalWeight(const Marker* m){
 
 }
 
-Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
+Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_permutation* permu){
 	calc_matrix* ret_val = new calc_matrix();
 
 	unsigned int numLoci = m.markers.size();
-	unsigned int numCovars = covar_names.size();
+	unsigned int numCovars = covar_names.size() + const_covar_names.size();
+	unsigned int permuCovars = covar_names.size();
 	unsigned int numTraits = m.traits.size();
 	unsigned int n_vars = numLoci + numTraits;
 	unsigned int n_interact = 0;
@@ -843,6 +929,35 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
 	// Allocate a huge amount of memory for the regression here
 	ret_val->outcome = new double[_pheno.size()];
 	ret_val->data = new double[_pheno.size()* ret_val->n_cols];
+
+	// Let's do some permutations (if necessary)
+	gsl_vector_float* pheno_perm;
+	vector<gsl_vector_float*> covars_perm;
+	covars_perm.reserve(permuCovars);
+	gsl_vector_float_view perm_view = gsl_vector_float_view_array(&_pheno[0], _pheno.size());
+	vector<gsl_vector_float_view> covars_view;
+	covars_view.reserve(permuCovars);
+
+	if(permu != 0){
+		// apply the permutation to the phenotype permuation
+		pheno_perm = gsl_vector_float_alloc(perm_view.vector.size);
+		gsl_vector_float_memcpy(pheno_perm, &perm_view.vector);
+		gsl_permute_vector_float(permu, pheno_perm);
+
+		gsl_vector_float* tmp_vec;
+		for(unsigned int i=0; i<covars_view.size(); i++){
+			tmp_vec = gsl_vector_float_alloc(covars_view[i].vector.size);
+			gsl_vector_float_memcpy(tmp_vec, &covars_view[i].vector);
+			gsl_permute_vector_float(permu, tmp_vec);
+			covars_perm.push_back(tmp_vec);
+		}
+
+	} else {
+		pheno_perm = &perm_view.vector;
+		for(unsigned int i=0; i<covars_view.size(); i++){
+			covars_perm.push_back(&covars_view[i].vector);
+		}
+	}
 
 	boost::multi_array_ref<double, 2> regress_data(ret_val->data, boost::extents[_pheno.size()][ret_val->n_cols]);
 	//typedef boost::multi_array<double, 3> array_type;
@@ -877,9 +992,15 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
 		row_data[pos++] = 1;
 
 		// Now, the covariates
-		for(unsigned int i=0; i<_covars.size(); i++){
+		for(unsigned int i=0; i<permuCovars; i++){
+			row_data[pos++] = gsl_vector_float_get(covars_perm[i], n_samples);
+		}
+
+		// Now, the unpermuted covariates
+		for(unsigned int i=permuCovars; i<_covars.size(); i++){
 			row_data[pos++] = _covars[i][n_samples];
 		}
+
 
 		// Now, work through the markers
 		for (unsigned int i = 0; i<numLoci; i++){
@@ -938,7 +1059,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
 		}
 
 		// OK, check for missingness before adding it to the dataset
-		bool ismissing = std::isnan(_pheno[n_samples]);
+		bool ismissing = std::isnan(gsl_vector_float_get(pheno_perm, n_samples));
 		for(unsigned int i=0; i<pos; i++){
 			ismissing |= std::isnan(row_data[i]);
 		}
@@ -949,7 +1070,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
 			}
 			// do a fast memory copy into the data for regression
 			std::memcpy(&regress_data[n_samples - n_missing][0], row_data, sizeof(double) * (pos));
-			ret_val->outcome[n_samples - n_missing] = _pheno[n_samples];
+			ret_val->outcome[n_samples - n_missing] = gsl_vector_float_get(pheno_perm, n_samples);
 		} else {
 			++n_missing;
 		}
@@ -986,6 +1107,14 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m){
 		ss.clear();
 	}
 
+	// delete the permuted data, please!
+	if(permu != 0){
+		gsl_vector_float_free(pheno_perm);
+		for(unsigned int i=0; i<covars_perm.size(); i++){
+			gsl_vector_float_free(covars_perm[i]);
+		}
+	}
+
 	return ret_val;
 }
 
@@ -999,24 +1128,41 @@ Regression::Result* Regression::run(const Model& m) {
 
 	if(all_data){
 		r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
-				all_data->n_sampl, 0, all_data->red_vars, getExtraData());
+				all_data->n_sampl, 0, all_data->red_vars, true, getExtraData());
+
+		if(r){
+			// print the # missing from this model
+			r->prefix = all_data->prefix;
+
+			if(encoding == Encoding::WEIGHTED && m.markers.size() == 1 && m.traits.size() == 0 && !m.categorical){
+				//ss << categ_weight[0] << sep;
+				r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
+			}
+		}
+
+		delete all_data;
+		if(r && n_perms > 0){
+			int n_better = 0;
+			for(unsigned int i=0; i<n_perms; i++){
+				all_data = getCalcMatrix(m, permutations[i]);
+				if(all_data){
+					Result *tmp_r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
+							all_data->n_sampl, 0, all_data->red_vars, false, getExtraData());
+
+					if(tmp_r){
+						n_better += tmp_r->p_val < r->p_val;
+						delete tmp_r;
+					}
+					delete all_data;
+				}
+			}
+
+			r->p_val = n_better / static_cast<float>(n_perms);
+			all_data = 0;
+		}
 	}else{
 		Logger::log_err("WARNING: not enough samples in model: '" + m.getID() + "'!");
 		r = 0;
-	}
-
-	if(r){
-		// print the # missing from this model
-		r->prefix = all_data->prefix;
-
-		if(encoding == Encoding::WEIGHTED && m.markers.size() == 1 && m.traits.size() == 0 && !m.categorical){
-			//ss << categ_weight[0] << sep;
-			r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
-		}
-	}
-
-	if(all_data){
-		delete all_data;
 	}
 
 	return r;
@@ -1242,7 +1388,8 @@ const Regression::ExtraData* Regression::getExtraData() const{
 	if(!class_data){
 		class_data = new ExtraData();
 		class_data->encoding = encoding;
-		class_data->base_covars = covar_names.size();
+		class_data->const_covars = const_covar_names.size();
+		class_data->base_covars = covar_names.size() + const_covar_names.size();
 		class_data->sep = sep;
 		class_data->n_extra_df_col = 0;
 		for(map<unsigned int, unsigned int>::const_iterator dfi = _extra_df_map.begin();
@@ -1441,7 +1588,7 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// If I'm here, I might generate some post-locking models, so
 		// send a "please wait" message
 		retval = pair<unsigned int, const char*>(work_map.size(), 0);
-	} else if(output_itr != outcome_names.end() && ++output_itr != outcome_names.end()){
+	} else if(++output_itr != outcome_names.end()){
 
 		// Note the empty loop here - we will check and make sure that the
 		// phenotype is good and continue until we either run out or find
@@ -1451,10 +1598,10 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// If I'm here, I have another phenotype to run!
 		if(output_itr != outcome_names.end()){
 			mgp->reset();
-			// I don't want to recreate the logic above by creating a new model,
-			// so just send a "we have more" signal and prepare to generate a new model
-			retval = nextQuery();
 		}
+		// I don't want to recreate the logic above by creating a new model,
+		// so just send a "we have more" signal and prepare to generate a new model
+		retval = pair<unsigned int, const char*>(-1,0);
 	}
 	// empty else statement means that there is really NOTHING else to run!
 
@@ -1621,7 +1768,7 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 
 
 	Result* r = func(q.calc_data->outcome, q.calc_data->data,
-			q.calc_data->n_cols, q.calc_data->n_sampl, 0, q.calc_data->red_vars,
+			q.calc_data->n_cols, q.calc_data->n_sampl, 0, q.calc_data->red_vars, true,
 			q.class_data);
 
 	if(r){

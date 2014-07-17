@@ -125,7 +125,7 @@ const Regression::ExtraData* LogisticRegression::getExtraData() const{
 Regression::Result* LogisticRegression::calculate(
 		const double* Y, const double* data,
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-		unsigned int n_covars, const Regression::ExtraData* other_data){
+		unsigned int n_covars, bool run_null, const Regression::ExtraData* other_data){
 
 	const ExtraData* extra_data = dynamic_cast<const ExtraData*>(other_data);
 	if(!extra_data){
@@ -151,7 +151,10 @@ Regression::Result* LogisticRegression::calculate(
 		unsigned int new_covars = n_covars > extra_data->base_covars ? extra_data->base_covars : 0;
 
 		// the offset is now the old offset + difference in the number of added variables
-		r->submodel = calculate(Y, data, reduced_vars, n_rows, offset + n_cols - reduced_vars, new_covars, other_data);
+		if(run_null || offset == 0){
+			r->submodel = calculate(Y, data, reduced_vars, n_rows,
+					offset + n_cols - reduced_vars, new_covars, run_null, other_data);
+		}
 	}
 
 
