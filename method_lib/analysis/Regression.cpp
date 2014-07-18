@@ -794,6 +794,10 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 
 	out_f << "Overall_Pval";
 
+	if(n_perms > 0){
+		out_f << sep << "Permuted_Pval";
+	}
+
 	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
 	while (c_itr != corr_methods.end()) {
 		out_f << sep << "Overall_Pval_adj_" << *c_itr;
@@ -1157,6 +1161,7 @@ Regression::Result* Regression::run(const Model& m) {
 				}
 			}
 
+			r->suffix += boost::lexical_cast<string>(r->p_val) + sep;
 			r->p_val = n_better / static_cast<float>(n_perms);
 			all_data = 0;
 		}
