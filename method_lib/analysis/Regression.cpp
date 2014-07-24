@@ -513,6 +513,11 @@ void Regression::runRegression(const DataSet& ds){
 
 	}
 
+	for(unsigned int i=0; i<covar_names.size() + const_covar_names.size(); i++){
+		_covars.push_back(vector<float>());
+		_covars[_covars.size() - 1].reserve(_pheno.size());
+	}
+
 	// Now, set up the outcome variable and the covariates
 	while(si != ds.endSample()){
 		// now, set up the covariate vector(s)
@@ -941,6 +946,10 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_per
 	gsl_vector_float_view perm_view = gsl_vector_float_view_array(&_pheno[0], _pheno.size());
 	vector<gsl_vector_float_view> covars_view;
 	covars_view.reserve(permuCovars);
+	for(unsigned int i=0; i<_covars.size(); i++){
+		gsl_vector_float_view c_view = gsl_vector_float_view_array(&_covars[i][0], _covars[i].size());
+		covars_view.push_back(c_view);
+	}
 
 	if(permu != 0){
 		// apply the permutation to the phenotype permuation
