@@ -18,37 +18,46 @@ using std::pair;
 
 namespace PLATO{
 
-void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval, unsigned int tag){
+MPIProcess::MPIProcess() :_tag(0), n_procs(1) {
+#ifdef HAVE_CXX_MPI
+	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
+#endif
+}
+
+void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
 	// Note: if we don't have MPI, you REALLY shouldn't be here!
 #ifdef HAVE_CXX_MPI
 	if(nextval.second != 0){
 		int recv = _idle_queue.front();
 		_idle_queue.pop_front();
-		MPI_Send(const_cast<char*>(nextval.second), nextval.first, MPI_CHAR, recv, tag, MPI_COMM_WORLD);
+		MPI_Send(const_cast<char*>(nextval.second), nextval.first, MPI_CHAR, recv, _tag, MPI_COMM_WORLD);
 	}
 #endif
 }
 
 void MPIProcess::sendAll(unsigned int bufsz, const char* buf) const{
-	unsigned int tag = MPIProcessFactory::getFactory().getKeyPos(getMPIName());
-
 #ifdef HAVE_CXX_MPI
 	for(unsigned int i=1; i<n_procs; i++){
-		MPI_Isend(const_cast<char*>(buf), bufsz, MPI_CHAR, i, tag, MPI_COMM_WORLD);
+		MPI_Request req;
+		MPI_Isend(const_cast<char*>(buf), bufsz, MPI_CHAR, i, _tag, MPI_COMM_WORLD, &req);
+		MPI_Request_free(&req);
 	}
-
 #endif
 }
 
 void MPIProcess::collect(){
 
 #ifdef HAVE_CXX_MPI
+	MPI_Status m_stat;
+	char* buf;
+	int bufsz;
+
 	for(unsigned int j=1; j<n_procs - _idle_queue.size(); j++){
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];
 
-		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, tag, MPI_COMM_WORLD, &m_stat);
+		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, _tag, MPI_COMM_WORLD, &m_stat);
 		processResponse(bufsz, buf);
 		delete[] buf;
 	}
@@ -58,7 +67,6 @@ void MPIProcess::collect(){
 void MPIProcess::processMPI(){
 
 	pair<unsigned int, const char*> nextval = nextQuery();
-	unsigned int tag = MPIProcessFactory::getFactory().getKeyPos(getMPIName());
 
 #ifdef HAVE_CXX_MPI
 	int n_procs;
@@ -77,7 +85,7 @@ void MPIProcess::processMPI(){
 	while(nextval.first != 0){
 		// send all the messages I can:
 		while(nextval.second != 0 && !_idle_queue.empty()){
-			sendMPI(nextval, tag);
+			sendMPI(nextval);
 			delete[] nextval.second;
 			nextval = nextQuery();
 		}
@@ -111,7 +119,7 @@ void MPIProcess::processMPI(){
 
 	while(nextval.first != 0){
 		if(nextval.second != 0){
-			calc_val = MPIProcessFactory::getFactory().calculate(tag, nextval.first, nextval.second);
+			calc_val = MPIProcessFactory::getFactory().calculate(_tag, nextval.first, nextval.second);
 			delete[] nextval.second;
 			processResponse(calc_val.first, calc_val.second);
 			delete[] calc_val.second;
