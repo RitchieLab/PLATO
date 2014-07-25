@@ -29,6 +29,32 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval, unsigne
 #endif
 }
 
+void MPIProcess::sendAll(unsigned int bufsz, const char* buf) const{
+	unsigned int tag = MPIProcessFactory::getFactory().getKeyPos(getMPIName());
+
+#ifdef HAVE_CXX_MPI
+	for(unsigned int i=1; i<n_procs; i++){
+		MPI_Isend(const_cast<char*>(buf), bufsz, MPI_CHAR, i, tag, MPI_COMM_WORLD);
+	}
+
+#endif
+}
+
+void MPIProcess::collect(){
+
+#ifdef HAVE_CXX_MPI
+	for(unsigned int j=1; j<n_procs - _idle_queue.size(); j++){
+		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
+		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
+		buf = new char[bufsz];
+
+		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, tag, MPI_COMM_WORLD, &m_stat);
+		processResponse(bufsz, buf);
+		delete[] buf;
+	}
+#endif
+}
+
 void MPIProcess::processMPI(){
 
 	pair<unsigned int, const char*> nextval = nextQuery();
@@ -76,21 +102,8 @@ void MPIProcess::processMPI(){
 
 	// If we're here, we have nothing more to process, so please wait for all
 	// outstanding responses
-	for(unsigned int j=1; j<n_procs - _idle_queue.size(); j++){
-		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
-		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
-		buf = new char[bufsz];
-		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, tag, MPI_COMM_WORLD, &m_stat);
+	collect();
 
-		processResponse(bufsz, buf);
-		delete[] buf;
-	}
-
-	// Now we need to send the special "please die now" message
-	// (in our case, this is a 0-length message with tag 0
-	for(int j=1; j<n_procs; j++){
-		MPI_Send(0, 0, MPI_CHAR, j, 0, MPI_COMM_WORLD);
-	}
 
 #else
 	Utility::Logger::log_err("WARNING: MPI requested, but no MPI found during compilation!");

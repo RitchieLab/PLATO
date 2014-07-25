@@ -34,6 +34,7 @@ util/GSLUtils.h \
 util/GSLUtils.cpp \
 util/ICompressedFile.h \
 util/ICompressedFile.cpp \
+util/MPIUtils.h \
 analysis/Correction.h \
 analysis/Correction.cpp \
 analysis/Encoding.h \

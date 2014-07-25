@@ -9,6 +9,7 @@
 
 #include "util/InputManager.h"
 #include "util/Logger.h"
+#include "util/MPIUtils.h"
 
 #include "data/Marker.h"
 #include "data/Sample.h"
@@ -21,25 +22,19 @@
 #include <sstream>
 #include <iostream>
 #include <cstdio>
+#include <ctime>
+#include <cstdlib>
+#include <typeinfo>
 
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_permute_vector.h>
-//#include <gsl/gsl_randist.h>
 
 #include <boost/iostreams/operations.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/multi_array.hpp>
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-
-//#define binary_iarchive text_iarchive
-//#define binary_oarchive text_oarchive
 
 #include <boost/serialization/export.hpp>
 
@@ -68,16 +63,38 @@ using PLATO::Data::Marker;
 using PLATO::Data::Sample;
 using PLATO::Utility::InputManager;
 using PLATO::Utility::Logger;
+using PLATO::Utility::MPIUtils;
+
+using boost::dynamic_bitset;
 
 namespace po=boost::program_options;
 
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::ExtraData)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_data)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_marker)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_trait)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_pheno)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_query)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_extra)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_permu)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_covars)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_bcast)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_clean)
 
 namespace PLATO{
 
 namespace Analysis{
 
-//BOOST_CLASS_EXPORT_GUID(Regression::ExtraData,"red")
+std::deque<std::pair<boost::dynamic_bitset<>, float> > Regression::_marker_data;
+std::deque<std::string> Regression::_marker_desc;
+std::deque<std::string> Regression::_trait_desc;
+std::deque<std::vector<float> > Regression::_trait_data;
+std::deque<std::vector<float> > Regression::_covar_data;
+unsigned int Regression::n_const_covars = 0;
+std::deque<gsl_permutation*> Regression::_permu_data;
+std::vector<float> Regression::_curr_pheno;
+Regression::ExtraData* Regression::_extra_data = 0;
+
 
 Regression::~Regression() {
 	for (unsigned int i = 0; i < results.size(); i++){
@@ -147,6 +164,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
 		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
 		("permutations", po::value<unsigned int>(&n_perms)->default_value(0), "Number of permutations to use in permutation testing (disabled by default - set to 0 to disable permutation)")
+		("permu-seed", po::value<unsigned long int>(&permu_seed), "Seed for the RNG for generating permutations")
 		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
 		("separator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
@@ -201,6 +219,12 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 
 	if(vm.count("outcome")){
 		InputManager::parseInput(vm["outcome"].as<vector<string> >(), outcome_names);
+	}
+
+	// If no permutation seed given, generate a "random" seed
+	if(!vm.count("permu-seed")){
+		srand(time(NULL));
+		permu_seed = rand();
 	}
 
 	// check for overlap between covariates and const-covariates
@@ -295,6 +319,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(_lowmem){
 		tmp_f.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
 				std::ios_base::binary | std::ios_base::in | std::ios_base::out);
+	}
+
+	if(encoding == Encoding::WEIGHTED){
+		weight_complete = false;
 	}
 
 }
@@ -518,13 +546,15 @@ void Regression::runRegression(const DataSet& ds){
 		_covars[_covars.size() - 1].reserve(_pheno.size());
 	}
 
+
+
 	// Now, set up the outcome variable and the covariates
 	while(si != ds.endSample()){
 		// now, set up the covariate vector(s)
-		_covars.reserve(covar_names.size() + const_covar_names.size());
+		//_covars.reserve(covar_names.size() + const_covar_names.size());
 		set<string>::const_iterator covar_itr = covar_names.begin();
 		set<string>::const_iterator c_covar_itr = const_covar_names.begin();
-		vector<vector<float> >::iterator val_itr = _covars.begin();
+		deque<vector<float> >::iterator val_itr = _covars.begin();
 
 
 		while(covar_itr != covar_names.end()){
@@ -573,9 +603,10 @@ void Regression::runRegression(const DataSet& ds){
 		while(!resetPheno(*output_itr) && ++output_itr != outcome_names.end());
 	}
 
-	initPermutations();
+	initPermutations(n_perms, _pheno.size(), permutations, permu_seed);
 
 	if(_use_mpi){
+		initMPI();
 		processMPI();
 	} else {
 		while(output_itr != outcome_names.end()){
@@ -609,7 +640,8 @@ void Regression::runRegression(const DataSet& ds){
 	printResults();
 }
 
-void Regression::initPermutations(){
+void Regression::initPermutations(unsigned int n_perm, unsigned int sz,
+		deque<gsl_permutation*>& perm_list, unsigned long int seed){
 	// Initialize and save the permuations.
 	// NOTE: we are going to assume we have already set up the phenotype vector
 	 const gsl_rng_type * T;
@@ -618,14 +650,13 @@ void Regression::initPermutations(){
 	 gsl_rng_env_setup();
 	 T = gsl_rng_default;
 	 r = gsl_rng_alloc (T);
+	 gsl_rng_set(r, seed);
 
-	 permutations.reserve(n_perms);
-
-	 for(unsigned int i=0; i<n_perms; i++){
-		 gsl_permutation* p = gsl_permutation_alloc(_pheno.size());
+	 for(unsigned int i=0; i<n_perm; i++){
+		 gsl_permutation* p = gsl_permutation_alloc(sz);
 		 gsl_permutation_init(p);
 		 gsl_ran_shuffle(r, p->data, p->size, sizeof(size_t));
-		 permutations.push_back(p);
+		 perm_list.push_back(p);
 	 }
 
 }
@@ -843,6 +874,7 @@ void Regression::addUnivariate(Result& r, const Model& m){
 		if (m_itr == _marker_uni_result.end()) {
 			Model uni_m;
 			uni_m.markers.push_back(m.markers[i]);
+			uni_m.permute = false;
 			m_itr = _marker_uni_result.insert(
 					_marker_uni_result.begin(),
 					std::make_pair(m.markers[i], run(uni_m)));
@@ -858,11 +890,12 @@ void Regression::addUnivariate(Result& r, const Model& m){
 				_trait_uni_result.find(m.traits[i]);
 		// If this is the case, we have not seen this marker before
 		if (t_itr == _trait_uni_result.end()) {
-			Model m;
-			m.traits.push_back(m.traits[i]);
+			Model t_m;
+			t_m.traits.push_back(m.traits[i]);
+			t_m.permute = false;
 			t_itr = _trait_uni_result.insert(
 					_trait_uni_result.begin(),
-					std::make_pair(m.traits[i], run(m)));
+					std::make_pair(m.traits[i], run(t_m)));
 		}
 		_univar_tmutex.unlock();
 
@@ -903,198 +936,218 @@ float Regression::getCategoricalWeight(const Marker* m){
 
 }
 
-Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_permutation* permu){
+unsigned int Regression::getNumCols(unsigned int n_loci, unsigned int n_trait, unsigned int n_covar,
+		bool interact, bool categorical){
+	unsigned int n_cols = 1 + n_covar + n_loci + n_trait;
+	if(categorical){
+		n_cols += n_loci;
+	}
+
+	if(interact){
+		unsigned int n_vars = n_cols = 1 - n_covar;
+		n_cols += (n_vars * (n_vars - 1)) / 2;
+		if(categorical){
+			// we don't do interactions w/in category, so subtract the # of loci
+			n_cols -= n_loci;
+		}
+	}
+
+	return n_cols;
+}
+
+bool Regression::addDataRow(boost::multi_array_ref<double, 2>& out_data,
+		const vector<float>& covar_vals, const vector<unsigned char>& geno_vals,
+		const vector<float>& geno_weight, const vector<float>& trait_vals,
+		const EncodingModel& enc, bool interact, bool categorical,
+		unsigned int& n_samples, unsigned int& n_missing){
+
+	unsigned int n_cols = out_data.shape()[1];
+	double row_data[n_cols];
+	unsigned int pos = 0;
+
+	// first position is ALWAYS 1!
+	row_data[pos++] = 1;
+
+	// Now, the covariates
+	for(unsigned int i=0; i<covar_vals.size(); i++){
+		row_data[pos++] = covar_vals[i];
+	}
+
+	// Now, work through the markers
+	for (unsigned int i = 0; i<geno_vals.size(); i++){
+		unsigned char g = geno_vals[i];
+
+		if(g == Sample::missing_allele){
+			row_data[pos++] = numeric_limits<double>::quiet_NaN();
+			if(categorical || enc == Encoding::CODOMINANT){
+				row_data[pos++] = numeric_limits<double>::quiet_NaN();
+			}
+		} else {
+			if(categorical){
+				row_data[pos++] = EncodingModel(Encoding::DOMINANT)(g);
+				row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(g);
+			} else if (enc == Encoding::CODOMINANT){
+				row_data[pos++] = (g == 1);
+				row_data[pos++] = (g == 2);
+			}else if (enc == Encoding::WEIGHTED){
+				// works if w in [0,1]
+				row_data[pos++] = geno_weight[i] * (g == 1) + (g == 2);
+			} else {
+				row_data[pos++] = enc(g);
+			}
+		}
+	}
+
+	// Now, work through the traits
+	for(unsigned int i = 0; i < trait_vals.size(); i++){
+		row_data[pos++] = trait_vals[i];
+	}
+
+	unsigned int numCovars = covar_vals.size();
+	unsigned int n_vars = geno_vals.size() + trait_vals.size();
+	unsigned int n_loci = geno_vals.size();
+	// Now, the interaction terms
+	for (unsigned int i = 0; interact && i < n_vars; i++) {
+		for (unsigned int j = i + 1; j < (n_vars); j++) {
+			if(categorical || enc == Encoding::CODOMINANT){
+				// we have to be a little careful here.
+				if(i < n_loci){
+					if(j < n_loci){
+						row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j*2 + numCovars + 1];
+						row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j*2 + numCovars + 2];
+						row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j*2 + numCovars + 1];
+						row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j*2 + numCovars + 2];
+					} else {
+						row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j + n_loci + numCovars + 1];
+						row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j + n_loci + numCovars + 1];
+					}
+				} else {
+					row_data[pos++] = row_data[i + n_loci + numCovars + 1] * row_data[j + n_loci + numCovars + 1];
+				}
+
+			}else{
+				row_data[pos++] = row_data[i + numCovars + 1] * row_data[j + numCovars + 1];
+			}
+		}
+	}
+
+	// OK, check for missingness before adding it to the dataset
+	// NOTE: we ASSUME that the phenotype is not missing here!
+	bool ismissing = false;
+	for(unsigned int i=0; !ismissing && i<pos; i++){
+		ismissing |= std::isnan(row_data[i]);
+	}
+
+	if(!ismissing){
+		// do a fast memory copy into the data for regression
+		std::memcpy(&out_data[n_samples - n_missing][0], row_data, sizeof(double) * (pos));
+		//ret_val->outcome[n_samples - n_missing] = pheno_perm[n_samples];
+	} else {
+		++n_missing;
+	}
+
+	++n_samples;
+
+	return ismissing;
+}
+
+Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gsl_permutation* permu){
 	calc_matrix* ret_val = new calc_matrix();
 
-	unsigned int numLoci = m.markers.size();
-	unsigned int numCovars = covar_names.size() + const_covar_names.size();
-	unsigned int permuCovars = covar_names.size();
-	unsigned int numTraits = m.traits.size();
-	unsigned int n_vars = numLoci + numTraits;
-	unsigned int n_interact = 0;
+	unsigned int numLoci = mq.marker_idx.size();
+	unsigned int numCovars = _covar_data.size();
+	unsigned int permuCovars = numCovars - n_const_covars;
+	unsigned int numTraits = mq.trait_idx.size();
 
-	// determine size of row for each sample in dataset
-	ret_val->n_cols = 1 + numCovars + numLoci + numTraits ;
-	if(m.categorical){
-		ret_val->n_cols += numLoci - numTraits;
-	} else if (interactions){
-		n_interact += (n_vars * (n_vars - 1))/2;
-		ret_val->n_cols += n_interact;
-	}
-
-	if(encoding == Encoding::CODOMINANT){
-		// If we have codominant encoding, we need an extra column for every SNP
-		ret_val->n_cols += numLoci;
-
-		// If we have interactions (bleh!), we need an extra column for every
-		// SNP-Trait pair and 3 extra columns for every SNP-SNP pair!
-		if(interactions){
-			unsigned int toadd = numLoci * numTraits + 3 * numLoci * (numLoci - 1) / 2;
-			n_interact += toadd;
-			ret_val->n_cols += toadd;
-		}
-	}
+	ret_val->n_cols = getNumCols(numLoci, numTraits, numCovars, _extra_data->interactions,
+			(mq.categorical || _extra_data->encoding == Encoding::CODOMINANT));
 
 	// Allocate a huge amount of memory for the regression here
-	ret_val->outcome = new double[_pheno.size()];
-	ret_val->data = new double[_pheno.size()* ret_val->n_cols];
+	ret_val->outcome = new double[_curr_pheno.size()];
+	ret_val->data = new double[_curr_pheno.size()* ret_val->n_cols];
 
-	// Let's do some permutations (if necessary)
-	gsl_vector_float* pheno_perm;
-	vector<gsl_vector_float*> covars_perm;
-	covars_perm.reserve(permuCovars);
-	gsl_vector_float_view perm_view = gsl_vector_float_view_array(&_pheno[0], _pheno.size());
-	vector<gsl_vector_float_view> covars_view;
-	covars_view.reserve(permuCovars);
-	for(unsigned int i=0; i<_covars.size(); i++){
-		gsl_vector_float_view c_view = gsl_vector_float_view_array(&_covars[i][0], _covars[i].size());
-		covars_view.push_back(c_view);
-	}
+	// Give the permutation here
+	float *pheno_perm;
+	vector<float *> covars_perm;
+	permuteData(_curr_pheno, pheno_perm, _covar_data, covars_perm, permuCovars, permu);
 
-	if(permu != 0){
-		// apply the permutation to the phenotype permuation
-		pheno_perm = gsl_vector_float_alloc(perm_view.vector.size);
-		gsl_vector_float_memcpy(pheno_perm, &perm_view.vector);
-		gsl_permute_vector_float(permu, pheno_perm);
+	boost::multi_array_ref<double, 2> regress_data(ret_val->data, boost::extents[_curr_pheno.size()][ret_val->n_cols]);
 
-		gsl_vector_float* tmp_vec;
-		for(unsigned int i=0; i<covars_view.size(); i++){
-			tmp_vec = gsl_vector_float_alloc(covars_view[i].vector.size);
-			gsl_vector_float_memcpy(tmp_vec, &covars_view[i].vector);
-			gsl_permute_vector_float(permu, tmp_vec);
-			covars_perm.push_back(tmp_vec);
-		}
-
-	} else {
-		pheno_perm = &perm_view.vector;
-		for(unsigned int i=0; i<covars_view.size(); i++){
-			covars_perm.push_back(&covars_view[i].vector);
-		}
-	}
-
-	boost::multi_array_ref<double, 2> regress_data(ret_val->data, boost::extents[_pheno.size()][ret_val->n_cols]);
-	//typedef boost::multi_array<double, 3> array_type;
-	//typedef array_type::index index;
-	//  array_type A(boost::extents[3][4][2])
-
-	double row_data[ret_val->n_cols];
-	unsigned char geno[numLoci];
 	float maf_sum[numLoci];
-	double categ_weight[numLoci];
-
-	DataSet::const_sample_iterator si = ds_ptr->beginSample();
-	DataSet::const_sample_iterator se = ds_ptr->endSample();
-
-	unsigned int n_samples = 0;
-	unsigned int n_missing = 0;
 
 	for(unsigned int i=0; i<numLoci; i++){
 		maf_sum[i] = 0;
 	}
 
-	if ((!m.categorical) && encoding == Encoding::WEIGHTED){
-		for (unsigned int i = 0; i<numLoci; i++){
-			categ_weight[i] = getCategoricalWeight(m.markers[i]);
-		}
-	}
-	//DataSet::const_sample_iterator se = ds.endSample();
+	vector<float> covar_data;
+	covar_data.reserve(_covar_data.size());
 
-	while(si != se){
-		unsigned int pos=0;
-		// 1st col is always 1
-		row_data[pos++] = 1;
+	vector<float> trait_data;
+	trait_data.reserve(mq.trait_idx.size());
 
-		// Now, the covariates
-		for(unsigned int i=0; i<permuCovars; i++){
-			row_data[pos++] = gsl_vector_float_get(covars_perm[i], n_samples);
-		}
+	vector<unsigned char> geno_data;
+	geno_data.reserve(mq.marker_idx.size());
 
-		// Now, the unpermuted covariates
-		for(unsigned int i=permuCovars; i<_covars.size(); i++){
-			row_data[pos++] = _covars[i][n_samples];
-		}
+	vector<float> geno_weight;
+	geno_weight.reserve(mq.marker_idx.size());
 
 
-		// Now, work through the markers
-		for (unsigned int i = 0; i<numLoci; i++){
-			geno[i] = (*si)->getAdditiveGeno(*(m.markers[i]));
+	unsigned int n_samples = 0;
+	unsigned int n_missing = 0;
 
-			if(geno[i] == Sample::missing_allele){
-				row_data[pos++] = numeric_limits<double>::quiet_NaN();
-				if(m.categorical || encoding == Encoding::CODOMINANT){
-					row_data[pos++] = numeric_limits<double>::quiet_NaN();
-				}
-			} else {
-				if(m.categorical){
-					row_data[pos++] = EncodingModel(Encoding::DOMINANT)(geno[i]);
-					row_data[pos++] = EncodingModel(Encoding::RECESSIVE)(geno[i]);
-				} else if (encoding == Encoding::CODOMINANT){
-					row_data[pos++] = (geno[i] == 1);
-					row_data[pos++] = (geno[i] == 2);
-				}else if (encoding == Encoding::WEIGHTED){
-					// works if w in [0,1]
-					row_data[pos++] = categ_weight[i] * (geno[i] == 1) + (geno[i] == 2);
-				} else {
-					row_data[pos++] = encoding(geno[i]);
+	for(unsigned int k=0; k<_curr_pheno.size(); k++){
+		if(!std::isnan(pheno_perm[n_samples])){
+			covar_data.clear();
+			geno_data.clear();
+			geno_weight.clear();
+			trait_data.clear();
+
+			for(unsigned int i=0; i<permuCovars; i++){
+				covar_data.push_back(covars_perm[i][n_samples]);
+			}
+
+			// Now, the unpermuted covariates
+			for(unsigned int i=permuCovars; i<_covar_data.size(); i++){
+				covar_data.push_back(_covar_data[i][n_samples]);
+			}
+
+
+			for (unsigned int i = 0; i<numLoci; i++){
+				unsigned char g = 2*_marker_data[mq.marker_idx[i]].first[2*n_samples] +
+						_marker_data[mq.marker_idx[i]].first[2*n_samples + 1];
+
+				geno_data.push_back(g == 3? Sample::missing_allele : g);
+				if ((!mq.categorical) && _extra_data->encoding == Encoding::WEIGHTED){
+					geno_weight.push_back(_marker_data[mq.marker_idx[i]].second);
 				}
 			}
-		}
 
-		// Now, work through the traits
-		for(unsigned int i = 0; (!m.categorical) && i < numTraits; i++){
-			row_data[pos++] = ds_ptr->getTrait(m.traits[i], *si);
-		}
+			for(unsigned int i = 0; i < numTraits; i++){
+				trait_data.push_back(_trait_data[mq.trait_idx[i]][n_samples]);
+			}
 
-		// Now, the interaction terms
-		for (unsigned int i = 0; interactions && (!m.categorical) && i	< (n_vars); i++) {
-			for (unsigned int j = i + 1; j < (n_vars); j++) {
-
-				if(encoding == Encoding::CODOMINANT){
-					// we have to be a little careful here.
-					if(i < numLoci){
-						if(j < numLoci){
-							row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j*2 + numCovars + 1];
-							row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j*2 + numCovars + 2];
-							row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j*2 + numCovars + 1];
-							row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j*2 + numCovars + 2];
-						} else {
-							row_data[pos++] = row_data[i*2 + numCovars + 1] * row_data[j + numLoci + numCovars + 1];
-							row_data[pos++] = row_data[i*2 + numCovars + 2] * row_data[j + numLoci + numCovars + 1];
-						}
-					} else {
-						row_data[pos++] = row_data[i + numLoci + numCovars + 1] * row_data[j + numLoci + numCovars + 1];
-					}
-
-				}else{
-					row_data[pos++] = row_data[i + numCovars + 1] * row_data[j + numCovars + 1];
+			if(addDataRow(regress_data, covar_data, geno_data, geno_weight,
+					trait_data, _extra_data->encoding, _extra_data->interactions,
+					mq.categorical,	n_samples, n_missing)){
+				ret_val->outcome[n_samples - n_missing] = pheno_perm[n_samples];
+				for(unsigned int i=0; i<numLoci; i++){
+					maf_sum[i] += geno_data[i];
 				}
 			}
-		}
 
-		// OK, check for missingness before adding it to the dataset
-		bool ismissing = std::isnan(gsl_vector_float_get(pheno_perm, n_samples));
-		for(unsigned int i=0; i<pos; i++){
-			ismissing |= std::isnan(row_data[i]);
-		}
-
-		if(!ismissing){
-			for(unsigned int i=0; i<numLoci; i++){
-				maf_sum[i] += geno[i];
-			}
-			// do a fast memory copy into the data for regression
-			std::memcpy(&regress_data[n_samples - n_missing][0], row_data, sizeof(double) * (pos));
-			ret_val->outcome[n_samples - n_missing] = gsl_vector_float_get(pheno_perm, n_samples);
 		} else {
+			++n_samples;
 			++n_missing;
 		}
-
-		++n_samples;
-		++si;
 	}
 
 	// The number of variables in the "reduced" model is:
 	// # of covariates if no interactions
 	// # of main effects (total columns - # interactions) o/w
+
+	// # of interaction terms
+	unsigned int n_interact = ret_val->n_cols - numLoci - numTraits - numCovars
+			- 1 - (mq.categorical || _extra_data->encoding == Encoding::CODOMINANT) * numLoci;
 	ret_val->red_vars = n_interact == 0 ? numCovars : ret_val->n_cols - n_interact - 1;
 	ret_val->n_sampl = n_samples - n_missing;
 
@@ -1108,9 +1161,140 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_per
 		stringstream ss;
 		for(unsigned int i=0; i<numLoci; i++){
 			float maf = maf_sum[i] / (2*static_cast<float>(n_samples-n_missing));
-			ss << m.markers[i]->getID() << sep
-			   << m.markers[i]->getChromStr() << ":" << m.markers[i]->getLoc()
-			   << sep << m.markers[i]->getAltAllele() << ":" << maf << sep;
+			ss << _marker_desc[mq.marker_idx[i]] << maf << _extra_data->sep;
+		}
+		for(unsigned int i=0; i<numTraits; i++){
+			ss << _trait_desc[mq.trait_idx[i]] << _extra_data->sep;
+		}
+		ss << n_missing << _extra_data->sep;
+		ret_val->prefix = ss.str();
+		ss.clear();
+	}
+
+	// delete the permuted data, please!
+	if(permu != 0){
+		delete[] pheno_perm;
+		for(unsigned int i=0; i<covars_perm.size(); i++){
+			delete[] covars_perm[i];
+		}
+	}
+
+	return ret_val;
+}
+
+Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_permutation* permu){
+	calc_matrix* ret_val = new calc_matrix();
+
+	unsigned int numLoci = m.markers.size();
+	unsigned int numCovars = covar_names.size() + const_covar_names.size();
+	unsigned int permuCovars = covar_names.size();
+	unsigned int numTraits = m.traits.size();
+
+	ret_val->n_cols = getNumCols(numLoci, numTraits, numCovars, interactions,
+			(m.categorical || encoding == Encoding::CODOMINANT));
+
+	// Allocate a huge amount of memory for the regression here
+	ret_val->outcome = new double[_pheno.size()];
+	ret_val->data = new double[_pheno.size()* ret_val->n_cols];
+
+	// Give the permutation here
+	float *pheno_perm;
+	vector<float *> covars_perm;
+	permuteData(_pheno, pheno_perm, _covars, covars_perm, permuCovars, permu);
+
+	boost::multi_array_ref<double, 2> regress_data(ret_val->data, boost::extents[_pheno.size()][ret_val->n_cols]);
+
+	float maf_sum[numLoci];
+
+	for(unsigned int i=0; i<numLoci; i++){
+		maf_sum[i] = 0;
+	}
+
+	vector<float> covar_data;
+	covar_data.reserve(_covars.size());
+
+	vector<float> trait_data;
+	trait_data.reserve(m.traits.size());
+
+	vector<unsigned char> geno_data;
+	geno_data.reserve(m.markers.size());
+
+	vector<float> geno_weight;
+	geno_weight.reserve(m.markers.size());
+
+
+	DataSet::const_sample_iterator si = ds_ptr->beginSample();
+	DataSet::const_sample_iterator se = ds_ptr->endSample();
+
+	unsigned int n_samples = 0;
+	unsigned int n_missing = 0;
+
+	while(si != se){
+		if(!std::isnan(pheno_perm[n_samples])){
+			covar_data.clear();
+			geno_data.clear();
+			geno_weight.clear();
+			trait_data.clear();
+
+			for(unsigned int i=0; i<permuCovars; i++){
+				covar_data.push_back(covars_perm[i][n_samples]);
+			}
+
+			// Now, the unpermuted covariates
+			for(unsigned int i=permuCovars; i<_covars.size(); i++){
+				covar_data.push_back(_covars[i][n_samples]);
+			}
+
+
+			for (unsigned int i = 0; i<numLoci; i++){
+				geno_data.push_back((*si)->getAdditiveGeno(*(m.markers[i])));
+				if ((!m.categorical) && encoding == Encoding::WEIGHTED){
+					geno_weight.push_back(getCategoricalWeight(m.markers[i]));
+				}
+			}
+
+			for(unsigned int i = 0; i < numTraits; i++){
+				trait_data.push_back(ds_ptr->getTrait(m.traits[i], *si));
+			}
+
+			if(addDataRow(regress_data, covar_data, geno_data, geno_weight,
+					trait_data, encoding, interactions, m.categorical,
+					n_samples, n_missing)){
+				ret_val->outcome[n_samples - n_missing] = pheno_perm[n_samples];
+				for(unsigned int i=0; i<numLoci; i++){
+					maf_sum[i] += geno_data[i];
+				}
+			}
+
+		} else {
+			++n_samples;
+			++n_missing;
+		}
+
+		++si;
+	}
+
+	// The number of variables in the "reduced" model is:
+	// # of covariates if no interactions
+	// # of main effects (total columns - # interactions) o/w
+
+	// # of interaction terms
+	unsigned int n_interact = ret_val->n_cols - numLoci - numTraits - numCovars
+			- 1 - (m.categorical || encoding == Encoding::CODOMINANT) * numLoci;
+	ret_val->red_vars = n_interact == 0 ? numCovars : ret_val->n_cols - n_interact - 1;
+	ret_val->n_sampl = n_samples - n_missing;
+
+	if(ret_val->n_sampl < ret_val->n_cols){
+		// If this is the case, we CANNOT run this!
+		delete ret_val;
+		ret_val = 0;
+	} else {
+		// Print some summary data helpful for the result that we get when
+		// calculating the matrix to send.
+		stringstream ss;
+		for(unsigned int i=0; i<numLoci; i++){
+			float maf = maf_sum[i] / (2*static_cast<float>(n_samples-n_missing));
+			ss << getMarkerDesc(m.markers[i], sep) << maf << sep;
 		}
 		for(unsigned int i=0; i<numTraits; i++){
 			ss << m.traits[i] << sep;
@@ -1122,13 +1306,51 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_per
 
 	// delete the permuted data, please!
 	if(permu != 0){
-		gsl_vector_float_free(pheno_perm);
+		delete[] pheno_perm;
 		for(unsigned int i=0; i<covars_perm.size(); i++){
-			gsl_vector_float_free(covars_perm[i]);
+			delete[] covars_perm[i];
 		}
 	}
 
 	return ret_val;
+}
+
+void Regression::permuteData(const vector<float>& pheno, float*& pheno_perm,
+		const deque<vector<float> >& covars, vector<float*>& covar_perm,
+		unsigned int permuCovars, const gsl_permutation* permu){
+
+	covar_perm.clear();
+	covar_perm.reserve(permuCovars);
+
+	if(permu != 0){
+		unsigned int sz = permu->size;
+
+		pheno_perm = new float[sz];
+		for(unsigned int i=0; i<permuCovars; i++){
+
+		}
+
+		gsl_vector_float_view perm_v;
+		gsl_vector_float_const_view orig_v = gsl_vector_float_const_view_array(&pheno[0], sz);
+		perm_v = gsl_vector_float_view_array(pheno_perm, sz);
+		gsl_vector_float_memcpy(&perm_v.vector, &orig_v.vector);
+		gsl_permute_vector_float(permu, &perm_v.vector);
+
+		for(unsigned int i=0; i<permuCovars; i++){
+			covar_perm.push_back(new float[sz]);
+			gsl_vector_float_const_view ocv = gsl_vector_float_const_view_array(&covars[i][0], sz);
+			perm_v = gsl_vector_float_view_array(&covar_perm[i][0], sz);
+			gsl_vector_float_memcpy(&perm_v.vector, &ocv.vector);
+			gsl_permute_vector_float(permu, &perm_v.vector);
+		}
+
+	} else {
+		pheno_perm = const_cast<float*>(&pheno[0]);
+		for(unsigned int i=0; i<permuCovars; i++){
+			covar_perm.push_back(const_cast<float*>(&covars[i][0]));
+		}
+	}
+
 }
 
 Regression::Result* Regression::run(const Model& m) {
@@ -1137,7 +1359,7 @@ Regression::Result* Regression::run(const Model& m) {
 
 	Result* r = 0;
 
-	calc_fn& calculate = (getCalcFn());
+	calc_fn& calculate = getCalcFn();
 
 	if(all_data){
 		r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
@@ -1153,26 +1375,11 @@ Regression::Result* Regression::run(const Model& m) {
 			}
 		}
 
+		genPermuData perm_fn = boost::bind(&Regression::getCalcMatrix, boost::ref(*this), boost::cref(m), _1);
+
 		delete all_data;
-		if(r && n_perms > 0){
-			int n_better = 0;
-			for(unsigned int i=0; i<n_perms; i++){
-				all_data = getCalcMatrix(m, permutations[i]);
-				if(all_data){
-					Result *tmp_r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
-							all_data->n_sampl, 0, all_data->red_vars, false, getExtraData());
-
-					if(tmp_r){
-						n_better += tmp_r->p_val < r->p_val;
-						delete tmp_r;
-					}
-					delete all_data;
-				}
-			}
-
-			r->suffix += boost::lexical_cast<string>(r->p_val) + sep;
-			r->p_val = n_better / static_cast<float>(n_perms);
-			all_data = 0;
+		if(m.permute && r && n_perms > 0){
+			runPermutations(r, perm_fn,	permutations, calculate, getExtraData());
 		}
 	}else{
 		Logger::log_err("WARNING: not enough samples in model: '" + m.getID() + "'!");
@@ -1180,6 +1387,26 @@ Regression::Result* Regression::run(const Model& m) {
 	}
 
 	return r;
+}
+
+void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed){
+	int n_better = 0;
+	for(unsigned int i=0; i<permus.size(); i++){
+		calc_matrix* all_data = perm_fn(permus[i]);
+		if(all_data){
+			Result *tmp_r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
+					all_data->n_sampl, 0, all_data->red_vars, false, ed);
+
+			if(tmp_r){
+				n_better += tmp_r->p_val < r->p_val;
+				delete tmp_r;
+			}
+			delete all_data;
+		}
+	}
+
+	r->suffix += boost::lexical_cast<string>(r->p_val) + ed->sep;
+	r->p_val = n_better / static_cast<float>(permus.size());
 }
 
 void Regression::printResults(){
@@ -1506,38 +1733,220 @@ void Regression::printResultLine(const Result& r, std::ostream& of){
 pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
 	pair<unsigned int, const char*> retval(0,0);
 
-	calc_matrix* data = getCalcMatrix(m);
-	data->prefix = *output_itr + sep + data->prefix;
-
-	// do the voodoo that you do so well here
-	if(data){
-		++msg_id;
-		stringstream ss;
-		boost::archive::binary_oarchive oa(ss);
-		mpi_query q;
-		q.msg_id = msg_id;
-		q.calc_data = data;
-		q.class_data = getExtraData();
-
-		ss.flush();
-
-		// save this to the archive
-		oa << q;
-
-		retval.first = ss.tellp();
-		char* output = new char[retval.first];
-		ss.read(output,retval.first);
-		retval.second = output;
-
-		work_map[msg_id] = &m;
-
-		delete data;
-	} else {
-		// If we can't run this model, go back to square 1 (which will come back here, incidentially)
-		retval = nextQuery();
+	++msg_id;
+	mpi_query q;
+	q.msg_id = msg_id;
+	for(unsigned int i=0; i<m.markers.size(); i++){
+		q.marker_idx.push_back(marker_idx_map[m.markers[i]]);
+	}
+	for(unsigned int i=0; i<m.traits.size(); i++){
+		q.trait_idx.push_back(trait_idx_map[m.traits[i]]);
 	}
 
+	q.categorical = m.categorical;
+	q.permute = m.permute;
+
+	mpi_envelope me;
+	me.msg = &q;
+	retval = MPIUtils::pack(me);
+	work_map[msg_id] = &m;
+
 	return retval;
+}
+
+void Regression::initMPI(){
+
+	MPIStartBroadcast();
+	mpi_envelope me;
+
+	// OK, now we're ready to do some broadcasting.  First, let's send our markers!
+	// send all the covariate traits
+
+	if(typeid(*mgp) != typeid(TargetedModelGenerator)){
+		DataSet::const_marker_iterator mi = ds_ptr->beginMarker();
+		while(mi != ds_ptr->endMarker()){
+			MPIBroadcastMarker(*mi);
+			++mi;
+		}
+
+		DataSet::const_trait_iterator ti = ds_ptr->beginTrait();
+		while(ti != ds_ptr->endTrait()){
+			MPIBroadcastTrait(*ti);
+			++ti;
+		}
+
+	} else {
+		// send the covariate traits
+		for(set<string>::const_iterator ci = covar_names.begin(); ci != covar_names.end(); ci++){
+			MPIBroadcastTrait(*ci);
+		}
+		for(set<string>::const_iterator ci = const_covar_names.begin(); ci != const_covar_names.end(); ci++){
+			MPIBroadcastTrait(*ci);
+		}
+
+		// here, we'll just send only the data we need
+		Model* m;
+		while( (m = mgp->next()) ){
+			for(unsigned int i=0; i<m->markers.size(); i++){
+				if(marker_idx_map.count(m->markers[i]) == 0){
+					MPIBroadcastMarker(m->markers[i]);
+				}
+			}
+
+			for(unsigned int i=0; i<m->traits.size(); i++){
+				if(trait_idx_map.count(m->traits[i]) == 0){
+					MPIBroadcastTrait(m->traits[i]);
+				}
+			}
+		}
+		mgp->reset();
+	}
+
+	// Now, the list of covariates
+	mpi_covars mc;
+	mc.const_covars.reserve(const_covar_names.size());
+	mc.covars.reserve(covar_names.size());
+
+	for(set<string>::const_iterator ci = covar_names.begin(); ci != covar_names.end(); ci++){
+		mc.covars.push_back(trait_idx_map[*ci]);
+	}
+	for(set<string>::const_iterator cci = const_covar_names.begin(); cci != const_covar_names.end(); cci++){
+		mc.const_covars.push_back(trait_idx_map[*cci]);
+	}
+	me.msg = &mc;
+	MPIBroadcast(MPIUtils::pack(me));
+
+
+	// And the extra data
+	mpi_extra m_ed;
+	m_ed.class_data = getExtraData();
+	me.msg = &m_ed;
+	MPIBroadcast(MPIUtils::pack(me));
+
+	// and the permutations
+	if(n_perms == 0){
+		mpi_permu mperm;
+		mperm.n_permu = n_perms;
+		mperm.permu_size = _pheno.size();
+		mperm.rng_seed = permu_seed;
+		me.msg = &mperm;
+		MPIBroadcast(MPIUtils::pack(me));
+	}
+
+	MPIStopBroadcast();
+}
+
+void Regression::MPIBroadcastTrait(const string& t){
+	trait_idx_map.insert( make_pair(t, trait_idx_map.size()) );
+
+	mpi_trait mt;
+	mt.data.reserve(_pheno.size());
+	DataSet::const_sample_iterator si = ds_ptr->beginSample();
+	while(si != ds_ptr->endSample()){
+		mt.data.push_back(ds_ptr->getTrait(t, *si));
+	}
+
+	mt.description = t;
+
+	mpi_envelope me;
+	me.msg = &mt;
+	MPIBroadcast(MPIUtils::pack(me));
+
+}
+
+void Regression::MPIBroadcastMarker(const Marker* m){
+	marker_idx_map.insert( make_pair(m, marker_idx_map.size()) );
+
+	mpi_marker mm;
+	// initialize everything to "missing"
+	mm.data.resize(2*_pheno.size(), true);
+	unsigned int pers_index = 0;
+
+	DataSet::const_sample_iterator si = ds_ptr->beginSample();
+	unsigned char geno;
+	while(si != ds_ptr->endSample()){
+		geno = (*si)->getAdditiveGeno(*m);
+		if(geno != Sample::missing_allele){
+			mm.data[2*pers_index] = geno & 2;
+			mm.data[2*pers_index + 1] = geno & 1;
+		}
+		++pers_index;
+	}
+
+	// note that the description is everything BUT the MAF!
+	mm.description = getMarkerDesc(m, sep);
+
+	mpi_envelope me;
+	me.msg = &mm;
+	MPIBroadcast(MPIUtils::pack(me));
+}
+
+string Regression::getMarkerDesc(const Marker* m, const std::string& sep_str){
+	stringstream ss;
+	ss << m->getID() << sep_str << m->getChromStr() << ":"
+	   << m->getLoc() << sep_str << m->getAltAllele() << ":";
+
+	return ss.str();
+}
+
+
+void Regression::MPIBroadcast(pair<unsigned int, const char*> msg) const{
+#ifdef HAVE_CXX_MPI
+	MPI_Bcast(&msg.first, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+	MPI_Bcast(msg.second, msg.first, MPI_CHAR, 0, MPI_COMM_WORLD);
+#endif
+	delete[] msg.second;
+}
+
+void Regression::MPIBroadcastPheno() const{
+	// Now, send the first phenotype
+	mpi_pheno mp;
+	mp._pheno = _pheno;
+	mpi_envelope me;
+	me.msg = &mp;
+	MPIBroadcast(MPIUtils::pack(me));
+}
+
+void Regression::MPIBroadcastWeights() const{
+
+	MPIStartBroadcast();
+
+	// generate a vector of weights (indexed by the marker_idx_map)
+	mpi_weight mw;
+	mw._wt.resize(marker_idx_map.size(), 0.5);
+	map<const Marker*, unsigned int>::const_iterator idx_itr = marker_idx_map.end();
+	for(map<const Marker*, float>::const_iterator witr = categ_weight.begin(); witr != categ_weight.end(); witr++){
+		if( (idx_itr = marker_idx_map.find(witr->first)) != marker_idx_map.end()){
+			mw._wt[idx_itr->second] = witr->second;
+		}
+	}
+
+	mpi_envelope me;
+	me.msg = &mw;
+	MPIBroadcast(MPIUtils::pack(me));
+
+	MPIStopBroadcast();
+
+}
+
+void Regression::MPIStopBroadcast() const{
+
+#ifdef HAVE_CXX_MPI
+	// send a "done broadcasting signal
+	unsigned int flag = 0;
+	MPI_Bcast(&flag, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+#endif
+}
+
+void Regression::MPIStartBroadcast() const{
+
+	// OK, let's broadcast all of our data, so send the "let's broadcast" signal
+	mpi_bcast signal;
+	mpi_envelope me;
+	me.msg = &signal;
+	pair<unsigned int, const char*> msg = MPIUtils::pack(me);
+	sendAll(msg.first, msg.second);
+	delete[] msg.second;
 }
 
 // MPI stuff here!
@@ -1550,54 +1959,44 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		m = model_queue.front();
 		model_queue.pop_front();
 		retval = generateMsg(*m);
-	// otherwise, generate a new model
-	} else if( (m = mgp->next()) != 0) {
-		// check for pre-locks (caused by weighted encoding)
 
-		// NOTE: n_val_ptr will be 0 if no pre-locks were needed!
-		int * n_val_ptr = 0;
-		if(encoding == Encoding::WEIGHTED){
+	} else if(!weight_complete){
+		// If we have not generated all weights, let's find what we need to
+		if( (m = mgp->next()) ){
 
-			for(unsigned int i=0; i<m->markers.size(); i++){
-				if(categ_weight.find(m->markers[i]) == categ_weight.end()){
-					Model *pm = new Model;
-					pm->markers.push_back(m->markers[i]);
-					pm->categorical = true;
-
-					if(n_val_ptr == 0){
-						n_val_ptr = new int(0);
-						pre_lock_map.insert(make_pair(m, n_val_ptr));
-					}
-
-					++(*n_val_ptr);
-					work_lock_map.insert(make_pair(pm->getID(), n_val_ptr));
-
-					// only add if we aren't currently working on it!
-					if(work_lock_map.count(pm->getID()) == 1){
+			// NOTE: I could do this via recursion, but I might get a crazy big stack!
+			while(m && model_queue.empty()){
+				for(unsigned int i=0; i<m->markers.size(); i++){
+					if(categ_weight.find(m->markers[i]) == categ_weight.end()){
+						Model *pm = new Model;
+						pm->markers.push_back(m->markers[i]);
+						pm->categorical = true;
+						pm->permute = false;
 						model_queue.push_back(pm);
-					} else {
-						delete pm;
 					}
+				}
 
+				if(model_queue.empty()){
+					m = mgp->next();
 				}
 			}
-		}
 
-		// if there ARE pre-locks, I will have added them to the queue
-		if(n_val_ptr == 0){
-			retval = generateMsg(*m);
-		} else if(!model_queue.empty()){
-			m = model_queue.front();
-			model_queue.pop_front();
-			retval = generateMsg(*m);
-		} else  {
-			retval = nextQuery();
+		} else {
+			// If I am here, we have no more models to generate, so please
+			// wait for completion, send the weights, reset the model generator
+			// and set the weight_complete flag to true
+			collect();
+			weight_complete = true;
+			MPIBroadcastWeights();
+			mgp->reset();
+
 		}
-		// OK, now we can generate our message to send
-		//retval = generateMsg(*m);
-	} else if (pre_lock_map.size() != 0){
-		// if I'm done with models, but I'm waiting on data, send that
-		retval = pair<unsigned int, const char*>(pre_lock_map.size(), 0);
+		// now recurse and get the next model to send!
+		retval = nextQuery();
+
+	} else if( (m = mgp->next()) ){
+		// If I am here, I want to run the regular models (and maybe post-models, too!)
+		retval = generateMsg(*m);
 	} else if(show_uni && !work_map.empty()){
 		// If I'm here, I might generate some post-locking models, so
 		// send a "please wait" message
@@ -1611,11 +2010,13 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 
 		// If I'm here, I have another phenotype to run!
 		if(output_itr != outcome_names.end()){
+			MPIStartBroadcast();
+			MPIBroadcastPheno();
+			MPIStopBroadcast();
 			mgp->reset();
 		}
-		// I don't want to recreate the logic above by creating a new model,
-		// so just send a "we have more" signal and prepare to generate a new model
-		retval = pair<unsigned int, const char*>(-1,0);
+		// recurse to get the next model
+		retval = nextQuery();
 	}
 	// empty else statement means that there is really NOTHING else to run!
 
@@ -1624,13 +2025,8 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 
 void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	// Turn this into a msg_id + Result
-
-	stringstream ss_resp;
-	ss_resp.write(in_buf, bufsz);
-	ss_resp.seekg(0);
-	boost::archive::binary_iarchive ia_resp(ss_resp);
 	mpi_response resp;
-	ia_resp >> resp;
+	MPIUtils::unpack(bufsz, in_buf, resp);
 	unsigned int msg = resp.msg_id;
 	Result* r = resp.result;
 
@@ -1655,6 +2051,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	if(m->categorical && m->markers.size() == 1){
 		float wt = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
 		categ_weight[m->markers[0]] = (std::isfinite(wt) ? wt : 0.5);
+		is_result = false;
 	} else if (!is_result &&  m->markers.size() +  m->traits.size() == 1){
 		// if this is true, then the result should be added to the univariate
 		// results
@@ -1662,18 +2059,6 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 			_marker_uni_result[m->markers[0]] = r;
 		} else {
 			_trait_uni_result[m->traits[0]] = r;
-		}
-	}
-
-	// now that locks are decremented, see if anything needs to be placed
-	// into the model queue.
-	for(map<const Model*, int*>::iterator it = pre_lock_map.begin(); it != pre_lock_map.end(); ){
-		if(*(it->second) == 0){
-			delete it->second;
-			model_queue.push_back(it->first);
-			pre_lock_map.erase(it++);
-		} else {
-			++it;
 		}
 	}
 
@@ -1768,50 +2153,147 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	}
 }
 
+void Regression::processBroadcast(){
+	// I know I'm going to get a broadcast message here, but first I'm going
+	// to receive the size
+#ifdef HAVE_CXX_MPI
+	unsigned int bcast_sz = 0;
+	char* buf = 0;
+
+	MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+	while(bcast_sz > 0){
+		buf = new char[bcast_sz];
+		MPI_Bcast(buf, bcast_sz, MPI_CHAR, 0, MPI_COMM_WORLD);
+		mpi_envelope env;
+		MPIUtils::unpack(bcast_sz, buf, env);
+		delete[] buf;
+
+		if(typeid(*env.msg) == typeid(mpi_pheno)){
+			mpi_pheno* mph = dynamic_cast<mpi_pheno*>(env.msg);
+			// reset the phenotype here
+			_curr_pheno = mph->_pheno;
+			retval.first = 1;
+		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
+			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
+			_marker_data.push_back(make_pair(mm->data, 0.5f));
+			_marker_desc.push_back(mm->descrition);
+			retval.first = 2;
+		} else if(typeid(*env.msg) == typeid(mpi_trait)) {
+			mpi_trait* mt = dynamic_cast<mpi_trait*>(env.msg);
+			_trait_data.push_back(mt->data);
+			_trait_desc.push_back(mt->description);
+			retval.first = 3;
+		} else if(typeid(*env.msg) == typeid(mpi_weight)) {
+			mpi_weight* mw = dynamic_cast<mpi_weight*>(env.msg);
+			// set up weight mapping here
+			for(unsigned int i=0; i<mw->_wt.size(); i++) {
+				_marker_data[i].second = mw->_wt[i];
+			}
+			retval.first = 4;
+		} else if(typeid(*env.msg) == typeid(mpi_permu)) {
+			mpi_permu* mp = dynamic_cast<mpi_permu*>(env.msg);
+			initPermutations(mp->n_permu, mp->permu_size, _permu_data, mp->rng_seed);
+			retval.first = 5;
+		} else if(typeid(*env.msg) == typeid(mpi_covars)) {
+			mpi_covars* mc = dynamic_cast<mpi_covars*>(env.msg);
+			// set up the covariates here
+			// NOTE: the traits MUST be loaded first!
+			n_const_covars = mc->const_covars.size();
+			for(unsigned int i=0; i<mc->covars.size(); i++) {
+				_covar_data.push_back(_trait_data[mc->covars[i]]);
+			}
+			for(unsigned int i=0; i<mc->const_covars.size(); i++) {
+				_covar_data.push_back(_trait_data[mc->const_covars[i]]);
+			}
+
+			retval.first = 6;
+		} else if(typeid(*env.msg) == typeid(mpi_extra)) {
+			mpi_extra* me = dynamic_cast<mpi_extra*>(env.msg);
+			_extra_data = me->class_data;
+			retval.first = 7;
+		}
+
+		if(env.msg){
+			delete env.msg;
+		}
+
+		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+
+	}
+#endif
+
+}
+
 pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func){
+
+	mpi_envelope env;
+	MPIUtils::unpack(bufsz, in_buf, env);
+
 	pair<unsigned int, const char*> retval(0,0);
 
-	// first, let's get our data backet unpacked, please!
-	stringstream ss_in;
-	ss_in.write(in_buf, bufsz);
-	ss_in.seekg(0);
-	boost::archive::binary_iarchive ia_query(ss_in);
-	mpi_query q;
-	ia_query >> q;
+	if(typeid(*env.msg) == typeid(mpi_query)){
+		mpi_query* mq = dynamic_cast<mpi_query*>(env.msg);
+		// run a query (model) here
 
+		calc_matrix* calc_mat = getCalcMatrix(*mq, 0);
 
+		Result* r = 0;
 
-	Result* r = func(q.calc_data->outcome, q.calc_data->data,
-			q.calc_data->n_cols, q.calc_data->n_sampl, 0, q.calc_data->red_vars, true,
-			q.class_data);
+		if(calc_mat){
+			r = func(calc_mat->outcome, calc_mat->data, calc_mat->n_cols,
+					calc_mat->n_sampl, 0, calc_mat->red_vars, true, _extra_data);
 
-	if(r){
-		r->prefix = q.calc_data->prefix;
+			if(mq->permute && r && _permu_data.size()){
+				// If I have permutations, I probably want to use them!!
+				genPermuData perm_fn = boost::bind(&Regression::getCalcMatrix, boost::cref(*mq), _1);
+				runPermutations(r, perm_fn,	_permu_data, func, _extra_data);
+			}
+
+			if(r){
+				r->prefix = calc_mat->prefix;
+			}
+		}
+
+		mpi_response resp;
+		resp.msg_id = mq->msg_id;
+		resp.result = r;
+
+		retval = MPIUtils::pack(resp);
+
+		if(calc_mat){
+			delete calc_mat;
+		}
+		if(r){
+			delete r;
+		}
+	} else if(typeid(*env.msg) == typeid(mpi_bcast)){
+		// OK, I need to prepare for broadcast here!
+		processBroadcast();
+	} else if(typeid(*env.msg) == typeid(mpi_clean)){
+		// Clean up all those static variables!
+		_marker_data.clear();
+		_marker_desc.clear();
+		_trait_desc.clear();
+		_trait_data.clear();
+		_covar_data.clear();
+
+		for(deque<gsl_permutation*>::const_iterator pitr=_permu_data.begin(); pitr != _permu_data.end(); pitr++){
+			gsl_permutation_free(*pitr);
+		}
+		_permu_data.clear();
+		_curr_pheno.resize(0);
+		if(_extra_data){
+			delete _extra_data;
+		}
 	}
 
-	delete q.calc_data;
-	delete q.class_data;
-
-	stringstream ss_out;
-	boost::archive::binary_oarchive oa(ss_out);
-	mpi_response resp;
-	resp.msg_id = q.msg_id;
-	resp.result = r;
-
-	oa << resp;
-	retval.first = ss_out.tellp();
-	ss_out.seekg(0);
-	char* buf_out = new char[retval.first];
-	ss_out.read(buf_out,retval.first);
-	retval.second = buf_out;
-
-	if(r){
-		delete r;
+	if(env.msg){
+		delete env.msg;
 	}
 
 	return retval;
+
 }
 
 }
 }
-

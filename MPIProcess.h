@@ -27,6 +27,9 @@ protected:
 protected:
 	virtual const std::string& getMPIName() const = 0;
 	void processMPI();
+	// waits for all currently running models to return
+	void collect();
+	void sendAll(unsigned int, const char*) const;
 
 private:
 	void sendMPI(const std::pair<unsigned int, const char*>& query, unsigned int tag);

@@ -18,14 +18,22 @@
 
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
+#include <boost/dynamic_bitset.hpp>
+#include <boost/multi_array.hpp>
+#include <boost/function.hpp>
+
+#include <boost/serialization/binary_object.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include "util/MPIUtils.h"
 
 #define BOOST_IOSTREAMS_USE_DEPRECATED
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/string.hpp>
+//#include <boost/archive/binary_iarchive.hpp>
+//#include <boost/archive/binary_oarchive.hpp>
+//#include <boost/serialization/serialization.hpp>
+//
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_rng.h>
@@ -39,8 +47,6 @@
 
 #include "data/DataSet.h"
 
-using std::cout;
-using std::endl;
 
 namespace PLATO{
 
@@ -58,6 +64,7 @@ class Regression : virtual public MPIProcess {
 public:
 	class ExtraData{
 	public:
+		bool interactions;
 		unsigned int const_covars;
 		unsigned int base_covars;
 		std::string sep;
@@ -83,6 +90,7 @@ public:
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int){
+			ar & interactions;
 			ar & const_covars;
 			ar & base_covars;
 			ar & sep;
@@ -91,9 +99,8 @@ public:
 			if(Archive::is_loading::value){
 				extra_df_col = new unsigned int[n_extra_df_col];
 			}
-			for(unsigned int i=0; i<n_extra_df_col; i++){
-				ar & extra_df_col[i];
-			}
+
+			ar & boost::serialization::make_binary_object(extra_df_col, n_extra_df_col * sizeof(unsigned int));
 		}
 
 		virtual ~ExtraData(){
@@ -107,7 +114,7 @@ protected:
 	 */
 	class Model{
 	public:
-		Model() : categorical(false), id(""), n_vars(0){}
+		Model() : categorical(false), permute(true), id(""), n_vars(0){}
 		Model(const std::vector<std::string>& tv) : traits(tv) {}
 
 		std::string getID() const{
@@ -132,6 +139,7 @@ protected:
 		std::vector<const PLATO::Data::Marker*> markers;
 		std::vector<std::string> traits;
 		bool categorical;
+		bool permute;
 
 	private:
 		mutable std::string id;
@@ -386,19 +394,179 @@ protected:
 
 	};
 
+public:
+	/*
+	 * A base class for ALL MPI messages sent
+	 */
+	struct mpi_data{
+
+		virtual ~mpi_data(){}
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){}
+	};
+
+
+	struct mpi_permu : public mpi_data{
+
+		unsigned long int rng_seed;
+		unsigned int n_permu;
+		unsigned int permu_size;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & rng_seed;
+			ar & n_permu;
+			ar & permu_size;
+		}
+
+	};
+
+	struct mpi_trait : public mpi_data{
+
+		std::vector<float> data;
+		std::string description;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & data;
+			ar & description;
+		}
+
+	};
+
+	struct mpi_marker : public mpi_data{
+
+		boost::dynamic_bitset<> data;
+		std::string description;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & description;
+
+			// serialize the data as a vector of blocks
+			std::vector<boost::dynamic_bitset<>::block_type> tmp_data;
+			if(!Archive::is_loading::value){
+				tmp_data.reserve(data.num_blocks());
+				boost::to_block_range(data,tmp_data.begin());
+			}
+			ar & tmp_data;
+			if(Archive::is_loading::value){
+				boost::from_block_range(tmp_data.begin(), tmp_data.end(), data);
+			}
+
+		}
+
+	};
+
+	struct mpi_weight : public mpi_data {
+
+		//std::vector<unsigned int> _idx;
+		std::vector<float> _wt;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			//ar & _idx;
+			ar & _wt;
+		}
+
+	};
+
+	struct mpi_extra : public mpi_data {
+
+		const ExtraData* class_data;
+
+		template <class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & class_data;
+		}
+
+	};
+
 	/*!
 	 * A structure that holds everything we need to run an MPI query
 	 */
-	struct mpi_query{
+	struct mpi_query : public mpi_data {
 		unsigned int msg_id;
-		calc_matrix* calc_data;
-		const ExtraData* class_data;
+		std::vector<unsigned int> marker_idx;
+		std::vector<unsigned int> trait_idx;
+		bool categorical;
+		bool permute;
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
 			ar & msg_id;
-			ar & calc_data;
-			ar & class_data;
+			ar & marker_idx;
+			ar & trait_idx;
+			ar & categorical;
+			ar & permute;
+		}
+	};
+
+	struct mpi_covars : public mpi_data {
+		std::vector<unsigned int> covars;
+		std::vector<unsigned int> const_covars;
+
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & covars;
+			ar & const_covars;
+		}
+
+	};
+
+	struct mpi_pheno : public mpi_data {
+		std::vector<float> _pheno;
+
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & _pheno;
+		}
+	};
+
+	/*
+	 * A simple class indicating "prepare for broadcast"
+	 */
+	struct mpi_bcast : public mpi_data {
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+		}
+	};
+
+	/*
+	 * A simple struct indicating "clean up the static variables"
+	 */
+	struct mpi_clean : public mpi_data {
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+		}
+	};
+
+	/*
+	 * An envelope class that holds a single base pointer to an mpi_data member
+	 * Note that this member will be determined polymorphically based on the
+	 * specific pointer being serialized
+	 */
+	struct mpi_envelope{
+		mpi_data* msg;
+
+		mpi_envelope() : msg(0) {}
+		// please delete the data yourself!
+		~mpi_envelope() {}
+
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & msg;
 		}
 	};
 
@@ -418,7 +586,7 @@ protected:
 	};
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), n_perms(0), class_data(0),  mgp(0), msg_id(0){}
+	Regression() :  _use_mpi(false), _lowmem(false), n_perms(0), class_data(0),  mgp(0), msg_id(0), weight_complete(true){}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -495,8 +663,6 @@ private:
 	void addResult(Result* r);
 	calc_matrix* getCalcMatrix(const Model& m, const gsl_permutation* permu = 0);
 
-	void initPermutations();
-
 	bool resetPheno(const std::string& pheno);
 	void addUnivariate(Result& r, const Model& m);
 
@@ -508,6 +674,38 @@ private:
 
 	std::pair<unsigned int, const char*> generateMsg(const Model& m);
 
+	static void processBroadcast();
+	void initMPI();
+	void MPIBroadcast(std::pair<unsigned int, const char*> msg) const;
+	void MPIBroadcastPheno() const;
+	void MPIBroadcastMarker(const Data::Marker* m);
+	void MPIBroadcastTrait(const std::string& t);
+	void MPIBroadcastWeights() const;
+	void MPIStartBroadcast() const;
+	void MPIStopBroadcast() const;
+
+public:
+	typedef boost::function1<calc_matrix*, const gsl_permutation*> genPermuData;
+
+private:
+
+	static void initPermutations(unsigned int n_perm, unsigned int sz,
+				std::deque<gsl_permutation*>& perm_list, unsigned long int permu_seed);
+	static std::string getMarkerDesc(const Data::Marker* m, const std::string& sep_str);
+	static void permuteData(const std::vector<float>& pheno, float*& pheno_perm,
+			const std::deque<std::vector<float> >& covars, std::vector<float*>& covar_perm,
+			unsigned int permuCovars, const gsl_permutation* permu);
+	static unsigned int getNumCols(unsigned int n_loci, unsigned int n_trait,
+			unsigned int n_covar, bool interact, bool categorical);
+	static bool addDataRow(boost::multi_array_ref<double, 2>& out_data,
+			const std::vector<float>& covar_vals, const std::vector<unsigned char>& geno_vals,
+			const std::vector<float>& geno_weight, const std::vector<float>& trait_vals,
+			const EncodingModel& enc, bool interact, bool categorical,
+			unsigned int& n_samples, unsigned int& n_missing);
+	static calc_matrix* getCalcMatrix(const mpi_query& mq, const gsl_permutation* permu);
+
+	static void runPermutations(Result* r, genPermuData& perm_fn,
+			const std::deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed);
 
 private:
 	//------------------------------------------------
@@ -531,8 +729,10 @@ private:
 	// permutation testing.
 	unsigned int n_perms;
 
+	unsigned long int permu_seed;
+
 	// the actual vector of permutations
-	std::vector<gsl_permutation*> permutations;
+	std::deque<gsl_permutation*> permutations;
 
 	//! list of results
 	std::deque<Result*> results;
@@ -548,7 +748,7 @@ private:
 	// Data variables
 
 	// vector of all covariates
-	std::vector<std::vector<float> > _covars;
+	std::deque<std::vector<float> > _covars;
 
 	const Data::DataSet* ds_ptr;
 
@@ -623,9 +823,6 @@ private:
 	// The following data structures are needed for MPI to work properly
 	//! A mapping of id -> models for all things currently running
 	std::map<unsigned int, const Model*> work_map;
-	//! mapping of models to locks signifying what they are waiting on
-	//! Note that models in this map have not been queued
-	std::map<const Model*, int*> pre_lock_map;
 	//! mapping of results to locks that they are waiting on to add them to the
 	//! result list.
 	std::map<Result*, int*> post_lock_map;
@@ -639,6 +836,27 @@ private:
 
 	// current message ID
 	unsigned int msg_id;
+
+	// have we computed all weights?
+	bool weight_complete;
+
+	// mapping of Marker ptr to index
+	std::map<const Data::Marker*, unsigned int> marker_idx_map;
+
+	// mapping of trait to index
+	std::map<const std::string, unsigned int> trait_idx_map;
+
+	// Static variables (used only in the slaves!)
+	// a deque of marker data and the "weight"
+	static std::deque<std::pair<boost::dynamic_bitset<>, float> > _marker_data;
+	static std::deque<std::string> _marker_desc;
+	static std::deque<std::string> _trait_desc;
+	static std::deque<std::vector<float> > _trait_data;
+	static std::deque<std::vector<float> > _covar_data;
+	static unsigned int n_const_covars;
+	static std::deque<gsl_permutation*> _permu_data;
+	static std::vector<float> _curr_pheno;
+	static ExtraData* _extra_data;
 
 	//------------------------------------------------
 	// Structures for sorting results
