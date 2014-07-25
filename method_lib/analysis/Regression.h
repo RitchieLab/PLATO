@@ -856,7 +856,7 @@ private:
 	static unsigned int n_const_covars;
 	static std::deque<gsl_permutation*> _permu_data;
 	static std::vector<float> _curr_pheno;
-	static ExtraData* _extra_data;
+	static const ExtraData* _extra_data;
 
 	//------------------------------------------------
 	// Structures for sorting results

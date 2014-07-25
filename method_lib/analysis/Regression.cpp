@@ -93,7 +93,7 @@ std::deque<std::vector<float> > Regression::_covar_data;
 unsigned int Regression::n_const_covars = 0;
 std::deque<gsl_permutation*> Regression::_permu_data;
 std::vector<float> Regression::_curr_pheno;
-Regression::ExtraData* Regression::_extra_data = 0;
+const Regression::ExtraData* Regression::_extra_data = 0;
 
 
 Regression::~Regression() {
@@ -608,6 +608,14 @@ void Regression::runRegression(const DataSet& ds){
 	if(_use_mpi){
 		initMPI();
 		processMPI();
+		// now, send a "please clean up" signal
+		mpi_envelope me;
+		mpi_clean mc;
+		me.msg = &mc;
+		pair<unsigned int, const char*> msg = MPIUtils::pack(me);
+		sendAll(msg.first, msg.second);
+		delete msg.second;
+
 	} else {
 		while(output_itr != outcome_names.end()){
 			// set up the phenotype (if we haven't already!)
@@ -1893,7 +1901,7 @@ string Regression::getMarkerDesc(const Marker* m, const std::string& sep_str){
 void Regression::MPIBroadcast(pair<unsigned int, const char*> msg) const{
 #ifdef HAVE_CXX_MPI
 	MPI_Bcast(&msg.first, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
-	MPI_Bcast(msg.second, msg.first, MPI_CHAR, 0, MPI_COMM_WORLD);
+	MPI_Bcast(const_cast<char*>(msg.second), msg.first, MPI_CHAR, 0, MPI_COMM_WORLD);
 #endif
 	delete[] msg.second;
 }
@@ -2172,28 +2180,23 @@ void Regression::processBroadcast(){
 			mpi_pheno* mph = dynamic_cast<mpi_pheno*>(env.msg);
 			// reset the phenotype here
 			_curr_pheno = mph->_pheno;
-			retval.first = 1;
 		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
 			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
 			_marker_data.push_back(make_pair(mm->data, 0.5f));
 			_marker_desc.push_back(mm->descrition);
-			retval.first = 2;
 		} else if(typeid(*env.msg) == typeid(mpi_trait)) {
 			mpi_trait* mt = dynamic_cast<mpi_trait*>(env.msg);
 			_trait_data.push_back(mt->data);
 			_trait_desc.push_back(mt->description);
-			retval.first = 3;
 		} else if(typeid(*env.msg) == typeid(mpi_weight)) {
 			mpi_weight* mw = dynamic_cast<mpi_weight*>(env.msg);
 			// set up weight mapping here
 			for(unsigned int i=0; i<mw->_wt.size(); i++) {
 				_marker_data[i].second = mw->_wt[i];
 			}
-			retval.first = 4;
 		} else if(typeid(*env.msg) == typeid(mpi_permu)) {
 			mpi_permu* mp = dynamic_cast<mpi_permu*>(env.msg);
 			initPermutations(mp->n_permu, mp->permu_size, _permu_data, mp->rng_seed);
-			retval.first = 5;
 		} else if(typeid(*env.msg) == typeid(mpi_covars)) {
 			mpi_covars* mc = dynamic_cast<mpi_covars*>(env.msg);
 			// set up the covariates here
@@ -2206,11 +2209,9 @@ void Regression::processBroadcast(){
 				_covar_data.push_back(_trait_data[mc->const_covars[i]]);
 			}
 
-			retval.first = 6;
 		} else if(typeid(*env.msg) == typeid(mpi_extra)) {
 			mpi_extra* me = dynamic_cast<mpi_extra*>(env.msg);
 			_extra_data = me->class_data;
-			retval.first = 7;
 		}
 
 		if(env.msg){
