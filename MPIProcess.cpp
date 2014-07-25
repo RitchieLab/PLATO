@@ -18,7 +18,7 @@ using std::pair;
 
 namespace PLATO{
 
-MPIProcess::MPIProcess() :_tag(0), n_procs(1) {
+MPIProcess::MPIProcess() : n_procs(1), _tag(0) {
 #ifdef HAVE_CXX_MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 #endif
