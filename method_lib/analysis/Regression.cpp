@@ -2183,7 +2183,7 @@ void Regression::processBroadcast(){
 		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
 			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
 			_marker_data.push_back(make_pair(mm->data, 0.5f));
-			_marker_desc.push_back(mm->descrition);
+			_marker_desc.push_back(mm->description);
 		} else if(typeid(*env.msg) == typeid(mpi_trait)) {
 			mpi_trait* mt = dynamic_cast<mpi_trait*>(env.msg);
 			_trait_data.push_back(mt->data);
