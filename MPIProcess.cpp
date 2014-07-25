@@ -37,7 +37,7 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
 
 void MPIProcess::sendAll(unsigned int bufsz, const char* buf) const{
 #ifdef HAVE_CXX_MPI
-	for(unsigned int i=1; i<n_procs; i++){
+	for(int i=1; i<n_procs; i++){
 		MPI_Request req;
 		MPI_Isend(const_cast<char*>(buf), bufsz, MPI_CHAR, i, _tag, MPI_COMM_WORLD, &req);
 		MPI_Request_free(&req);
