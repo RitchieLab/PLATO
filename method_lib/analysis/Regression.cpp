@@ -952,7 +952,7 @@ unsigned int Regression::getNumCols(unsigned int n_loci, unsigned int n_trait, u
 	}
 
 	if(interact){
-		unsigned int n_vars = n_cols = 1 - n_covar;
+		unsigned int n_vars = n_cols - 1 - n_covar;
 		n_cols += (n_vars * (n_vars - 1)) / 2;
 		if(categorical){
 			// we don't do interactions w/in category, so subtract the # of loci
@@ -1056,7 +1056,7 @@ bool Regression::addDataRow(boost::multi_array_ref<double, 2>& out_data,
 
 	++n_samples;
 
-	return ismissing;
+	return !ismissing;
 }
 
 Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gsl_permutation* permu){
@@ -1137,7 +1137,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gs
 			if(addDataRow(regress_data, covar_data, geno_data, geno_weight,
 					trait_data, _extra_data->encoding, _extra_data->interactions,
 					mq.categorical,	n_samples, n_missing)){
-				ret_val->outcome[n_samples - n_missing] = pheno_perm[n_samples];
+				ret_val->outcome[n_samples - n_missing - 1] = pheno_perm[n_samples - 1];
 				for(unsigned int i=0; i<numLoci; i++){
 					maf_sum[i] += geno_data[i];
 				}
@@ -1268,7 +1268,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_per
 			if(addDataRow(regress_data, covar_data, geno_data, geno_weight,
 					trait_data, encoding, interactions, m.categorical,
 					n_samples, n_missing)){
-				ret_val->outcome[n_samples - n_missing] = pheno_perm[n_samples];
+				ret_val->outcome[n_samples - n_missing - 1] = pheno_perm[n_samples - 1];
 				for(unsigned int i=0; i<numLoci; i++){
 					maf_sum[i] += geno_data[i];
 				}
@@ -1373,6 +1373,7 @@ Regression::Result* Regression::run(const Model& m) {
 		r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
 				all_data->n_sampl, 0, all_data->red_vars, true, getExtraData());
 
+
 		if(r){
 			// print the # missing from this model
 			r->prefix = all_data->prefix;
@@ -1382,10 +1383,11 @@ Regression::Result* Regression::run(const Model& m) {
 				r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
 			}
 		}
+		delete all_data;
 
 		genPermuData perm_fn = boost::bind(&Regression::getCalcMatrix, boost::ref(*this), boost::cref(m), _1);
 
-		delete all_data;
+
 		if(m.permute && r && n_perms > 0){
 			runPermutations(r, perm_fn,	permutations, calculate, getExtraData());
 		}
