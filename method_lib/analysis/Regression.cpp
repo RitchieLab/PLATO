@@ -1854,7 +1854,7 @@ void Regression::initMPI(){
 	MPIBroadcast(MPIUtils::pack(me));
 
 	// and the permutations
-	if(n_perms == 0){
+	if(n_perms != 0){
 		mpi_permu mperm;
 		mperm.n_permu = n_perms;
 		mperm.permu_size = _pheno.size();
