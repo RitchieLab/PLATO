@@ -739,6 +739,14 @@ bool Regression::resetPheno(const string& pheno){
 	}
 
 	// clear the data structures that depend on the phenotype
+	for(map<const Marker*, Result*>::const_iterator mu_itr = _marker_uni_result.begin();
+			mu_itr != _marker_uni_result.end(); mu_itr++){
+		delete (*mu_itr).second;
+	}
+	for(map<string, Result*>::const_iterator tu_itr = _trait_uni_result.begin();
+			tu_itr != _trait_uni_result.end(); tu_itr++){
+		delete (*tu_itr).second;
+	}
 	_marker_uni_result.clear();
 	_trait_uni_result.clear();
 	categ_weight.clear();
@@ -890,6 +898,7 @@ void Regression::addUnivariate(Result& r, const Model& m){
 					_marker_uni_result.begin(),
 					std::make_pair(m.markers[i], run(uni_m)));
 		}
+
 		_univar_mmutex.unlock();
 
 		r.unimodel.push_back((*m_itr).second);
