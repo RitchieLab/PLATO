@@ -80,6 +80,7 @@ BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_permu)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_covars)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_bcast)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_clean)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_weight)
 
 namespace PLATO{
 
