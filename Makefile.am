@@ -2,14 +2,16 @@ ACLOCAL_AMFLAGS= -I ./make/m4
 
 SUBDIRS=method_lib
 
-EXTRA_DIST=doc/manual.doc \
+EXTRA_DIST=doc/manual.odt \
+doc/MPI_API.odt \
 process/ExampleModule.h \
 process/ExampleModule.cpp \
 CREATED \
 CHANGELOG \
 README.txt
 
-CLEANFILES=doc/manual.doc \
+CLEANFILES=doc/manual.odt \
+doc/MPI_API.odt \
 process/ExampleModule.h \
 process/ExampleModule.cpp \
 CREATED \
