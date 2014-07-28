@@ -88,7 +88,7 @@ int main(int argc, char** argv){
 			}
 
 			MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
-
+			//std::cout << "Receiving " <<bufsz << " bytes..." << std::endl;
 			buf = new char[bufsz];
 			MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);
 

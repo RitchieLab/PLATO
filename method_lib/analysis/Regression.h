@@ -313,6 +313,10 @@ protected:
 			}
 
 			ar & submodel;
+			
+			if(submodel && n_vars == 1){
+				std::cout << "Univariate + submodel for '" << prefix << "'" << std::endl;
+			}
 		}
 
 		float* coeffs;
@@ -450,15 +454,22 @@ public:
 			// serialize the data as a vector of blocks
 			std::vector<boost::dynamic_bitset<>::block_type> tmp_data;
 			if(!Archive::is_loading::value){
+				size = data.size();
 				tmp_data.reserve(data.num_blocks());
-				boost::to_block_range(data,tmp_data.begin());
+				boost::to_block_range(data,std::back_inserter(tmp_data));
 			}
+			ar & size;
 			ar & tmp_data;
+
 			if(Archive::is_loading::value){
+				data.resize(size);
 				boost::from_block_range(tmp_data.begin(), tmp_data.end(), data);
 			}
 
 		}
+		
+	private:
+		unsigned int size;
 
 	};
 
@@ -764,6 +775,9 @@ private:
 	// univariate results by marker and trait
 	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
 	std::map<std::string, Result*> _trait_uni_result;
+	
+	// we'll need to delete all of these univariate models
+	std::deque<Result*> _uni_results;
 
 	std::map<const PLATO::Data::Marker*, float> categ_weight;
 
@@ -830,6 +844,7 @@ private:
 	std::map<Result*, const Model*> post_lock_models;
 	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
 	std::multimap<std::string, int*> work_lock_map;
+	std::set<std::string> pre_lock_set;
 
 	//! a queue of models that need to be run
 	std::deque<const Model*> model_queue;

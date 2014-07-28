@@ -30,6 +30,7 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
 	if(nextval.second != 0){
 		int recv = _idle_queue.front();
 		_idle_queue.pop_front();
+		//std::cout << "Sending " << nextval.first << " bytes to " << recv << std::endl;
 		MPI_Send(const_cast<char*>(nextval.second), nextval.first, MPI_CHAR, recv, _tag, MPI_COMM_WORLD);
 	}
 #endif
@@ -58,6 +59,7 @@ void MPIProcess::collect(){
 		buf = new char[bufsz];
 
 		MPI_Recv(buf, bufsz, MPI_CHAR, m_stat.MPI_SOURCE, _tag, MPI_COMM_WORLD, &m_stat);
+		_idle_queue.push_back(m_stat.MPI_SOURCE);
 		processResponse(bufsz, buf);
 		delete[] buf;
 	}
@@ -74,6 +76,7 @@ void MPIProcess::processMPI(){
 
 	// set up the list of processors currently idle
 	for(int i=0; ++i < n_procs && nextval.first != 0; ){
+		std::cout << "Adding " << i << " to idle queue" << std::endl;
 		_idle_queue.push_back(i);
 	}
 

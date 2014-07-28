@@ -116,6 +116,10 @@ Regression::~Regression() {
 		++tu_itr;
 	}
 	_trait_uni_result.clear();
+	
+	for(unsigned int i=0; i<_uni_results.size(); i++){
+		delete _uni_results[i];
+	}
 
 	out_f.close();
 	if(_lowmem){
@@ -741,11 +745,11 @@ bool Regression::resetPheno(const string& pheno){
 	// clear the data structures that depend on the phenotype
 	for(map<const Marker*, Result*>::const_iterator mu_itr = _marker_uni_result.begin();
 			mu_itr != _marker_uni_result.end(); mu_itr++){
-		delete (*mu_itr).second;
+		_uni_results.push_back((*mu_itr).second);
 	}
 	for(map<string, Result*>::const_iterator tu_itr = _trait_uni_result.begin();
 			tu_itr != _trait_uni_result.end(); tu_itr++){
-		delete (*tu_itr).second;
+		_uni_results.push_back((*tu_itr).second);
 	}
 	_marker_uni_result.clear();
 	_trait_uni_result.clear();
@@ -886,11 +890,12 @@ Regression::Model* Regression::parseModelStr(const std::string& model_str, const
 
 void Regression::addUnivariate(Result& r, const Model& m){
 	for (unsigned int i = 0; i < m.markers.size(); i++) {
-		_univar_mmutex.lock();
+		_univar_mmutex.lock();		
 		map<const Marker*, Result*>::const_iterator m_itr =
 				_marker_uni_result.find(m.markers[i]);
+				
 		// If this is the case, we have not seen this marker before
-		if (m_itr == _marker_uni_result.end()) {
+		if (m_itr == _marker_uni_result.end()) {	
 			Model uni_m;
 			uni_m.markers.push_back(m.markers[i]);
 			uni_m.permute = false;
@@ -900,7 +905,7 @@ void Regression::addUnivariate(Result& r, const Model& m){
 		}
 
 		_univar_mmutex.unlock();
-
+		
 		r.unimodel.push_back((*m_itr).second);
 	}
 
@@ -1116,6 +1121,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gs
 	unsigned int n_missing = 0;
 
 	for(unsigned int k=0; k<_curr_pheno.size(); k++){
+	
 		if(!std::isnan(pheno_perm[n_samples])){
 			covar_data.clear();
 			geno_data.clear();
@@ -1135,7 +1141,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gs
 			for (unsigned int i = 0; i<numLoci; i++){
 				unsigned char g = 2*_marker_data[mq.marker_idx[i]].first[2*n_samples] +
 						_marker_data[mq.marker_idx[i]].first[2*n_samples + 1];
-
+				
 				geno_data.push_back(g == 3? Sample::missing_allele : g);
 				if ((!mq.categorical) && _extra_data->encoding == Encoding::WEIGHTED){
 					geno_weight.push_back(_marker_data[mq.marker_idx[i]].second);
@@ -1731,12 +1737,13 @@ void Regression::printResult(const Result& r, std::ostream& of){
 }
 
 void Regression::printResultLine(const Result& r, std::ostream& of){
+
 	of << r.prefix;
 	of << printExtraResults(r);
 
 	for(unsigned int i=0; i<r.unimodel.size(); i++){
 		if(r.unimodel[i]){
-			printResult(*r.unimodel[i], of);
+			printResult(*(r.unimodel[i]), of);
 		} else{
 			// If we're here, we couldn't run the univariate model
 			// (likely something VERY bad has happened)
@@ -1855,6 +1862,8 @@ void Regression::initMPI(){
 		me.msg = &mperm;
 		MPIBroadcast(MPIUtils::pack(me));
 	}
+
+	MPIBroadcastPheno();
 
 	MPIStopBroadcast();
 }
@@ -1997,7 +2006,10 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 						pm->markers.push_back(m->markers[i]);
 						pm->categorical = true;
 						pm->permute = false;
-						model_queue.push_back(pm);
+						if(pre_lock_set.count(pm->getID()) == 0){
+							pre_lock_set.insert(pm->getID());
+							model_queue.push_back(pm);
+						}
 					}
 				}
 
@@ -2039,12 +2051,13 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			MPIBroadcastPheno();
 			MPIStopBroadcast();
 			mgp->reset();
+			weight_complete = encoding != Encoding::WEIGHTED;
 		}
 		// recurse to get the next model
 		retval = nextQuery();
 	}
 	// empty else statement means that there is really NOTHING else to run!
-
+	
 	return retval;
 }
 
@@ -2054,7 +2067,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	MPIUtils::unpack(bufsz, in_buf, resp);
 	unsigned int msg = resp.msg_id;
 	Result* r = resp.result;
-
+	
 	// Get the Model associated with the message
 	const Model* m = 0;
 	map<unsigned int, const Model*>::iterator witr = work_map.find(msg);
@@ -2062,10 +2075,17 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 		m = witr->second;
 		work_map.erase(witr);
 	}
+	
+	bool is_result = true;
+	set<string>::iterator pl_itr = pre_lock_set.find(m->getID());
+	if(pl_itr != pre_lock_set.end()){
+		is_result = false;
+		pre_lock_set.erase(pl_itr);
+	}
 
 	// if this is found in the lock map, it's not a result!
 	pair<multimap<string, int*>::iterator, multimap<string, int*>::iterator> lm_range = work_lock_map.equal_range(m->getID());
-	bool is_result = (lm_range.first == lm_range.second);
+	is_result = is_result && (lm_range.first == lm_range.second);
 	// decrement any locks we found!
 	while(lm_range.first != lm_range.second){
 		--(*((lm_range.first)->second));
@@ -2105,6 +2125,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 					Logger::log_err("WARNING: Unexpected error in displaying univariate models using MPI.");
 				}
 			}
+			it->first->prefix = *output_itr + sep + it->first->prefix;
 			addResult(it->first);
 			post_lock_map.erase(it++);
 		} else {
@@ -2168,6 +2189,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 
 	if(is_result){
 		//is a result and I don't need any post-locks, add the result to the list
+		r->prefix = *output_itr + sep + r->prefix;
 		addResult(r);
 	}
 
@@ -2184,7 +2206,7 @@ void Regression::processBroadcast(){
 #ifdef HAVE_CXX_MPI
 	unsigned int bcast_sz = 0;
 	char* buf = 0;
-
+	
 	MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	while(bcast_sz > 0){
 		buf = new char[bcast_sz];
@@ -2196,7 +2218,9 @@ void Regression::processBroadcast(){
 		if(typeid(*env.msg) == typeid(mpi_pheno)){
 			mpi_pheno* mph = dynamic_cast<mpi_pheno*>(env.msg);
 			// reset the phenotype here
-			_curr_pheno = mph->_pheno;
+			_curr_pheno.clear();
+			_curr_pheno.insert(_curr_pheno.begin(), mph->_pheno.begin(), mph->_pheno.end());	
+			
 		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
 			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
 			_marker_data.push_back(make_pair(mm->data, 0.5f));
@@ -2205,7 +2229,7 @@ void Regression::processBroadcast(){
 			mpi_trait* mt = dynamic_cast<mpi_trait*>(env.msg);
 			_trait_data.push_back(mt->data);
 			_trait_desc.push_back(mt->description);
-		} else if(typeid(*env.msg) == typeid(mpi_weight)) {
+		} else if(typeid(*env.msg) == typeid(mpi_weight)) {	
 			mpi_weight* mw = dynamic_cast<mpi_weight*>(env.msg);
 			// set up weight mapping here
 			for(unsigned int i=0; i<mw->_wt.size(); i++) {
@@ -2238,6 +2262,7 @@ void Regression::processBroadcast(){
 		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	}
+	
 #endif
 
 }
