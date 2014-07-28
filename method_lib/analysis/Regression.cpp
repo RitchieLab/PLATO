@@ -1926,6 +1926,7 @@ string Regression::getMarkerDesc(const Marker* m, const std::string& sep_str){
 
 void Regression::MPIBroadcast(pair<unsigned int, const char*> msg) const{
 #ifdef HAVE_CXX_MPI
+	MPI_Barrier();
 	MPI_Bcast(&msg.first, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	MPI_Bcast(const_cast<char*>(msg.second), msg.first, MPI_CHAR, 0, MPI_COMM_WORLD);
 #endif
@@ -1968,6 +1969,7 @@ void Regression::MPIStopBroadcast() const{
 #ifdef HAVE_CXX_MPI
 	// send a "done broadcasting signal
 	unsigned int flag = 0;
+	MPI_Barrier();
 	MPI_Bcast(&flag, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 #endif
 }
@@ -2207,6 +2209,7 @@ void Regression::processBroadcast(){
 	unsigned int bcast_sz = 0;
 	char* buf = 0;
 	
+	MPI_Barrier();
 	MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	while(bcast_sz > 0){
 		buf = new char[bcast_sz];
@@ -2219,7 +2222,8 @@ void Regression::processBroadcast(){
 			mpi_pheno* mph = dynamic_cast<mpi_pheno*>(env.msg);
 			// reset the phenotype here
 			_curr_pheno.clear();
-			_curr_pheno.insert(_curr_pheno.begin(), mph->_pheno.begin(), mph->_pheno.end());	
+			_curr_pheno = mph->_pheno;
+			//_curr_pheno.insert(_curr_pheno.begin(), mph->_pheno.begin(), mph->_pheno.end());
 			
 		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
 			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
@@ -2259,6 +2263,7 @@ void Regression::processBroadcast(){
 			delete env.msg;
 		}
 
+		MPI_Barrier();
 		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	}
