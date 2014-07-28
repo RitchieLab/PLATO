@@ -667,6 +667,8 @@ void Regression::initPermutations(unsigned int n_perm, unsigned int sz,
 		 perm_list.push_back(p);
 	 }
 
+	 gsl_rng_free(r);
+
 }
 
 void Regression::start(const DataSet& ds, const string& outcome){
