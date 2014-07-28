@@ -1926,7 +1926,7 @@ string Regression::getMarkerDesc(const Marker* m, const std::string& sep_str){
 
 void Regression::MPIBroadcast(pair<unsigned int, const char*> msg) const{
 #ifdef HAVE_CXX_MPI
-	MPI_Barrier();
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&msg.first, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	MPI_Bcast(const_cast<char*>(msg.second), msg.first, MPI_CHAR, 0, MPI_COMM_WORLD);
 #endif
@@ -1969,7 +1969,7 @@ void Regression::MPIStopBroadcast() const{
 #ifdef HAVE_CXX_MPI
 	// send a "done broadcasting signal
 	unsigned int flag = 0;
-	MPI_Barrier();
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&flag, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 #endif
 }
@@ -2209,7 +2209,7 @@ void Regression::processBroadcast(){
 	unsigned int bcast_sz = 0;
 	char* buf = 0;
 	
-	MPI_Barrier();
+	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	while(bcast_sz > 0){
 		buf = new char[bcast_sz];
@@ -2263,7 +2263,7 @@ void Regression::processBroadcast(){
 			delete env.msg;
 		}
 
-		MPI_Barrier();
+		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	}
