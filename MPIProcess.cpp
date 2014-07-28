@@ -53,7 +53,7 @@ void MPIProcess::collect(){
 	char* buf;
 	int bufsz;
 
-	for(unsigned int j=1; j<n_procs - _idle_queue.size(); j++){
+	while(_idle_queue.size() < n_procs - 1){
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];
@@ -76,7 +76,6 @@ void MPIProcess::processMPI(){
 
 	// set up the list of processors currently idle
 	for(int i=0; ++i < n_procs && nextval.first != 0; ){
-		std::cout << "Adding " << i << " to idle queue" << std::endl;
 		_idle_queue.push_back(i);
 	}
 

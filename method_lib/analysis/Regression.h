@@ -688,7 +688,7 @@ private:
 	static void processBroadcast();
 	void initMPI();
 	void MPIBroadcast(std::pair<unsigned int, const char*> msg) const;
-	void MPIBroadcastPheno() const;
+	void MPIBroadcastPheno();
 	void MPIBroadcastMarker(const Data::Marker* m);
 	void MPIBroadcastTrait(const std::string& t);
 	void MPIBroadcastWeights() const;
@@ -845,6 +845,9 @@ private:
 	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
 	std::multimap<std::string, int*> work_lock_map;
 	std::set<std::string> pre_lock_set;
+	
+	//! prefix for the outcome
+	std::string mpi_prefix;
 
 	//! a queue of models that need to be run
 	std::deque<const Model*> model_queue;

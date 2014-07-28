@@ -1926,19 +1926,20 @@ string Regression::getMarkerDesc(const Marker* m, const std::string& sep_str){
 
 void Regression::MPIBroadcast(pair<unsigned int, const char*> msg) const{
 #ifdef HAVE_CXX_MPI
-	MPI_Barrier(MPI_COMM_WORLD);
+//	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&msg.first, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	MPI_Bcast(const_cast<char*>(msg.second), msg.first, MPI_CHAR, 0, MPI_COMM_WORLD);
 #endif
 	delete[] msg.second;
 }
 
-void Regression::MPIBroadcastPheno() const{
+void Regression::MPIBroadcastPheno(){
 	// Now, send the first phenotype
 	mpi_pheno mp;
 	mp._pheno = _pheno;
 	mpi_envelope me;
 	me.msg = &mp;
+	mpi_prefix = *output_itr + sep;
 	MPIBroadcast(MPIUtils::pack(me));
 }
 
@@ -1969,7 +1970,7 @@ void Regression::MPIStopBroadcast() const{
 #ifdef HAVE_CXX_MPI
 	// send a "done broadcasting signal
 	unsigned int flag = 0;
-	MPI_Barrier(MPI_COMM_WORLD);
+//	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&flag, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 #endif
 }
@@ -2040,23 +2041,24 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// If I'm here, I might generate some post-locking models, so
 		// send a "please wait" message
 		retval = pair<unsigned int, const char*>(work_map.size(), 0);
-	} else if(++output_itr != outcome_names.end()){
-
+	} else if(output_itr != outcome_names.end()){
+		
 		// Note the empty loop here - we will check and make sure that the
 		// phenotype is good and continue until we either run out or find
 		// a good one
-		while(!resetPheno(*output_itr) && ++output_itr != outcome_names.end());
-
+		while(++output_itr != outcome_names.end() && !resetPheno(*output_itr));
+		
 		// If I'm here, I have another phenotype to run!
 		if(output_itr != outcome_names.end()){
+			collect();
 			MPIStartBroadcast();
 			MPIBroadcastPheno();
 			MPIStopBroadcast();
 			mgp->reset();
 			weight_complete = encoding != Encoding::WEIGHTED;
+			// recurse to get the next model
+			retval = nextQuery();
 		}
-		// recurse to get the next model
-		retval = nextQuery();
 	}
 	// empty else statement means that there is really NOTHING else to run!
 	
@@ -2078,7 +2080,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 		work_map.erase(witr);
 	}
 	
-	bool is_result = true;
+	bool is_result = (r != 0);
 	set<string>::iterator pl_itr = pre_lock_set.find(m->getID());
 	if(pl_itr != pre_lock_set.end()){
 		is_result = false;
@@ -2103,7 +2105,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 		// if this is true, then the result should be added to the univariate
 		// results
 		if(m->markers.size() == 1){
-			_marker_uni_result[m->markers[0]] = r;
+ 			_marker_uni_result[m->markers[0]] = r;
 		} else {
 			_trait_uni_result[m->traits[0]] = r;
 		}
@@ -2127,7 +2129,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 					Logger::log_err("WARNING: Unexpected error in displaying univariate models using MPI.");
 				}
 			}
-			it->first->prefix = *output_itr + sep + it->first->prefix;
+			it->first->prefix = mpi_prefix + it->first->prefix;
 			addResult(it->first);
 			post_lock_map.erase(it++);
 		} else {
@@ -2191,7 +2193,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 
 	if(is_result){
 		//is a result and I don't need any post-locks, add the result to the list
-		r->prefix = *output_itr + sep + r->prefix;
+		r->prefix = mpi_prefix + r->prefix;
 		addResult(r);
 	}
 
@@ -2209,7 +2211,7 @@ void Regression::processBroadcast(){
 	unsigned int bcast_sz = 0;
 	char* buf = 0;
 	
-	MPI_Barrier(MPI_COMM_WORLD);
+//	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	while(bcast_sz > 0){
 		buf = new char[bcast_sz];
@@ -2263,7 +2265,7 @@ void Regression::processBroadcast(){
 			delete env.msg;
 		}
 
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	}
