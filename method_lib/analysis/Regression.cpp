@@ -1856,6 +1856,7 @@ void Regression::MPIBroadcastTrait(const string& t){
 	DataSet::const_sample_iterator si = ds_ptr->beginSample();
 	while(si != ds_ptr->endSample()){
 		mt.data.push_back(ds_ptr->getTrait(t, *si));
+		++si;
 	}
 
 	mt.description = t;
@@ -1883,6 +1884,7 @@ void Regression::MPIBroadcastMarker(const Marker* m){
 			mm.data[2*pers_index + 1] = geno & 1;
 		}
 		++pers_index;
+		++si;
 	}
 
 	// note that the description is everything BUT the MAF!
