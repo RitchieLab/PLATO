@@ -1640,6 +1640,7 @@ void Regression::OneSidedModelGenerator::reset() {
 const Regression::ExtraData* Regression::getExtraData() const{
 	if(!class_data){
 		class_data = new ExtraData();
+		class_data->interactions = interactions;
 		class_data->encoding = encoding;
 		class_data->const_covars = const_covar_names.size();
 		class_data->base_covars = covar_names.size() + const_covar_names.size();
