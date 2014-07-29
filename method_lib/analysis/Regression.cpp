@@ -95,6 +95,7 @@ unsigned int Regression::n_const_covars = 0;
 std::deque<gsl_permutation*> Regression::_permu_data;
 std::vector<float> Regression::_curr_pheno;
 const Regression::ExtraData* Regression::_extra_data = 0;
+boost::shared_mutex Regression::_mpi_mutex;
 
 
 Regression::~Regression() {
@@ -275,12 +276,13 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	}
 #endif
 
-	if(_use_mpi){
+/*	if(_use_mpi){
 		if(n_threads > 1){
 			Logger::log_err("WARNING: --threads used with MPI, setting number of threads to 0");
 		}
 		n_threads = 0;
 	}
+*/
 
 
 	_threaded = n_threads > 0;
@@ -612,7 +614,7 @@ void Regression::runRegression(const DataSet& ds){
 
 	if(_use_mpi){
 		initMPI();
-		processMPI();
+		processMPI(n_threads);
 		// now, send a "please clean up" signal
 		mpi_envelope me;
 		mpi_clean mc;
@@ -2207,6 +2209,12 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 void Regression::processBroadcast(){
 	// I know I'm going to get a broadcast message here, but first I'm going
 	// to receive the size
+
+	// We're probably going to modify some of our static data, so let's
+	// get a "write lock" set up.
+	boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
+	w_lock.lock();
+
 #ifdef HAVE_CXX_MPI
 	unsigned int bcast_sz = 0;
 	char* buf = 0;
@@ -2272,6 +2280,9 @@ void Regression::processBroadcast(){
 	
 #endif
 
+	// And we're done, so go ahead and release our lock
+	w_lock.unlock();
+
 }
 
 pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func){
@@ -2282,6 +2293,11 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 	pair<unsigned int, const char*> retval(0,0);
 
 	if(typeid(*env.msg) == typeid(mpi_query)){
+
+		// Make sure to get a "read lock" on the data
+		boost::shared_lock<boost::shared_mutex> r_lock(_mpi_mutex);
+		r_lock.lock();
+
 		mpi_query* mq = dynamic_cast<mpi_query*>(env.msg);
 		// run a query (model) here
 
@@ -2304,6 +2320,8 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 			}
 		}
 
+		r_lock.unlock();
+
 		mpi_response resp;
 		resp.msg_id = mq->msg_id;
 		resp.result = r;
@@ -2320,6 +2338,11 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 		// OK, I need to prepare for broadcast here!
 		processBroadcast();
 	} else if(typeid(*env.msg) == typeid(mpi_clean)){
+
+		// Get a "write lock" on our data, please!
+		boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
+		w_lock.lock();
+
 		// Clean up all those static variables!
 		_marker_data.clear();
 		_marker_desc.clear();
@@ -2334,7 +2357,10 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 		_curr_pheno.resize(0);
 		if(_extra_data){
 			delete _extra_data;
+			_extra_data = 0;
 		}
+
+		w_lock.unlock();
 	}
 
 	if(env.msg){

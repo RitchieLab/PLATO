@@ -16,9 +16,14 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <deque>
+#include <utility>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
+//#include <boost/thread.hpp>
+#include <boost/ref.hpp>
+#include <boost/bind.hpp>
 
 #include "ProcessFactory.h"
 #include "MPIProcessFactory.h"
@@ -28,6 +33,7 @@
 #include "util/CommandLineParser.h"
 #include "data/DataSet.h"
 #include "util/Logger.h"
+#include "util/ThreadPool.h"
 
 #include "config.h"
 
@@ -41,6 +47,8 @@ using std::cout;
 using std::cerr;
 using std::string;
 using std::vector;
+using std::deque;
+using std::pair;
 
 using PLATO::Data::DataSet;
 using PLATO::Utility::InputManager;
@@ -50,6 +58,35 @@ using PLATO::Utility::Logger;
 using PLATO::Process;
 using PLATO::ProcessFactory;
 using PLATO::MPIProcessFactory;
+
+void MPISendResponses(deque<pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
+	while(resp_queue.size() > 0){
+		resp_mutex.lock();
+		pair<unsigned int, const char*> response = resp_queue.front();
+		resp_queue.pop_front();
+		resp_mutex.unlock();
+
+		// only send a response if we NEED to!
+		if(response.second){
+#ifdef HAVE_CXX_MPI
+			MPI_Send(const_cast<char*>(response.second), response.first, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD);
+#endif
+			delete[] response.second;
+		}
+
+	}
+}
+
+void MPICalcThread(int tag, unsigned int bufsz, const char* buf,
+		deque<pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
+
+	pair<unsigned int, const char*> response = MPIProcessFactory::getFactory().calculate(tag, bufsz, buf);
+	delete[] buf;
+	resp_mutex.lock();
+	resp_queue.push_back(response);
+	resp_mutex.unlock();
+
+}
 
 int main(int argc, char** argv){
 
@@ -74,6 +111,12 @@ int main(int argc, char** argv){
 	} else {
 #ifdef HAVE_CXX_MPI
 
+		// set up a pool of threads here
+		deque<pair<unsigned int, const char*> > resp_queue;
+		boost::mutex resp_mutex;
+
+		PLATO::Utility::ThreadPool tp;
+
 		// If this is the case, we want to listen for requests and use the
 		// MPIProcessFactory to process them.
 		MPI_Status m_stat;
@@ -84,6 +127,9 @@ int main(int argc, char** argv){
 			MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 			// If we get a 0 tag, break out of the receive loop
 			if(m_stat.MPI_TAG == 0){
+				// wait on the threads
+				tp.join_all();
+				MPISendResponses(resp_queue, resp_mutex);
 				break;
 			}
 
@@ -92,13 +138,11 @@ int main(int argc, char** argv){
 			buf = new char[bufsz];
 			MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);
 
-			response = MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf);
+			// check for threads that are done, and send those responses now
+			MPISendResponses(resp_queue, resp_mutex);
 
-			// only send a response if we NEED to!
-			if(response.second){
-				MPI_Send(const_cast<char*>(response.second), response.first, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD);
-				delete[] response.second;
-			}
+			// send this to a thread, or create one if none available
+			tp.run(boost::bind(MPICalcThread, m_stat.MPI_TAG, bufsz, buf, boost::ref(resp_queue), boost::ref(resp_mutex)));
 		}
 
 #endif

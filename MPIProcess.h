@@ -26,7 +26,7 @@ protected:
 
 protected:
 	virtual const std::string& getMPIName() const = 0;
-	void processMPI();
+	void processMPI(unsigned int threads);
 	// waits for all currently running models to return
 	void collect();
 	void sendAll(unsigned int, const char*) const;
@@ -35,6 +35,8 @@ private:
 	void sendMPI(const std::pair<unsigned int, const char*>& query);
 	std::deque<int> _idle_queue;
 	int n_procs;
+	//! Number of cores per node.
+	unsigned int n_thread;
 
 protected:
 	int _tag;

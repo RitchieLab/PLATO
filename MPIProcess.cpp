@@ -6,6 +6,7 @@
  */
 
 #include "MPIProcess.h"
+
 #include "util/Logger.h"
 
 #include "config.h"
@@ -18,7 +19,7 @@ using std::pair;
 
 namespace PLATO{
 
-MPIProcess::MPIProcess() : n_procs(1), _tag(0) {
+MPIProcess::MPIProcess() : n_procs(1), n_thread(1), _tag(0) {
 #ifdef HAVE_CXX_MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 #endif
@@ -69,7 +70,10 @@ void MPIProcess::collect(){
 #endif
 }
 
-void MPIProcess::processMPI(){
+void MPIProcess::processMPI(unsigned int threads){
+
+	// make sure to have at least 1 thread per core!
+	n_thread = threads < 1 ? 1 : threads;
 
 	pair<unsigned int, const char*> nextval = nextQuery();
 
@@ -78,12 +82,12 @@ void MPIProcess::processMPI(){
 	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 
 	// set up the list of processors currently idle
-	for(int i=0; ++i < n_procs && nextval.first != 0; ){
-		_idle_queue.push_back(i);
+	for(int i=0; i < (n_procs - 1) * n_thread; i++){
+		// we're going to initially try to round-robin everything
+		// i.e. 3 threads on 2 nodes should have the initial queue: [1,2,1,2,1,2]
+		_idle_queue.push_back(1 + (i % (n_procs - 1)));
 	}
 
-	// at this point, everyone is working, so we'll wait for a response to send
-	// another message
 	char * buf;
 	int bufsz;
 	MPI_Status m_stat;

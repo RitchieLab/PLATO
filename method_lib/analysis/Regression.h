@@ -875,6 +875,7 @@ private:
 	static std::deque<gsl_permutation*> _permu_data;
 	static std::vector<float> _curr_pheno;
 	static const ExtraData* _extra_data;
+	static boost::shared_mutex _mpi_mutex;
 
 	//------------------------------------------------
 	// Structures for sorting results

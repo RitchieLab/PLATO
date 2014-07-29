@@ -2,12 +2,20 @@
 #define PLATO_MAIN_H
 
 #include "config.h"
+#include <deque>
+#include <utility>
+
+#include <boost/thread/mutex.hpp>
 
 // this is the entry point for the "master" (this is essentially the "old" main)
 int master_main(int, char**);
 
 // handles both MPI and regular invocations
 int main(int, char**);
+
+void MPISendResponses(std::deque<std::pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex);
+void MPICalcThread(int tag, unsigned int bufsz, const char* buf,
+		std::deque<std::pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex);
 
 void print_steps();
 
