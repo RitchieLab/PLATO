@@ -2213,7 +2213,6 @@ void Regression::processBroadcast(){
 	// We're probably going to modify some of our static data, so let's
 	// get a "write lock" set up.
 	boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
-	w_lock.lock();
 
 #ifdef HAVE_CXX_MPI
 	unsigned int bcast_sz = 0;
@@ -2296,7 +2295,6 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 
 		// Make sure to get a "read lock" on the data
 		boost::shared_lock<boost::shared_mutex> r_lock(_mpi_mutex);
-		r_lock.lock();
 
 		mpi_query* mq = dynamic_cast<mpi_query*>(env.msg);
 		// run a query (model) here
@@ -2341,7 +2339,6 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 
 		// Get a "write lock" on our data, please!
 		boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
-		w_lock.lock();
 
 		// Clean up all those static variables!
 		_marker_data.clear();
