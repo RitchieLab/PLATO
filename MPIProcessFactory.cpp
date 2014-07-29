@@ -29,13 +29,8 @@ void MPIProcessFactory::calculate(unsigned int key_pos,
 		++fn_itr;
 	}
 	if(fn_itr != calc_map.end()){
-		(*fn_itr).second(bufsz, buf, resp_queue, resp_mutex);
+		(*fn_itr).second(bufsz, buf, resp_queue, resp_mutex, cv);
 	}
-
-	boost::unique_lock<boost::mutex> cv_lock(resp_mutex);
-	cv.notify_one();
-	cv_lock.unlock();
-
 }
 
 unsigned int MPIProcessFactory::getKeyPos(const string& key){

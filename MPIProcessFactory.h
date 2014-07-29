@@ -16,7 +16,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 
-typedef void (calcFunc)(unsigned int, const char*, std::deque<std::pair<unsigned int, const char*> >&, boost::mutex&);
+typedef void (calcFunc)(unsigned int, const char*, std::deque<std::pair<unsigned int, const char*> >&, boost::mutex&, boost::condition_variable&);
 
 namespace PLATO{
 
@@ -38,7 +38,7 @@ public:
 
 private:
 	std::map<const std::string, calcFunc*> calc_map;
-	//! This condition variable is set when a calculate finishes or when a receive is ready
+	//! This condition variable is set when a calculate finishes (but it's up to the user to do so!)
 	boost::condition_variable cv;
 
 };

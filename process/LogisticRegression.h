@@ -56,7 +56,7 @@ private:
 
 public:
 	static void calculate_MPI(unsigned int bufsz, const char* buf, 
-		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex);
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv);
 
 private:
 	bool show_odds;

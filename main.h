@@ -15,9 +15,9 @@ int master_main(int, char**);
 // handles both MPI and regular invocations
 int main(int, char**);
 
-void MPISendResponses(std::map<int, std::deque<std::pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex);
+void MPISendResponses(std::map<int, std::deque<std::pair<unsigned int, const char*> > >& resp_queue_map, boost::mutex& resp_mutex);
 
-void MPIProbeInput(boost::mutex& mut, boost::condition_variable& cv);
+void MPIProbeInput(std::map<int, std::deque<std::pair<unsigned int, const char*> > >& resp_queue_map, boost::mutex& resp_mutex, bool& running);
 
 void print_steps();
 

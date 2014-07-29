@@ -539,10 +539,12 @@ public:
 
 	struct mpi_pheno : public mpi_data {
 		std::vector<float> _pheno;
+		std::string _name;
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int){
 			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & _name;
 			ar & _pheno;
 		}
 	};
@@ -665,11 +667,7 @@ protected:
 	virtual std::pair<unsigned int, const char*> nextQuery();
 
 	static void calculate_MPI(unsigned int bufsz, const char* in_buf, 
-		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, 
-		calc_fn& func);
-		
-	static void runMPIQuery(const mpi_query* mq, 
-		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex,
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv,
 		calc_fn& func);
 
 private:
@@ -727,6 +725,10 @@ private:
 
 	static void runPermutations(Result* r, genPermuData& perm_fn,
 			const std::deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed);
+			
+	static void runMPIQuery(const mpi_query* mq, 
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv,
+		calc_fn& func);			
 
 private:
 	//------------------------------------------------
@@ -856,9 +858,6 @@ private:
 	std::multimap<std::string, int*> work_lock_map;
 	std::set<std::string> pre_lock_set;
 	
-	//! prefix for the outcome
-	std::string mpi_prefix;
-
 	//! a queue of models that need to be run
 	std::deque<const Model*> model_queue;
 
@@ -884,6 +883,7 @@ private:
 	static unsigned int n_const_covars;
 	static std::deque<gsl_permutation*> _permu_data;
 	static std::vector<float> _curr_pheno;
+	static std::string _curr_pheno_name;
 	static const ExtraData* _extra_data;
 	static boost::shared_mutex _mpi_mutex;
 	static Utility::ThreadPool _mpi_threads;

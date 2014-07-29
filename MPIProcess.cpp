@@ -57,7 +57,7 @@ void MPIProcess::collect(){
 	char* buf;
 	int bufsz;
 
-	while(_idle_queue.size() < static_cast<unsigned int>(n_procs - 1)){
+	while(_idle_queue.size() < static_cast<unsigned int>(n_procs - 1)*n_thread){
 		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		buf = new char[bufsz];

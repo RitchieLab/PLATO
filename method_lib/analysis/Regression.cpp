@@ -94,6 +94,7 @@ std::deque<std::vector<float> > Regression::_covar_data;
 unsigned int Regression::n_const_covars = 0;
 std::deque<gsl_permutation*> Regression::_permu_data;
 std::vector<float> Regression::_curr_pheno;
+std::string Regression::_curr_pheno_name("");
 const Regression::ExtraData* Regression::_extra_data = 0;
 boost::shared_mutex Regression::_mpi_mutex;
 Utility::ThreadPool Regression::_mpi_threads;
@@ -1939,9 +1940,9 @@ void Regression::MPIBroadcastPheno(){
 	// Now, send the first phenotype
 	mpi_pheno mp;
 	mp._pheno = _pheno;
+	mp._name = *output_itr;
 	mpi_envelope me;
 	me.msg = &mp;
-	mpi_prefix = *output_itr + sep;
 	MPIBroadcast(MPIUtils::pack(me));
 }
 
@@ -2131,7 +2132,6 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 					Logger::log_err("WARNING: Unexpected error in displaying univariate models using MPI.");
 				}
 			}
-			it->first->prefix = mpi_prefix + it->first->prefix;
 			addResult(it->first);
 			post_lock_map.erase(it++);
 		} else {
@@ -2195,7 +2195,6 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 
 	if(is_result){
 		//is a result and I don't need any post-locks, add the result to the list
-		r->prefix = mpi_prefix + r->prefix;
 		addResult(r);
 	}
 
@@ -2212,10 +2211,8 @@ void Regression::processBroadcast(){
 
 	// We're probably going to modify some of our static data, so let's
 	// get a "write lock" set up.
-	std::cout << "Processing broadcast" << std::endl;
+
 	boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
-	
-	std::cout << "Locked for broadcast preparations" << std::endl;
 
 #ifdef HAVE_CXX_MPI
 	unsigned int bcast_sz = 0;
@@ -2235,8 +2232,7 @@ void Regression::processBroadcast(){
 			// reset the phenotype here
 			_curr_pheno.clear();
 			_curr_pheno = mph->_pheno;
-			//_curr_pheno.insert(_curr_pheno.begin(), mph->_pheno.begin(), mph->_pheno.end());
-			
+			_curr_pheno_name = mph->_name;			
 		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
 			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
 			_marker_data.push_back(make_pair(mm->data, 0.5f));
@@ -2284,21 +2280,14 @@ void Regression::processBroadcast(){
 	// And we're done, so go ahead and release our lock
 	w_lock.unlock();
 	
-	std::cout << "Broadcast lock released" << std::endl;
-
 }
 
-void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, calc_fn& func){
-
-	std::cout << "Processing query" << std::endl;
+void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func){
 
 	// Make sure to get a "read lock" on the data
 	boost::shared_lock<boost::shared_mutex> r_lock(_mpi_mutex);
 
 	// run a query (model) here
-	
-	std::cout << "Locked, processing message " << mq->msg_id << std::endl;
-
 	calc_matrix* calc_mat = getCalcMatrix(*mq, 0);
 
 	Result* r = 0;
@@ -2314,7 +2303,7 @@ void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const
 		}
 
 		if(r){
-			r->prefix = calc_mat->prefix;
+			r->prefix = _curr_pheno_name + _extra_data->sep + calc_mat->prefix;
 		}
 	}
 
@@ -2324,13 +2313,11 @@ void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const
 	resp.msg_id = mq->msg_id;
 	resp.result = r;
 
-	std::cout << "Attempting to lock the result queue"<<std::endl;
-	result_mutex.lock();
-	std::cout << "Locked the result queue"<<std::endl;
+
+	boost::unique_lock<boost::mutex> cv_lock(result_mutex);
 	result_queue.push_back(MPIUtils::pack(resp));
-	result_mutex.unlock();
-	std::cout << "Unlocked the result queue"<<std::endl;
-	
+	cv.notify_one();
+	cv_lock.unlock();
 
 	if(calc_mat){
 		delete calc_mat;
@@ -2343,48 +2330,54 @@ void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const
 }
 	
 
-void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, calc_fn& func){
+void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func){
 
-	mpi_envelope env;
-	MPIUtils::unpack(bufsz, in_buf, env);
 
-	pair<unsigned int, const char*> retval(0,0);
+	if(bufsz == 0){
+		// if we got a message of size 0, we just want to wait for everything to finish
+		_mpi_threads.join_all();
+	}else{
+		mpi_envelope env;
+		MPIUtils::unpack(bufsz, in_buf, env);
 
-	if(typeid(*env.msg) == typeid(mpi_query)){
-		boost::function<void()> f = boost::bind(&runMPIQuery, dynamic_cast<mpi_query*>(env.msg), boost::ref(result_queue), boost::ref(result_mutex), boost::ref(func));
-		_mpi_threads.run(f);
-	} else{
-		if(typeid(*env.msg) == typeid(mpi_bcast)){
-		// OK, I need to prepare for broadcast here!
-			processBroadcast();
-		} else if(typeid(*env.msg) == typeid(mpi_clean)){
+		pair<unsigned int, const char*> retval(0,0);
+	
+		if(typeid(*env.msg) == typeid(mpi_query)){
+			boost::function<void()> f = boost::bind(&runMPIQuery, dynamic_cast<mpi_query*>(env.msg), boost::ref(result_queue), boost::ref(result_mutex), boost::ref(cv), boost::ref(func));
+			_mpi_threads.run(f);
+		} else{
+			if(typeid(*env.msg) == typeid(mpi_bcast)){
+			// OK, I need to prepare for broadcast here!
+				processBroadcast();
+			} else if(typeid(*env.msg) == typeid(mpi_clean)){
 
-			// Get a "write lock" on our data, please!
-			boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
+				// Get a "write lock" on our data, please!
+				boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
 
-			// Clean up all those static variables!
-			_marker_data.clear();
-			_marker_desc.clear();
-			_trait_desc.clear();
-			_trait_data.clear();
-			_covar_data.clear();
+				// Clean up all those static variables!
+				_marker_data.clear();
+				_marker_desc.clear();
+				_trait_desc.clear();
+				_trait_data.clear();
+				_covar_data.clear();
 
-			for(deque<gsl_permutation*>::const_iterator pitr=_permu_data.begin(); pitr != _permu_data.end(); pitr++){
-				gsl_permutation_free(*pitr);
+				for(deque<gsl_permutation*>::const_iterator pitr=_permu_data.begin(); pitr != _permu_data.end(); pitr++){
+					gsl_permutation_free(*pitr);
+				}
+				_permu_data.clear();
+				_curr_pheno.resize(0);
+				if(_extra_data){
+					delete _extra_data;
+					_extra_data = 0;
+				}
+
+				w_lock.unlock();
 			}
-			_permu_data.clear();
-			_curr_pheno.resize(0);
-			if(_extra_data){
-				delete _extra_data;
-				_extra_data = 0;
-			}
-
-			w_lock.unlock();
-		}
 		
-		// NOTE: DO NOT delete the message if we pass it to a thread!!
-		if(env.msg){
-			delete env.msg;
+			// NOTE: DO NOT delete the message if we pass it to a thread!!
+			if(env.msg){
+				delete env.msg;
+			}
 		}
 	}
 
