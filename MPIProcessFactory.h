@@ -14,6 +14,7 @@
 #include <deque>
 #include <utility>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 typedef void (calcFunc)(unsigned int, const char*, std::deque<std::pair<unsigned int, const char*> >&, boost::mutex&);
 
@@ -31,11 +32,15 @@ public:
 
 	void calculate(unsigned int key_pos, unsigned int bufsz, const char* buf, std::deque<std::pair<unsigned int, const char*> >&, boost::mutex&);
 	unsigned int getKeyPos(const std::string& key);
+	boost::condition_variable& getConditionVar() { return cv; }
 
 	static MPIProcessFactory& getFactory(){static MPIProcessFactory f; return f;}
 
 private:
 	std::map<const std::string, calcFunc*> calc_map;
+	//! This condition variable is set when a calculate finishes or when a receive is ready
+	boost::condition_variable cv;
+
 };
 
 

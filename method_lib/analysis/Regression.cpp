@@ -2275,7 +2275,6 @@ void Regression::processBroadcast(){
 			delete env.msg;
 		}
 
-//		MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	}

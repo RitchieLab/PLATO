@@ -125,13 +125,20 @@ void MPIProcess::processMPI(unsigned int threads){
 #else
 	Utility::Logger::log_err("WARNING: MPI requested, but no MPI found during compilation!");
 	pair<unsigned int, const char*> calc_val;
+	std::deque<pair<unsigned int, const char*> > resp_queue;
+	boost::mutex resp_mutex;
 
 	while(nextval.first != 0){
 		if(nextval.second != 0){
-			calc_val = MPIProcessFactory::getFactory().calculate(_tag, nextval.first, nextval.second);
+			MPIProcessFactory::getFactory().calculate(_tag, nextval.first, nextval.second, resp_queue, resp_mutex);
 			delete[] nextval.second;
-			processResponse(calc_val.first, calc_val.second);
-			delete[] calc_val.second;
+			while(resp_queue.size() > 0){
+				calc_val = resp_queue.front();
+				resp_queue.pop_front();
+				processResponse(calc_val.first, calc_val.second);
+				delete[] calc_val.second;
+			}
+
 		}
 		nextval = nextQuery();
 	}

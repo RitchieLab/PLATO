@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 // this is the entry point for the "master" (this is essentially the "old" main)
 int master_main(int, char**);
@@ -15,8 +16,8 @@ int master_main(int, char**);
 int main(int, char**);
 
 void MPISendResponses(std::map<int, std::deque<std::pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex);
-//void MPICalcThread(int tag, unsigned int bufsz, const char* buf,
-//		std::deque<std::pair<int, std::pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex);
+
+void MPIProbeInput(boost::mutex& mut, boost::condition_variable& cv);
 
 void print_steps();
 

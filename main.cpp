@@ -87,18 +87,27 @@ void MPISendResponses(map<int, deque<pair<unsigned int, const char*> > >& resp_q
 	}
 }
 
-/*
-void MPICalcThread(int tag, unsigned int bufsz, const char* buf,
-		deque<pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
+void MPIProbeInput(boost::mutex& mut, boost::condition_variable& cv){
+	boost::unique_lock<boost::mutex> cv_lock(mut);
+	cv_lock.unlock();
+#ifdef HAVE_CXX_MPI
+	MPI_Status m_stat;
+	bool running = true;
+	while(running){
+		MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 
-	pair<unsigned int, const char*> response = MPIProcessFactory::getFactory().calculate(tag, bufsz, buf);
-	delete[] buf;
-	resp_mutex.lock();
-	resp_queue.push_back(make_pair(tag, response));
-	resp_mutex.unlock();
+		if(m_stat.MPI_TAG == 0){
+			running = false;
+		}
 
+		// If I am here, this means that there is a message waiting...
+		cv_lock.lock();
+		cv.notify_one();
+		cv_lock.unlock();
+	}
+#endif
 }
-*/
+
 int main(int argc, char** argv){
 
 	int rank = 0;
@@ -125,33 +134,49 @@ int main(int argc, char** argv){
 		// set up a pool of threads here
 		map<int, deque<pair<unsigned int, const char*> > > resp_queue_map;
 		boost::mutex resp_mutex;
+		boost::unique_lock<boost::mutex> cv_lock(resp_mutex);
+		cv_lock.unlock();
+		boost::condition_variable cv& = MPIProcessFactory::getFactory()::getConditionVar();
 
 		// If this is the case, we want to listen for requests and use the
 		// MPIProcessFactory to process them.
 		MPI_Status m_stat;
 		int bufsz;
+		int avail = 0;
 		char* buf;
+
+		// kick off a thread that does nothing but probe for messages
+		boost::thread probe_t(boost::bind(&MPIProbeInput, boost::ref(resp_mutex), boost::ref(cv)));
+
 		//std::pair<unsigned int, const char*> response;
 		while(true){
-			MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
-			// If we get a 0 tag, break out of the receive loop
-			if(m_stat.MPI_TAG == 0){
-				// wait on the threads (i.e., send the special "wait until done" message
-				for( map<int, deque<pair<unsigned int, const char*> > >::iterator rq_itr = resp_queue_map.begin();
-					 rq_itr != resp_queue_map.end(); rq_itr++){
-					MPIProcessFactory::getFactory().calculate((*rq_itr).first, 0, 0, (*rq_itr).second, resp_mutex);					
-				}
-				MPISendResponses(resp_queue_map, resp_mutex);
-				break;
-			}
-			deque<pair<unsigned int, const char*> >& resp_queue = resp_queue_map[m_stat.MPI_TAG];
+			// wait for notification of something to do
+			cv_lock.lock();
+			cv.wait(cv_lock);
+			cv_lock.unlock();
 
-			MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
-			//std::cout << "Receiving " <<bufsz << " bytes..." << std::endl;
-			buf = new char[bufsz];
-			MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);	
-			
-			MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf, resp_queue, resp_mutex);
+			MPI_Iprobe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &avail, &m_stat);
+
+			if(avail){
+				// If we get a 0 tag, break out of the receive loop
+				if(m_stat.MPI_TAG == 0){
+					// wait on the threads (i.e., send the special "wait until done" message
+					for( map<int, deque<pair<unsigned int, const char*> > >::iterator rq_itr = resp_queue_map.begin();
+						 rq_itr != resp_queue_map.end(); rq_itr++){
+						MPIProcessFactory::getFactory().calculate((*rq_itr).first, 0, 0, (*rq_itr).second, resp_mutex);
+					}
+					MPISendResponses(resp_queue_map, resp_mutex);
+					break;
+				}
+				deque<pair<unsigned int, const char*> >& resp_queue = resp_queue_map[m_stat.MPI_TAG];
+
+				MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
+				//std::cout << "Receiving " <<bufsz << " bytes..." << std::endl;
+				buf = new char[bufsz];
+				MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);
+
+				MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf, resp_queue, resp_mutex);
+			}
 			
 			// check for threads that are done, and send those responses now
 			MPISendResponses(resp_queue_map, resp_mutex);
