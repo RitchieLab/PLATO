@@ -13,9 +13,9 @@ int master_main(int, char**);
 // handles both MPI and regular invocations
 int main(int, char**);
 
-void MPISendResponses(std::deque<std::pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex);
+void MPISendResponses(std::deque<std::pair<int, std::pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex);
 void MPICalcThread(int tag, unsigned int bufsz, const char* buf,
-		std::deque<std::pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex);
+		std::deque<std::pair<int, std::pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex);
 
 void print_steps();
 

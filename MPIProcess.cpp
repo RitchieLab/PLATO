@@ -82,7 +82,7 @@ void MPIProcess::processMPI(unsigned int threads){
 	MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 
 	// set up the list of processors currently idle
-	for(int i=0; i < (n_procs - 1) * n_thread; i++){
+	for(unsigned int i=0; i < (n_procs - 1) * n_thread; i++){
 		// we're going to initially try to round-robin everything
 		// i.e. 3 threads on 2 nodes should have the initial queue: [1,2,1,2,1,2]
 		_idle_queue.push_back(1 + (i % (n_procs - 1)));

@@ -59,31 +59,31 @@ using PLATO::Process;
 using PLATO::ProcessFactory;
 using PLATO::MPIProcessFactory;
 
-void MPISendResponses(deque<pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
+void MPISendResponses(deque<pair<int, pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex){
 	while(resp_queue.size() > 0){
 		resp_mutex.lock();
-		pair<unsigned int, const char*> response = resp_queue.front();
+		pair<int, pair<unsigned int, const char*> > response = resp_queue.front();
 		resp_queue.pop_front();
 		resp_mutex.unlock();
 
 		// only send a response if we NEED to!
-		if(response.second){
+		if(response.second.second){
 #ifdef HAVE_CXX_MPI
-			MPI_Send(const_cast<char*>(response.second), response.first, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD);
+			MPI_Send(const_cast<char*>(response.second.second), response.second.first, MPI_CHAR, 0, response.first, MPI_COMM_WORLD);
 #endif
-			delete[] response.second;
+			delete[] response.second.second;
 		}
 
 	}
 }
 
 void MPICalcThread(int tag, unsigned int bufsz, const char* buf,
-		deque<pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
+		deque<pair<int, pair<unsigned int, const char*> > >& resp_queue, boost::mutex& resp_mutex){
 
 	pair<unsigned int, const char*> response = MPIProcessFactory::getFactory().calculate(tag, bufsz, buf);
 	delete[] buf;
 	resp_mutex.lock();
-	resp_queue.push_back(response);
+	resp_queue.push_back(make_pair(tag, response));
 	resp_mutex.unlock();
 
 }
@@ -112,7 +112,7 @@ int main(int argc, char** argv){
 #ifdef HAVE_CXX_MPI
 
 		// set up a pool of threads here
-		deque<pair<unsigned int, const char*> > resp_queue;
+		deque<pair<int, pair<unsigned int, const char*> > > resp_queue;
 		boost::mutex resp_mutex;
 
 		PLATO::Utility::ThreadPool tp;
@@ -122,7 +122,7 @@ int main(int argc, char** argv){
 		MPI_Status m_stat;
 		int bufsz;
 		char* buf;
-		std::pair<unsigned int, const char*> response;
+		//std::pair<unsigned int, const char*> response;
 		while(true){
 			MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 			// If we get a 0 tag, break out of the receive loop
@@ -142,7 +142,8 @@ int main(int argc, char** argv){
 			MPISendResponses(resp_queue, resp_mutex);
 
 			// send this to a thread, or create one if none available
-			tp.run(boost::bind(MPICalcThread, m_stat.MPI_TAG, bufsz, buf, boost::ref(resp_queue), boost::ref(resp_mutex)));
+			boost::function<void ()> f = boost::bind(&MPICalcThread, m_stat.MPI_TAG, bufsz, buf, boost::ref(resp_queue), boost::ref(resp_mutex));
+			tp.run(f);
 		}
 
 #endif
