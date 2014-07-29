@@ -55,7 +55,8 @@ private:
 	static void* loadExtraData(const Archive& ar);
 
 public:
-	static std::pair<unsigned int, const char *> calculate_MPI(unsigned int bufsz, const char* buf);
+	static void calculate_MPI(unsigned int bufsz, const char* buf, 
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex);
 
 private:
 	bool show_odds;

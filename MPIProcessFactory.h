@@ -11,8 +11,11 @@
 #include <utility>
 #include <map>
 #include <string>
+#include <deque>
+#include <utility>
+#include <boost/thread/mutex.hpp>
 
-typedef std::pair<unsigned int, const char*> (calcFunc)(unsigned int, const char*);
+typedef void (calcFunc)(unsigned int, const char*, std::deque<std::pair<unsigned int, const char*> >&, boost::mutex&);
 
 namespace PLATO{
 
@@ -26,7 +29,7 @@ private:
 public:
 	const std::string& RegisterMPIProcess(const std::string& key, calcFunc* ptr);
 
-	std::pair<unsigned int, const char*> calculate(unsigned int key_pos, unsigned int bufsz, const char* buf);
+	void calculate(unsigned int key_pos, unsigned int bufsz, const char* buf, std::deque<std::pair<unsigned int, const char*> >&, boost::mutex&);
 	unsigned int getKeyPos(const std::string& key);
 
 	static MPIProcessFactory& getFactory(){static MPIProcessFactory f; return f;}

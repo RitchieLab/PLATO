@@ -15,6 +15,8 @@
 #include <fstream>
 #include <map>
 #include <cstdio>
+#include <deque>
+#include <utility>
 
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
@@ -46,6 +48,8 @@
 #include "MPIProcess.h"
 
 #include "data/DataSet.h"
+
+#include "util/ThreadPool.h"
 
 
 namespace PLATO{
@@ -660,7 +664,13 @@ protected:
 	virtual void processResponse(unsigned int bufsz, const char* in_buf);
 	virtual std::pair<unsigned int, const char*> nextQuery();
 
-	static std::pair<unsigned int, const char*> calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func);
+	static void calculate_MPI(unsigned int bufsz, const char* in_buf, 
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, 
+		calc_fn& func);
+		
+	static void runMPIQuery(const mpi_query* mq, 
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex,
+		calc_fn& func);
 
 private:
 	Result* run(const Model& m);
@@ -876,6 +886,7 @@ private:
 	static std::vector<float> _curr_pheno;
 	static const ExtraData* _extra_data;
 	static boost::shared_mutex _mpi_mutex;
+	static Utility::ThreadPool _mpi_threads;
 
 	//------------------------------------------------
 	// Structures for sorting results

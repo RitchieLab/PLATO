@@ -20,13 +20,17 @@ const string& MPIProcessFactory::RegisterMPIProcess(const string& key, calcFunc*
 	return key;
 }
 
-pair<unsigned int, const char*> MPIProcessFactory::calculate(unsigned int key_pos, unsigned int bufsz, const char* buf){
+void MPIProcessFactory::calculate(unsigned int key_pos, 
+		unsigned int bufsz, const char* buf, 
+		std::deque<std::pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
 	map<string, calcFunc*>::const_iterator fn_itr = calc_map.begin();
 	unsigned int i=0;
 	while(fn_itr != calc_map.end() && ++i < key_pos){
 		++fn_itr;
 	}
-	return (fn_itr == calc_map.end()) ? pair<unsigned int, const char*>(0, 0) : (*fn_itr).second(bufsz, buf);
+	if(fn_itr != calc_map.end()){
+		(*fn_itr).second(bufsz, buf, resp_queue, resp_mutex);
+	}
 }
 
 unsigned int MPIProcessFactory::getKeyPos(const string& key){

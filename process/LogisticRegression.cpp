@@ -31,6 +31,7 @@ using std::exp;
 using std::pow;
 using std::pair;
 using std::map;
+using std::deque;
 
 using boost::array;
 
@@ -446,8 +447,9 @@ pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, uns
 
 }
 
-pair<unsigned int, const char*> LogisticRegression::calculate_MPI(unsigned int bufsz, const char* buf){
-	return Regression::calculate_MPI(bufsz, buf, LogisticRegression::calculate);
+void LogisticRegression::calculate_MPI(unsigned int bufsz, const char* buf,
+	deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex){
+	return Regression::calculate_MPI(bufsz, buf, result_queue, result_mutex, LogisticRegression::calculate);
 }
 
 }

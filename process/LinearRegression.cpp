@@ -27,6 +27,7 @@ using std::exp;
 using std::set;
 using std::pair;
 using std::map;
+using std::deque;
 
 namespace po=boost::program_options;
 
@@ -275,8 +276,8 @@ void LinearRegression::process(DataSet& ds){
 	runRegression(ds);
 }
 
-pair<unsigned int, const char*> LinearRegression::calculate_MPI(unsigned int bufsz, const char* buf){
-	return Regression::calculate_MPI(bufsz, buf, LinearRegression::calculate);
+void LinearRegression::calculate_MPI(unsigned int bufsz, const char* buf, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex){
+	return Regression::calculate_MPI(bufsz, buf, result_queue, result_mutex, LinearRegression::calculate);
 }
 
 }

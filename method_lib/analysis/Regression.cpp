@@ -96,7 +96,7 @@ std::deque<gsl_permutation*> Regression::_permu_data;
 std::vector<float> Regression::_curr_pheno;
 const Regression::ExtraData* Regression::_extra_data = 0;
 boost::shared_mutex Regression::_mpi_mutex;
-
+Utility::ThreadPool Regression::_mpi_threads;
 
 Regression::~Regression() {
 	for (unsigned int i = 0; i < results.size(); i++){
@@ -2212,7 +2212,10 @@ void Regression::processBroadcast(){
 
 	// We're probably going to modify some of our static data, so let's
 	// get a "write lock" set up.
+	std::cout << "Processing broadcast" << std::endl;
 	boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
+	
+	std::cout << "Locked for broadcast preparations" << std::endl;
 
 #ifdef HAVE_CXX_MPI
 	unsigned int bcast_sz = 0;
@@ -2281,10 +2284,67 @@ void Regression::processBroadcast(){
 
 	// And we're done, so go ahead and release our lock
 	w_lock.unlock();
+	
+	std::cout << "Broadcast lock released" << std::endl;
 
 }
 
-pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, calc_fn& func){
+void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, calc_fn& func){
+
+	std::cout << "Processing query" << std::endl;
+
+	// Make sure to get a "read lock" on the data
+	boost::shared_lock<boost::shared_mutex> r_lock(_mpi_mutex);
+
+	// run a query (model) here
+	
+	std::cout << "Locked, processing message " << mq->msg_id << std::endl;
+
+	calc_matrix* calc_mat = getCalcMatrix(*mq, 0);
+
+	Result* r = 0;
+
+	if(calc_mat){
+		r = func(calc_mat->outcome, calc_mat->data, calc_mat->n_cols,
+				calc_mat->n_sampl, 0, calc_mat->red_vars, true, _extra_data);
+
+		if(mq->permute && r && _permu_data.size()){
+			// If I have permutations, I probably want to use them!!
+			genPermuData perm_fn = boost::bind(&Regression::getCalcMatrix, boost::cref(*mq), _1);
+			runPermutations(r, perm_fn,	_permu_data, func, _extra_data);
+		}
+
+		if(r){
+			r->prefix = calc_mat->prefix;
+		}
+	}
+
+	r_lock.unlock();
+
+	mpi_response resp;
+	resp.msg_id = mq->msg_id;
+	resp.result = r;
+
+	std::cout << "Attempting to lock the result queue"<<std::endl;
+	result_mutex.lock();
+	std::cout << "Locked the result queue"<<std::endl;
+	result_queue.push_back(MPIUtils::pack(resp));
+	result_mutex.unlock();
+	std::cout << "Unlocked the result queue"<<std::endl;
+	
+
+	if(calc_mat){
+		delete calc_mat;
+	}
+	if(r){
+		delete r;
+	}
+
+	delete mq;
+}
+	
+
+void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, calc_fn& func){
 
 	mpi_envelope env;
 	MPIUtils::unpack(bufsz, in_buf, env);
@@ -2292,79 +2352,42 @@ pair<unsigned int, const char*> Regression::calculate_MPI(unsigned int bufsz, co
 	pair<unsigned int, const char*> retval(0,0);
 
 	if(typeid(*env.msg) == typeid(mpi_query)){
-
-		// Make sure to get a "read lock" on the data
-		boost::shared_lock<boost::shared_mutex> r_lock(_mpi_mutex);
-
-		mpi_query* mq = dynamic_cast<mpi_query*>(env.msg);
-		// run a query (model) here
-
-		calc_matrix* calc_mat = getCalcMatrix(*mq, 0);
-
-		Result* r = 0;
-
-		if(calc_mat){
-			r = func(calc_mat->outcome, calc_mat->data, calc_mat->n_cols,
-					calc_mat->n_sampl, 0, calc_mat->red_vars, true, _extra_data);
-
-			if(mq->permute && r && _permu_data.size()){
-				// If I have permutations, I probably want to use them!!
-				genPermuData perm_fn = boost::bind(&Regression::getCalcMatrix, boost::cref(*mq), _1);
-				runPermutations(r, perm_fn,	_permu_data, func, _extra_data);
-			}
-
-			if(r){
-				r->prefix = calc_mat->prefix;
-			}
-		}
-
-		r_lock.unlock();
-
-		mpi_response resp;
-		resp.msg_id = mq->msg_id;
-		resp.result = r;
-
-		retval = MPIUtils::pack(resp);
-
-		if(calc_mat){
-			delete calc_mat;
-		}
-		if(r){
-			delete r;
-		}
-	} else if(typeid(*env.msg) == typeid(mpi_bcast)){
+		boost::function<void()> f = boost::bind(&runMPIQuery, dynamic_cast<mpi_query*>(env.msg), boost::ref(result_queue), boost::ref(result_mutex), boost::ref(func));
+		_mpi_threads.run(f);
+	} else{
+		if(typeid(*env.msg) == typeid(mpi_bcast)){
 		// OK, I need to prepare for broadcast here!
-		processBroadcast();
-	} else if(typeid(*env.msg) == typeid(mpi_clean)){
+			processBroadcast();
+		} else if(typeid(*env.msg) == typeid(mpi_clean)){
 
-		// Get a "write lock" on our data, please!
-		boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
+			// Get a "write lock" on our data, please!
+			boost::unique_lock<boost::shared_mutex> w_lock(_mpi_mutex);
 
-		// Clean up all those static variables!
-		_marker_data.clear();
-		_marker_desc.clear();
-		_trait_desc.clear();
-		_trait_data.clear();
-		_covar_data.clear();
+			// Clean up all those static variables!
+			_marker_data.clear();
+			_marker_desc.clear();
+			_trait_desc.clear();
+			_trait_data.clear();
+			_covar_data.clear();
 
-		for(deque<gsl_permutation*>::const_iterator pitr=_permu_data.begin(); pitr != _permu_data.end(); pitr++){
-			gsl_permutation_free(*pitr);
+			for(deque<gsl_permutation*>::const_iterator pitr=_permu_data.begin(); pitr != _permu_data.end(); pitr++){
+				gsl_permutation_free(*pitr);
+			}
+			_permu_data.clear();
+			_curr_pheno.resize(0);
+			if(_extra_data){
+				delete _extra_data;
+				_extra_data = 0;
+			}
+
+			w_lock.unlock();
 		}
-		_permu_data.clear();
-		_curr_pheno.resize(0);
-		if(_extra_data){
-			delete _extra_data;
-			_extra_data = 0;
+		
+		// NOTE: DO NOT delete the message if we pass it to a thread!!
+		if(env.msg){
+			delete env.msg;
 		}
-
-		w_lock.unlock();
 	}
-
-	if(env.msg){
-		delete env.msg;
-	}
-
-	return retval;
 
 }
 

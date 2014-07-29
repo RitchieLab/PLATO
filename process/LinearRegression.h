@@ -36,7 +36,8 @@ private:
 	static std::pair<float, float> calcPVal(Result* r, Result* submodel, double chisq, double tss,
 			                         unsigned int n_rows, unsigned int n_indep);
 public:
-	static std::pair<unsigned int, const char *> calculate_MPI(unsigned int bufsz, const char* buf);
+	static void calculate_MPI(unsigned int bufsz, const char* buf, 
+		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex);
 
 
 };
