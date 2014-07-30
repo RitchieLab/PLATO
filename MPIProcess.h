@@ -36,7 +36,7 @@ private:
 	std::deque<int> _idle_queue;
 	int n_procs;
 	//! Number of cores per node.
-	unsigned int n_thread;
+	unsigned int _mpi_threads;
 
 protected:
 	int _tag;

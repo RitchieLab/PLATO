@@ -36,26 +36,22 @@ ThreadPool::~ThreadPool(){
 
 }
 
-void ThreadPool::join_all(){
-	pool_mutex.lock();
-	exiting = true;
-	pool_mutex.unlock();
-
-	tg.join_all();
-
-	// Now that the thread_group has cleared everything out, if we want, we can
-	// create some more threads
-	pool_mutex.lock();
-	exiting = false;
-	pool_mutex.unlock();
-
-}
-
 void ThreadPool::createThread(){
 	pool_mutex.lock();
 	tg.create_thread( boost::bind( &ThreadPool::pool_main, this) );
 	pool_mutex.unlock();
 }
+
+void ThreadPool::join_all(){
+
+	boost::unique_lock<boost::mutex> lock(pool_mutex);
+
+	// juist wait until we have all threads available for processing
+	while (available < tg.size()) {
+		notifier.wait(lock);
+	}
+}
+
 
 void ThreadPool::pool_main(){
 

@@ -157,14 +157,26 @@ protected:
 		// use this for exhaustive
 		ModelGenerator(const Data::DataSet& ds) : _ds(ds) {}
 		virtual ~ModelGenerator() {}
-
-		virtual Model* next() = 0;
-		virtual void reset() = 0;
+		Model* next() {
+			_mg_mutex.lock();
+			Model* m = nextModel();
+			_mg_mutex.unlock();
+			return m;
+		}
+		void reset(){
+			_mg_mutex.lock();
+			resetGenerator();
+			_mg_mutex.unlock();
+		}
 
 	protected:
+		virtual Model* nextModel() = 0;
+		virtual void resetGenerator() = 0;
 
 		const Data::DataSet& _ds;
 
+	private:
+		boost::mutex _mg_mutex;
 	};
 
 	template <class M_iter>
@@ -189,8 +201,9 @@ protected:
 		}
 		virtual ~BasicModelGenerator() {}
 
-		virtual Model* next();
-		virtual void reset();
+	protected:
+		virtual Model* nextModel();
+		virtual void resetGenerator();
 
 	private:
 
@@ -216,9 +229,10 @@ protected:
 			ModelGenerator(ds),	_mbegin(models.begin()), _mitr(models.begin()), _mend(models.end()) {}
 		virtual ~TargetedModelGenerator() {}
 
+	protected:
 
-		virtual Model* next();
-		virtual void reset();
+		virtual Model* nextModel();
+		virtual void resetGenerator();
 	private:
 
 		const std::deque<std::string>::const_iterator _mbegin;
@@ -240,26 +254,27 @@ protected:
 			_traits(trait.size() > 0),	_nomarker(nomarker){}
 		virtual ~OneSidedModelGenerator() {}
 
-		virtual Model* next();
-		virtual void reset();
+	protected:
+		virtual Model* nextModel();
+		virtual void resetGenerator();
 
-		private:
-			const std::set<const Data::Marker*>& _m_set;
-			const std::set<std::string>& _t_set;
-			const std::set<std::string>& _tall_set;
+	private:
+		const std::set<const Data::Marker*>& _m_set;
+		const std::set<std::string>& _t_set;
+		const std::set<std::string>& _tall_set;
 
-			std::set<const Data::Marker*>::const_iterator _mi1;
-			Data::DataSet::const_marker_iterator _mi2;
+		std::set<const Data::Marker*>::const_iterator _mi1;
+		Data::DataSet::const_marker_iterator _mi2;
 
-			std::set<std::string>::const_iterator _titr;
-			std::set<std::string>::const_iterator _ti2;
+		std::set<std::string>::const_iterator _titr;
+		std::set<std::string>::const_iterator _ti2;
 
-			std::set<std::string> _t_processed;
-			std::set<const Data::Marker*> _m_processed;
+		std::set<std::string> _t_processed;
+		std::set<const Data::Marker*> _m_processed;
 
-			// NOTE: we ALWAYS want pairwise with this generator!
-			bool _traits;
-			bool _nomarker;
+		// NOTE: we ALWAYS want pairwise with this generator!
+		bool _traits;
+		bool _nomarker;
 	};
 
 	/*!
@@ -603,7 +618,8 @@ public:
 	};
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), n_perms(0), class_data(0),  mgp(0), msg_id(0), weight_complete(true){}
+	Regression() :  _use_mpi(false), _lowmem(false), n_perms(0), class_data(0),
+		mgp(0), _targeted(false), msg_id(0), weight_complete(true), wt_marker_itr(0){}
 	virtual ~Regression();
 
 	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
@@ -641,20 +657,14 @@ protected:
 	typedef Result* (calc_fn)(const double*, const double*, unsigned int,
 			unsigned int, unsigned int, unsigned int, bool, const Regression::ExtraData*);
 
-
+	// get the (static) function that actually does the regression
 	virtual calc_fn& getCalcFn() const = 0;
 
+	// get class data that we need for the regression
 	virtual const ExtraData* getExtraData() const;
-
-	/*virtual Result* calculate(const double* result, const double* data,
-			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-			unsigned int n_covars) = 0;
-	*/
-	float getCategoricalWeight(const PLATO::Data::Marker* m);
-
 	virtual bool initData() = 0;
-	virtual void printResults();
 
+	virtual void printResults();
 	virtual void printVarHeader(const std::string& var_name);
 	// Use this to print extra column information, like convergence..
 	virtual void printExtraHeader() {}
@@ -677,12 +687,17 @@ private:
 	 * This function takes a ModelGenerator and iterates through it, constantly
 	 * adding results to the result deque.
 	 */
-	void start(const Data::DataSet& ds, const std::string& outcome);
+	void start();
+	void runWeights();
 
+	float addWeight(const Data::Marker* m, const Result* r);
+	float getCategoricalWeight(const PLATO::Data::Marker* m);
 	void addResult(Result* r);
 	calc_matrix* getCalcMatrix(const Model& m, const gsl_permutation* permu = 0);
 
 	bool resetPheno(const std::string& pheno);
+	Result* addUnivar(const Data::Marker* m, Result* r);
+	Result* addUnivar(const std::string& s, Result* r);
 	void addUnivariate(Result& r, const Model& m);
 
 	void printMarkerHeader(const std::string& var_name);
@@ -833,12 +848,14 @@ private:
 	bool show_uni;
 	//! Do we want to do a pheWAS??
 	bool _phewas;
+	//! Is this a targeted model?
+	bool _targeted;
 
 	//-----------------------------------------------
 	// Threading variables
 
 	boost::mutex _result_mutex;
-	boost::mutex _model_gen_mutex;
+	boost::mutex _marker_itr_mutex;
 	boost::mutex _categ_mutex;
 	boost::mutex _univar_mmutex;
 	boost::mutex _univar_tmutex;
@@ -856,6 +873,9 @@ private:
 	std::map<Result*, const Model*> post_lock_models;
 	//! A mapping of currently working (or queued) model IDs to the locks they have acquired
 	std::multimap<std::string, int*> work_lock_map;
+
+	// a set of models currently being processed.
+	// NOTE: synchronize this with _categ_mutex!
 	std::set<std::string> pre_lock_set;
 	
 	//! a queue of models that need to be run
@@ -866,6 +886,19 @@ private:
 
 	// have we computed all weights?
 	bool weight_complete;
+
+	// Do we need to start worker threads for weight calculations?
+	bool start_weight_workers;
+
+	// Do we need to start worker threads for "regular" calculations?
+	bool start_regular_workers;
+
+	// All of the worker threads on the master node should go into this thread group
+	Utility::ThreadPool master_workers;
+
+	// Iterator over the markers to calculate weights in a non-targeted
+	// configuration
+	Data::DataSet::const_marker_iterator* wt_marker_itr;
 
 	// mapping of Marker ptr to index
 	std::map<const Data::Marker*, unsigned int> marker_idx_map;
@@ -925,7 +958,7 @@ protected:
 };
 
 template <class M_iter>
-Regression::Model* Regression::BasicModelGenerator<M_iter>::next() {
+Regression::Model* Regression::BasicModelGenerator<M_iter>::nextModel() {
 
 	Model* m = 0;
 
@@ -1021,7 +1054,7 @@ Regression::Model* Regression::BasicModelGenerator<M_iter>::next() {
 }
 
 template <class M_iter>
-void Regression::BasicModelGenerator<M_iter>::reset() {
+void Regression::BasicModelGenerator<M_iter>::resetGenerator() {
 	_mi1 = _mbegin;
 	_mi2 = _mbegin;
 	_titr = _tbegin;

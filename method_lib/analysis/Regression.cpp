@@ -140,6 +140,11 @@ Regression::~Regression() {
 		gsl_permutation_free(permutations[i]);
 	}
 	permutations.clear();
+
+	if(wt_marker_itr){
+		delete wt_marker_itr;
+	}
+
 }
 
 po::options_description& Regression::addOptions(po::options_description& opts){
@@ -277,16 +282,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	}
 #endif
 
-/*	if(_use_mpi){
-		if(n_threads > 1){
-			Logger::log_err("WARNING: --threads used with MPI, setting number of threads to 0");
-		}
-		n_threads = 0;
-	}
-*/
+	_threaded = (n_threads - _use_mpi) > 0;
 
+	master_workers.setThreads(n_threads - _use_mpi);
 
-	_threaded = n_threads > 0;
 	if(model_files.size() == 0){
 		if(_onesided && !pairwise){
 			Logger::log_err("WARNING: --one-sided must be used with --pairwise; ignoring --one-sided directive");
@@ -329,9 +328,9 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 				std::ios_base::binary | std::ios_base::in | std::ios_base::out);
 	}
 
-	if(encoding == Encoding::WEIGHTED){
-		weight_complete = false;
-	}
+	// set the bools for which ones to start and should we do weighting?
+	start_regular_workers = weight_complete = encoding != Encoding::WEIGHTED;
+	start_weight_workers = !start_regular_workers;
 
 }
 
@@ -582,6 +581,7 @@ void Regression::runRegression(const DataSet& ds){
 
 	// set up the model generator
 	if (_models.size() == 0) {
+		_targeted = false;
 		if (_onesided) {
 			mgp = new OneSidedModelGenerator(ds, marker_incl,
 					incl_traits, all_traits, exclude_markers);
@@ -598,6 +598,13 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	} else {
 		mgp = new TargetedModelGenerator(ds, _models);
+		_targeted = true;
+	}
+
+	if(_targeted){
+		_marker_itr_mutex.lock();
+		wt_marker_itr = new DataSet::const_marker_iterator(ds.beginMarker());
+		_marker_itr_mutex.lock();
 	}
 
 	output_itr = outcome_names.begin();
@@ -632,20 +639,16 @@ void Regression::runRegression(const DataSet& ds){
 			mgp->reset();
 
 			if (_threaded) {
-				boost::thread_group all_threads;
 
 				for (unsigned int i = 0; i < n_threads; i++) {
-					boost::thread* t = new boost::thread(&Regression::start,
-							this, boost::cref(ds),	boost::cref(*output_itr));
-					all_threads.add_thread(t);
-
-					//all_threads.create_thread(boost::bind(&Regression::start, boost::ref(this),boost::ref(mg), boost::cref(ds)));
+					boost::function<void()> f = boost::bind(&Regression::start, this) ;
+					master_workers.run(f);
 				}
-				all_threads.join_all();
+				master_workers.join_all();
 
 			} else {
 				// go here for debugging purposes, i.e. set --threads to 0
-				start(ds, *output_itr);
+				start();
 			}
 
 			while(++output_itr != outcome_names.end() && !resetPheno(*output_itr));
@@ -679,18 +682,11 @@ void Regression::initPermutations(unsigned int n_perm, unsigned int sz,
 
 }
 
-void Regression::start(const DataSet& ds, const string& outcome){
+void Regression::start(){
 
-	Model* nm;
+	Model* nm = 0;
 
-	// synchronize
-	_model_gen_mutex.lock();
-	unsigned int lc=1;
-	nm = mgp->next();
-	_model_gen_mutex.unlock();
-	// end synchronize
-
-	while( nm ){
+	while( (nm = mgp->next()) ){
 		Result* r = run(*nm);
 
 		// run will return 0 if something went wrong (i.e. did not run anything)
@@ -701,7 +697,7 @@ void Regression::start(const DataSet& ds, const string& outcome){
 				addUnivariate(*r, *nm);
 			}
 			// put the outcome right at the beginning of the prefix!
-			r->prefix = outcome + sep + r->prefix;
+			r->prefix = *output_itr + sep + r->prefix;
 
 			addResult(r);
 		}
@@ -711,12 +707,6 @@ void Regression::start(const DataSet& ds, const string& outcome){
 		// give someone else a chance ...
 		boost::this_thread::yield();
 
-		// synchronize
-		_model_gen_mutex.lock();
-		++lc;
-		nm = mgp->next();
-		_model_gen_mutex.unlock();
-		// end synchronize
 	}
 }
 
@@ -891,25 +881,66 @@ Regression::Model* Regression::parseModelStr(const std::string& model_str, const
 	return model;
 }
 
+Regression::Result* Regression::addUnivar(const Marker* m, Result* r){
+	Result* toret = r;
+
+	_univar_mmutex.lock();
+	map<const Marker*, Result*>::const_iterator m_itr =	_marker_uni_result.find(m);
+
+	// If this is the case, we have not seen this marker before
+	if (r && m_itr == _marker_uni_result.end()) {
+		_marker_uni_result[m] = r;
+	}else if (r){
+		// If we are here, we got scooped, so we'll just get rid of that result
+		toret = (*m_itr).second;
+		delete r;
+	}
+
+	return toret;
+}
+
+Regression::Result* Regression::addUnivar(const string& s, Result* r){
+	Result* toret = r;
+
+	_univar_tmutex.lock();
+	map<string, Result*>::const_iterator t_itr = _trait_uni_result.find(s);
+
+	// If this is the case, we have not seen this marker before
+	if (r && t_itr == _trait_uni_result.end()) {
+		_trait_uni_result[s] = r;
+	}else if (r){
+		// If we are here, we got scooped, so we'll just get rid of that result
+		toret = (*t_itr).second;
+		delete r;
+	}
+
+	return toret;
+}
+
 void Regression::addUnivariate(Result& r, const Model& m){
+	Result* univar_result;
+
 	for (unsigned int i = 0; i < m.markers.size(); i++) {
 		_univar_mmutex.lock();		
 		map<const Marker*, Result*>::const_iterator m_itr =
 				_marker_uni_result.find(m.markers[i]);
+
 				
 		// If this is the case, we have not seen this marker before
-		if (m_itr == _marker_uni_result.end()) {	
+		if (m_itr == _marker_uni_result.end()) {
+			_univar_mmutex.unlock();
 			Model uni_m;
 			uni_m.markers.push_back(m.markers[i]);
 			uni_m.permute = false;
-			m_itr = _marker_uni_result.insert(
-					_marker_uni_result.begin(),
-					std::make_pair(m.markers[i], run(uni_m)));
+
+			univar_result = run(uni_m);
+			univar_result = addUnivar(m.markers[i], univar_result);
+		} else {
+			univar_result = ((*m_itr).second);
+			_univar_mmutex.unlock();
 		}
 
-		_univar_mmutex.unlock();
-		
-		r.unimodel.push_back((*m_itr).second);
+		r.unimodel.push_back(univar_result);
 	}
 
 	for (unsigned int i = 0; i < m.traits.size(); i++) {
@@ -918,17 +949,28 @@ void Regression::addUnivariate(Result& r, const Model& m){
 				_trait_uni_result.find(m.traits[i]);
 		// If this is the case, we have not seen this marker before
 		if (t_itr == _trait_uni_result.end()) {
+			_univar_tmutex.unlock();
 			Model t_m;
 			t_m.traits.push_back(m.traits[i]);
 			t_m.permute = false;
-			t_itr = _trait_uni_result.insert(
-					_trait_uni_result.begin(),
-					std::make_pair(m.traits[i], run(t_m)));
-		}
-		_univar_tmutex.unlock();
 
-		r.unimodel.push_back((*t_itr).second);
+			univar_result = run(t_m);
+			univar_result = addUnivar(m.traits[i], univar_result);
+		} else {
+			univar_result = ((*t_itr).second);
+			_univar_tmutex.unlock();
+		}
+
+		r.unimodel.push_back(univar_result);
 	}
+}
+
+float Regression::addWeight(const Marker* m, const Result* r){
+	_categ_mutex.lock();
+	float wt = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
+	wt = categ_weight[m] = (std::isfinite(wt) ? wt : 0.5);
+	_categ_mutex.unlock();
+	return wt;
 }
 
 float Regression::getCategoricalWeight(const Marker* m){
@@ -937,28 +979,22 @@ float Regression::getCategoricalWeight(const Marker* m){
 
 	_categ_mutex.lock();
 	map<const Marker*, float>::const_iterator w_itr = categ_weight.find(m);
+	_categ_mutex.unlock();
 	if(w_itr != categ_weight.end()){
 		toret = (*w_itr).second;
 	} else {
-
 		// OK, at this point, we know we don't have the categorical value
-
 		Model mod;
 		mod.markers.push_back(m);
 		mod.categorical = true;
-		Result* r = run(mod);
 
-		// NOTE: this assigns to the map at the same step
-		// Make sure to check for existence of the result!
-		// If nonexistent (you probably have bigger problems), default to 1/2 (additive encoding)
-		toret = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
-		toret = categ_weight[m] = (std::isfinite(toret) ? toret : 0.5);
+		Result* r = run(mod);
+		toret = addWeight(m, r);
 
 		if(r){
 			delete r;
 		}
 	}
-	_categ_mutex.unlock();
 
 	return toret;
 
@@ -1529,133 +1565,6 @@ void Regression::printResults(){
 	}
 }
 
-Regression::Model* Regression::TargetedModelGenerator::next() {
-
-	Model* m = 0;
-	// models are given one per line here
-	while(_mitr != _mend && (m == 0 || (m->markers.size() == 0 && m->traits.size() == 0))){
-		m = Regression::parseModelStr(*_mitr, _ds);
-		if(m->markers.size() == 0 && m->traits.size() == 0){
-			Logger::log_err("WARNING: Model '" + *_mitr + "' has elements not in the dataset, ignoring");
-			delete m;
-			m = 0;
-		}
-		++_mitr;
-	}
-
-	return m;
-}
-
-void Regression::TargetedModelGenerator::reset() {
-	_mitr = _mbegin;
-}
-
-Regression::Model* Regression::OneSidedModelGenerator::next() {
-
-	Model* m = 0;
-
-	// We want Env vars
-	if (_traits) {
-		// we want exhaustive EnvxEnv
-		if (_nomarker) {
-			if (_ti2 == _tall_set.end() && _titr != _t_set.end()) {
-				_t_processed.insert(*(_titr++));
-				if (_titr != _t_set.end()) {
-					_ti2 = _tall_set.begin();
-				}
-			}
-
-			// If ti2 == end ==> _titr == end
-			if (_ti2 != _tall_set.end()) {
-				if (*_titr != *_ti2 && _t_processed.find(*_ti2) == _t_processed.end()) {
-					m = new Model();
-					m->traits.push_back(*_titr);
-					m->traits.push_back(*_ti2);
-					++_ti2;
-				} else {
-					//If we're here, we have already seen this model!
-					++_ti2;
-					m = next();
-				}
-			}
-
-			// We want exhaustive SNPxSNPxEnv models
-		} else {
-			// A little change from the BasicModelGenerator - here we
-			// want to iterate over mi1, then mi2, then traits
-			// (Basic iterated over traits, then mi1, then mi2)
-
-			if (_titr == _t_set.end()) {
-				// reset the traits and increment mi2
-				if (_mi2 != _ds.endMarker() && ++_mi2 == _ds.endMarker()) {
-					_titr = _t_set.begin();
-					// OK, increment mi1 and add it to the "processed" list
-					if (_mi1 != _m_set.end()) {
-						_m_processed.insert(*(_mi1++));
-
-						if (_mi1 != _m_set.end()) {
-							_mi2 = _ds.beginMarker();
-						} else {
-							// If I'm here, we're done iterating!
-							_titr = _t_set.end();
-						}
-					}
-				}
-			}
-
-			if (_mi1 != _m_set.end()) {
-				if (*_mi1 != *_mi2 && _m_processed.find(*_mi2) == _m_processed.end()) {
-					m = new Model();
-					m->markers.push_back(*_mi1);
-					m->markers.push_back(*_mi2);
-					m->traits.push_back(*_titr);
-					++_mi2;
-				} else {
-					++_mi2;
-					m = next();
-				}
-
-			}
-		}
-		// OK, we just want SNPxSNP models
-	} else {
-
-		if (_mi2 == _ds.endMarker() && _mi1 != _m_set.end()) {
-			_m_processed.insert(*(_mi1++));
-			if(_mi1 != _m_set.end()){
-				_mi2 = _ds.beginMarker();
-			}
-		}
-
-		if (_mi2 != _ds.beginMarker()) {
-			if(*_mi2 != *_mi1 && _m_processed.find(*_mi2) == _m_processed.end()){
-				m = new Model();
-				m->markers.push_back(*_mi1);
-				m->markers.push_back(*_mi2);
-				++_mi2;
-			} else {
-				++_mi2;
-				m = next();
-			}
-		}
-
-	}
-
-	// NOTE: m == 0 if no more models can be generated!
-	// IN targeted mode, m != 0, but m->markers.size() == 0 && m->traits.size() == 0 in the case of a "bad" model
-	return m;
-
-}
-
-void Regression::OneSidedModelGenerator::reset() {
-	 //_m_set(m_set),
-	//			_t_set(trait), _tall_set(all_traits),
-	_mi1 = _m_set.begin();
-	_mi2 = _ds.beginMarker();
-	_titr = _t_set.begin();
-	_ti2 = _tall_set.begin();
-}
-
 const Regression::ExtraData* Regression::getExtraData() const{
 	if(!class_data){
 		class_data = new ExtraData();
@@ -1978,6 +1887,76 @@ void Regression::MPIStopBroadcast() const{
 #endif
 }
 
+void Regression::runWeights(){
+
+	if(_targeted){
+		Model* m = 0;
+		// NOTE: I could do this via recursion, but I might get a crazy big stack!
+		while( (m = mgp->next()) ){
+			for(unsigned int i=0; i<m->markers.size(); i++){
+
+				Model* pm = 0;
+				_categ_mutex.lock();
+				if(categ_weight.find(m->markers[i]) == categ_weight.end()){
+					pm = new Model;
+					pm->markers.push_back(m->markers[i]);
+					pm->categorical = true;
+					pm->permute = false;
+					if(pre_lock_set.count(pm->getID()) == 0){
+						pre_lock_set.insert(pm->getID());
+					}else{
+						delete pm;
+						pm = 0;
+					}
+				}
+				_categ_mutex.unlock();
+
+				if(pm){
+					Result* r = run(*pm);
+
+					addWeight(pm->markers[0], r);
+
+					_categ_mutex.lock();
+					pre_lock_set.erase(pm->getID());
+					_categ_mutex.unlock();
+
+					if(r){
+						delete r;
+					}
+					delete pm;
+				}
+			}
+		} // end iterate over models
+
+	} else {
+		// Here, let's just iterate through the markers and send them!
+		const Marker* curr_m;
+		_marker_itr_mutex.lock();
+		while(*wt_marker_itr != ds_ptr->endMarker()){
+			curr_m = **wt_marker_itr;
+			++(*wt_marker_itr);
+			_marker_itr_mutex.unlock();
+
+			Model mod;
+			mod.markers.push_back(curr_m);
+			mod.categorical = true;
+			mod.permute = false;
+
+			Result* r = run(mod);
+
+			addWeight(curr_m, r);
+
+			if(r){
+				delete r;
+			}
+
+			_marker_itr_mutex.lock();
+		}
+		_marker_itr_mutex.unlock();
+	}
+}
+
+
 void Regression::MPIStartBroadcast() const{
 
 	// OK, let's broadcast all of our data, so send the "let's broadcast" signal
@@ -1993,6 +1972,25 @@ void Regression::MPIStartBroadcast() const{
 pair<unsigned int, const char*> Regression::nextQuery(){
 	pair<unsigned int, const char*> retval(0,0);
 
+	// check to see if we need to start worker threads
+	if(start_regular_workers){
+		// Only start n_threads - 1 new threads!
+		// (keep one thread for processing results from slaves)
+		for(unsigned int i=0; i<n_threads - 1; i++){
+			boost::function<void()> f = boost::bind(&Regression::start, this);
+			master_workers.run(f);
+		}
+
+		start_regular_workers = false;
+	} else if (start_weight_workers){
+		for(unsigned int i=0; i<n_threads - 1; i++){
+			boost::function<void()> f = boost::bind(&Regression::runWeights, this);
+			master_workers.run(f);
+		}
+
+		start_weight_workers = false;
+	}
+
 	const Model * m;
 	// If we have models queued up, please send them
 	if(!model_queue.empty()){
@@ -2002,11 +2000,11 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 
 	} else if(!weight_complete){
 		// If we have not generated all weights, let's find what we need to
-		if( (m = mgp->next()) ){
-
+		if(_targeted){
 			// NOTE: I could do this via recursion, but I might get a crazy big stack!
-			while(m && model_queue.empty()){
+			while(model_queue.empty() && (m = mgp->next())){
 				for(unsigned int i=0; i<m->markers.size(); i++){
+					_categ_mutex.lock();
 					if(categ_weight.find(m->markers[i]) == categ_weight.end()){
 						Model *pm = new Model;
 						pm->markers.push_back(m->markers[i]);
@@ -2017,24 +2015,44 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 							model_queue.push_back(pm);
 						}
 					}
-				}
-
-				if(model_queue.empty()){
-					m = mgp->next();
+					_categ_mutex.unlock();
 				}
 			}
 
 		} else {
+			// Here, let's just iterate through the markers and send them!
+			const Marker* curr_m;
+			_marker_itr_mutex.lock();
+			if(*wt_marker_itr != ds_ptr->endMarker()){
+				curr_m = **wt_marker_itr;
+				++(*wt_marker_itr);
+			}
+			_marker_itr_mutex.unlock();
+
+			Model* pm = new Model;
+			pm->markers.push_back(curr_m);
+			pm->categorical = true;
+			pm->permute = false;
+			model_queue.push_back(pm);
+		}
+
+		if(model_queue.empty()) {
 			// If I am here, we have no more models to generate, so please
 			// wait for completion, send the weights, reset the model generator
 			// and set the weight_complete flag to true
 			collect();
+			// wait for worker threads to complete
+			master_workers.join_all();
 			weight_complete = true;
+			start_regular_workers = true;
 			MPIBroadcastWeights();
 			mgp->reset();
-
 		}
+
 		// now recurse and get the next model to send!
+		// It will do one of 2 things:
+		//  1) pluck off the model queue
+		//  2) send a "Real" model (from the model generator)
 		retval = nextQuery();
 
 	} else if( (m = mgp->next()) ){
@@ -2045,7 +2063,13 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// send a "please wait" message
 		retval = pair<unsigned int, const char*>(work_map.size(), 0);
 	} else if(output_itr != outcome_names.end()){
+
+		// wait for all currently processing threads to complete before we
+		// mess with the phenotypes
+		master_workers.join_all();
 		
+		// At this point, I am the only working thread on the master node!
+
 		// Note the empty loop here - we will check and make sure that the
 		// phenotype is good and continue until we either run out or find
 		// a good one
@@ -2054,11 +2078,24 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		// If I'm here, I have another phenotype to run!
 		if(output_itr != outcome_names.end()){
 			collect();
+
+			// At this point, I am the only thread AT ALL!
+
 			MPIStartBroadcast();
 			MPIBroadcastPheno();
 			MPIStopBroadcast();
 			mgp->reset();
-			weight_complete = encoding != Encoding::WEIGHTED;
+
+			// Tell me which workers to start!
+			start_regular_workers = weight_complete = encoding != Encoding::WEIGHTED;
+			start_weight_workers = !start_regular_workers;
+			if(start_weight_workers && !_targeted){
+				_marker_itr_mutex.lock();
+				delete wt_marker_itr;
+				wt_marker_itr = new DataSet::const_marker_iterator(ds_ptr->beginMarker());
+				_marker_itr_mutex.lock();
+			}
+
 			// recurse to get the next model
 			retval = nextQuery();
 		}
@@ -2084,11 +2121,14 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	}
 	
 	bool is_result = (r != 0);
+
+	_categ_mutex.lock();
 	set<string>::iterator pl_itr = pre_lock_set.find(m->getID());
 	if(pl_itr != pre_lock_set.end()){
 		is_result = false;
 		pre_lock_set.erase(pl_itr);
 	}
+	_categ_mutex.unlock();
 
 	// if this is found in the lock map, it's not a result!
 	pair<multimap<string, int*>::iterator, multimap<string, int*>::iterator> lm_range = work_lock_map.equal_range(m->getID());
@@ -2101,16 +2141,15 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 
 	// if this was a categorical test, add it as appropriate:
 	if(m->categorical && m->markers.size() == 1){
-		float wt = (r ? r->coeffs[0] / (r->coeffs[0] + r->coeffs[1]) : 0.5);
-		categ_weight[m->markers[0]] = (std::isfinite(wt) ? wt : 0.5);
+		addWeight(m->markers[0], r);
 		is_result = false;
-	} else if (!is_result &&  m->markers.size() +  m->traits.size() == 1){
+	} else if (!is_result && show_uni && m->markers.size() +  m->traits.size() == 1){
 		// if this is true, then the result should be added to the univariate
 		// results
 		if(m->markers.size() == 1){
- 			_marker_uni_result[m->markers[0]] = r;
-		} else {
-			_trait_uni_result[m->traits[0]] = r;
+			addUnivar(m->markers[0], r);
+ 		} else {
+			addUnivar(m->traits[0], r);
 		}
 	}
 
@@ -2144,25 +2183,31 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	if(show_uni && m->markers.size() +  m->traits.size() > 1){
 		Model *uni_m;
 		for (unsigned int i = 0; i < m->markers.size(); i++) {
+			_univar_mmutex.lock();
 			map<const Marker*, Result*>::const_iterator m_itr =
 					_marker_uni_result.find(m->markers[i]);
 			// If this is the case, we have not seen this marker before
 			if (m_itr == _marker_uni_result.end()) {
 				uni_m = new Model();
 				uni_m->markers.push_back(m->markers[i]);
+				uni_m->permute = false;
 				pl_needed.push_back(uni_m);
 			}
+			_univar_mmutex.unlock();
 		}
 
 		for (unsigned int i = 0; i < m->traits.size(); i++) {
+			_univar_tmutex.lock();
 			map<string, Result*>::const_iterator t_itr =
 					_trait_uni_result.find(m->traits[i]);
 			// If this is the case, we have not seen this marker before
 			if (t_itr == _trait_uni_result.end()) {
 				uni_m = new Model();
 				uni_m->traits.push_back(m->traits[i]);
+				uni_m->permute = false;
 				pl_needed.push_back(uni_m);
 			}
+			_univar_tmutex.unlock();
 		}
 
 		// in this case, it's safe to add the univariate results, b/c we
@@ -2382,6 +2427,140 @@ void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pai
 	}
 
 }
+
+
+
+//###########################################################################
+// Begin Model Generator functions
+//###########################################################################
+
+Regression::Model* Regression::TargetedModelGenerator::nextModel() {
+
+	Model* m = 0;
+	// models are given one per line here
+	while(_mitr != _mend && (m == 0 || (m->markers.size() == 0 && m->traits.size() == 0))){
+		m = Regression::parseModelStr(*_mitr, _ds);
+		if(m->markers.size() == 0 && m->traits.size() == 0){
+			Logger::log_err("WARNING: Model '" + *_mitr + "' has elements not in the dataset, ignoring");
+			delete m;
+			m = 0;
+		}
+		++_mitr;
+	}
+
+	return m;
+}
+
+void Regression::TargetedModelGenerator::resetGenerator() {
+	_mitr = _mbegin;
+}
+
+Regression::Model* Regression::OneSidedModelGenerator::nextModel() {
+
+	Model* m = 0;
+
+	// We want Env vars
+	if (_traits) {
+		// we want exhaustive EnvxEnv
+		if (_nomarker) {
+			if (_ti2 == _tall_set.end() && _titr != _t_set.end()) {
+				_t_processed.insert(*(_titr++));
+				if (_titr != _t_set.end()) {
+					_ti2 = _tall_set.begin();
+				}
+			}
+
+			// If ti2 == end ==> _titr == end
+			if (_ti2 != _tall_set.end()) {
+				if (*_titr != *_ti2 && _t_processed.find(*_ti2) == _t_processed.end()) {
+					m = new Model();
+					m->traits.push_back(*_titr);
+					m->traits.push_back(*_ti2);
+					++_ti2;
+				} else {
+					//If we're here, we have already seen this model!
+					++_ti2;
+					m = next();
+				}
+			}
+
+			// We want exhaustive SNPxSNPxEnv models
+		} else {
+			// A little change from the BasicModelGenerator - here we
+			// want to iterate over mi1, then mi2, then traits
+			// (Basic iterated over traits, then mi1, then mi2)
+
+			if (_titr == _t_set.end()) {
+				// reset the traits and increment mi2
+				if (_mi2 != _ds.endMarker() && ++_mi2 == _ds.endMarker()) {
+					_titr = _t_set.begin();
+					// OK, increment mi1 and add it to the "processed" list
+					if (_mi1 != _m_set.end()) {
+						_m_processed.insert(*(_mi1++));
+
+						if (_mi1 != _m_set.end()) {
+							_mi2 = _ds.beginMarker();
+						} else {
+							// If I'm here, we're done iterating!
+							_titr = _t_set.end();
+						}
+					}
+				}
+			}
+
+			if (_mi1 != _m_set.end()) {
+				if (*_mi1 != *_mi2 && _m_processed.find(*_mi2) == _m_processed.end()) {
+					m = new Model();
+					m->markers.push_back(*_mi1);
+					m->markers.push_back(*_mi2);
+					m->traits.push_back(*_titr);
+					++_mi2;
+				} else {
+					++_mi2;
+					m = next();
+				}
+
+			}
+		}
+		// OK, we just want SNPxSNP models
+	} else {
+
+		if (_mi2 == _ds.endMarker() && _mi1 != _m_set.end()) {
+			_m_processed.insert(*(_mi1++));
+			if(_mi1 != _m_set.end()){
+				_mi2 = _ds.beginMarker();
+			}
+		}
+
+		if (_mi2 != _ds.beginMarker()) {
+			if(*_mi2 != *_mi1 && _m_processed.find(*_mi2) == _m_processed.end()){
+				m = new Model();
+				m->markers.push_back(*_mi1);
+				m->markers.push_back(*_mi2);
+				++_mi2;
+			} else {
+				++_mi2;
+				m = next();
+			}
+		}
+
+	}
+
+	// NOTE: m == 0 if no more models can be generated!
+	// IN targeted mode, m != 0, but m->markers.size() == 0 && m->traits.size() == 0 in the case of a "bad" model
+	return m;
+
+}
+
+void Regression::OneSidedModelGenerator::resetGenerator() {
+	 //_m_set(m_set),
+	//			_t_set(trait), _tall_set(all_traits),
+	_mi1 = _m_set.begin();
+	_mi2 = _ds.beginMarker();
+	_titr = _t_set.begin();
+	_ti2 = _tall_set.begin();
+}
+
 
 }
 }

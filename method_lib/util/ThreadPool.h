@@ -33,6 +33,10 @@ public:
 	 */
 	void run(boost::function<void ()>& f);
 
+	unsigned int setThreads(unsigned int max){
+		return (max_threads = max < tg.size() ? tg.size() : max);
+	}
+
 
 private:
 
