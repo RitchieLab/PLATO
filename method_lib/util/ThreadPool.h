@@ -10,6 +10,7 @@
 
 #include <limits>
 #include <deque>
+#include <queue>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
@@ -51,7 +52,7 @@ private:
 
 	boost::mutex pool_mutex;
 	unsigned int available;
-	std::deque<boost::function<void()> > tasks;
+	std::queue<boost::function<void()> > tasks;
 	boost::condition_variable notifier;
 	boost::thread_group tg;
 	bool running;

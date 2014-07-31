@@ -14,13 +14,20 @@ namespace Utility{
 
 void ThreadPool::run(boost::function<void()>& f){
 	// if everything is running, create a new thread
-	if(available == 0 && tg.size() < max_threads){
+	pool_mutex.lock();
+	tasks.push(f);
+
+	if(tasks.size() - available == 1 && tg.size() < max_threads){
 		createThread();
+		pool_mutex.unlock();
+
+		// give the newly created thread a chance to run
+		boost::this_thread::yield();
+
+		pool_mutex.lock();
 	}
 
 	// Add to the list of available threads
-	pool_mutex.lock();
-	tasks.push_back(f);
 	if(available){
 		notifier.notify_one();
 	}
@@ -30,6 +37,7 @@ void ThreadPool::run(boost::function<void()>& f){
 ThreadPool::~ThreadPool(){
 	pool_mutex.lock();
 	running = false;
+	notifier.notify_all();
 	pool_mutex.unlock();
 
 	tg.join_all();
@@ -37,9 +45,10 @@ ThreadPool::~ThreadPool(){
 }
 
 void ThreadPool::createThread(){
-	pool_mutex.lock();
+	// no need to lock here, this is only called in the run() method
+	// and is within a lock there.
+	++available;
 	tg.create_thread( boost::bind( &ThreadPool::pool_main, this) );
-	pool_mutex.unlock();
 }
 
 void ThreadPool::join_all(){
@@ -55,11 +64,11 @@ void ThreadPool::join_all(){
 
 void ThreadPool::pool_main(){
 
-	pool_mutex.lock();
-	++available;
-	pool_mutex.unlock();
+//	pool_mutex.lock();
+//	++available;
+//	pool_mutex.unlock();
 
-	while (running && !(exiting || tasks.empty())) {
+	while (running) {
 		// Wait on condition variable while the task is empty and the pool is
 		// still running.
 		boost::unique_lock<boost::mutex> lock(pool_mutex);
@@ -73,7 +82,7 @@ void ThreadPool::pool_main(){
 			// after running the task.  This is useful in the event that the
 			// function contains shared_ptr arguments bound via bind.
 			boost::function<void()> task = tasks.front();
-			tasks.pop_front();
+			tasks.pop();
 			--available;
 			lock.unlock();
 
@@ -82,6 +91,7 @@ void ThreadPool::pool_main(){
 			// Task has finished, so increment count of available threads.
 			lock.lock();
 			++available;
+			notifier.notify_all();
 			lock.unlock();
 		}
 	} // while running
