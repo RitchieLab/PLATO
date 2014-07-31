@@ -56,7 +56,7 @@ void ThreadPool::join_all(){
 	boost::unique_lock<boost::mutex> lock(pool_mutex);
 
 	// juist wait until we have all threads available for processing
-	while (available < tg.size()) {
+	while (available < tg.size() || !tasks.empty()) {
 		notifier.wait(lock);
 	}
 }
