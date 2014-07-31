@@ -1437,7 +1437,9 @@ Regression::Result* Regression::run(const Model& m) {
 
 			if(encoding == Encoding::WEIGHTED && m.markers.size() == 1 && m.traits.size() == 0 && !m.categorical){
 				//ss << categ_weight[0] << sep;
-				r->suffix += boost::lexical_cast<string>(categ_weight[0]) + sep;
+				_categ_mutex.lock();
+				r->suffix += boost::lexical_cast<string>(categ_weight[m.markers[0]]) + sep;
+				_categ_mutex.unlock();
 			}
 		}
 		delete all_data;
