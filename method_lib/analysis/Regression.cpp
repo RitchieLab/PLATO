@@ -601,10 +601,10 @@ void Regression::runRegression(const DataSet& ds){
 		_targeted = true;
 	}
 
-	if(_targeted){
+	if(!_targeted){
 		_marker_itr_mutex.lock();
 		wt_marker_itr = new DataSet::const_marker_iterator(ds.beginMarker());
-		_marker_itr_mutex.lock();
+		_marker_itr_mutex.unlock();
 	}
 
 	output_itr = outcome_names.begin();
@@ -895,6 +895,7 @@ Regression::Result* Regression::addUnivar(const Marker* m, Result* r){
 		toret = (*m_itr).second;
 		delete r;
 	}
+	_univar_mmutex.unlock();
 
 	return toret;
 }
@@ -913,6 +914,7 @@ Regression::Result* Regression::addUnivar(const string& s, Result* r){
 		toret = (*t_itr).second;
 		delete r;
 	}
+	_univar_tmutex.unlock();
 
 	return toret;
 }
@@ -1680,6 +1682,7 @@ pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
 	++msg_id;
 	mpi_query q;
 	q.msg_id = msg_id;
+
 	for(unsigned int i=0; i<m.markers.size(); i++){
 		q.marker_idx.push_back(marker_idx_map[m.markers[i]]);
 	}
@@ -1934,7 +1937,7 @@ void Regression::runWeights(){
 		// Here, let's just iterate through the markers and send them!
 		const Marker* curr_m;
 		_marker_itr_mutex.lock();
-		while(*wt_marker_itr != ds_ptr->endMarker()){
+		while( (*wt_marker_itr) != ds_ptr->endMarker()){
 			curr_m = **wt_marker_itr;
 			++(*wt_marker_itr);
 			_marker_itr_mutex.unlock();
@@ -2028,23 +2031,30 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			if(*wt_marker_itr != ds_ptr->endMarker()){
 				curr_m = **wt_marker_itr;
 				++(*wt_marker_itr);
-			}
-			_marker_itr_mutex.unlock();
+			
+				_marker_itr_mutex.unlock();
 
-			Model* pm = new Model;
-			pm->markers.push_back(curr_m);
-			pm->categorical = true;
-			pm->permute = false;
-			model_queue.push_back(pm);
+				Model* pm = new Model;
+				pm->markers.push_back(curr_m);
+				pm->categorical = true;
+				pm->permute = false;
+				model_queue.push_back(pm);
+			} else {
+				// I need to unlock the marker iterator, silly!
+				_marker_itr_mutex.unlock();
+			}
 		}
 
 		if(model_queue.empty()) {
 			// If I am here, we have no more models to generate, so please
 			// wait for completion, send the weights, reset the model generator
 			// and set the weight_complete flag to true
+			
 			collect();
+
 			// wait for worker threads to complete
 			master_workers.join_all();
+
 			weight_complete = true;
 			start_regular_workers = true;
 			MPIBroadcastWeights();
@@ -2079,8 +2089,9 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		
 		// If I'm here, I have another phenotype to run!
 		if(output_itr != outcome_names.end()){
+		
 			collect();
-
+			
 			// At this point, I am the only thread AT ALL!
 
 			MPIStartBroadcast();
@@ -2093,9 +2104,10 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			start_weight_workers = !start_regular_workers;
 			if(start_weight_workers && !_targeted){
 				_marker_itr_mutex.lock();
+				
 				delete wt_marker_itr;
 				wt_marker_itr = new DataSet::const_marker_iterator(ds_ptr->beginMarker());
-				_marker_itr_mutex.lock();
+				_marker_itr_mutex.unlock();
 			}
 
 			// recurse to get the next model
