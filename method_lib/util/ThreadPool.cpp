@@ -91,7 +91,10 @@ void ThreadPool::pool_main(){
 			// Task has finished, so increment count of available threads.
 			lock.lock();
 			++available;
-			notifier.notify_all();
+			// only send a notification if there's nothing to do
+			if(tasks.empty()){
+				notifier.notify_all();
+			}
 			lock.unlock();
 		}
 	} // while running
