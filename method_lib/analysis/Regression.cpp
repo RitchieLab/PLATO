@@ -1943,7 +1943,6 @@ void Regression::initMPI(){
 	me.msg = &mc;
 	MPIBroadcast(MPIUtils::pack(me));
 
-
 	// And the extra data
 	mpi_extra m_ed;
 	m_ed.class_data = getExtraData();
@@ -1963,6 +1962,7 @@ void Regression::initMPI(){
 	MPIBroadcastPheno();
 
 	MPIStopBroadcast();
+
 }
 
 void Regression::MPIBroadcastTrait(const string& t){

@@ -81,6 +81,8 @@ public:
 		}
 
 		ExtraData(const ExtraData& o){
+			interactions = o.interactions;
+			run_full_permu = o.run_full_permu;
 			const_covars = o.const_covars;
 			base_covars = o.base_covars;
 			sep = o.sep;
@@ -342,10 +344,6 @@ protected:
 			}
 
 			ar & submodel;
-			
-			if(submodel && n_vars == 1){
-				std::cout << "Univariate + submodel for '" << prefix << "'" << std::endl;
-			}
 		}
 
 		float* coeffs;
