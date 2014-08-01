@@ -57,6 +57,9 @@ using std::deque;
 using std::multimap;
 using std::pair;
 using std::make_pair;
+using std::push_heap;
+using std::pop_heap;
+using std::ofstream;
 
 using PLATO::Data::DataSet;
 using PLATO::Data::Marker;
@@ -69,6 +72,7 @@ using boost::dynamic_bitset;
 
 namespace po=boost::program_options;
 
+// exports for polymorphic classes passed via MPI
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::ExtraData)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_data)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_marker)
@@ -86,6 +90,7 @@ namespace PLATO{
 
 namespace Analysis{
 
+// static data needed for MPI slaves
 std::deque<std::pair<boost::dynamic_bitset<>, float> > Regression::_marker_data;
 std::deque<std::string> Regression::_marker_desc;
 std::deque<std::string> Regression::_trait_desc;
@@ -164,6 +169,8 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
 		;
 
+	opts.add(model_opts);
+
 	po::options_description regress_opts("Regression Options");
 
 	regress_opts.add_options()
@@ -175,8 +182,6 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
 		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
-		("permutations", po::value<unsigned int>(&n_perms)->default_value(0), "Number of permutations to use in permutation testing (disabled by default - set to 0 to disable permutation)")
-		("permu-seed", po::value<unsigned long int>(&permu_seed), "Seed for the RNG for generating permutations")
 		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
 		("separator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
@@ -184,23 +189,36 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("lowmem", po::bool_switch(&_lowmem), "Reduce the memory footprint (at a potential performance penalty)")
 		;
 
-	opts.add(model_opts).add(regress_opts);
+	opts.add(regress_opts);
+
+	po::options_description permu_opts("Permutation Options");
+	permu_opts.add_options()
+		("permutations", po::value<unsigned int>(&n_perms)->default_value(0), "Number of permutations to use in permutation testing (disabled by default - set to 0 to disable permutation)")
+		("permu-seed", po::value<unsigned long int>(&permu_seed), "Seed for the RNG for generating permutations")
+		("permu-thresh", po::value<float>(&permu_sig)->default_value(0.05, "0.05"), "Significance threshold below which to print all permuted models")
+		("permu-detail-fn", po::value<string>(&permu_detail_fn)->default_value("permutation-detail.txt"), "File to print detailed results for significant permutation results")
+		("permu-pval-fn", po::value<string>(&permu_pval_fn)->default_value("permutation-pval.txt"), "File to print p-values for all permuted results")
+		("permu-run-full", po::bool_switch(&full_permu), "Run complete models for pemuted models")
+		;
+
+	opts.add(permu_opts);
+
 
 	return opts;
 }
 
-void Regression::printVarHeader(const string& var_name){
-	out_f << var_name << "_Pval" << sep
+void Regression::printVarHeader(const string& var_name, std::ofstream& of) const{
+	of << var_name << "_Pval" << sep
 		  << var_name << "_beta" << sep
 		  << var_name << "_SE" << sep;
 }
 
-void Regression::printMarkerHeader(const string& var_name){
+void Regression::printMarkerHeader(const string& var_name, std::ofstream& of){
 	if(encoding == Encoding::CODOMINANT){
-		printVarHeader(var_name + "_Het");
-		printVarHeader(var_name + "_Hom");
+		printVarHeader(var_name + "_Het", of);
+		printVarHeader(var_name + "_Hom", of);
 	}else{
-		printVarHeader(var_name);
+		printVarHeader(var_name, of);
 	}
 }
 
@@ -270,7 +288,35 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 
 	out_f.open(out_fn.c_str());
 	if(!out_f){
-		throw std::logic_error("Cannot open regression output file '" + out_fn + "'");
+		Logger::log_err("ERROR: Cannot open regression output file '" + out_fn + "'", true);
+	}
+
+	if(n_perms){
+		permu_detail_f.open(permu_detail_fn.c_str());
+		if(!permu_detail_f && permu_detail_fn != ""){
+			Logger::log_err("ERROR: Cannot open permutation detail file '" + permu_detail_fn + "'", true);
+		}
+
+		permu_pval_f.open(permu_pval_fn.c_str());
+		if(!permu_pval_f && permu_pval_fn != ""){
+			Logger::log_err("ERROR: Cannot open permutation p-value file '" + permu_pval_fn + "'", true);
+		}
+
+		if(permu_sig > 0.1){
+			Logger::log_err("WARNING: permu-thresh seems set high; you may get many significant permuted results");
+		}
+
+		if(_lowmem){
+			permu_detail_tmpf.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
+					std::ios_base::binary | std::ios_base::in | std::ios_base::out);
+		}
+
+		if(n_perms > std::numeric_limits<unsigned short>::max()){
+			Logger::log_err("WARNING: PLATO supports a maximum of " +
+					boost::lexical_cast<string>(std::numeric_limits<unsigned short>::max()) +
+					" permutations, restricting to this limit");
+			n_perms = std::numeric_limits<unsigned short>::max();
+		}
 	}
 
 #ifdef HAVE_CXX_MPI
@@ -530,7 +576,11 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	}
 
-	printHeader(n_snp, n_trait);
+	printHeader(n_snp, n_trait, out_f);
+
+	if(n_perms > 0 && permu_detail_f){
+		printHeader(n_snp, n_trait, permu_detail_f, true);
+	}
 
 	DataSet::const_sample_iterator si = ds.beginSample();
 
@@ -698,6 +748,9 @@ void Regression::start(){
 			}
 			// put the outcome right at the beginning of the prefix!
 			r->prefix = *output_itr + sep + r->prefix;
+			for(unsigned int i=0; i<r->sig_perms.size(); i++){
+				r->sig_perms[i]->prefix = *output_itr + sep + r->sig_perms[i]->prefix;
+			}
 
 			addResult(r);
 		}
@@ -717,10 +770,23 @@ void Regression::addResult(Result* r){
 			result_pvals.push_back(r->p_val);
 			printResultLine(*r, tmp_f);
 			tmp_f << "\n";
+			for(unsigned int i=0; i<r->sig_perms.size(); i++){
+				sig_permu_pvals.push_back(r->sig_perms[i]->p_val);
+				printResultLine(*(r->sig_perms[i]), permu_detail_tmpf);
+				permu_detail_tmpf << "\n";
+			}
 			delete r;
 		} else {
 			results.push_back(r);
+			for(unsigned int i=0; i<r->sig_perms.size(); i++){
+				sig_permus.push_back(r->sig_perms[i]);
+			}
 		}
+
+		for(unsigned int i=0; i<r->perm_pvals.size(); i++){
+			permu_pval_heap.push(r->perm_pvals[i]);
+		}
+
 		_result_mutex.unlock();
 	}
 
@@ -754,30 +820,34 @@ bool Regression::resetPheno(const string& pheno){
 	return initData();
 }
 
-void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
+void Regression::printHeader(unsigned int n_snp, unsigned int n_trait, ofstream& of, bool permu) {
 	// Now, print the header
-	out_f << "Outcome" << sep;
+	of << "Outcome" << sep;
 
 	for (unsigned int i = 0; i < n_snp; i++) {
-		out_f << "Var" << i + 1 << "_ID" << sep << "Var" << i + 1 << "_Pos"
+		of << "Var" << i + 1 << "_ID" << sep << "Var" << i + 1 << "_Pos"
 				<< sep << "Var" << i + 1 << "_MAF" << sep;
 	}
 
 	for (unsigned int i = 0; i < n_trait; i++) {
-		out_f << "Var" << n_snp + i + 1 << "_ID" << sep;
+		of << "Var" << n_snp + i + 1 << "_ID" << sep;
 	}
 
-	out_f << "Num_Missing" << sep;
+	of << "Num_Missing" << sep;
 
-	printExtraHeader();
+	printExtraHeader(of);
+
+	if(n_perms > 0 && permu){
+		of << "Permutation_Num" << sep;
+	}
 
 	if (n_snp + n_trait > 1) {
-		for (unsigned int i = 0; show_uni && i < n_snp + n_trait; i++) {
+		for (unsigned int i = 0; !permu && show_uni && i < n_snp + n_trait; i++) {
 			string hdr = "Uni_Var" + boost::lexical_cast<string>(i + 1);
 			if (i < n_snp) {
-				printMarkerHeader(hdr);
+				printMarkerHeader(hdr, of);
 			} else {
-				printVarHeader(hdr);
+				printVarHeader(hdr, of);
 			}
 		}
 
@@ -785,18 +855,18 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
 				string hdr = "Red_Var" + boost::lexical_cast<string>(i + 1);
 				if (i < n_snp) {
-					printMarkerHeader(hdr);
+					printMarkerHeader(hdr, of);
 				} else {
-					printVarHeader(hdr);
+					printVarHeader(hdr, of);
 				}
 			}
 
 			for (unsigned int i = 0; i < n_snp + n_trait; i++) {
 				string hdr = "Full_Var" + boost::lexical_cast<string>(i + 1);
 				if (i < n_snp) {
-					printMarkerHeader(hdr);
+					printMarkerHeader(hdr, of);
 				} else {
-					printVarHeader(hdr);
+					printVarHeader(hdr, of);
 				}
 			}
 
@@ -809,54 +879,57 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait) {
 					if (encoding == Encoding::CODOMINANT && i < n_snp) {
 
 						if (j < n_snp) {
-							printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Het");
-							printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Hom");
-							printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Het");
-							printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Hom");
+							printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Het", of);
+							printVarHeader(v1_hdr + "_Het" + v2_hdr + "_Hom", of);
+							printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Het", of);
+							printVarHeader(v1_hdr + "_Hom" + v2_hdr + "_Hom", of);
 
 						} else {
-							printVarHeader(v1_hdr + "_Het" + v2_hdr);
-							printVarHeader(v1_hdr + "_Hom" + v2_hdr);
+							printVarHeader(v1_hdr + "_Het" + v2_hdr, of);
+							printVarHeader(v1_hdr + "_Hom" + v2_hdr, of);
 						}
 
 					} else {
-						printVarHeader(v1_hdr + v2_hdr);
+						printVarHeader(v1_hdr + v2_hdr, of);
 					}
 				}
 			}
 
 			// These will come in the suffix of the result!
-			out_f << "Red_Model_Pval" << sep << "Full_Model_Pval" << sep;
+			of << "Red_Model_Pval" << sep << "Full_Model_Pval" << sep;
 		}
 	}
 
 	for (unsigned int i = 0; !interactions && i < n_snp + n_trait; i++) {
 		string hdr = "Var" + boost::lexical_cast<string>(i + 1);
 		if (i < n_snp) {
-			printMarkerHeader(hdr);
+			printMarkerHeader(hdr, of);
 		} else {
-			printVarHeader(hdr);
+			printVarHeader(hdr, of);
 		}
 	}
 
 	// If we are looking at single SNP models w/ categorical weight, print said weight!
 	if (encoding == Encoding::WEIGHTED && n_snp == 1 && n_trait == 0) {
-		out_f << "Categ_Weight" << sep;
+		of << "Categ_Weight" << sep;
 	}
 
-	out_f << "Overall_Pval";
+	of << "Overall_Pval";
 
-	if(n_perms > 0){
-		out_f << sep << "Permuted_Pval";
+	if(n_perms > 0 && !permu){
+		of << sep << "Permuted_Pval";
 	}
 
-	set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
-	while (c_itr != corr_methods.end()) {
-		out_f << sep << "Overall_Pval_adj_" << *c_itr;
-		++c_itr;
+	// do not print correction headers for the significant permuted results
+	if(!permu){
+		set<CorrectionModel>::const_iterator c_itr = corr_methods.begin();
+		while (c_itr != corr_methods.end()) {
+			of << sep << (n_perms > 0 ? "Permuted" : "Overall") << "_Pval_adj_" << *c_itr;
+			++c_itr;
+		}
 	}
 
-	out_f << std::endl;
+	of << std::endl;
 }
 
 Regression::Model* Regression::parseModelStr(const std::string& model_str, const DataSet& ds) {
@@ -1461,26 +1534,86 @@ Regression::Result* Regression::run(const Model& m) {
 }
 
 void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed){
-	int n_better = 0;
+	r->perm_pvals.reserve(permus.size());
 	for(unsigned int i=0; i<permus.size(); i++){
 		calc_matrix* all_data = perm_fn(permus[i]);
 		if(all_data){
 			Result *tmp_r = calculate(all_data->outcome, all_data->data, all_data->n_cols,
-					all_data->n_sampl, 0, all_data->red_vars, false, ed);
+					all_data->n_sampl, 0, all_data->red_vars, ed->run_full_permu, ed);
 
 			if(tmp_r){
-				n_better += tmp_r->p_val < r->p_val;
-				delete tmp_r;
+				r->perm_pvals.push_back(tmp_r->p_val);
+				if(tmp_r->p_val < ed->permu_thresh){
+					tmp_r->prefix = all_data->prefix;
+					tmp_r->permu_idx = i+1;
+					r->sig_perms.push_back(tmp_r);
+				} else {
+					delete tmp_r;
+				}
+			} else {
+				r->perm_pvals.push_back(2);
 			}
 			delete all_data;
+		} else {
+			r->perm_pvals.push_back(3);
 		}
 	}
 
 	r->suffix += boost::lexical_cast<string>(r->p_val) + ed->sep;
-	r->p_val = n_better / static_cast<float>(permus.size());
+	//r->p_val = n_better / static_cast<float>(permus.size());
 }
 
 void Regression::printResults(){
+
+	// first things first, try to print our significant results
+	if(n_perms > 0 && permu_detail_f){
+		vector<std::iostream::pos_type> p_file_pos;
+		vector<size_t> p_idx_pos;
+		size_t p_n_results = _lowmem ? sig_permu_pvals.size() : sig_permus.size();
+		string p_tmpf_line;
+
+		if (_lowmem) {
+			p_idx_pos.reserve(p_n_results);
+
+			for(size_t i=0; i<p_n_results; i++){
+				p_idx_pos.push_back(i);
+			}
+
+			std::sort(p_idx_pos.begin(), p_idx_pos.end(), pval_sorter(sig_permu_pvals));
+
+			p_file_pos.reserve(p_n_results+1);
+			// get the positions of the beginning of every line
+			permu_detail_tmpf.flush();
+			permu_detail_tmpf.seekg(0, std::ios_base::beg);
+			p_file_pos.push_back(permu_detail_tmpf.tellg());
+			while( getline(permu_detail_tmpf, p_tmpf_line) ){
+				p_file_pos.push_back(permu_detail_tmpf.tellg());
+			}
+			permu_detail_tmpf.seekg(0, std::ios_base::beg);
+			permu_detail_tmpf.clear();
+		} else {
+			// Perhaps sort the deque of results based on overall p-values
+			std::sort(sig_permus.begin(), sig_permus.end(), result_sorter());
+		}
+
+		for (size_t i = 0; i < p_n_results; i++) {
+
+			if(_lowmem){
+				permu_detail_tmpf.seekg(p_file_pos[p_idx_pos[i]], std::ios_base::beg);
+				p_tmpf_line = "";
+				std::getline(permu_detail_tmpf, p_tmpf_line);
+				permu_detail_f << p_tmpf_line;
+				permu_detail_f << sig_permu_pvals[p_idx_pos[i]];
+				permu_detail_tmpf.clear();
+			} else {
+				printResultLine(*(sig_permus[i]), permu_detail_f);
+				permu_detail_f << sig_permus[i]->p_val;
+			}
+
+			permu_detail_f << std::endl;
+		}
+	}
+
 
 	vector<std::iostream::pos_type> file_pos;
 	vector<size_t> idx_pos;
@@ -1506,10 +1639,41 @@ void Regression::printResults(){
 		}
 		tmp_f.seekg(0, std::ios_base::beg);
 		tmp_f.clear();
-		//int res = boost::iostreams::seek(tmp_f, 0, std::ios_base::beg);
+
 	} else {
 		// Perhaps sort the deque of results based on overall p-values
 		std::sort(results.begin(), results.end(), result_sorter());
+	}
+
+	// I need the permuted P-values here!!
+	// NOTE: It is VERY important for these results to be printed in sorted order!!!
+	if(n_perms > 0){
+		unsigned int n_total_pval = permu_pval_heap.size();
+		double denom = static_cast<double>(n_total_pval);
+		float curr_pval;
+		float permu_pval;
+
+		for (size_t i = 0; i < n_results; i++) {
+
+			curr_pval = _lowmem ? result_pvals[idx_pos[i]] : results[i]->p_val;
+
+			// we need to find the p-value based on the heap
+			while(permu_pval_heap.top() < curr_pval){
+				// OK, so we need to pop from our heap
+				if(permu_pval_f){
+					permu_pval_f << permu_pval_heap.top() << std::endl;
+				}
+				permu_pval_heap.pop();
+			}
+
+			permu_pval = (n_total_pval - permu_pval_heap.size() ) / denom;
+
+			if(_lowmem){
+				result_pvals[idx_pos[i]] = permu_pval;
+			} else {
+				results[i]->p_val = permu_pval;
+			}
+		}
 	}
 
 	// Now, let's do some multiple test correction!
@@ -1538,6 +1702,7 @@ void Regression::printResults(){
 		}
 	}
 
+	// NOTE: It is VERY important for these results to be printed in sorted order!!!
 	for (size_t i = 0; i < n_results; i++) {
 		// If we've gone over the threshold, stop printing!
 		if ((_lowmem ? result_pvals[idx_pos[i]] : results[i]->p_val)  > cutoff_p) {
@@ -1556,7 +1721,7 @@ void Regression::printResults(){
 			out_f << results[i]->p_val;
 		}
 
-		// print some creected p-values!
+		// print some corrected p-values!
 		// NOTE: we assume that "set" and "map" use the same ordering!!
 		map<CorrectionModel, vector<float> >::const_iterator p_itr =
 				pval_corr.begin();
@@ -1567,6 +1732,15 @@ void Regression::printResults(){
 
 		out_f << std::endl;
 	}
+
+	// if we did permutations, print all the pvalues that didn't get printed so far
+	if(n_perms > 0 && permu_pval_f){
+		while(permu_pval_heap.size() >0){
+			// OK, so we need to pop from our heap
+			permu_pval_f << permu_pval_heap.top() << std::endl;
+			permu_pval_heap.pop();
+		}
+	}
 }
 
 const Regression::ExtraData* Regression::getExtraData() const{
@@ -1574,9 +1748,11 @@ const Regression::ExtraData* Regression::getExtraData() const{
 		class_data = new ExtraData();
 		class_data->interactions = interactions;
 		class_data->encoding = encoding;
+		class_data->run_full_permu = full_permu;
 		class_data->const_covars = const_covar_names.size();
 		class_data->base_covars = covar_names.size() + const_covar_names.size();
 		class_data->sep = sep;
+		class_data->permu_thresh = permu_sig;
 		class_data->n_extra_df_col = 0;
 		for(map<unsigned int, unsigned int>::const_iterator dfi = _extra_df_map.begin();
 				dfi != _extra_df_map.end(); dfi++){
@@ -1656,6 +1832,10 @@ void Regression::printResultLine(const Result& r, std::ostream& of){
 
 	of << r.prefix;
 	of << printExtraResults(r);
+
+	if(r.permu_idx != 0){
+		of << r.permu_idx << sep;
+	}
 
 	for(unsigned int i=0; i<r.unimodel.size(); i++){
 		if(r.unimodel[i]){
@@ -2363,6 +2543,9 @@ void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const
 
 		if(r){
 			r->prefix = _curr_pheno_name + _extra_data->sep + calc_mat->prefix;
+		}
+		for(unsigned int i=0; i<r->sig_perms.size(); i++){
+			r->sig_perms[i]->prefix = _curr_pheno_name + _extra_data->sep + r->sig_perms[i]->prefix;
 		}
 	}
 

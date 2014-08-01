@@ -17,6 +17,8 @@
 #include <cstdio>
 #include <deque>
 #include <utility>
+#include <limits>
+#include <queue>
 
 #include <boost/program_options.hpp>
 #include <boost/thread.hpp>
@@ -32,10 +34,6 @@
 #define BOOST_IOSTREAMS_USE_DEPRECATED
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
-//#include <boost/archive/binary_iarchive.hpp>
-//#include <boost/archive/binary_oarchive.hpp>
-//#include <boost/serialization/serialization.hpp>
-//
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_rng.h>
@@ -44,13 +42,10 @@
 
 #include "Correction.h"
 #include "Encoding.h"
-
 #include "MPIProcess.h"
 
 #include "data/DataSet.h"
-
 #include "util/ThreadPool.h"
-
 
 namespace PLATO{
 
@@ -69,14 +64,17 @@ public:
 	class ExtraData{
 	public:
 		bool interactions;
+		bool run_full_permu;
+		Analysis::EncodingModel encoding;
 		unsigned int const_covars;
 		unsigned int base_covars;
-		std::string sep;
-		Analysis::EncodingModel encoding;
-		unsigned int* extra_df_col;
+		float permu_thresh;
 		unsigned int n_extra_df_col;
+		unsigned int* extra_df_col;
+		std::string sep;
 
-		ExtraData(unsigned int n=0) : base_covars(0), extra_df_col(0), n_extra_df_col(n){
+
+		ExtraData(unsigned int n=0) : base_covars(0), n_extra_df_col(n), extra_df_col(0) {
 			if(n>0){
 				extra_df_col = new unsigned int[n];
 			}
@@ -87,6 +85,7 @@ public:
 			base_covars = o.base_covars;
 			sep = o.sep;
 			encoding = o.encoding;
+			permu_thresh = o.permu_thresh;
 			n_extra_df_col = o.n_extra_df_col;
 			extra_df_col = new unsigned int[n_extra_df_col];
 			std::memcpy(extra_df_col,o.extra_df_col,sizeof(unsigned int)*n_extra_df_col);
@@ -95,10 +94,12 @@ public:
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int){
 			ar & interactions;
+			ar & run_full_permu;
 			ar & const_covars;
 			ar & base_covars;
 			ar & sep;
 			ar & encoding;
+			ar & permu_thresh;
 			ar & n_extra_df_col;
 			if(Archive::is_loading::value){
 				extra_df_col = new unsigned int[n_extra_df_col];
@@ -108,7 +109,9 @@ public:
 		}
 
 		virtual ~ExtraData(){
-			delete[] extra_df_col;
+			if(extra_df_col){
+				delete[] extra_df_col;
+			}
 		}
 	};
 
@@ -284,8 +287,8 @@ protected:
 	class Result{
 	public:
 		Result(unsigned short n = 0) : coeffs(0), p_vals(0), stderr(0),
-				submodel(0),  p_val(0),
-				log_likelihood(0), r_squared(0),
+				submodel(0),  p_val(std::numeric_limits<float>::quiet_NaN()),
+				log_likelihood(0), r_squared(0), permu_idx(0),
 				n_dropped(0), n_vars(n), converged(true) {
 			if(n > 0){
 				coeffs = new float[n];
@@ -298,6 +301,9 @@ protected:
 			if(p_vals){delete[] p_vals;}
 			if(stderr){delete[] stderr;}
 			if(submodel){delete submodel;}
+			for(unsigned int i=0; i<sig_perms.size(); i++){
+				delete sig_perms[i];
+			}
 		}
 
 		template<class Archive>
@@ -307,6 +313,7 @@ protected:
 			ar & log_likelihood;
 			ar & r_squared;
 			ar & n_dropped;
+			ar & permu_idx;
 			ar & df;
 			ar & n_vars;
 			ar & converged;
@@ -316,6 +323,9 @@ protected:
 			ar & suffix;
 			// NOTE: do NOT synchronize the unimodel!!
 			// It will always come back empty
+
+			ar & perm_pvals;
+			ar & sig_perms;
 
 			// now, the arrays of data - be sure to allocate them!
 			if(Archive::is_loading::value && n_vars > 0){
@@ -345,6 +355,9 @@ protected:
 		Result* submodel;
 		std::vector<Result*> unimodel;
 
+		std::vector<float> perm_pvals;
+		std::vector<Result*> sig_perms;
+
 		// A string to print before anything (variable IDs, MAF, etc)
 		std::string prefix;
 		// A string to print AFTER all of the variables, but BEFORE p-value
@@ -353,6 +366,9 @@ protected:
 		float p_val;
 		float log_likelihood;
 		float r_squared;
+
+		// For permutations, (one plus) the index that created this significant result
+		unsigned short permu_idx;
 
 		unsigned short n_dropped;
 
@@ -618,7 +634,7 @@ public:
 	};
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), n_perms(0), class_data(0),
+	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), n_perms(0),
 		mgp(0), _targeted(false), msg_id(0), weight_complete(true), wt_marker_itr(0){}
 	virtual ~Regression();
 
@@ -665,9 +681,9 @@ protected:
 	virtual bool initData() = 0;
 
 	virtual void printResults();
-	virtual void printVarHeader(const std::string& var_name);
+	virtual void printVarHeader(const std::string& var_name, std::ofstream& of) const;
 	// Use this to print extra column information, like convergence..
-	virtual void printExtraHeader() {}
+	virtual void printExtraHeader(std::ofstream& of) {}
 	virtual std::string printExtraResults(const Result& r) {return "";}
 
 	static unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars,
@@ -700,8 +716,8 @@ private:
 	Result* addUnivar(const std::string& s, Result* r);
 	void addUnivariate(Result& r, const Model& m);
 
-	void printMarkerHeader(const std::string& var_name);
-	void printHeader(unsigned int n_snp, unsigned int n_trait);
+	void printMarkerHeader(const std::string& var_name, std::ofstream& of);
+	void printHeader(unsigned int n_snp, unsigned int n_trait, std::ofstream& of, bool permu=false);
 
 	void printResult(const Result& r, std::ostream& of);
 	void printResultLine(const Result& r, std::ostream& of);
@@ -763,14 +779,6 @@ private:
 	boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_f;
 
 	unsigned int n_threads;
-	// number of permutations to calculate p-values - set to 0 to disable
-	// permutation testing.
-	unsigned int n_perms;
-
-	unsigned long int permu_seed;
-
-	// the actual vector of permutations
-	std::deque<gsl_permutation*> permutations;
 
 	//! list of results
 	std::deque<Result*> results;
@@ -781,6 +789,43 @@ private:
 
 	//! Encoding scheme for the SNPs in the regression
 	EncodingModel encoding;
+
+	//------------------------------------------------
+	// Permutation-related variables
+
+	// number of permutations to calculate p-values - set to 0 to disable
+	// permutation testing.
+	unsigned int n_perms;
+
+	unsigned long int permu_seed;
+
+	// Significance level below which to save all data for a permutation
+	float permu_sig;
+
+	// do we want to run full submodels for our
+	bool full_permu;
+
+	// the actual vector of permutations
+	std::deque<gsl_permutation*> permutations;
+
+	// Filename for all detailed permutation results
+	std::string permu_detail_fn;
+	//
+	std::string permu_pval_fn;
+
+	std::ofstream permu_detail_f;
+	boost::iostreams::stream<boost::iostreams::file_descriptor> permu_detail_tmpf;
+
+	std::ofstream permu_pval_f;
+
+	// a min-heap of permutation p-values.
+	std::priority_queue<float, std::deque<float>, std::greater<float> > permu_pval_heap;
+
+	// deque of significant pvalues (used in lowmem setting)
+	std::deque<float> sig_permu_pvals;
+
+	// deque of significant results (used not in lowmem setting)
+	std::deque<Result*> sig_permus;
 
 	//------------------------------------------------
 	// Data variables

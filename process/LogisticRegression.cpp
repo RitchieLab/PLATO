@@ -65,11 +65,11 @@ void LogisticRegression::parseOptions(const po::variables_map& vm){
 	Regression::parseOptions(vm);
 }
 
-void LogisticRegression::printVarHeader(const std::string& var_name){
+void LogisticRegression::printVarHeader(const std::string& var_name, std::ofstream& of) const{
 	if(!show_odds){
-		Regression::printVarHeader(var_name);
+		Regression::printVarHeader(var_name, of);
 	}else{
-		out_f << var_name << "_Pval" << sep
+		of << var_name << "_Pval" << sep
 			  << var_name << "_OR" << sep
 			  << var_name << "_SE" << sep;
 	}
@@ -388,8 +388,8 @@ void LogisticRegression::process(DataSet& ds){
 	runRegression(ds);
 }
 
-void LogisticRegression::printExtraHeader(){
-	out_f << "Converged" << sep;
+void LogisticRegression::printExtraHeader(std::ofstream& of){
+	of << "Converged" << sep;
 }
 
 string LogisticRegression::printExtraResults(const Result& r){

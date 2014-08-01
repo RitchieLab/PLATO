@@ -41,10 +41,10 @@ protected:
 			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
 			unsigned int n_covars, bool run_null, const Regression::ExtraData* other_data);
 
-	virtual void printVarHeader(const std::string& var_name);
+	virtual void printVarHeader(const std::string& var_name, std::ofstream& of) const;
 	virtual bool initData();
 
-	virtual void printExtraHeader();
+	virtual void printExtraHeader(std::ofstream& of);
 	virtual std::string printExtraResults(const Result& r);
 
 private:
