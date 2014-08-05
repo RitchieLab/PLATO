@@ -255,7 +255,9 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(!vm.count("permu-seed")){
 		srand(time(NULL));
 		permu_seed = rand();
-		Logger::log("INFO: No permu-seed given, using " + boost::lexical_cast<string>(permu_seed) + ".");
+		if(n_perms > 0){
+			Logger::log("INFO: No permu-seed given, using " + boost::lexical_cast<string>(permu_seed) + ".");
+		}
 	}
 
 	// check for overlap between covariates and const-covariates
