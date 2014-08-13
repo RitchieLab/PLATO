@@ -272,7 +272,9 @@ int master_main(int argc, char** argv) {
 
 	vector<Process*> process_list;
 
-	Logger::log("Commands as given on the the command line:");
+	if(unrec_opt.size() > 0){
+		Logger::log("Commands as given on the the command line:");
+	}
 
 	// OK, now we create the list of processes that we want to create
 	while(unrec_opt.size() > 0){
