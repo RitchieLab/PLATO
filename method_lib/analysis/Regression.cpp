@@ -682,7 +682,7 @@ void Regression::runRegression(const DataSet& ds){
 		me.msg = &mc;
 		pair<unsigned int, const char*> msg = MPIUtils::pack(me);
 		sendAll(msg.first, msg.second);
-		delete msg.second;
+		delete[] msg.second;
 
 	} else {
 		while(output_itr != outcome_names.end()){
@@ -2337,9 +2337,11 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	}
 
 	// if this was a categorical test, add it as appropriate:
-	if(m->categorical && m->markers.size() == 1){
+	if(m->categorical && m->markers.size() == 1 && m->traits.size() == 0){
 		addWeight(m->markers[0], r);
 		is_result = false;
+		delete r;
+		r = 0;
 	} else if (!is_result && show_uni && m->markers.size() +  m->traits.size() == 1){
 		// if this is true, then the result should be added to the univariate
 		// results
