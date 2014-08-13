@@ -111,10 +111,11 @@ void MPIProbeInput(map<int, deque<pair<unsigned int, const char*> > >& resp_queu
 
 		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
 		//std::cout << "Receiving " <<bufsz << " bytes..." << std::endl;
-		buf = new char[bufsz];
+		buf = new char[bufsz+1];
 		MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);
 
 		MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf, resp_queue, resp_mutex);
+		delete[] buf;
 	}
 	
 #endif
