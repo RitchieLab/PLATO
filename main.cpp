@@ -245,7 +245,7 @@ int master_main(int argc, char** argv) {
 			Process* p = f.Create(cmd_str);
 			if (!p) {
 				cout << "ERROR: Unrecognized command '" << cmd_str << "'\n\n";
-				cout << "Please use the 'list-command' option to see a list of commands available\n";
+				cout << "Please use the '--list-command' option to see a list of commands available\n";
 				return 1;
 			} else {
 				po::options_description opts;
@@ -319,7 +319,9 @@ int master_main(int argc, char** argv) {
 
 	// Log the commands
 	if(process_list.size() == 0){
-		Logger::log_err("ERROR: No commands given, nothing to do!", true);
+		Logger::log_err("ERROR: No commands given, nothing to do, please see help below!");
+		cout << cmd_opts;
+		return 1;
 	}
 
 
