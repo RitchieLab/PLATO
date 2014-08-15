@@ -1661,7 +1661,7 @@ void Regression::printResults(){
 			curr_pval = _lowmem ? result_pvals[idx_pos[i]] : results[i]->p_val;
 
 			// we need to find the p-value based on the heap
-			while(permu_pval_heap.top() < curr_pval){
+			while(permu_pval_heap.size > 0 && permu_pval_heap.top() < curr_pval){
 				// OK, so we need to pop from our heap
 				if(permu_pval_f){
 					permu_pval_f << permu_pval_heap.top() << std::endl;
