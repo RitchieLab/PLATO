@@ -170,7 +170,7 @@ int main(int argc, char** argv){
 		// kick off a thread that does nothing but get messages
 		//boost::thread probe_t(boost::bind(&MPIProbeInput, boost::ref(resp_queue_map), boost::ref(resp_mutex), boost::ref(input_alive)));
 
-		MPI_status m_stat;
+		MPI_Status m_stat;
 		int msg_avail = 0;
 		while(input_alive){
 
@@ -182,7 +182,7 @@ int main(int argc, char** argv){
 				// wait for notification of something to do
 				cv_lock.lock();
 				// wait 5 seconds
-				cv.timed_wait(cv_lock,boost::posix_time::milliseconds(5000))
+				cv.timed_wait(cv_lock,boost::posix_time::milliseconds(5000));
 				// check for threads that are done, and send those responses now
 				cv_lock.unlock();
 
