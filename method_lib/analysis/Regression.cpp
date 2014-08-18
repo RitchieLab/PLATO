@@ -2302,12 +2302,8 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 	if(m != 0){
 		if(MPIUtils::threadsafe_mpi){
 			retval = generateMsg(*m);
-			delete m;
 		}else{
 			retval = generateMultiMsg(all_models);
-			for(unsigned int i=0; i<all_models.size(); i++){
-				delete all_models[i];
-			}
 		}
 	} else {
 		// If I am here, I think that I can't generate more models, so let's see why!
@@ -2382,7 +2378,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	mpi_response resp;
 	MPIUtils::unpack(bufsz, in_buf, resp);
 	
-	for(unsigned int msg_result = 0; msg_result< results.size(); msg_result++){
+	for(unsigned int msg_result = 0; msg_result< resp.results.size(); msg_result++){
 
 		unsigned int msg = resp.results[msg_result].first;
 		Result* r = resp.results[msg_result].second;
@@ -2644,12 +2640,10 @@ Regression::Result* Regression::runMPIModel(const mpi_query* mq, calc_fn& func){
 
 void Regression::runMPIQuerySingleThread(const mpi_query* mq, deque<pair<unsigned int, Result*> >& output_queue, boost::mutex& result_mutex, calc_fn& func){
 	Result* r = runMPIModel(mq, func);
-
+	
 	result_mutex.lock();
 	output_queue.push_back(make_pair(mq->msg_id, r));
 	result_mutex.unlock();
-
-	delete mq;
 }
 
 void Regression::runMPIQueryMultiThread(const mpi_query* mq, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func){
@@ -2708,6 +2702,7 @@ void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pai
 				delete out_queue[i].second;
 			}
 			result_mutex.unlock();
+			delete mmq;
 		} else {
 			if(typeid(*env.msg) == typeid(mpi_bcast)){
 			// OK, I need to prepare for broadcast here!

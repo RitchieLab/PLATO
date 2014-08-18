@@ -32,6 +32,7 @@
 
 #include "util/InputManager.h"
 #include "util/CommandLineParser.h"
+#include "util/MPIUtils.h"
 #include "data/DataSet.h"
 #include "util/Logger.h"
 
@@ -155,10 +156,11 @@ int main(int argc, char** argv){
 	} else {
 #ifdef HAVE_CXX_MPI
 
+		map<int, deque<pair<unsigned int, const char*> > > resp_queue_map;
+		boost::mutex resp_mutex;
+
 		// If we have threadsafe MPI, we can do things the "right" way!
 		if(PLATO::Utility::MPIUtils::threadsafe_mpi){
-			map<int, deque<pair<unsigned int, const char*> > > resp_queue_map;
-			boost::mutex resp_mutex;
 			boost::unique_lock<boost::mutex> cv_lock(resp_mutex);
 			cv_lock.unlock();
 			boost::condition_variable& cv = MPIProcessFactory::getFactory().getConditionVar();
@@ -182,7 +184,9 @@ int main(int argc, char** argv){
 			}
 		} else {
 			// If we do NOT have threadsafe MPI, we have to aggregate all of our sends and receives!
-
+			MPI_Status m_stat;
+			int bufsz;
+			char* buf;
 			while(true){
 				MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 

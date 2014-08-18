@@ -8,6 +8,7 @@
 #include "MPIProcess.h"
 
 #include "util/Logger.h"
+#include "util/MPIUtils.h"
 
 #include "config.h"
 
@@ -74,6 +75,10 @@ void MPIProcess::processMPI(unsigned int threads){
 
 	// make sure to have at least 1 thread per core!
 	_mpi_threads = threads < 1 ? 1 : threads;
+	// However, if we aren't threadsafe, force to 1 thread!
+	if(!Utility::MPIUtils::threadsafe_mpi){
+		_mpi_threads = 1;
+	}
 
 	pair<unsigned int, const char*> nextval = nextQuery();
 
