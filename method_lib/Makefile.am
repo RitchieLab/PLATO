@@ -35,6 +35,7 @@ util/GSLUtils.cpp \
 util/ICompressedFile.h \
 util/ICompressedFile.cpp \
 util/MPIUtils.h \
+util/MPIUtils.cpp \
 util/ThreadPool.h \
 util/ThreadPool.cpp \
 analysis/Correction.h \

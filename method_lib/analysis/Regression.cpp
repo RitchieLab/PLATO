@@ -85,6 +85,7 @@ BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_covars)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_bcast)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_clean)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_weight)
+BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_multiquery)
 
 namespace PLATO{
 
@@ -1884,6 +1885,37 @@ pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
 	return retval;
 }
 
+pair<unsigned int, const char*> Regression::generateMultiMsg(vector<const Model*>& m){
+	pair<unsigned int, const char*> retval(0,0);
+
+	mpi_multiquery mq;
+
+	for(unsigned int k=0; k<m.size(); k++){
+		++msg_id;
+		mpi_query q;
+		q.msg_id = msg_id;
+
+		for(unsigned int i=0; i<m[k]->markers.size(); i++){
+			q.marker_idx.push_back(marker_idx_map[m[k]->markers[i]]);
+		}
+		for(unsigned int i=0; i<m[k]->traits.size(); i++){
+			q.trait_idx.push_back(trait_idx_map[m[k]->traits[i]]);
+		}
+
+		q.categorical = m[k]->categorical;
+		q.permute = m[k]->permute;
+
+		mq.all_queries.push_back(q);
+		work_map[msg_id] = m[k];
+	}
+
+	mpi_envelope me;
+	me.msg = &mq;
+	retval = MPIUtils::pack(me);
+
+	return retval;
+}
+
 void Regression::initMPI(){
 
 	MPIStartBroadcast();
@@ -2156,35 +2188,12 @@ void Regression::MPIStartBroadcast() const{
 	delete[] msg.second;
 }
 
-// MPI stuff here!
-pair<unsigned int, const char*> Regression::nextQuery(){
-	pair<unsigned int, const char*> retval(0,0);
+const Regression::Model* Regression::getNextMPIModel(){
+	const Model* m = 0;
 
-	// check to see if we need to start worker threads
-	if(start_regular_workers){
-		// Only start n_threads - 1 new threads!
-		// (keep one thread for processing results from slaves)
-		for(unsigned int i=0; i<n_threads - 1; i++){
-			boost::function<void()> f = boost::bind(&Regression::start, this);
-			master_workers.run(f);
-		}
-
-		start_regular_workers = false;
-	} else if (start_weight_workers){
-		for(unsigned int i=0; i<n_threads - 1; i++){
-			boost::function<void()> f = boost::bind(&Regression::runWeights, this);
-			master_workers.run(f);
-		}
-
-		start_weight_workers = false;
-	}
-
-	const Model * m;
-	// If we have models queued up, please send them
 	if(!model_queue.empty()){
 		m = model_queue.front();
 		model_queue.pop_front();
-		retval = generateMsg(*m);
 
 	} else if(!weight_complete){
 		// If we have not generated all weights, let's find what we need to
@@ -2228,11 +2237,87 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			}
 		}
 
-		if(model_queue.empty()) {
+		// now recurse and get the next model to send!
+		// It will do one of 2 things:
+		//  1) pluck off the model queue
+		//  2) send a "Real" model (from the model generator)
+		if(!model_queue.empty()) {
+			m = getNextMPIModel();
+		} else {
+			m = 0;
+		}
+
+	} else{
+		m = mgp->next();
+	}
+	// empty else statement means that there is really NOTHING else to run!
+
+	return m;
+}
+
+
+// MPI stuff here!
+pair<unsigned int, const char*> Regression::nextQuery(){
+	pair<unsigned int, const char*> retval(0,0);
+
+	// check to see if we need to start worker threads
+	if(start_regular_workers){
+		// Only start n_threads - 1 new threads!
+		// (keep one thread for processing results from slaves)
+		for(unsigned int i=0; i<n_threads - 1; i++){
+			boost::function<void()> f = boost::bind(&Regression::start, this);
+			master_workers.run(f);
+		}
+
+		start_regular_workers = false;
+	} else if (start_weight_workers){
+		for(unsigned int i=0; i<n_threads - 1; i++){
+			boost::function<void()> f = boost::bind(&Regression::runWeights, this);
+			master_workers.run(f);
+		}
+
+		start_weight_workers = false;
+	}
+
+	vector<const Model*> all_models;
+	const Model* m;
+	if(MPIUtils::threadsafe_mpi){
+		m = getNextMPIModel();
+	} else {
+		m = getNextMPIModel();
+		unsigned int i=0;
+		while(i < n_threads - 1 && m != 0){
+			all_models.push_back(m);
+			i++;
+			m = getNextMPIModel();
+		}
+		if(m != 0){
+			all_models.push_back(m);
+		}
+		if(m == 0 && all_models.size() != 0){
+			m = all_models[0];
+		}
+	}
+
+	if(m != 0){
+		if(MPIUtils::threadsafe_mpi){
+			retval = generateMsg(*m);
+			delete m;
+		}else{
+			retval = generateMultiMsg(all_models);
+			for(unsigned int i=0; i<all_models.size(); i++){
+				delete all_models[i];
+			}
+		}
+	} else {
+		// If I am here, I think that I can't generate more models, so let's see why!
+		if(!weight_complete){
+			// If we haven't completed the weights yet..
+
 			// If I am here, we have no more models to generate, so please
 			// wait for completion, send the weights, reset the model generator
 			// and set the weight_complete flag to true
-			
+
 			collect();
 
 			// wait for worker threads to complete
@@ -2242,62 +2327,52 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			start_regular_workers = true;
 			MPIBroadcastWeights();
 			mgp->reset();
-		}
+		} else if(show_uni && !work_map.empty()){
+			// If I'm here, I might generate some post-locking models, so
+			// send a "please wait" message
+			retval = pair<unsigned int, const char*>(work_map.size(), 0);
+		} else if(output_itr != outcome_names.end()){
 
-		// now recurse and get the next model to send!
-		// It will do one of 2 things:
-		//  1) pluck off the model queue
-		//  2) send a "Real" model (from the model generator)
-		retval = nextQuery();
+			// wait for all currently processing threads to complete before we
+			// mess with the phenotypes
+			master_workers.join_all();
 
-	} else if( (m = mgp->next()) ){
-		// If I am here, I want to run the regular models (and maybe post-models, too!)
-		retval = generateMsg(*m);
-	} else if(show_uni && !work_map.empty()){
-		// If I'm here, I might generate some post-locking models, so
-		// send a "please wait" message
-		retval = pair<unsigned int, const char*>(work_map.size(), 0);
-	} else if(output_itr != outcome_names.end()){
+			// At this point, I am the only working thread on the master node!
 
-		// wait for all currently processing threads to complete before we
-		// mess with the phenotypes
-		master_workers.join_all();
-		
-		// At this point, I am the only working thread on the master node!
+			// Note the empty loop here - we will check and make sure that the
+			// phenotype is good and continue until we either run out or find
+			// a good one
+			while(++output_itr != outcome_names.end() && !resetPheno(*output_itr));
 
-		// Note the empty loop here - we will check and make sure that the
-		// phenotype is good and continue until we either run out or find
-		// a good one
-		while(++output_itr != outcome_names.end() && !resetPheno(*output_itr));
-		
-		// If I'm here, I have another phenotype to run!
-		if(output_itr != outcome_names.end()){
-		
-			collect();
-			
-			// At this point, I am the only thread AT ALL!
+			// If I'm here, I have another phenotype to run!
+			if(output_itr != outcome_names.end()){
 
-			MPIStartBroadcast();
-			MPIBroadcastPheno();
-			MPIStopBroadcast();
-			mgp->reset();
+				collect();
 
-			// Tell me which workers to start!
-			start_regular_workers = weight_complete = encoding != Encoding::WEIGHTED;
-			start_weight_workers = !start_regular_workers;
-			if(start_weight_workers && !_targeted){
-				_marker_itr_mutex.lock();
-				
-				delete wt_marker_itr;
-				wt_marker_itr = new DataSet::const_marker_iterator(ds_ptr->beginMarker());
-				_marker_itr_mutex.unlock();
+				// At this point, I am the only thread AT ALL!
+
+				MPIStartBroadcast();
+				MPIBroadcastPheno();
+				MPIStopBroadcast();
+				mgp->reset();
+
+				// Tell me which workers to start!
+				start_regular_workers = weight_complete = encoding != Encoding::WEIGHTED;
+				start_weight_workers = !start_regular_workers;
+				if(start_weight_workers && !_targeted){
+					_marker_itr_mutex.lock();
+
+					delete wt_marker_itr;
+					wt_marker_itr = new DataSet::const_marker_iterator(ds_ptr->beginMarker());
+					_marker_itr_mutex.unlock();
+				}
+
+				// recurse to get the next model
+				retval = nextQuery();
 			}
-
-			// recurse to get the next model
-			retval = nextQuery();
 		}
 	}
-	// empty else statement means that there is really NOTHING else to run!
+
 	
 	return retval;
 }
@@ -2306,146 +2381,150 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	// Turn this into a msg_id + Result
 	mpi_response resp;
 	MPIUtils::unpack(bufsz, in_buf, resp);
-	unsigned int msg = resp.msg_id;
-	Result* r = resp.result;
 	
-	// Get the Model associated with the message
-	const Model* m = 0;
-	map<unsigned int, const Model*>::iterator witr = work_map.find(msg);
-	if(witr != work_map.end()){
-		m = witr->second;
-		work_map.erase(witr);
-	}
-	
-	bool is_result = (r != 0);
+	for(unsigned int msg_result = 0; msg_result< results.size(); msg_result++){
 
-	_categ_mutex.lock();
-	set<string>::iterator pl_itr = pre_lock_set.find(m->getID());
-	if(pl_itr != pre_lock_set.end()){
-		is_result = false;
-		pre_lock_set.erase(pl_itr);
-	}
-	_categ_mutex.unlock();
+		unsigned int msg = resp.results[msg_result].first;
+		Result* r = resp.results[msg_result].second;
 
-	// if this is found in the lock map, it's not a result!
-	pair<multimap<string, int*>::iterator, multimap<string, int*>::iterator> lm_range = work_lock_map.equal_range(m->getID());
-	is_result = is_result && (lm_range.first == lm_range.second);
-	// decrement any locks we found!
-	while(lm_range.first != lm_range.second){
-		--(*((lm_range.first)->second));
-		work_lock_map.erase(lm_range.first++);
-	}
-
-	// if this was a categorical test, add it as appropriate:
-	if(m->categorical && m->markers.size() == 1 && m->traits.size() == 0){
-		addWeight(m->markers[0], r);
-		is_result = false;
-		delete r;
-		r = 0;
-	} else if (!is_result && show_uni && m->markers.size() +  m->traits.size() == 1){
-		// if this is true, then the result should be added to the univariate
-		// results
-		if(m->markers.size() == 1){
-			addUnivar(m->markers[0], r);
- 		} else {
-			addUnivar(m->traits[0], r);
+		// Get the Model associated with the message
+		const Model* m = 0;
+		map<unsigned int, const Model*>::iterator witr = work_map.find(msg);
+		if(witr != work_map.end()){
+			m = witr->second;
+			work_map.erase(witr);
 		}
-	}
 
-	// Also, see if anything needs to be placed in the result list
-	for(map<Result*, int*>::iterator it = post_lock_map.begin(); it != post_lock_map.end(); ){
-		if(*(it->second) == 0){
-			delete it->second;
-			if(show_uni){
-				map<Result*, const Model*>::iterator plm_itr = post_lock_models.find(it->first);
-				if(plm_itr != post_lock_models.end()){
-					//this really should always be the case!!  If not, we had
-					// something very bad happen
-					addUnivariate(*(it->first), *(plm_itr->second));
-					// make sure to delete the model before erasing it from
-					// the post_lock_model map!
-					delete plm_itr->second;
-					post_lock_models.erase(plm_itr);
-				} else {
-					Logger::log_err("WARNING: Unexpected error in displaying univariate models using MPI.");
+		bool is_result = (r != 0);
+
+		_categ_mutex.lock();
+		set<string>::iterator pl_itr = pre_lock_set.find(m->getID());
+		if(pl_itr != pre_lock_set.end()){
+			is_result = false;
+			pre_lock_set.erase(pl_itr);
+		}
+		_categ_mutex.unlock();
+
+		// if this is found in the lock map, it's not a result!
+		pair<multimap<string, int*>::iterator, multimap<string, int*>::iterator> lm_range = work_lock_map.equal_range(m->getID());
+		is_result = is_result && (lm_range.first == lm_range.second);
+		// decrement any locks we found!
+		while(lm_range.first != lm_range.second){
+			--(*((lm_range.first)->second));
+			work_lock_map.erase(lm_range.first++);
+		}
+	
+		// if this was a categorical test, add it as appropriate:
+		if(m->categorical && m->markers.size() == 1 && m->traits.size() == 0){
+			addWeight(m->markers[0], r);
+			is_result = false;
+			delete r;
+			r = 0;
+		} else if (!is_result && show_uni && m->markers.size() +  m->traits.size() == 1){
+			// if this is true, then the result should be added to the univariate
+			// results
+			if(m->markers.size() == 1){
+				addUnivar(m->markers[0], r);
+			} else {
+				addUnivar(m->traits[0], r);
+			}
+		}
+
+		// Also, see if anything needs to be placed in the result list
+		for(map<Result*, int*>::iterator it = post_lock_map.begin(); it != post_lock_map.end(); ){
+			if(*(it->second) == 0){
+				delete it->second;
+				if(show_uni){
+					map<Result*, const Model*>::iterator plm_itr = post_lock_models.find(it->first);
+					if(plm_itr != post_lock_models.end()){
+						//this really should always be the case!!  If not, we had
+						// something very bad happen
+						addUnivariate(*(it->first), *(plm_itr->second));
+						// make sure to delete the model before erasing it from
+						// the post_lock_model map!
+						delete plm_itr->second;
+						post_lock_models.erase(plm_itr);
+					} else {
+						Logger::log_err("WARNING: Unexpected error in displaying univariate models using MPI.");
+					}
 				}
+				addResult(it->first);
+				post_lock_map.erase(it++);
+			} else {
+				++it;
 			}
-			addResult(it->first);
-			post_lock_map.erase(it++);
-		} else {
-			++it;
-		}
-	}
-
-	vector<Model*> pl_needed;
-	// check for post-locks needed, and add them to the queue
-	if(show_uni && m->markers.size() +  m->traits.size() > 1){
-		Model *uni_m;
-		for (unsigned int i = 0; i < m->markers.size(); i++) {
-			_univar_mmutex.lock();
-			map<const Marker*, Result*>::const_iterator m_itr =
-					_marker_uni_result.find(m->markers[i]);
-			// If this is the case, we have not seen this marker before
-			if (m_itr == _marker_uni_result.end()) {
-				uni_m = new Model();
-				uni_m->markers.push_back(m->markers[i]);
-				uni_m->permute = false;
-				pl_needed.push_back(uni_m);
-			}
-			_univar_mmutex.unlock();
 		}
 
-		for (unsigned int i = 0; i < m->traits.size(); i++) {
-			_univar_tmutex.lock();
-			map<string, Result*>::const_iterator t_itr =
-					_trait_uni_result.find(m->traits[i]);
-			// If this is the case, we have not seen this marker before
-			if (t_itr == _trait_uni_result.end()) {
-				uni_m = new Model();
-				uni_m->traits.push_back(m->traits[i]);
-				uni_m->permute = false;
-				pl_needed.push_back(uni_m);
+		vector<Model*> pl_needed;
+		// check for post-locks needed, and add them to the queue
+		if(show_uni && m->markers.size() +  m->traits.size() > 1){
+			Model *uni_m;
+			for (unsigned int i = 0; i < m->markers.size(); i++) {
+				_univar_mmutex.lock();
+				map<const Marker*, Result*>::const_iterator m_itr =
+						_marker_uni_result.find(m->markers[i]);
+				// If this is the case, we have not seen this marker before
+				if (m_itr == _marker_uni_result.end()) {
+					uni_m = new Model();
+					uni_m->markers.push_back(m->markers[i]);
+					uni_m->permute = false;
+					pl_needed.push_back(uni_m);
+				}
+				_univar_mmutex.unlock();
 			}
-			_univar_tmutex.unlock();
+
+			for (unsigned int i = 0; i < m->traits.size(); i++) {
+				_univar_tmutex.lock();
+				map<string, Result*>::const_iterator t_itr =
+						_trait_uni_result.find(m->traits[i]);
+				// If this is the case, we have not seen this marker before
+				if (t_itr == _trait_uni_result.end()) {
+					uni_m = new Model();
+					uni_m->traits.push_back(m->traits[i]);
+					uni_m->permute = false;
+					pl_needed.push_back(uni_m);
+				}
+				_univar_tmutex.unlock();
+			}
+
+			// in this case, it's safe to add the univariate results, b/c we
+			// have already calculated them!
+			if(pl_needed.size() == 0){
+				addUnivariate(*r, *m);
+			}
 		}
 
-		// in this case, it's safe to add the univariate results, b/c we
-		// have already calculated them!
+		int* val_ptr = 0;
+		for(unsigned int i=0; i<pl_needed.size(); i++){
+			if(!val_ptr){
+				val_ptr = new int(pl_needed.size());
+				post_lock_map.insert(make_pair(r, val_ptr));
+				post_lock_models.insert(make_pair(r,m));
+			}
+			// I know that the post-lock models can't need a pre-lock, phew!
+			Model* plmod = pl_needed[i];
+			work_lock_map.insert(make_pair(plmod->getID(), val_ptr));
+			// Only add this to the model once, please!
+			if(work_lock_map.count(plmod->getID()) == 1){
+				model_queue.push_back(plmod);
+			} else {
+				delete plmod;
+			}
+			// if I needed post-locks, I'm not ready to push the result!
+			is_result = false;
+		}
+
+
+		if(is_result){
+			//is a result and I don't need any post-locks, add the result to the list
+			addResult(r);
+		}
+
+		// now we're done with this model, so delete it, but only if we don't need
+		// it later!
 		if(pl_needed.size() == 0){
-			addUnivariate(*r, *m);
+			delete m;
 		}
-	}
-
-	int* val_ptr = 0;
-	for(unsigned int i=0; i<pl_needed.size(); i++){
-		if(!val_ptr){
-			val_ptr = new int(pl_needed.size());
-			post_lock_map.insert(make_pair(r, val_ptr));
-			post_lock_models.insert(make_pair(r,m));
-		}
-		// I know that the post-lock models can't need a pre-lock, phew!
-		Model* plmod = pl_needed[i];
-		work_lock_map.insert(make_pair(plmod->getID(), val_ptr));
-		// Only add this to the model once, please!
-		if(work_lock_map.count(plmod->getID()) == 1){
-			model_queue.push_back(plmod);
-		} else {
-			delete plmod;
-		}
-		// if I needed post-locks, I'm not ready to push the result!
-		is_result = false;
-	}
-
-
-	if(is_result){
-		//is a result and I don't need any post-locks, add the result to the list
-		addResult(r);
-	}
-
-	// now we're done with this model, so delete it, but only if we don't need
-	// it later!
-	if(pl_needed.size() == 0){
-		delete m;
 	}
 }
 
@@ -2526,8 +2605,7 @@ void Regression::processBroadcast(){
 	
 }
 
-void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func){
-
+Regression::Result* Regression::runMPIModel(const mpi_query* mq, calc_fn& func){
 	// Make sure to get a "read lock" on the data
 	boost::shared_lock<boost::shared_mutex> r_lock(_mpi_mutex);
 
@@ -2556,19 +2634,37 @@ void Regression::runMPIQuery(const mpi_query* mq, deque<pair<unsigned int, const
 
 	r_lock.unlock();
 
-	mpi_response resp;
-	resp.msg_id = mq->msg_id;
-	resp.result = r;
+	if(calc_mat){
+		delete calc_mat;
+	}
 
+	return r;
+
+}
+
+void Regression::runMPIQuerySingleThread(const mpi_query* mq, deque<pair<unsigned int, Result*> >& output_queue, boost::mutex& result_mutex, calc_fn& func){
+	Result* r = runMPIModel(mq, func);
+
+	result_mutex.lock();
+	output_queue.push_back(make_pair(mq->msg_id, r));
+	result_mutex.unlock();
+
+	delete mq;
+}
+
+void Regression::runMPIQueryMultiThread(const mpi_query* mq, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func){
+
+	Result* r = runMPIModel(mq, func);
+
+
+	mpi_response resp;
+	resp.results.push_back(make_pair(mq->msg_id, r));
 
 	boost::unique_lock<boost::mutex> cv_lock(result_mutex);
 	result_queue.push_back(MPIUtils::pack(resp));
 	cv.notify_one();
 	cv_lock.unlock();
 
-	if(calc_mat){
-		delete calc_mat;
-	}
 	if(r){
 		delete r;
 	}
@@ -2590,9 +2686,29 @@ void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pai
 		pair<unsigned int, const char*> retval(0,0);
 	
 		if(typeid(*env.msg) == typeid(mpi_query)){
-			boost::function<void()> f = boost::bind(&runMPIQuery, dynamic_cast<mpi_query*>(env.msg), boost::ref(result_queue), boost::ref(result_mutex), boost::ref(cv), boost::ref(func));
+			boost::function<void()> f = boost::bind(&runMPIQueryMultiThread, dynamic_cast<mpi_query*>(env.msg), boost::ref(result_queue), boost::ref(result_mutex), boost::ref(cv), boost::ref(func));
 			_mpi_threads.run(f);
-		} else{
+		} else if(typeid(*env.msg) == typeid(mpi_multiquery)){
+			mpi_multiquery* mmq = dynamic_cast<mpi_multiquery*>(env.msg);
+			deque<pair<unsigned int, Result*> > out_queue;
+			for(unsigned int i=0; i<mmq->all_queries.size(); i++){
+				boost::function<void()> f = boost::bind(&runMPIQuerySingleThread, &mmq->all_queries[i], boost::ref(out_queue), boost::ref(result_mutex), boost::ref(func));
+				_mpi_threads.run(f);
+			}
+			// this is so ridiculously ineffecient it's not even funny!
+			_mpi_threads.join_all();
+			// now put everything in a single output
+			result_mutex.lock();
+			mpi_response mr;
+			for(unsigned int i=0; i<out_queue.size();i++){
+				mr.results.push_back(out_queue[i]);
+			}
+			result_queue.push_back(MPIUtils::pack(mr));
+			for(unsigned int i=0; i<out_queue.size();i++){
+				delete out_queue[i].second;
+			}
+			result_mutex.unlock();
+		} else {
 			if(typeid(*env.msg) == typeid(mpi_bcast)){
 			// OK, I need to prepare for broadcast here!
 				processBroadcast();

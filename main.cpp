@@ -60,7 +60,7 @@ using PLATO::Process;
 using PLATO::ProcessFactory;
 using PLATO::MPIProcessFactory;
 
-void MPISendResponses(map<int, deque<pair<unsigned int, const char*> > >& resp_queue_map){
+void MPISendResponses(map<int, deque<pair<unsigned int, const char*> > >& resp_queue_map, boost::mutex& resp_mutex){
 
 	
 	for( map<int, deque<pair<unsigned int, const char*> > >::iterator rq_itr = resp_queue_map.begin();
@@ -69,9 +69,11 @@ void MPISendResponses(map<int, deque<pair<unsigned int, const char*> > >& resp_q
 		deque<pair<unsigned int, const char*> >& resp_queue = (*rq_itr).second;
 
 		while(resp_queue.size() > 0){
-
+			resp_mutex.lock();
+	
 			pair<unsigned int, const char*> response = resp_queue.front();
 			resp_queue.pop_front();
+			resp_mutex.unlock();
 
 			// only send a response if we NEED to!
 			if(response.second){
@@ -85,7 +87,7 @@ void MPISendResponses(map<int, deque<pair<unsigned int, const char*> > >& resp_q
 	}
 }
 
-void MPIProbeInput(boost::mutex& resp_mutex, bool& running, boost::condition_variable& out_cv, boost::condition_variable& in_cv){
+void MPIProbeInput(map<int, deque<pair<unsigned int, const char*> > >& resp_queue_map, boost::mutex& resp_mutex, bool& running){
 
 	running = true;
 
@@ -93,29 +95,38 @@ void MPIProbeInput(boost::mutex& resp_mutex, bool& running, boost::condition_var
 	MPI_Status m_stat;
 	int bufsz;
 	char* buf;
-
-	boost::unique_lock<boost::mutex> resp_lock(resp_mutex);
-	resp_lock.unlock();
-
-	while(running){
-
-		// Receive a single message
+	while(true){
 		MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
 
-		// at this point, we know a message is available, so notify the main
-		// thread that something needs to be read/sent
-		resp_lock.lock();
-		out_cv.notify_all();
-		in_cv.wait(resp_mutex);
-		resp_lock.unlock();
+		// If we get a 0 tag, break out of the receive loop
+		if(m_stat.MPI_TAG == 0){
+			// wait on the threads (i.e., send the special "wait until done" message
+			for( map<int, deque<pair<unsigned int, const char*> > >::iterator rq_itr = resp_queue_map.begin();
+				 rq_itr != resp_queue_map.end(); rq_itr++){
+				MPIProcessFactory::getFactory().calculate((*rq_itr).first, 0, 0, (*rq_itr).second, resp_mutex);
+			}
+			break;
+		}
+		deque<pair<unsigned int, const char*> >& resp_queue = resp_queue_map[m_stat.MPI_TAG];
+
+		MPI_Get_count(&m_stat, MPI_CHAR, &bufsz);
+		//std::cout << "Receiving " <<bufsz << " bytes..." << std::endl;
+		buf = new char[bufsz+1];
+		MPI_Recv(buf, bufsz, MPI_CHAR, 0, m_stat.MPI_TAG, MPI_COMM_WORLD, &m_stat);
+
+		MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf, resp_queue, resp_mutex);
+		delete[] buf;
 	}
-
-
-
 	
 #endif
 
-
+	running = false;
+	
+	// send a "wake up, you're done! signal
+	boost::condition_variable& cv = MPIProcessFactory::getFactory().getConditionVar();
+	boost::unique_lock<boost::mutex> resp_lock(resp_mutex);
+	cv.notify_all();
+	resp_lock.unlock();
 	
 }
 
@@ -123,8 +134,10 @@ int main(int argc, char** argv){
 
 	int rank = 0;
 	int retval = 0;
+	int threading = 0;
 #ifdef HAVE_CXX_MPI
-	MPI_Init(NULL, NULL);
+	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &threading);
+	PLATO::Utility::MPIUtils::threadsafe_mpi = (threading == MPI_THREAD_MULTIPLE);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 	if(rank == 0){
@@ -142,32 +155,37 @@ int main(int argc, char** argv){
 	} else {
 #ifdef HAVE_CXX_MPI
 
-		// set up a pool of threads here
-		map<int, deque<pair<unsigned int, const char*> > > resp_queue_map;
-		boost::mutex resp_mutex;
-		boost::mutex mpi_mutex;
-		boost::unique_lock<boost::mutex> cv_lock(resp_mutex);
-		boost::condition_variable& cv = MPIProcessFactory::getFactory().getConditionVar();
-		boost::condition_variable cv_in;
+		// If we have threadsafe MPI, we can do things the "right" way!
+		if(PLATO::Utility::MPIUtils::threadsafe_mpi){
+			map<int, deque<pair<unsigned int, const char*> > > resp_queue_map;
+			boost::mutex resp_mutex;
+			boost::unique_lock<boost::mutex> cv_lock(resp_mutex);
+			cv_lock.unlock();
+			boost::condition_variable& cv = MPIProcessFactory::getFactory().getConditionVar();
 
-		// If this is the case, we want to listen for requests and use the
-		// MPIProcessFactory to process them.
-		
-		bool input_alive = true;
+			// If this is the case, we want to listen for requests and use the
+			// MPIProcessFactory to process them.
 
-		// kick off a thread that does nothing but probe for messages
-		boost::thread probe_t(boost::bind(&MPIProbeInput, boost::ref(resp_mutex), boost::ref(input_alive), boost::ref(cv),boost::ref(cv_in)));
+			bool input_alive = true;
+			// kick off a thread that does nothing but get messages
+			boost::thread probe_t(boost::bind(&MPIProbeInput, boost::ref(resp_queue_map), boost::ref(resp_mutex), boost::ref(input_alive)));
 
-		MPI_Status m_stat;
-		int msg_avail = 0;
-		while(input_alive){
+			//std::pair<unsigned int, const char*> response;
+			while(input_alive){
+				// wait for notification of something to do
+				cv_lock.lock();
+				cv.wait(cv_lock);
+				cv_lock.unlock();
 
-			// wait for notification that we're ready!
-			cv.wait(cv_lock);
+				// check for threads that are done, and send those responses now
+				MPISendResponses(resp_queue_map, resp_mutex);
+			}
+		} else {
+			// If we do NOT have threadsafe MPI, we have to aggregate all of our sends and receives!
 
-			// check for a message (non-blocking, please!)
-			MPI_Iprobe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &msg_avail, &m_stat);
-			if(msg_avail){
+			while(true){
+				MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &m_stat);
+
 				// If we get a 0 tag, break out of the receive loop
 				if(m_stat.MPI_TAG == 0){
 					// wait on the threads (i.e., send the special "wait until done" message
@@ -175,7 +193,9 @@ int main(int argc, char** argv){
 						 rq_itr != resp_queue_map.end(); rq_itr++){
 						MPIProcessFactory::getFactory().calculate((*rq_itr).first, 0, 0, (*rq_itr).second, resp_mutex);
 					}
-					running = false;
+
+					MPISendResponses(resp_queue_map, resp_mutex);
+					break;
 				}
 				deque<pair<unsigned int, const char*> >& resp_queue = resp_queue_map[m_stat.MPI_TAG];
 
@@ -187,14 +207,10 @@ int main(int argc, char** argv){
 				MPIProcessFactory::getFactory().calculate(m_stat.MPI_TAG, bufsz, buf, resp_queue, resp_mutex);
 				delete[] buf;
 
-				cv_in.notify_all();
+				MPISendResponses(resp_queue_map, resp_mutex);
 			}
 
-			// Send any responses that we need to before we exit!
-			MPISendResponses(resp_queue_map);
-
 		}
-		
 
 #endif
 		retval = 0;

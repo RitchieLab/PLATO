@@ -29,6 +29,7 @@
 #include <boost/serialization/binary_object.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/utility.hpp>
 #include "util/MPIUtils.h"
 
 #define BOOST_IOSTREAMS_USE_DEPRECATED
@@ -432,6 +433,8 @@ protected:
 	};
 
 public:
+
+
 	/*
 	 * A base class for ALL MPI messages sent
 	 */
@@ -553,6 +556,16 @@ public:
 		}
 	};
 
+	struct mpi_multiquery : public mpi_data {
+		std::vector<mpi_query> all_queries;
+
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int){
+			ar & boost::serialization::base_object<mpi_data>(*this);
+			ar & all_queries;
+		}
+	};
+
 	struct mpi_covars : public mpi_data {
 		std::vector<unsigned int> covars;
 		std::vector<unsigned int> const_covars;
@@ -620,16 +633,17 @@ public:
 	 * A structure that holds the response to a query
 	 */
 	struct mpi_response{
-		unsigned int msg_id;
-		Result* result;
+
+		std::vector<std::pair<unsigned int, Result*> > results;
 
 		template <class Archive>
 		void serialize(Archive& ar, const unsigned int){
-			ar & msg_id;
-			ar & result;
+			ar & results;
 		}
 
 	};
+
+
 public:
 
 	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), n_perms(0),
@@ -720,7 +734,10 @@ private:
 	void printResult(const Result& r, std::ostream& of);
 	void printResultLine(const Result& r, std::ostream& of);
 
+	const Model* getNextMPIModel();
+
 	std::pair<unsigned int, const char*> generateMsg(const Model& m);
+	std::pair<unsigned int, const char*> generateMultiMsg(std::vector<const Model*>& m);
 
 	static void processBroadcast();
 	void initMPI();
@@ -751,13 +768,22 @@ private:
 			const EncodingModel& enc, bool interact, bool categorical,
 			unsigned int& n_samples, unsigned int& n_missing);
 	static calc_matrix* getCalcMatrix(const mpi_query& mq, const gsl_permutation* permu);
+	static Result* runMPIModel(const mpi_query* mq, calc_fn& func);
+	static void runMPIQuerySingleThread(const mpi_query* mq,
+			std::deque<std::pair<unsigned int, Result*> >& ouptut_queue,
+			boost::mutex& result_mutex, calc_fn& func);
+
+	static void runMPIQueryMultiThread(const mpi_query* mq,
+			std::deque<std::pair<unsigned int, const char*> >& result_queue,
+			boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func);
+
 
 	static void runPermutations(Result* r, genPermuData& perm_fn,
 			const std::deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed);
 			
-	static void runMPIQuery(const mpi_query* mq, 
+	/*static void runMPIQuery(const mpi_query* mq,
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv,
-		calc_fn& func);			
+		calc_fn& func);*/
 
 private:
 	//------------------------------------------------
@@ -997,7 +1023,6 @@ protected:
 
 	//! output stream to print results to
 	std::ofstream out_f;
-
 };
 
 template <class M_iter>
