@@ -18,6 +18,9 @@ public:
 	template<class T>
 	static void unpack(unsigned int, const char*, T& data);
 
+
+	static bool threadsafe_mpi;
+
 };
 
 template <class T>
