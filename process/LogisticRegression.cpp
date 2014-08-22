@@ -404,11 +404,11 @@ void LogisticRegression::printExtraHeader(std::ofstream& of){
 
 string LogisticRegression::printExtraResults(const Result& r){
 	static bool warned=false;
-	return boost::lexical_cast<string>(r.converged) + sep;
 	if(!warned && !r.converged){
 		Logger::log_err("WARNING: One or more logistic regression models did not converge");
 		warned  = true;
 	}
+	return boost::lexical_cast<string>(r.converged) + sep;
 }
 
 array<double, 4> LogisticRegression::linkFunction(double v){
