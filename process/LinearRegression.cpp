@@ -277,7 +277,7 @@ void LinearRegression::process(DataSet& ds){
 }
 
 void LinearRegression::calculate_MPI(unsigned int bufsz, const char* buf, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv){
-	return Regression::calculate_MPI(bufsz, buf, result_queue, result_mutex, cv, LinearRegression::calculate);
+	Regression::calculate_MPI(bufsz, buf, result_queue, result_mutex, cv, LinearRegression::calculate);
 }
 
 }

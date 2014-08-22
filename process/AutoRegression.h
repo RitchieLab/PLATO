@@ -1,5 +1,5 @@
-#ifndef PROCESSLIB_LOGISTICREGRESSION_H
-#define PROCESSLIB_LOGISTICREGRESSION_H
+#ifndef PROCESSLIB_AUTOREGRESSION_H
+#define PROCESSLIB_AUTOREGRESSION_H
 
 #include "Process.h"
 #include "analysis/Regression.h"
@@ -17,16 +17,17 @@
 namespace PLATO{
 namespace ProcessLib{
 
-class LogisticRegression : public ProcessImpl<LogisticRegression>,
-	public virtual Analysis::Regression, public MPIProcessImpl<LogisticRegression> {
+class AutoRegression : public ProcessImpl<AutoRegression>,
+	public Analysis::Regression, public MPIProcessImpl<AutoRegression>,
+	private virtual LinearRegression, private virtual LogisticRegression {
 private:
 	const static std::string stepname;
 	const static std::string MPIname;
 
 public:
-	LogisticRegression() : ProcessImpl<LogisticRegression>(stepname, "Run Logistic Regression"),
-		MPIProcessImpl<LogisticRegression>(MPIname), class_data(0) {};
-	virtual ~LogisticRegression(){if(class_data){delete class_data;}};
+	AutoRegression() : ProcessImpl<AutoRegression>(stepname, "Run Auto Regression"),
+		MPIProcessImpl<AutoRegression>(MPIname), class_data(0) {};
+	virtual ~AutoRegression(){if(class_data){delete class_data;}};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
 
@@ -36,10 +37,6 @@ protected:
 
 	virtual calc_fn& getCalcFn() const;
 	virtual const Regression::ExtraData* getExtraData() const;
-
-	static Result* calculate(const double* Y, const double* data,
-			unsigned int n_cols, unsigned int n_rows, unsigned int offset,
-			unsigned int n_covars, bool run_null, const Regression::ExtraData* other_data);
 
 	virtual void printVarHeader(const std::string& var_name, std::ofstream& of) const;
 	virtual bool initData();
@@ -63,20 +60,19 @@ private:
 	unsigned int maxIterations;
 
 public:
-	class ExtraData : public Regression::ExtraData {
+	class ExtraData : public LogisticRegression::ExtraData {
 	public:
-		bool show_odds;
-		unsigned int maxIterations;
 
-		ExtraData(unsigned int n=0) : Regression::ExtraData(n) {}
-		ExtraData(const Regression::ExtraData& o) : Regression::ExtraData(o) {}
+		unsigned short analysis_type;
+
+		ExtraData(unsigned int n=0) : LogisticRegression::ExtraData(n) {}
+		ExtraData(const Regression::ExtraData& o) : LogisticRegression::ExtraData(o) {}
 		virtual ~ExtraData() {}
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int){
-			ar & boost::serialization::base_object<Regression::ExtraData>(*this);
-			ar & show_odds;
-			ar & maxIterations;
+			ar & boost::serialization::base_object<LogisticRegression::ExtraData>(*this);
+			ar & analysis_type;
 		}
 	};
 

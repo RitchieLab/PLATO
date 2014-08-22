@@ -330,6 +330,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(n_procs > 1){
 		_use_mpi = true;
 	}
+
+	if(_use_mpi && !MPIUtils::threadsafe_mpi){
+		Logger::log_err("NOTICE: The MPI implementation being used is NOT thread-safe.  Efficiency will likely improve with a thread-safe MPI implementation");
+	}
 #endif
 
 	_threaded = (n_threads - _use_mpi) > 0;
@@ -511,6 +515,7 @@ void Regression::runRegression(const DataSet& ds){
 		}else{
 			marker_incl.insert(found_marker);
 		}
+		++mni;
 	}
 
 	set<string>::iterator trait_itr = incl_traits.begin();

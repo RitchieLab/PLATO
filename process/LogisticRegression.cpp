@@ -275,12 +275,25 @@ Regression::Result* LogisticRegression::calculate(
 		// Look, magic!
 		gsl_multifit_wlinear(&X.matrix, weight, rhs, &b.vector, cov, &tmp_chisq, ws);
 
-		// get the difference between the old beta and the new beta
-		gsl_vector_sub(b_prev, &b.vector);
+		// check for NaNs here
+		if(std::isfinite(gsl_blas_dasum(&b.vector))){
+			// get the difference between the old beta and the new beta
+			gsl_vector_sub(b_prev, &b.vector);
+		} else {
+			// terminate the iteration, giving us the previous beta
+			gsl_vector_memcpy(&b.vector, b_prev);
+			// and set the "difference" to 0
+			gsl_vector_set_zero(b_prev);
+			// set loglikelihood to NaN
+			LL = std::numeric_limits<double>::quiet_NaN();
+		}
 
 		LL += 0;
 
 	} // complete iteration
+
+
+
 
 	// nonconvergence happens if:
 	// -Log likelihood is not finite (inf or NaN)
@@ -291,9 +304,6 @@ Regression::Result* LogisticRegression::calculate(
 	   numIterations >= extra_data->maxIterations ||
 	   LL-LLn > 0 ||
 	   (r->submodel && !r->submodel->converged)){
-		if(offset == 0){
-			Logger::log_err("WARNING: Logistic regression model did not converge");
-		}
 		r->converged = false;
 	}
 
@@ -393,7 +403,12 @@ void LogisticRegression::printExtraHeader(std::ofstream& of){
 }
 
 string LogisticRegression::printExtraResults(const Result& r){
+	static bool warned=false;
 	return boost::lexical_cast<string>(r.converged) + sep;
+	if(!warned && !r.converged){
+		Logger::log_err("WARNING: One or more logistic regression models did not converge");
+		warned  = true;
+	}
 }
 
 array<double, 4> LogisticRegression::linkFunction(double v){
@@ -449,7 +464,7 @@ pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, uns
 
 void LogisticRegression::calculate_MPI(unsigned int bufsz, const char* buf,
 	deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv){
-	return Regression::calculate_MPI(bufsz, buf, result_queue, result_mutex, cv, LogisticRegression::calculate);
+	Regression::calculate_MPI(bufsz, buf, result_queue, result_mutex, cv, LogisticRegression::calculate);
 }
 
 }

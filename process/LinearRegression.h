@@ -9,7 +9,7 @@ namespace PLATO{
 namespace ProcessLib{
 
 class LinearRegression : public ProcessImpl<LinearRegression>,
-	public Analysis::Regression, public MPIProcessImpl<LinearRegression> {
+	public virtual Analysis::Regression, public MPIProcessImpl<LinearRegression> {
 private:
 	const static std::string stepname;
 	const static std::string MPIName;
