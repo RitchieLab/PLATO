@@ -135,8 +135,8 @@ int main(int argc, char** argv){
 
 	int rank = 0;
 	int retval = 0;
-	int threading = 0;
 #ifdef HAVE_CXX_MPI
+	int threading = 0;
 	MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &threading);
 	PLATO::Utility::MPIUtils::threadsafe_mpi = (threading == MPI_THREAD_MULTIPLE);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -337,20 +337,27 @@ int master_main(int argc, char** argv) {
 
 			// now, parse the remaining options, stopping at the name of the next command
 			po::variables_map subvm;
-			po::parsed_options subparsed = CommandLineParser(unrec_opt).options(subopts).run();
-			po::store(subparsed, subvm);
-			po::notify(subvm);
+			try{
+				po::parsed_options subparsed = CommandLineParser(unrec_opt).options(subopts).run();
+				po::store(subparsed, subvm);
+				po::notify(subvm);
+				leftover_opts = po::collect_unrecognized(subparsed.options, po::include_positional);
+				Logger::log(cmd_name + " " +
+					boost::algorithm::join(
+						std::list<string>(unrec_opt.begin(),
+							unrec_opt.begin() + (unrec_opt.size() - leftover_opts.size())),
+						" "));
 
-			leftover_opts = po::collect_unrecognized(subparsed.options, po::include_positional);
-			Logger::log(cmd_name + " " +
-				boost::algorithm::join(
-					std::list<string>(unrec_opt.begin(),
-						unrec_opt.begin() + (unrec_opt.size() - leftover_opts.size())),
-					" "));
+				p->parseOptions(subvm);
 
-			p->parseOptions(subvm);
-
-			unrec_opt = leftover_opts;
+				unrec_opt = leftover_opts;
+			} catch(boost::program_options::unknown_option& err){
+				Logger::log_err("ERROR: Command '" + p->getName() + "' reported error: '" + err.what() +"'");
+				return 2;
+			} catch(std::exception& e){
+				Logger::log_err("ERROR: Command '" + p->getName() + "' reported unexpected error: '" + e.what() + "'");
+				return 3;
+			}
 		}
 
 		process_list.push_back(p);
