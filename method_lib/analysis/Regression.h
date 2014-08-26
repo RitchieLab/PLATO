@@ -59,7 +59,7 @@ namespace Analysis{
 /*!
  * \brief A base class for any regression analysis - really any statistical test
  */
-class Regression : virtual public MPIProcess {
+class Regression : public virtual MPIProcess {
 
 public:
 	class ExtraData{
@@ -659,6 +659,8 @@ public:
 	static Model* parseModelStr(const std::string& model_str, const PLATO::Data::DataSet& ds);
 
 protected:
+
+	virtual boost::program_options::options_description getExtraOptions() = 0;
 
 	/*! \brief Runs the regression calculation
 		 * This function actually runs the regression (or appropriate statistical

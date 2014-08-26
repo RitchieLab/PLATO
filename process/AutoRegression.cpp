@@ -49,11 +49,15 @@ const std::string AutoRegression::MPIname = AutoRegression::registerMPI("regress
 po::options_description& AutoRegression::appendOptions(po::options_description& opts){
 	Regression::addOptions(opts);
 
-	po::options_description autoreg_opts("Auto Regression Options");
-
-	opts.add(logreg_opts);
+	opts.add(LogisticRegression::getExtraOptions());
+	opts.add(LinearRegression::getExtraOptions());
+	opts.add(getExtraOptions());
 
 	return opts;
+}
+
+po::options_description AutoRegression::getExtraOptions(){
+	return po::options_description("Auto Regression Options");
 }
 
 void AutoRegression::parseOptions(const po::variables_map& vm){
@@ -79,7 +83,7 @@ bool AutoRegression::initData(){
 	}
 
 	if(uniq_pheno.size() > 2){
-		class_data->analysis_type = 0;
+		analysis_type = class_data->analysis_type = 0;
 	} else if(uniq_pheno.size() < 2){
 		Utility::Logger::log_err("ERROR: Desired phenotype has only " +
 				boost::lexical_cast<string>(uniq_pheno.size()) +
@@ -87,14 +91,14 @@ bool AutoRegression::initData(){
 		good_pheno = false;
 	} else {
 		LogisticRegression::initData();
-		class_data->analysis_type = 1;
+		analysis_type = class_data->analysis_type = 1;
 	}
 
 	return good_pheno;
 }
 
 Regression::calc_fn& AutoRegression::getCalcFn() const{
-	return (AutoRegression::calculate);
+	return AutoRegression::calculate;
 }
 
 const Regression::ExtraData* AutoRegression::getExtraData() const{
@@ -130,7 +134,7 @@ Regression::Result* AutoRegression::calculate(
 
 	// add the analysis type to the result
 	if(r){
-		r->prefix += analysis + extra_data->sep;
+		r->prefix += analysis + extra_data->sep + r->prefix;
 	}
 
 	return r;
@@ -138,12 +142,12 @@ Regression::Result* AutoRegression::calculate(
 }
 
 void AutoRegression::process(DataSet& ds){
-	runRegression(ds);
+	Regression::runRegression(ds);
 }
 
 void AutoRegression::printExtraHeader(std::ofstream& of){
 	of << "Analysis_Type" << sep;
-	LinearRegression::printExtraHeader(of);
+	LogisticRegression::printExtraHeader(of);
 }
 
 string AutoRegression::printExtraResults(const Result& r){

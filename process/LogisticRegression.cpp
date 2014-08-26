@@ -49,16 +49,20 @@ const std::string LogisticRegression::MPIname = LogisticRegression::registerMPI(
 po::options_description& LogisticRegression::appendOptions(po::options_description& opts){
 	Regression::addOptions(opts);
 
+	opts.add(getExtraOptions());
+
+	return opts;
+}
+
+po::options_description LogisticRegression::getExtraOptions(){
 	po::options_description logreg_opts("Logistic Regression Options");
 
 	logreg_opts.add_options()
-			("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
-			("max-iterations", po::value<unsigned int>(&maxIterations)->default_value(30), "Maximum number of iterations in the logistic regression")
-			;
+		("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
+		("max-iterations", po::value<unsigned int>(&maxIterations)->default_value(30), "Maximum number of iterations in the logistic regression")
+		;
 
-	opts.add(logreg_opts);
-
-	return opts;
+	return logreg_opts;
 }
 
 void LogisticRegression::parseOptions(const po::variables_map& vm){

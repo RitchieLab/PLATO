@@ -16,7 +16,7 @@ namespace Data{
 class Process{
 
 public:
-	Process(const std::string& name, const std::string& desc) : _name(name), _desc(desc){}
+	Process() {}
 	virtual ~Process(){}
 
 	void run(PLATO::Data::DataSet&);
@@ -25,8 +25,8 @@ public:
 	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
 
 	void printHelp(std::ostream& o){if(opt_ptr){o << *opt_ptr;}}
-	const std::string& getName() const {return _name;}
-	const std::string& getDesc() const {return _desc;}
+	virtual const std::string& getName() const = 0;
+	virtual const std::string& getDesc() const = 0;
 
 protected:
 	virtual void process(PLATO::Data::DataSet&) = 0;
@@ -34,26 +34,28 @@ protected:
 
 	virtual void PrintSummary(){};
 
-protected:
-	//PLATO::Data::DataSet* data_set;
-	std::string _name;
-	std::string _desc;
-
 private:
 
 	boost::program_options::options_description* opt_ptr;
 };
 
 template <class T>
-class ProcessImpl : public Process {
+class ProcessImpl : public virtual Process {
 public:
-	ProcessImpl(const std::string& n, const std::string& d) : Process(n, d) {}
+	ProcessImpl(const std::string& n, const std::string& d) : Process(), _name(n), _desc(d) {}
 
 public:
 	static Process* create(){return new T();}
+	virtual const std::string& getName() const {return _name;}
+	virtual const std::string& getDesc() const {return _desc;}
 
 protected:
 	static const std::string& doRegister(const std::string& key_in);
+
+protected:
+	//PLATO::Data::DataSet* data_set;
+	std::string _name;
+	std::string _desc;
 };
 
 template<typename T>

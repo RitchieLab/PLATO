@@ -41,14 +41,13 @@ const std::string LinearRegression::MPIName = LinearRegression::registerMPI("lin
 po::options_description& LinearRegression::appendOptions(po::options_description& opts){
 	Regression::addOptions(opts);
 
-	po::options_description logreg_opts("Linear Regression Options");
-
-	logreg_opts.add_options()
-			;
-
-	opts.add(logreg_opts);
+	opts.add(getExtraOptions());
 
 	return opts;
+}
+
+po::options_description LinearRegression::getExtraOptions(){
+	return po::options_description("Linear Regression Options");
 }
 
 void LinearRegression::parseOptions(const po::variables_map& vm){

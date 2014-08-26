@@ -1,5 +1,5 @@
-#ifndef PROCESSLIB_LOGISTICREGRESSION_H
-#define PROCESSLIB_LOGISTICREGRESSION_H
+#ifndef PROCESSLIB_LINEARREGRESSION_H
+#define PROCESSLIB_LINEARREGRESSION_H
 
 #include "Process.h"
 #include "analysis/Regression.h"
@@ -10,6 +10,9 @@ namespace ProcessLib{
 
 class LinearRegression : public ProcessImpl<LinearRegression>,
 	public virtual Analysis::Regression, public MPIProcessImpl<LinearRegression> {
+
+	friend class AutoRegression;
+
 private:
 	const static std::string stepname;
 	const static std::string MPIName;
@@ -25,6 +28,7 @@ protected:
 	virtual void process(Data::DataSet&);
 	virtual bool initData();
 	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts);
+	virtual boost::program_options::options_description getExtraOptions();
 
 	virtual calc_fn& getCalcFn() const;
 

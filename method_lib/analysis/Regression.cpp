@@ -1517,7 +1517,7 @@ Regression::Result* Regression::run(const Model& m) {
 
 		if(r){
 			// print the # missing from this model
-			r->prefix = all_data->prefix;
+			r->prefix = all_data->prefix + r->prefix;
 
 			if(encoding == Encoding::WEIGHTED && m.markers.size() == 1 && m.traits.size() == 0 && !m.categorical){
 				//ss << categ_weight[0] << sep;
@@ -1553,7 +1553,7 @@ void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<g
 			if(tmp_r){
 				r->perm_pvals.push_back(tmp_r->p_val);
 				if(tmp_r->p_val < ed->permu_thresh){
-					tmp_r->prefix = all_data->prefix;
+					tmp_r->prefix = all_data->prefix + tmp_r->prefix;
 					tmp_r->permu_idx = i+1;
 					r->sig_perms.push_back(tmp_r);
 				} else {
@@ -2626,7 +2626,7 @@ Regression::Result* Regression::runMPIModel(const mpi_query* mq, calc_fn& func){
 		}
 
 		if(r){
-			r->prefix = _curr_pheno_name + _extra_data->sep + calc_mat->prefix;
+			r->prefix = _curr_pheno_name + _extra_data->sep + calc_mat->prefix + r->prefix;
 		}
 		for(unsigned int i=0; i<r->sig_perms.size(); i++){
 			r->sig_perms[i]->prefix = _curr_pheno_name + _extra_data->sep + r->sig_perms[i]->prefix;
