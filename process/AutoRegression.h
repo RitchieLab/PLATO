@@ -74,10 +74,13 @@ public:
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv);
 
 public:
+
+	enum AnalysisType {LINEAR, LOGISTIC};
+
 	class ExtraData : public LogisticRegression::ExtraData {
 	public:
 
-		unsigned short analysis_type;
+		AnalysisType analysis_type;
 
 		ExtraData(unsigned int n=0) : LogisticRegression::ExtraData(n) {}
 		ExtraData(const Regression::ExtraData& o) : LogisticRegression::ExtraData(o) {}
@@ -92,7 +95,13 @@ public:
 
 private:
 	mutable ExtraData* class_data;
-	unsigned short analysis_type;
+	AnalysisType analysis_type;
+
+	std::vector<std::string> linear_traits;
+	std::vector<std::string> logistic_traits;
+
+	std::set<std::string> linear_set;
+	std::set<std::string> logistic_set;
 
 };
 

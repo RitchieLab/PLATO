@@ -887,8 +887,7 @@ private:
 
 	// Model generator to use
 	ModelGenerator* mgp;
-	// Iterator for the current outcome being looked at
-	std::set<std::string>::const_iterator output_itr;
+
 
 	//! a file of models to use
 	std::vector<std::string> model_files;
@@ -917,8 +916,7 @@ private:
 	bool pairwise;
 	//! Show univariate models
 	bool show_uni;
-	//! Do we want to do a pheWAS??
-	bool _phewas;
+
 	//! Is this a targeted model?
 	bool _targeted;
 
@@ -1016,6 +1014,10 @@ private:
 protected:
 	//! A string of the outcome name
 	std::set<std::string> outcome_names;
+	//! Do we want to do a pheWAS??
+	bool _phewas;
+	// Iterator for the current outcome being looked at
+	std::set<std::string>::const_iterator output_itr;
 
 	//! separator to use while printing output
 	std::string sep;
