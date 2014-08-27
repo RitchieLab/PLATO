@@ -775,6 +775,11 @@ void Regression::start(){
 void Regression::addResult(Result* r){
 	if(r){
 		_result_mutex.lock();
+
+		for(unsigned int i=0; i<r->perm_pvals.size(); i++){
+			permu_pval_heap.push(r->perm_pvals[i]);
+		}
+
 		if (_lowmem) {
 			result_pvals.push_back(r->p_val);
 			printResultLine(*r, tmp_f);
@@ -791,11 +796,6 @@ void Regression::addResult(Result* r){
 				sig_permus.push_back(r->sig_perms[i]);
 			}
 		}
-
-		for(unsigned int i=0; i<r->perm_pvals.size(); i++){
-			permu_pval_heap.push(r->perm_pvals[i]);
-		}
-
 		_result_mutex.unlock();
 	}
 

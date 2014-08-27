@@ -57,8 +57,8 @@ po::options_description AutoRegression::getExtraOptions(){
 	po::options_description autoreg_opts("Auto Regression Options");
 
 	autoreg_opts.add_options()
-		("linear", po::value<vector<string> >(&linear_traits), "Outcomes to force linear regression")
-		("logistic", po::value<vector<string> >(&logistic_traits), "Outcomes to force logistic regression")
+		("linear", po::value<vector<string> >(&linear_traits)->composing(), "Outcomes to force linear regression")
+		("logistic", po::value<vector<string> >(&logistic_traits)->composing(), "Outcomes to force logistic regression")
 		;
 
 	return autoreg_opts;
