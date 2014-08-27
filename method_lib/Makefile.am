@@ -1,9 +1,53 @@
 noinst_LTLIBRARIES=libmethods.la
 
-AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS)
+AM_CPPFLAGS=$(BOOST_CPPFLAGS) $(GSL_CFLAGS) -I$(top_srcdir)
 AM_LDFLAGS=$(GSL_LDFLAGS)
 
-libmethods_la_SOURCES=AlleleFrequency.cc \
+libmethods_la_SOURCES= data/BiallelicSample.h \
+data/BiallelicSample.cpp \
+data/DataSet.h \
+data/DataSet.cpp \
+data/Family.cpp \
+data/Family.h \
+data/Marker.cpp \
+data/Marker.h \
+data/PhasedBiallelicSample.cpp \
+data/PhasedBiallelicSample.h \
+data/PhasedPolyallelicSample.cpp \
+data/PhasedPolyallelicSample.h \
+data/PolyallelicSample.cpp \
+data/PolyallelicSample.h \
+data/Sample.cpp \
+data/Sample.h \
+util/DataLoader.cpp \
+util/DataLoader.h \
+util/OutputPLINK.h \
+util/OutputPLINK.cpp \
+util/Logger.h \
+util/Logger.cpp \
+util/CommandLineParser.h \
+util/InputManager.h \
+util/InputManager.cpp \
+util/Missing.h \
+util/Missing.cpp \
+util/GSLUtils.h \
+util/GSLUtils.cpp \
+util/ICompressedFile.h \
+util/ICompressedFile.cpp \
+util/MPIUtils.h \
+util/MPIUtils.cpp \
+util/ThreadPool.h \
+util/ThreadPool.cpp \
+analysis/Correction.h \
+analysis/Correction.cpp \
+analysis/Encoding.h \
+analysis/Encoding.cpp \
+analysis/Regression.h \
+analysis/Regression.cpp
+
+libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_IOSTREAMS_LIB) $(BOOST_SERIALIZATION_LIB)
+
+libmethods_orig_src=AlleleFrequency.cc \
 AlleleFrequency.h \
 BEAGLEOutput.cc \
 BEAGLEOutput.h \
@@ -271,4 +315,3 @@ Regression.h \
 Interactions.cpp \
 Interactions.h
 
-libmethods_la_LIBADD=$(GSL_LIBS)

@@ -3,7 +3,10 @@ Building PLATO
 
 To build PLATO, from this directory, type:
 
-./configure
+autoreconf -i
+mkdir -p build
+cd build
+../configure
 make
 make install
 
@@ -20,7 +23,3 @@ to configure are:
 	any optimizations.  This is helpful if you encounter a bug and would like
 	to fix it, but running in debug mode will likely result in MUCH slower 
 	execution times.
-
-NOTE: Due to a bug in Red Hat 6.4 (https://bugzilla.redhat.com/attachment.cgi?id=676407),
-PLATO will not configure cleanly with stock BOOST libraries.  To fix this, you
-can apply the following patch: https://bugzilla.redhat.com/attachment.cgi?id=676407.

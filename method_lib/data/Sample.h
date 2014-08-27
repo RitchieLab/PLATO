@@ -1,0 +1,129 @@
+#ifndef DATA_SAMPLE_H
+#define DATA_SAMPLE_H
+
+#include <deque>
+#include <string>
+#include <set>
+
+#include <boost/unordered_set.hpp>
+
+#include <utility>
+
+namespace PLATO{
+namespace Data{
+
+class DataSet;
+class Marker;
+
+class Sample{
+
+public:
+	virtual ~Sample(){}
+
+	typedef boost::unordered_set<Sample*>::const_iterator const_child_iterator;
+
+protected:
+	Sample(const std::string& famid, const std::string& id);
+
+public:
+	static Sample* create(const DataSet& ds, const std::string& famid, const std::string& id, unsigned int n_genos=0);
+	//static Sample* create(const std::string& id, unsigned int n_genos=0){return create(id, id, n_genos);}
+
+private:
+	// No copying or assignment!!
+	Sample(const Sample&);
+	Sample& operator=(const Sample&);
+
+public:
+	bool operator<(const Sample& o) const{
+		return std::make_pair(_id, _famid) < std::make_pair(o._id, o._famid);
+	}
+
+	virtual void appendGenotype(unsigned char geno1, unsigned char geno2) = 0;
+	virtual void setGenotype(const Marker&, unsigned char geno1, unsigned char geno2) = 0;
+	virtual void setMissingGenotype(const Marker&) = 0;
+	virtual void appendMissingGenotype() = 0;
+	virtual bool isMissing(const Marker&) const = 0;
+	virtual std::pair<unsigned char, unsigned char> getGeno(const Marker&) const = 0;
+
+	unsigned char getAdditiveGeno(const Marker&) const;
+
+	bool addMother(Sample* mom) {return mom == (_mom = (_mom == NULL) ? mom : _mom);}
+	bool addFather(Sample* dad) {return dad == (_dad = (_dad == NULL) ? dad : _dad);}
+	bool addChild(Sample* child) {return _children.insert(child).second;}
+
+	void setFounder(bool founder){_founder = founder;}
+	void setAffected(bool affected){_affected_known = true; _pheno = _affected = affected;}
+	void setGender(bool is_male){_sex_known = true; _male = is_male;}
+	void setPheno(float pheno){_pheno = pheno;}
+
+	const std::string& getFID() const {return _famid;}
+	const std::string& getID() const {return _id;}
+
+	Sample* getFather() const {return _dad;}
+	Sample* getMother() const {return _mom;}
+
+	const_child_iterator beginChild() const {return _children.begin();}
+	const_child_iterator endChild() const {return _children.end();}
+
+	bool isFounder() const {return _founder;}
+	bool isGenderKnown() const {return _sex_known;}
+	bool isMale() const {return _sex_known && _male;}
+	bool isFemale() const {return _sex_known && !_male;}
+	bool isAffected() const {return _affected_known && _affected;}
+	bool isAffectedKnown() const {return _affected_known;}
+
+	float getPheno() const {return _pheno;}
+
+	void setEnabled(bool enabled=true){_enabled = enabled;}
+	bool isEnabled() const {return _enabled;}
+
+private:
+
+	//! Family ID
+	std::string _famid;
+	//! Individual ID
+	std::string _id;
+
+	Sample* _mom;
+	Sample* _dad;
+	boost::unordered_set<Sample*> _children;
+
+	float _pheno;
+
+	bool _sex_known;
+	bool _affected_known;
+	bool _male;
+	bool _affected;
+	bool _founder;
+	bool _enabled;
+
+
+public:
+	static const unsigned char missing_allele;
+	static const std::pair<unsigned char, unsigned char> missing_geno;
+};
+
+}
+}
+
+// define an ordering for Sample pointers
+namespace std{
+template<>
+struct less<PLATO::Data::Sample*> {
+	bool operator()(const PLATO::Data::Sample* x,
+			const PLATO::Data::Sample* y) const {
+		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
+	}
+};
+
+template<>
+struct less<const PLATO::Data::Sample*> {
+	bool operator()(const PLATO::Data::Sample* x,
+			const PLATO::Data::Sample* y) const {
+		return (y != 0 && x != 0) ? (*x) < (*y) : y < x;
+	}
+};
+}
+
+#endif

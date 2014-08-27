@@ -1,87 +1,68 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <vector>
-#include <Globals.h>
-//#include "Families.h"
-//#include "Markers.h"
-#include <Sample.h>
-#include <Family.h>
-#include <Marker.h>
-#include <DataSet.h>
-#include <StepOptions.h>
-#ifdef PLATOLIB
-#include <sqlite3.h>
-#endif
-#ifdef PLATOLIB
-#include <libsqlitewrapped.h>
-#endif
-#include "DataSetObject.h"
+#include <string>
 
-using namespace std;
-using namespace Methods;
+#include <boost/program_options.hpp>
 
-#ifdef PLATOLIB
-namespace PlatoLib
-{
-#endif
+#include "ProcessFactory.h"
+
+namespace PLATO{
+
+namespace Data{
+	class DataSet;
+}
 
 class Process{
-	public:
-            StepOptions options;
-            Process(){options.setCovarMissing(opts::_COVAR_MISSING_); options.setTraitMissing(opts::_TRAIT_MISSING_);}
-            virtual ~Process();
-            //virtual void process(Connection*, Families*, Markers*) = 0;
-            //virtual void process(Families*, Markers*) = 0;
-            virtual void process(DataSet*) = 0;
-            virtual void PrintSummary() = 0;
-            virtual void filter() = 0;
-            virtual void setThreshold(string) = 0;
-            virtual void FilterSummary() = 0;
-            virtual void setRank(int) = 0;
-            //virtual void updateFamsMarks(Families*, Markers* ) = 0;
-            virtual void setDBOUT() = 0;
-            virtual void setMarkerList() = 0;
-            virtual void setStratify() = 0;
-            virtual void setOrder(int) = 0;
-            virtual void setOverwrite(bool) = 0;
-            virtual bool hasIncExc() = 0;
-            StepOptions* getOptions(){return &options;}
-            StepOptions get_options(){return options;}
-            void set_options(StepOptions* opts){options = *opts;}
-            bool has_results(){return hasresults;}
-            vector<string> get_tablename(){return tablename;}
-            map<string, vector<string> > get_headers(){return headers;}
-            vector<string> get_headers(string table){return headers[table];}
-            vector<string> get_primary_table(string table){return primary_table[table];}
-            string get_table_nickname(int i){return tablenicknames[i];}
-            string get_name(){return name;}
-            int get_position(){return position;}
-            vector<string> get_filenames(){return filenames;}
-			#ifdef PLATOLIB
-            void set_db(Database* pdb){db = pdb;}
-				virtual void run(DataSetObject*) = 0;
-				virtual void dump2db() = 0;
-			#endif
 
-	protected:
-#ifdef PLATOLIB
-			Database* db;
-#endif
-            string name;
-            string batchname;
-            int position;
-            bool hasresults;
-            vector<string> tablename;
-            map<string, vector<string> > headers;
-            map<string, vector<string> > primary_table;
-            vector<string> tablenicknames;
-            vector<string> filenames;
+public:
+	Process() {}
+	virtual ~Process(){}
+
+	void run(PLATO::Data::DataSet&);
+	boost::program_options::options_description& addOptions(boost::program_options::options_description& opts);
+
+	virtual void parseOptions(const boost::program_options::variables_map& vm) = 0;
+
+	void printHelp(std::ostream& o){if(opt_ptr){o << *opt_ptr;}}
+	virtual const std::string& getName() const = 0;
+	virtual const std::string& getDesc() const = 0;
+
+protected:
+	virtual void process(PLATO::Data::DataSet&) = 0;
+	virtual boost::program_options::options_description& appendOptions(boost::program_options::options_description& opts) = 0;
+
+	virtual void PrintSummary(){};
+
+private:
+
+	boost::program_options::options_description* opt_ptr;
 };
-#ifdef PLATOLIB
-};//end namespace PlatoLib
-#endif
+
+template <class T>
+class ProcessImpl : public virtual Process {
+public:
+	ProcessImpl(const std::string& n, const std::string& d) : Process(), _name(n), _desc(d) {}
+
+public:
+	static Process* create(){return new T();}
+	virtual const std::string& getName() const {return _name;}
+	virtual const std::string& getDesc() const {return _desc;}
+
+protected:
+	static const std::string& doRegister(const std::string& key_in);
+
+protected:
+	//PLATO::Data::DataSet* data_set;
+	std::string _name;
+	std::string _desc;
+};
+
+template<typename T>
+const std::string& ProcessImpl<T>::doRegister(const std::string& key_in){
+	return ProcessFactory::getFactory().RegisterProcess(key_in, &T::create);
+}
+
+}
+
 #endif
