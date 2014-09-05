@@ -221,6 +221,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	// Add up all the values in Y
 	double sum_Y = std::accumulate(&Y[0],&Y[n_rows],0.0);
+	r->prefix = boost::lexical_cast<string>(sum_Y) + extra_data->sep;
 
 	// get the exponent (and derivative, log and 1-log values) for the
 	// null model (i.e., best fit of the intercept parameter)
@@ -403,7 +404,7 @@ void LogisticRegression::process(DataSet& ds){
 }
 
 void LogisticRegression::printExtraHeader(std::ofstream& of){
-	of << "Converged" << sep;
+	of << "Num_Cases" << sep << "Converged" << sep;
 }
 
 string LogisticRegression::printExtraResults(const Result& r){

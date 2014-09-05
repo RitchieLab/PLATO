@@ -173,17 +173,19 @@ Regression::Result* AutoRegression::calculate(
 	Result* r = 0;
 	string analysis;
 	// use the approprate calculate method
-	if(extra_data->analysis_type == 0){
+	if(extra_data->analysis_type == LINEAR){
 		analysis="linear";
 		r = LinearRegression::calculate(Y, data, n_cols, n_rows, offset, n_covars, run_null, other_data);
-	} else if (extra_data->analysis_type == 1){
+		// print "NA" for # of cases!
+		r->prefix = r->prefix + "NA" + extra_data->sep;
+	} else if (extra_data->analysis_type == LOGISTIC){
 		analysis="logistic";
 		r = LogisticRegression::calculate(Y, data, n_cols, n_rows, offset, n_covars, run_null, other_data);
 	}
 
 	// add the analysis type to the result
 	if(r){
-		r->prefix += analysis + extra_data->sep + r->prefix;
+		r->prefix =  analysis + extra_data->sep + r->prefix;
 	}
 
 	return r;
