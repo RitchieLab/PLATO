@@ -1027,6 +1027,12 @@ protected:
 
 	//! output stream to print results to
 	std::ofstream out_f;
+
+	//! An offset to gain more resolution without the expense of space
+	// multiply by this when storing
+	static double const PVAL_OFFSET;
+	// reciprocal of the offset above, multiply by this when printing
+	static double const PVAL_OFFSET_RECIP;
 };
 
 template <class M_iter>

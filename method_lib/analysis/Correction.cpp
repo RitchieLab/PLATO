@@ -48,7 +48,7 @@ std::string Correction::listCorrectionMethods(){
 	return ss.str();
 }
 
-void Correction::initOutVec(const vector<float>& pval_in, vector<float>& pval_out, vector<size_t>& idx_out){
+void Correction::initOutVec(const vector<double>& pval_in, vector<double>& pval_out, vector<size_t>& idx_out){
 	pval_out.clear();
 	pval_out.reserve(pval_in.size());
 	pval_out.insert(pval_out.end(), pval_in.begin(), pval_in.end());
@@ -60,18 +60,18 @@ void Correction::initOutVec(const vector<float>& pval_in, vector<float>& pval_ou
 	}
 
 	// Now, sort the index vector based on the values in the input vector
-	sort(idx_out.begin(), idx_out.end(), idx_sorter<float>(pval_in));
+	sort(idx_out.begin(), idx_out.end(), idx_sorter<double>(pval_in));
 }
 
-void BonferroniCorrection::correct(const vector<float>& pval_in, vector<float>& pval_out){
+void BonferroniCorrection::correct(const vector<double>& pval_in, vector<double>& pval_out){
 	vector<size_t> idx;
 	initOutVec(pval_in, pval_out, idx);
 	for(unsigned int i=0; i < pval_out.size(); i++){
-		pval_out[idx[i]] = std::min(pval_out[idx[i]] * pval_out.size(), static_cast<float>(1));
+		pval_out[idx[i]] = std::min(pval_out[idx[i]] * pval_out.size(), static_cast<double>(1));
 	}
 }
 
-void FDRCorrection::correct(const vector<float>& pval_in, vector<float>& pval_out){
+void FDRCorrection::correct(const vector<double>& pval_in, vector<double>& pval_out){
 	vector<size_t> idx;
 	initOutVec(pval_in, pval_out, idx);
 	for(int i=(pval_out.size()-2); i >= 0; --i){

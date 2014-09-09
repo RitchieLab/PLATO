@@ -190,9 +190,9 @@ Regression::Result* LinearRegression::calculate(
 			// t-val = | beta / stderr |
 			if(extra_data->encoding == Encoding::WEIGHTED){
 				// this assumes that as df -> /inf, T -> Norm, and Norm^2 = ChiSq
-				r->p_vals[i] = gsl_cdf_chisq_Q( pow( c/se , 2) , 2);
+				r->p_vals[i] = gsl_cdf_chisq_Q( pow( c/se , 2) , 2) * PVAL_OFFSET;
 			}else{
-				r->p_vals[i] = 2*gsl_cdf_tdist_Q(fabs(c / se),n_rows-n_cols+1);
+				r->p_vals[i] = 2*gsl_cdf_tdist_Q(fabs(c / se),n_rows-n_cols+1) * PVAL_OFFSET;
 			}
 		} else {
 			// If this is true, this column was dropped from analysis!
@@ -227,7 +227,7 @@ Regression::Result* LinearRegression::calculate(
 			r->p_val = pv_rsq.first;
 			r->r_squared = pv_rsq.second;
 		} else if(curr_res->n_vars > 0) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + extra_data->sep;
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first * PVAL_OFFSET_RECIP) + extra_data->sep;
 			break;
 		}
 
@@ -264,7 +264,7 @@ pair<float, float> LinearRegression::calcPVal(Result* r, Result* curr_res, doubl
 
 	if(df != 0){
 		double F=((null_rss - chisq) * (n_rows - df))/(chisq * (df));
-		pv_rsq.first = gsl_cdf_fdist_Q(std::max(0.0, F),df,n_rows-df);
+		pv_rsq.first = gsl_cdf_fdist_Q(std::max(0.0, F),df,n_rows-df) * PVAL_OFFSET;
 	}
 
 	return pv_rsq;

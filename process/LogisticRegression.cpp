@@ -351,7 +351,7 @@ Regression::Result* LogisticRegression::calculate(
 			r->stderr[i] = sqrt(se);
 
 			// use the wald statistic to get p-values for each coefficient
-			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c / r->stderr[i] , 2) ,1 + (extra_data->encoding == Encoding::WEIGHTED));
+			r->p_vals[i] = gsl_cdf_chisq_Q( pow( c / r->stderr[i] , 2) ,1 + (extra_data->encoding == Encoding::WEIGHTED)) * PVAL_OFFSET;
 		} else {
 			// If this is true, this column was dropped from analysis!
 			r->coeffs[i] = std::numeric_limits<float>::quiet_NaN();
@@ -377,7 +377,7 @@ Regression::Result* LogisticRegression::calculate(
 			r->p_val = r->converged ? pv_rsq.first : 1.0f;
 			r->r_squared = pv_rsq.second;
 		} else if (curr_res->n_vars > 0) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first) + extra_data->sep;
+			extraSuff = boost::lexical_cast<string>(pv_rsq.first * PVAL_OFFSET_RECIP) + extra_data->sep;
 			break;
 		}
 
@@ -459,7 +459,7 @@ pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, uns
 
 	if (std::isfinite(r->log_likelihood) && r->log_likelihood-LLn <= 0){
 		if(df != 0){
-			pv_rsq.first = gsl_cdf_chisq_Q(fabs(LLn - r->log_likelihood), df);
+			pv_rsq.first = gsl_cdf_chisq_Q(fabs(LLn - r->log_likelihood), df) * PVAL_OFFSET;
 		}
 	}
 

@@ -33,14 +33,14 @@ protected:
 
 public:
 	virtual ~Correction(){};
-	virtual void correct(const std::vector<float>& pval_in, std::vector<float>& pval_out) = 0;
+	virtual void correct(const std::vector<double>& pval_in, std::vector<double>& pval_out) = 0;
 
 	static Correction* getCorrectionMethod(const CorrectionModel& c);
 
 	static std::string listCorrectionMethods();
 
 protected:
-	void initOutVec(const std::vector<float>& pval_in, std::vector<float>& pval_out, std::vector<size_t>& idx_out);
+	void initOutVec(const std::vector<double>& pval_in, std::vector<double>& pval_out, std::vector<size_t>& idx_out);
 
 };
 
@@ -65,7 +65,7 @@ class BonferroniCorrection : public Correction {
 public:
 	virtual ~BonferroniCorrection() {}
 
-	virtual void correct(const std::vector<float>& pval_in, std::vector<float>& pval_out);
+	virtual void correct(const std::vector<double>& pval_in, std::vector<double>& pval_out);
 
 };
 
@@ -74,7 +74,7 @@ class FDRCorrection : public Correction {
 public:
 	virtual ~FDRCorrection() {}
 
-	virtual void correct(const std::vector<float>& pval_in, std::vector<float>& pval_out);
+	virtual void correct(const std::vector<double>& pval_in, std::vector<double>& pval_out);
 
 };
 
