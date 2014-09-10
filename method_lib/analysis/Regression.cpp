@@ -928,7 +928,7 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait, ofstream&
 	of << "Overall_Pval";
 
 	if(n_perms > 0 && !permu){
-		of << sep << "Permuted_Pval";
+		of << sep << "Model_Permuted_Pval" << sep << "Permuted_Pval";
 	}
 
 	// do not print correction headers for the significant permuted results
@@ -1546,6 +1546,7 @@ Regression::Result* Regression::run(const Model& m) {
 
 void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed){
 	r->perm_pvals.reserve(permus.size());
+	unsigned int n_better = 0;
 	for(unsigned int i=0; i<permus.size(); i++){
 		calc_matrix* all_data = perm_fn(permus[i]);
 		if(all_data){
@@ -1554,6 +1555,7 @@ void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<g
 
 			if(tmp_r){
 				r->perm_pvals.push_back(tmp_r->p_val);
+				n_better += (tmp_r->p_val < r->p_val);
 				if(tmp_r->p_val < ed->permu_thresh){
 					tmp_r->prefix = all_data->prefix + tmp_r->prefix;
 					tmp_r->permu_idx = i+1;
@@ -1570,7 +1572,8 @@ void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<g
 		}
 	}
 
-	r->suffix += boost::lexical_cast<string>(r->p_val * PVAL_OFFSET_RECIP) + ed->sep;
+	r->suffix += boost::lexical_cast<string>(r->p_val * PVAL_OFFSET_RECIP) + ed->sep +
+			boost::lexical_cast<string>(n_better / static_cast<float>(permus.size())) + ed->sep;
 	//r->p_val = n_better / static_cast<float>(permus.size());
 }
 

@@ -3,6 +3,7 @@
 New Features:
 1. Added a "Number of Cases" column in the case of Logistic Regression.
 2. Added higher resolution near 0 for displayed p-values in regression methods.
+3. Added a "Model Permuted P-value" column for permuted regression methods
 
 == Version 2.0.0 ==
 
