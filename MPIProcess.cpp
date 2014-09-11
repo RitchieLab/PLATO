@@ -33,7 +33,7 @@ void MPIProcess::sendMPI(const pair<unsigned int, const char*>& nextval){
 		int recv = _idle_queue.front();
 		_idle_queue.pop_front();
 		//std::cout << "Sending " << nextval.first << " bytes to " << recv << std::endl;
-		MPI_Send(const_cast<char*>(nextval.second), nextval.first, MPI_CHAR, recv, _tag, MPI_COMM_WORLD);
+		MPI_Ssend(const_cast<char*>(nextval.second), nextval.first, MPI_CHAR, recv, _tag, MPI_COMM_WORLD);
 	}
 #endif
 }

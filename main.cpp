@@ -79,7 +79,7 @@ void MPISendResponses(map<int, deque<pair<unsigned int, const char*> > >& resp_q
 			// only send a response if we NEED to!
 			if(response.second){
 #ifdef HAVE_CXX_MPI
-				MPI_Send(const_cast<char*>(response.second), response.first, MPI_CHAR, 0, (*rq_itr).first, MPI_COMM_WORLD);
+				MPI_Ssend(const_cast<char*>(response.second), response.first, MPI_CHAR, 0, (*rq_itr).first, MPI_COMM_WORLD);
 #endif
 				delete[] response.second;
 			}
