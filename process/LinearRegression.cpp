@@ -254,7 +254,7 @@ Regression::Result* LinearRegression::calculate(
 
 pair<float, float> LinearRegression::calcPVal(Result* r, Result* curr_res, double chisq, double tss, unsigned int n_rows, unsigned int df){
 	pair<float, float> pv_rsq;
-	pv_rsq.first = 1;
+	pv_rsq.first = PVAL_OFFSET;
 	pv_rsq.second = 1 - chisq/tss;
 
 	double null_rss = tss;

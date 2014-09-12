@@ -450,7 +450,7 @@ array<double, 4> LogisticRegression::linkFunction(double v){
 }
 
 pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, unsigned int df, float null_ll){
-	pair<float, float> pv_rsq(1,1);
+	pair<float, float> pv_rsq(PVAL_OFFSET,1);
 	double LLn = null_ll;
 
 	if(curr_res->submodel){
