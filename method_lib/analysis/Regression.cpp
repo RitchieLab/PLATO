@@ -104,8 +104,9 @@ std::string Regression::_curr_pheno_name("");
 const Regression::ExtraData* Regression::_extra_data = 0;
 boost::shared_mutex Regression::_mpi_mutex;
 Utility::ThreadPool Regression::_mpi_threads;
-const double Regression::PVAL_OFFSET_RECIP=std::numeric_limits<float>::epsilon() * 8;
-const double Regression::PVAL_OFFSET= 1/PVAL_OFFSET_RECIP;
+const double Regression::PVAL_OFFSET= pow(2, std::numeric_limits<float>::max_exponent - 3);
+const double Regression::PVAL_OFFSET_RECIP=1 / PVAL_OFFSET;
+
 
 Regression::~Regression() {
 	for (unsigned int i = 0; i < results.size(); i++){
