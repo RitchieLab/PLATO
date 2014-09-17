@@ -374,7 +374,7 @@ Regression::Result* LogisticRegression::calculate(
 		pair<float, float> pv_rsq = calcPVal(r, curr_res, df, LLn);
 
 		if (curr_res == r) {
-			r->p_val = r->converged ? pv_rsq.first : 1.0f;
+			r->p_val = r->converged ? pv_rsq.first : (1.0f * PVAL_OFFSET);
 			r->r_squared = pv_rsq.second;
 		} else if (curr_res->n_vars > 0) {
 			extraSuff = boost::lexical_cast<string>(pv_rsq.first * PVAL_OFFSET_RECIP) + extra_data->sep;

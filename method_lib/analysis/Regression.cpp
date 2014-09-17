@@ -479,7 +479,7 @@ void Regression::runRegression(const DataSet& ds){
 			incl_traits.insert(ds.beginTrait(), ds.endTrait());
 		}
 		set<string> tmp_trait;
-		set<string>::iterator tmp_itr = tmp_trait.begin();
+		//set<string>::iterator tmp_itr = tmp_trait.begin();
 		// Now, take out the excluded traits
 		std::set_difference(incl_traits.begin(), incl_traits.end(),
 							excl_traits.begin(), excl_traits.end(),
