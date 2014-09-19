@@ -926,7 +926,7 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait, ofstream&
 		of << "Categ_Weight" << sep;
 	}
 
-	of << "Overall_Pval";
+	of << "Overall_Pval_(LRT)";
 
 	if(n_perms > 0 && !permu){
 		of << sep << "Model_Permuted_Pval" << sep << "Permuted_Pval";
