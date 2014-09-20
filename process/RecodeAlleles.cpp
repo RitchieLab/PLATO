@@ -133,6 +133,7 @@ void RecodeAlleles::process(DataSet& ds){
 			}
 			outf << (*cmi)->getRefAllele() << std::endl;
 
+			++cmi;
 		}
 
 		outf.close();
