@@ -2642,7 +2642,7 @@ void Regression::processBroadcast(){
 		} else if(typeid(*env.msg) == typeid(mpi_extra)) {
 			mpi_extra* me = dynamic_cast<mpi_extra*>(env.msg);
 			_extra_data = me->class_data;
-			n_const_covars = _extra_data->n_const_covars;
+			n_const_covars = _extra_data->const_covars;
 		}
 
 		if(env.msg){
