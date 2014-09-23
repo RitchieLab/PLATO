@@ -38,6 +38,8 @@ util/MPIUtils.h \
 util/MPIUtils.cpp \
 util/ThreadPool.h \
 util/ThreadPool.cpp \
+util/FileLoader.h \
+util/FileLoader.cpp \
 analysis/Correction.h \
 analysis/Correction.cpp \
 analysis/Encoding.h \

@@ -534,7 +534,7 @@ void Regression::runRegression(const DataSet& ds){
 
 	set<string>::iterator covar_itr = covar_names.begin();
 	while (covar_itr != covar_names.end()) {
-		if (!ds.isTrait(*covar_itr)) {
+		if (!ds.isTrait(*covar_itr) && ds.numCategories(*covar_itr) == ds.MISSING_CATEGORICAL) {
 			Utility::Logger::log_err("WARNING: '" + *covar_itr
 					+ "' is not a recognized covariate, ignoring.");
 			covar_names.erase(covar_itr++);
@@ -544,7 +544,7 @@ void Regression::runRegression(const DataSet& ds){
 	}
 
 	covar_itr = const_covar_names.begin();
-	while (covar_itr != const_covar_names.end()) {
+	while (covar_itr != const_covar_names.end() && ds.numCategories(*covar_itr) == ds.MISSING_CATEGORICAL) {
 		if (!ds.isTrait(*covar_itr)) {
 			Utility::Logger::log_err("WARNING: '" + *covar_itr
 					+ "' is not a recognized covariate, ignoring.");
@@ -581,19 +581,6 @@ void Regression::runRegression(const DataSet& ds){
 		n_trait = (incl_traits.size() > 0) * (1 + pairwise * exclude_markers);
 	}
 
-	// Add in  the extra dfs, along with their column IDs
-	if(encoding == Encoding::WEIGHTED){
-		for(unsigned int i=0; i<n_snp; i++){
-			_extra_df_map[covar_names.size() + const_covar_names.size() + 1 + i] = 1;
-		}
-	}
-
-	printHeader(n_snp, n_trait, out_f);
-
-	if(n_perms > 0 && permu_detail_f){
-		printHeader(n_snp, n_trait, permu_detail_f, true);
-	}
-
 	DataSet::const_sample_iterator si = ds.beginSample();
 
 	// set up the outcome vector
@@ -610,12 +597,33 @@ void Regression::runRegression(const DataSet& ds){
 
 	}
 
-	for(unsigned int i=0; i<covar_names.size() + const_covar_names.size(); i++){
-		_covars.push_back(vector<float>());
-		_covars[_covars.size() - 1].reserve(_pheno.size());
+	vector<unsigned char> n_col_vec;
+	n_covars = 0;
+
+	for(set<string>::const_iterator cv_itr = covar_names.begin();
+			cv_itr != covar_names.end(); cv_itr++){
+		unsigned char n_cols = ds.numCategories(*cv_itr);
+		n_cols = n_cols == ds.MISSING_CATEGORICAL ? 1 : n_cols;
+		n_covars += n_cols;
+		n_col_vec.push_back(n_cols);
+		for(unsigned int i=0; i<n_cols; i++){
+			_covars.push_back(vector<float>());
+			_covars[_covars.size() - 1].reserve(_pheno.size());
+		}
 	}
 
-
+	n_const_covars = 0;
+	for(set<string>::const_iterator cv_itr = const_covar_names.begin();
+			cv_itr != const_covar_names.end(); cv_itr++){
+		unsigned char n_cols = ds.numCategories(*cv_itr);
+		n_cols = n_cols == ds.MISSING_CATEGORICAL ? 1 : n_cols;
+		n_const_covars += n_cols;
+		n_col_vec.push_back(n_cols);
+		for(unsigned int i=0; i<n_cols; i++){
+			_covars.push_back(vector<float>());
+			_covars[_covars.size() - 1].reserve(_pheno.size());
+		}
+	}
 
 	// Now, set up the outcome variable and the covariates
 	while(si != ds.endSample()){
@@ -624,21 +632,63 @@ void Regression::runRegression(const DataSet& ds){
 		set<string>::const_iterator covar_itr = covar_names.begin();
 		set<string>::const_iterator c_covar_itr = const_covar_names.begin();
 		deque<vector<float> >::iterator val_itr = _covars.begin();
+		vector<unsigned char>::const_iterator colvec_itr = n_col_vec.begin();
 
 
 		while(covar_itr != covar_names.end()){
-			(*val_itr).push_back(ds.getTrait(*covar_itr, *si));
+			if(ds.isTrait(*covar_itr)){
+				(*val_itr).push_back(ds.getTrait(*covar_itr, *si));
+				++val_itr;
+			} else {
+				unsigned char curr_v = ds.getCategorical(*covar_itr, *si);
+				for(unsigned char k=0; k<*colvec_itr; k++){
+					if(curr_v != ds.MISSING_CATEGORICAL){
+						(*val_itr).push_back(curr_v == k);
+					} else {
+						(*val_itr).push_back(numeric_limits<float>::quiet_NaN());
+					}
+					++val_itr;
+				}
+			}
 			++covar_itr;
-			++val_itr;
+			++colvec_itr;
+
 		}
 
 		// Put the const covariates AFTER the "regular" covariates
 		while(c_covar_itr != const_covar_names.end()){
-			(*val_itr).push_back(ds.getTrait(*c_covar_itr, *si));
+			if(ds.isTrait(*c_covar_itr)){
+				(*val_itr).push_back(ds.getTrait(*c_covar_itr, *si));
+				++val_itr;
+			} else {
+				unsigned char curr_v = ds.getCategorical(*c_covar_itr, *si);
+				for(unsigned char k=0; k<*colvec_itr; k++){
+					if(curr_v != ds.MISSING_CATEGORICAL){
+						(*val_itr).push_back(curr_v == k);
+					} else {
+						(*val_itr).push_back(numeric_limits<float>::quiet_NaN());
+					}
+					++val_itr;
+				}
+			}
 			++c_covar_itr;
-			++val_itr;
+			++colvec_itr;
 		}
 		++si;
+	}
+
+	// Add in  the extra dfs, along with their column IDs
+	if(encoding == Encoding::WEIGHTED){
+		for(unsigned int i=0; i<n_snp; i++){
+			_extra_df_map[n_covars + n_const_covars + 1 + i] = 1;
+		}
+	}
+
+	// Print the headers of the files.
+	printHeader(n_snp, n_trait, out_f);
+
+	if(n_perms > 0 && permu_detail_f){
+		printHeader(n_snp, n_trait, permu_detail_f, true);
 	}
 
 	// set up the model generator
@@ -1338,8 +1388,8 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_per
 	calc_matrix* ret_val = new calc_matrix();
 
 	unsigned int numLoci = m.markers.size();
-	unsigned int numCovars = covar_names.size() + const_covar_names.size();
-	unsigned int permuCovars = covar_names.size();
+	unsigned int numCovars = n_covars + n_const_covars;
+	unsigned int permuCovars = n_const_covars;
 	unsigned int numTraits = m.traits.size();
 
 	ret_val->n_cols = getNumCols(numLoci, numTraits, numCovars, interactions,
@@ -1765,8 +1815,8 @@ const Regression::ExtraData* Regression::getExtraData() const{
 		class_data->interactions = interactions;
 		class_data->encoding = encoding;
 		class_data->run_full_permu = full_permu;
-		class_data->const_covars = const_covar_names.size();
-		class_data->base_covars = covar_names.size() + const_covar_names.size();
+		class_data->const_covars = n_const_covars;
+		class_data->base_covars = n_covars + n_const_covars;
 		class_data->sep = sep;
 		class_data->permu_thresh = permu_sig * PVAL_OFFSET;
 		class_data->n_extra_df_col = 0;
@@ -1945,18 +1995,14 @@ void Regression::initMPI(){
 
 		DataSet::const_trait_iterator ti = ds_ptr->beginTrait();
 		while(ti != ds_ptr->endTrait()){
-			MPIBroadcastTrait(*ti);
+			// Do NOT send covariate traits!
+			if(covar_names.count(*ti) == 0 && const_covar_names.count(*ti) == 0){
+				MPIBroadcastTrait(*ti);
+			}
 			++ti;
 		}
 
 	} else {
-		// send the covariate traits
-		for(set<string>::const_iterator ci = covar_names.begin(); ci != covar_names.end(); ci++){
-			MPIBroadcastTrait(*ci);
-		}
-		for(set<string>::const_iterator ci = const_covar_names.begin(); ci != const_covar_names.end(); ci++){
-			MPIBroadcastTrait(*ci);
-		}
 
 		// here, we'll just send only the data we need
 		Model* m;
@@ -1978,15 +2024,17 @@ void Regression::initMPI(){
 
 	// Now, the list of covariates
 	mpi_covars mc;
-	mc.const_covars.reserve(const_covar_names.size());
-	mc.covars.reserve(covar_names.size());
+	mc.const_covars.reserve(n_const_covars);
+	mc.covars.reserve(n_covars);
 
-	for(set<string>::const_iterator ci = covar_names.begin(); ci != covar_names.end(); ci++){
-		mc.covars.push_back(trait_idx_map[*ci]);
+	for(unsigned int i=0; i<n_covars; i++){
+		mc.covars.push_back(_covars[i]);
 	}
-	for(set<string>::const_iterator cci = const_covar_names.begin(); cci != const_covar_names.end(); cci++){
-		mc.const_covars.push_back(trait_idx_map[*cci]);
+
+	for(unsigned int i=0; i<n_const_covars; i++){
+		mc.const_covars.push_back(_covars[n_covars + i]);
 	}
+
 	me.msg = &mc;
 	MPIBroadcast(MPIUtils::pack(me));
 
@@ -2584,18 +2632,17 @@ void Regression::processBroadcast(){
 		} else if(typeid(*env.msg) == typeid(mpi_covars)) {
 			mpi_covars* mc = dynamic_cast<mpi_covars*>(env.msg);
 			// set up the covariates here
-			// NOTE: the traits MUST be loaded first!
-			n_const_covars = mc->const_covars.size();
 			for(unsigned int i=0; i<mc->covars.size(); i++) {
-				_covar_data.push_back(_trait_data[mc->covars[i]]);
+				_covar_data.push_back(mc->covars[i]);
 			}
 			for(unsigned int i=0; i<mc->const_covars.size(); i++) {
-				_covar_data.push_back(_trait_data[mc->const_covars[i]]);
+				_covar_data.push_back(mc->const_covars[i]);
 			}
 
 		} else if(typeid(*env.msg) == typeid(mpi_extra)) {
 			mpi_extra* me = dynamic_cast<mpi_extra*>(env.msg);
 			_extra_data = me->class_data;
+			n_const_covars = _extra_data->n_const_covars;
 		}
 
 		if(env.msg){

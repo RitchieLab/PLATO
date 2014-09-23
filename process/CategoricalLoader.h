@@ -1,22 +1,24 @@
-#ifndef PROCESSLIB_TRAITLOADER_H
-#define PROCESSLIB_TRAITLOADER_H
+#ifndef PROCESSLIB_CATEGORICALLOADER_H
+#define PROCESSLIB_CATEGORICALLOADER_H
 
 #include "Process.h"
 #include "util/FileLoader.h"
 
+#include <map>
 #include <string>
 
 namespace PLATO{
 namespace ProcessLib {
 
-class TraitLoader : public ProcessImpl<TraitLoader>, public Utility::FileLoader {
+class CategoricalLoader : public ProcessImpl<CategoricalLoader>, public Utility::FileLoader {
 
 private:
 	const static std::string stepname;
 
 public:
-	TraitLoader() : ProcessImpl<TraitLoader>(stepname, "Command to load numeric trait/covariate data into PLATO"), Utility::FileLoader() {};
-	virtual ~TraitLoader(){};
+	CategoricalLoader() : ProcessImpl<CategoricalLoader>(stepname, "Command to load categorical covariate data into PLATO"),
+		Utility::FileLoader(){};
+	virtual ~CategoricalLoader(){};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
 
@@ -27,8 +29,7 @@ protected:
 	virtual void processEntry(Data::DataSet& ds, const std::string& name, Data::Sample& s, const std::string& value);
 
 private:
-	bool ignore_error;
-
+	std::map<std::string, std::map<std::string, unsigned char> > _name_val_map;
 };
 
 }

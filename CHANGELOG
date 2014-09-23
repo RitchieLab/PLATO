@@ -1,5 +1,8 @@
 == Version 2.0.1 ==
 
+New Commands:
+1. Added a "load-categorical" command for loading categorical covariates.
+
 New Features:
 1. Added a "Number of Cases" column in the case of Logistic Regression.
 2. Added higher resolution near 0 for displayed p-values in regression methods.

@@ -24,6 +24,8 @@ using PLATO::Utility::InputManager;
 namespace PLATO{
 namespace Data{
 
+const unsigned char DataSet::MISSING_CATEGORICAL = static_cast<unsigned char>(-1);
+
 DataSet::~DataSet(){
 	vector<Marker*>::iterator m_it = _markers.begin();
 	while(m_it != _markers.end()){
@@ -219,6 +221,77 @@ bool DataSet::setTraitEnabled(const std::string& trait, bool isEnabled){
 	}
 	// return false if the given trait is not found
 	return false;
+}
+
+
+bool DataSet::addCategorical(const std::string& trait, const Sample* samp, unsigned char val){
+	map<const Sample*, unsigned int>::const_iterator s_itr = _sample_idx_map.find(samp);
+
+	// Could not find the position of the given sample - something is bad here!
+	if(s_itr == _sample_idx_map.end()){
+		return false;
+	}
+
+	map<string, pair<bool, deque<unsigned char> > >::iterator itr = _categorical_map.find(trait);
+
+	if(val != MISSING_CATEGORICAL){
+		// make sure to invalidate the cache if needed
+		map<string, unsigned char>::iterator cache_itr = _categorical_sz.find(trait);
+		if(cache_itr != _categorical_sz.end() &&  val > (*cache_itr).second){
+			_categorical_sz.erase(cache_itr);
+		}
+	}
+
+	//If the mapping isn't found for the given trait, add a completely NaN entry
+	if(itr == _categorical_map.end()){
+		itr = _categorical_map.insert(_categorical_map.end(), make_pair(trait, make_pair(true,
+				deque<unsigned char> (_samples.size(), MISSING_CATEGORICAL))));
+	}
+
+	(*itr).second.second[(*s_itr).second] = val;
+	return true;
+}
+
+unsigned char DataSet::getCategorical(const std::string& trait, const Sample* samp) const{
+	map<const Sample*, unsigned int>::const_iterator s_itr = _sample_idx_map.find(samp);
+	map<string, pair<bool, deque<unsigned char> > >::const_iterator itr = _categorical_map.find(trait);
+
+	if(s_itr == _sample_idx_map.end() || itr == _categorical_map.end()){
+		return MISSING_CATEGORICAL;
+	}
+
+	return (*itr).second.second[(*s_itr).second];
+}
+
+bool DataSet::setCategoricalEnabled(const std::string& trait, bool isEnabled){
+	map<string, pair<bool, deque<unsigned char> > >::iterator m_itr = _categorical_map.find(trait);
+
+	if(m_itr != _categorical_map.end()){
+		(*m_itr).second.first = isEnabled;
+		return true;
+	}
+	// return false if the given trait is not found
+	return false;
+}
+
+unsigned char DataSet::numCategories(const std::string& trait) const{
+	map<string, unsigned char>::iterator c_itr = _categorical_sz.find(trait);
+	map<string, pair<bool, deque<unsigned char> > >::const_iterator m_itr = _categorical_map.find(trait);
+
+	if(c_itr != _categorical_sz.end()){
+		return (*c_itr).second;
+	} else if(m_itr == _categorical_map.end()) {
+		return MISSING_CATEGORICAL;
+	} else {
+		unsigned char n_elements = 0;
+		for(std::deque<unsigned char>::const_iterator d_itr = (*m_itr).second.second.begin();
+		    d_itr != (*m_itr).second.second.begin(); d_itr++){
+			n_elements = std::max(n_elements,
+					static_cast<unsigned char>((*d_itr) * (*d_itr != MISSING_CATEGORICAL)));
+		}
+		_categorical_sz[trait] = n_elements + 1;
+		return n_elements + 1;
+	}
 }
 
 void DataSet::sortMarkers() {

@@ -567,8 +567,8 @@ public:
 	};
 
 	struct mpi_covars : public mpi_data {
-		std::vector<unsigned int> covars;
-		std::vector<unsigned int> const_covars;
+		std::vector<std::vector<float> > covars;
+		std::vector<std::vector<float> > const_covars;
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int){
@@ -746,6 +746,7 @@ private:
 	void MPIBroadcast(std::pair<unsigned int, const char*> msg) const;
 	void MPIBroadcastPheno();
 	void MPIBroadcastMarker(const Data::Marker* m);
+	// returns the number of columns sent
 	void MPIBroadcastTrait(const std::string& t);
 	void MPIBroadcastWeights() const;
 	void MPIStartBroadcast() const;
@@ -901,6 +902,8 @@ private:
 	std::set<std::string> incl_marker_name;
 	//! covariates to use in the regression
 	std::set<std::string> covar_names;
+	//! number of columns the covariates use
+	unsigned int n_covars;
 	//! covariates to use in the regression DO NOT PERMUTE!
 	std::set<std::string> const_covar_names;
 
