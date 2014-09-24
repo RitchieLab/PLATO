@@ -73,7 +73,9 @@ process/OutputBeagle.cpp \
 process/RecodeAlleles.h \
 process/RecodeAlleles.cpp \
 process/AutoRegression.h \
-process/AutoRegression.cpp
+process/AutoRegression.cpp \
+process/CategoricalLoader.h \
+process/CategoricalLoader.cpp
 
 plato_LDADD=method_lib/libmethods.la $(BOOST_THREAD_LIB) \
 $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_FILESYSTEM_LIB) $(BOOST_REGEX_LIB) \
