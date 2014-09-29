@@ -27,6 +27,7 @@ using std::ifstream;
 using std::set;
 
 using boost::algorithm::split;
+using boost::algorithm::trim;
 using boost::algorithm::is_any_of;
 
 using PLATO::Utility::Logger;
@@ -65,6 +66,7 @@ void FileLoader::load(DataSet& ds){
 
 		string line;
 		getline(input, line);
+		trim(line);
 		vector<string> headers;
 		split(headers, line, is_any_of(" \n\t"), boost::token_compress_on);
 
@@ -75,6 +77,7 @@ void FileLoader::load(DataSet& ds){
 
 		while (getline(input, line)) {
 			++lineno;
+			trim(line);
 			split(values, line, is_any_of(" \n\t"), boost::token_compress_on);
 
 			Sample* s = 0;
