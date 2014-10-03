@@ -2884,7 +2884,7 @@ Regression::Model* Regression::OneSidedModelGenerator::nextModel() {
 				} else {
 					//If we're here, we have already seen this model!
 					++_ti2;
-					m = next();
+					m = nextModel();
 				}
 			}
 
@@ -2921,7 +2921,7 @@ Regression::Model* Regression::OneSidedModelGenerator::nextModel() {
 					++_mi2;
 				} else {
 					++_mi2;
-					m = next();
+					m = nextModel();
 				}
 
 			}
@@ -2944,7 +2944,7 @@ Regression::Model* Regression::OneSidedModelGenerator::nextModel() {
 				++_mi2;
 			} else {
 				++_mi2;
-				m = next();
+				m = nextModel();
 			}
 		}
 
