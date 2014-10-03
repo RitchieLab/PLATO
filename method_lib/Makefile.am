@@ -45,7 +45,9 @@ analysis/Correction.cpp \
 analysis/Encoding.h \
 analysis/Encoding.cpp \
 analysis/Regression.h \
-analysis/Regression.cpp
+analysis/Regression.cpp \
+analysis/Adjustment.h \
+analysis/Adjustment.cpp
 
 libmethods_la_LIBADD=$(GSL_LIBS) $(BOOST_PROGRAM_OPTIONS_LIB) $(BOOST_IOSTREAMS_LIB) $(BOOST_SERIALIZATION_LIB)
 

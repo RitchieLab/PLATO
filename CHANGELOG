@@ -7,6 +7,7 @@ New Features:
 1. Added a "Number of Cases" column in the case of Logistic Regression.
 2. Added higher resolution near 0 for displayed p-values in regression methods.
 3. Added a "Model Permuted P-value" column for permuted regression methods
+4. Added the ability to report (and correct for) the genomic inflation factor, by 2 different methods.
 
 Bug Fixes:
 1. load-trait can now account for files with Windows line endings (CR+LF vs. LF)

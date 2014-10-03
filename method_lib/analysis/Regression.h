@@ -40,8 +40,10 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_permutation.h>
+#include <gsl/gsl_cdf.h>
 
 #include "Correction.h"
+#include "Adjustment.h"
 #include "Encoding.h"
 #include "MPIProcess.h"
 
@@ -383,6 +385,43 @@ protected:
 		bool operator<(const Result& o) const {return p_val < o.p_val;}
 
 	};
+
+	// An adapter for a container of pointers to results that gives the
+	// value of the p-value with the operator[] and exposes the size of the
+	// container.
+	template<class T>
+	class ResultContainerAdapter{
+	public:
+		ResultContainerAdapter(const T& t) : _data(t) {}
+		double operator[](unsigned int i) const{
+			return _data[i]->p_val *PVAL_OFFSET_RECIP;
+		}
+		unsigned int size() const{
+			return _data.size();
+		}
+
+	private:
+		const T& _data;
+	};
+
+	// An adapter for a container of pointers to results that gives the
+	// value of the p-value with the operator[] and exposes the size of the
+	// container.
+	template<class T>
+	class PValContainerAdapter{
+	public:
+		PValContainerAdapter(const T& t) : _data(t) {}
+		double operator[](unsigned int i) const{
+			return _data[i]*PVAL_OFFSET_RECIP;
+		}
+		unsigned int size() const{
+			return _data.size();
+		}
+
+	private:
+		const T& _data;
+	};
+
 
 	// This structure contains all the data we need to run a regression using the
 	// calculate function (with the exception of the extraData)
@@ -736,6 +775,12 @@ private:
 	void printResult(const Result& r, std::ostream& of);
 	void printResultLine(const Result& r, std::ostream& of);
 
+	double adjust_pval(double pval, double gif_recip, Adjustment* adj){
+		// If I don't want to adjust OR the genomic inflation factor is EXACTLY 1,
+		// just return the p-value please!
+		return (adjust_inflation && gif_recip != 1) ? adj->correct(pval, gif_recip) : pval;
+	}
+
 	const Model* getNextMPIModel();
 
 	std::pair<unsigned int, const char*> generateMsg(const Model& m);
@@ -882,6 +927,10 @@ private:
 
 	// mapping of column IDs to extra degrees of freedom (this comes from the weighted encoding)
 	std::map<unsigned int, unsigned int> _extra_df_map;
+
+	bool use_inflation;
+	bool adjust_inflation;
+	AdjustmentModel inflation_method;
 
 	//------------------------------------------------
 	// Model generation variables

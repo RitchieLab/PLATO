@@ -185,8 +185,6 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
-		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
-		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
 		("separator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
 		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
@@ -194,6 +192,17 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		;
 
 	opts.add(regress_opts);
+
+	po::options_description pval_opts("P-value Reporting Options");
+	pval_opts.add_options()
+		("correction", po::value<vector<string> >()->composing(), ("p-value correction method(s) (" + Correction::listCorrectionMethods() + ")").c_str())
+		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
+		("inflation", po::bool_switch(&use_inflation), "Report Genomic Inflation Factor")
+		("inflation-adjust", po::bool_switch(&adjust_inflation), "Adjust p-values for Genomic Inflation Factor")
+		("inflation-method", po::value(&inflation_method)->default_value(Adjustment::GC), ("Select the method used to adjust for Genomic Inflation Factor (" + Adjustment::listAdjustmentMethods() + ")" ).c_str())
+		;
+
+	opts.add(pval_opts);
 
 	po::options_description permu_opts("Permutation Options");
 	permu_opts.add_options()
@@ -378,6 +387,11 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 
 		input.close();
 		++mf_itr;
+	}
+
+	if(adjust_inflation && !use_inflation){
+		Logger::log_err("WARNING: --inflation-adjust used without --inflation, ignoring --inflation-adjust!");
+		adjust_inflation = false;
 	}
 
 	if(_lowmem){
@@ -1679,7 +1693,6 @@ void Regression::printResults(){
 		}
 	}
 
-
 	vector<std::iostream::pos_type> file_pos;
 	vector<size_t> idx_pos;
 	size_t n_results = _lowmem ? result_pvals.size() : results.size();
@@ -1693,6 +1706,7 @@ void Regression::printResults(){
 		}
 
 		std::sort(idx_pos.begin(), idx_pos.end(), pval_sorter(result_pvals));
+
 
 		file_pos.reserve(n_results+1);
 		// get the positions of the beginning of every line
@@ -1741,6 +1755,24 @@ void Regression::printResults(){
 		}
 	}
 
+	// get and report the genomic inflation factor
+	// NOTE: I NEED sorted pvalue vectors!
+	double gif = 1;
+	Adjustment* adj = Adjustment::getAdjustmentMethod(inflation_method);
+
+	if(use_inflation){
+		if(_lowmem){
+			gif = adj->adjust(PValContainerAdapter<deque<float> >(result_pvals));
+		} else {
+			gif = adj->adjust(ResultContainerAdapter<deque<Result*> >(results));
+		}
+		Logger::log("Genomic Inflation Factor: " + boost::lexical_cast<string>(gif));
+	}
+
+	// now, set gif to 1/gif but ONLY if we want to adjust!
+	gif = (use_inflation && adjust_inflation) ? 1/gif : 1.0;
+
+
 	// Now, let's do some multiple test correction!
 	map<CorrectionModel, vector<double> > pval_corr;
 
@@ -1751,12 +1783,12 @@ void Regression::printResults(){
 		if (_lowmem) {
 			pv_in.reserve(n_results);
 			for(size_t i=0; i<n_results; i++){
-				pv_in.push_back(result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP);
+				pv_in.push_back(adjust_pval(result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP, gif, adj));
 			}
 		} else {
 			pv_in.reserve(n_results);
 			for (size_t i = 0; i < n_results; i++) {
-				pv_in.push_back(results[i]->p_val * PVAL_OFFSET_RECIP);
+				pv_in.push_back(adjust_pval(results[i]->p_val * PVAL_OFFSET_RECIP, gif, adj));
 			}
 		}
 
@@ -1780,11 +1812,11 @@ void Regression::printResults(){
 			tmpf_line = "";
 			std::getline(tmp_f, tmpf_line);
 			out_f << tmpf_line;
-			out_f << result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP;
+			out_f << adjust_pval(result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP, gif, adj);
 			tmp_f.clear();
 		} else {
 			printResultLine(*(results[i]), out_f);
-			out_f << results[i]->p_val * PVAL_OFFSET_RECIP;
+			out_f << adjust_pval(results[i]->p_val * PVAL_OFFSET_RECIP, gif, adj);
 		}
 
 		// print some corrected p-values!
