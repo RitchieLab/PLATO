@@ -74,6 +74,7 @@ void FileLoader::load(DataSet& ds){
 		values.reserve(headers.size());
 		int lineno = 1;
 		set<const Sample*> enabled_samples(ds.beginSample(), ds.endSample());
+		unsigned int n_extra = 0;
 
 		while (getline(input, line)) {
 			++lineno;
@@ -88,10 +89,10 @@ void FileLoader::load(DataSet& ds){
 			}
 
 			if (!s) {
-				string err("Extra sample found on line " + boost::lexical_cast<
-						string>(lineno));
-				;
-				Logger::log_err(err, !(extra_samples || dummy_samples));
+				n_extra++;
+				if(!(extra_samples || dummy_samples)){
+					Logger::log_err(string("Extra sample found on line ") + boost::lexical_cast<string>(lineno), true);
+				}
 				if (dummy_samples) {
 					if (no_fid) {
 						s = ds.addSample(values[0]);
@@ -115,6 +116,10 @@ void FileLoader::load(DataSet& ds){
 		}
 
 		input.close();
+
+		if(n_extra > 0){
+			Logger::log_err("INFO: " + boost::lexical_cast<string>(n_extra) + " extra samples found in " + *fn_itr);
+		}
 
 		if(enabled_samples.size() > 0){
 			Logger::log_err("Trait data not given in " + *fn_itr + " for some previously loaded samples.", require_complete);
