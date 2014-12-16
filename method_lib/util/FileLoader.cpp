@@ -36,8 +36,14 @@ using PLATO::Data::Sample;
 
 namespace po=boost::program_options;
 
+
+
 namespace PLATO{
 namespace Utility{
+
+// Define the "Group Separator" string as the separation between FID and IID!
+// Do this b/c it's legal ASCII, but darn near impossible to include on the cmd line
+const string FileLoader::sampl_field_sep = "\x1d";
 
 po::options_description FileLoader::getOptions(){
 
@@ -50,7 +56,45 @@ po::options_description FileLoader::getOptions(){
 			("dummy-samples", po::bool_switch(&dummy_samples),"Create samples for any that cannot be mapped to existing data")
 			("require-complete", po::bool_switch(&require_complete), "Require trait data for all (enabled) samples loaded so far");
 
-	return file_opts;
+	po::options_description filter_opts("Pre-filtering Options");
+
+	filter_opts.add_options()
+			("incl-sample", po::value<vector<string> >(&incl_sample_str)->composing(), "Sample(s) to include")
+			("excl-sample", po::value<vector<string> >(&excl_sample_str)->composing(), "Sample(s) to exclude")
+			;
+
+	return file_opts.add(filter_opts);
+}
+
+void FileLoader::parseOptions(const po::variables_map& vm) {
+
+	if(!dummy_samples && !(incl_sample_str.empty() && excl_sample_str.empty())){
+		Logger::log_err("WARNING: include/exclude sample list given without specifying --dummy-samples.  "
+				"Ignoring the include/exclude list(s)");
+	} else if(dummy_samples) {
+
+		readSampleList(incl_sample_str, incl_sample_set);
+		readSampleList(excl_sample_str, excl_sample_set);
+	}
+}
+
+void FileLoader::readSampleList(const vector<string>& in_list, set<string>& out_set){
+	vector<string> all_samps;
+	InputManager::parseInput(in_list, all_samps);
+
+	for(unsigned int i=0; i<all_samps.size(); i++){
+		stringstream ss(all_samps[i]);
+		string id, fid;
+		if(ss >> id){
+			fid = id;
+			if(ss >> fid){
+				Logger::log_err("WARNING: Sample '" + all_samps[i] +
+						"' has more than an 'FID IID', "
+						"ignoring everything after 2nd space!");
+			}
+		}
+		out_set.insert(id + sampl_field_sep + fid);
+	}
 }
 
 void FileLoader::load(DataSet& ds){
@@ -95,9 +139,13 @@ void FileLoader::load(DataSet& ds){
 				}
 				if (dummy_samples) {
 					if (no_fid) {
-						s = ds.addSample(values[0]);
+						if(filterSample(values[0])){
+							s = ds.addSample(values[0]);
+						}
 					} else {
-						s = ds.addSample(values[0], values[1]);
+						if(filterSample(values[0], values[1])){
+							s = ds.addSample(values[0], values[1]);
+						}
 					}
 				}
 
@@ -126,6 +174,12 @@ void FileLoader::load(DataSet& ds){
 		}
 		++fn_itr;
 	}
+}
+
+bool FileLoader::filterSample(const string& id, const string& fid) const {
+	string key = id + sampl_field_sep + (fid.empty() ? id : fid);
+	return (incl_sample_set.empty() || incl_sample_set.count(key) > 0) &&
+			(excl_sample_set.empty() || excl_sample_set.count(key) == 0);
 }
 
 }
