@@ -80,8 +80,10 @@ private:
 	 */
 	bool filterSample(const std::string& id, const std::string& fid="") const;
 
-	void readSampleList(const std::vector<std::string>& in_list, std::set<std::string>& out_set) const;
-	void readMarkerFile(const std::vector<std::string>& fn_list, std::set<std::string>& out_set) const;
+	static void readSampleList(const std::vector<std::string>& in_list, std::set<std::string>& out_set);
+	static void readSampleFile(const std::vector<std::string>& in_list, std::set<std::string>& out_set);
+	static void readMarkerFile(const std::vector<std::string>& fn_list, std::set<std::string>& out_set);
+	static void addSampleToSet(const std::string& samp, std::set<std::string>& out_set);
 
 	// does the map file contain a distance column?
 	bool _map_no_distance;
@@ -167,6 +169,8 @@ private:
 	std::vector<std::string> excl_marker_fns;
 	std::vector<std::string> incl_sample_str;
 	std::vector<std::string> excl_sample_str;
+	std::vector<std::string> incl_sample_fns;
+	std::vector<std::string> excl_sample_fns;
 
 	std::set<unsigned short> chrom_ids;
 	std::set<std::pair<unsigned int, unsigned int> > bp_window_set;

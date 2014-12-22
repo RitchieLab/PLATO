@@ -37,6 +37,8 @@ protected:
 
 private:
 	static void readSampleList(const std::vector<std::string>& in_list, std::set<std::string>& out_set);
+	static void readSampleFile(const std::vector<std::string>& in_list, std::set<std::string>& out_set);
+	static void addSampleToSet(const std::string& samp, std::set<std::string>& out_set);
 	bool filterSample(const std::string& id, const std::string& fid="") const;
 
 protected:
@@ -51,6 +53,8 @@ protected:
 private:
 	std::vector<std::string> incl_sample_str;
 	std::vector<std::string> excl_sample_str;
+	std::vector<std::string> incl_sample_fns;
+	std::vector<std::string> excl_sample_fns;
 	std::set<std::string> incl_sample_set;
 	std::set<std::string> excl_sample_set;
 	static const std::string sampl_field_sep;

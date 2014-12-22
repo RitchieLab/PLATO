@@ -61,6 +61,8 @@ po::options_description FileLoader::getOptions(){
 	filter_opts.add_options()
 			("incl-sample", po::value<vector<string> >(&incl_sample_str)->composing(), "Sample(s) to include")
 			("excl-sample", po::value<vector<string> >(&excl_sample_str)->composing(), "Sample(s) to exclude")
+			("incl-sample-fn", po::value<vector<string> >(&incl_sample_fns)->composing(), "File of sample(s) to include")
+			("excl-sample-fn", po::value<vector<string> >(&excl_sample_fns)->composing(), "File of sample(s) to exclude")
 			;
 
 	return file_opts.add(filter_opts);
@@ -75,25 +77,8 @@ void FileLoader::parseOptions(const po::variables_map& vm) {
 
 		readSampleList(incl_sample_str, incl_sample_set);
 		readSampleList(excl_sample_str, excl_sample_set);
-	}
-}
-
-void FileLoader::readSampleList(const vector<string>& in_list, set<string>& out_set){
-	vector<string> all_samps;
-	InputManager::parseInput(in_list, all_samps);
-
-	for(unsigned int i=0; i<all_samps.size(); i++){
-		stringstream ss(all_samps[i]);
-		string id, fid;
-		if(ss >> id){
-			fid = id;
-			if(ss >> fid){
-				Logger::log_err("WARNING: Sample '" + all_samps[i] +
-						"' has more than an 'FID IID', "
-						"ignoring everything after 2nd space!");
-			}
-		}
-		out_set.insert(id + sampl_field_sep + fid);
+		readSampleFile(incl_sample_fns, incl_sample_set);
+		readSampleFile(excl_sample_fns, excl_sample_set);
 	}
 }
 
@@ -119,6 +104,7 @@ void FileLoader::load(DataSet& ds){
 		int lineno = 1;
 		set<const Sample*> enabled_samples(ds.beginSample(), ds.endSample());
 		unsigned int n_extra = 0;
+		unsigned int n_added = 0;
 
 		while (getline(input, line)) {
 			++lineno;
@@ -133,7 +119,7 @@ void FileLoader::load(DataSet& ds){
 			}
 
 			if (!s) {
-				n_extra++;
+				++n_extra;
 				if(!(extra_samples || dummy_samples)){
 					Logger::log_err(string("Extra sample found on line ") + boost::lexical_cast<string>(lineno), true);
 				}
@@ -141,10 +127,12 @@ void FileLoader::load(DataSet& ds){
 					if (no_fid) {
 						if(filterSample(values[0])){
 							s = ds.addSample(values[0]);
+							++n_added;
 						}
 					} else {
 						if(filterSample(values[0], values[1])){
 							s = ds.addSample(values[0], values[1]);
+							++n_added;
 						}
 					}
 				}
@@ -166,7 +154,9 @@ void FileLoader::load(DataSet& ds){
 		input.close();
 
 		if(n_extra > 0){
-			Logger::log_err("INFO: " + boost::lexical_cast<string>(n_extra) + " extra samples found in " + *fn_itr);
+			Logger::log_err("INFO: " + boost::lexical_cast<string>(n_extra) +
+					" extra samples found in " + *fn_itr + ", " +
+					boost::lexical_cast<string>(n_added) + " samples created.");
 		}
 
 		if(enabled_samples.size() > 0){
@@ -180,6 +170,40 @@ bool FileLoader::filterSample(const string& id, const string& fid) const {
 	string key = id + sampl_field_sep + (fid.empty() ? id : fid);
 	return (incl_sample_set.empty() || incl_sample_set.count(key) > 0) &&
 			(excl_sample_set.empty() || excl_sample_set.count(key) == 0);
+}
+
+void FileLoader::readSampleList(const vector<string>& in_list, set<string>& out_set){
+	vector<string> all_samps;
+	InputManager::parseInput(in_list, all_samps);
+
+	for(unsigned int i=0; i<all_samps.size(); i++){
+		addSampleToSet(all_samps[i], out_set);
+	}
+}
+
+void FileLoader::readSampleFile(const vector<string>& fn_list, set<string>& out_set){
+	string samp;
+	for(unsigned int i=0; i<fn_list.size(); i++){
+		ifstream f(fn_list[i].c_str());
+		while(getline(f, samp)){
+			boost::algorithm::trim(samp);
+			addSampleToSet(samp, out_set);
+		}
+	}
+}
+
+void FileLoader::addSampleToSet(const string& samp, set<string>& out_set){
+	stringstream ss(samp);
+	string id, fid;
+	if(ss >> id){
+		fid = id;
+		if(ss >> fid){
+			Logger::log_err("WARNING: Sample '" + samp +
+					"' has more than an 'FID IID', "
+					"ignoring everything after 2nd space!");
+		}
+	}
+	out_set.insert(id + sampl_field_sep + fid);
 }
 
 }

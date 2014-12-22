@@ -137,6 +137,8 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("excl-marker-fn", value<vector<string> >(&excl_marker_fns)->composing(), "File containing marker ID(s) to exclude")
 		("incl-sample", value<vector<string> >(&incl_sample_str)->composing(), "Sample(s) to include")
 		("excl-sample", value<vector<string> >(&excl_sample_str)->composing(), "Sample(s) to exclude")
+		("incl-sample-fn", value<vector<string> >(&incl_marker_fns)->composing(), "File containing Sample(s) to include")
+		("excl-sample-fn", value<vector<string> >(&excl_marker_fns)->composing(), "File containing Sample(s) to exclude")
 		;
 
 	data_opts.add(filter_opts);
@@ -366,6 +368,8 @@ void DataLoader::parseOptions(const po::variables_map& vm){
 
 	readSampleList(incl_sample_str, incl_sample_set);
 	readSampleList(excl_sample_str, excl_sample_set);
+	readSampleFile(incl_sample_fns, incl_sample_set);
+	readSampleFile(excl_sample_fns, excl_sample_set);
 
 	InputManager::parseInput(incl_marker_str, incl_marker_set);
 	readMarkerFile(incl_marker_fns, incl_marker_set);
@@ -1307,26 +1311,27 @@ bool DataLoader::filterSample(const string& id, const string& fid) const{
 	return toret;
 }
 
-void DataLoader::readSampleList(const vector<string>& in_list, set<string>& out_set) const{
+void DataLoader::readSampleList(const vector<string>& in_list, set<string>& out_set){
 	vector<string> all_samps;
 	InputManager::parseInput(in_list, all_samps);
 
 	for(unsigned int i=0; i<all_samps.size(); i++){
-		stringstream ss(all_samps[i]);
-		string id, fid;
-		if(ss >> id){
-			fid = id;
-			if(ss >> fid){
-				Logger::log_err("WARNING: Sample '" + all_samps[i] +
-						"' has more than an 'FID IID', "
-						"ignoring everything after 2nd space!");
-			}
-		}
-		out_set.insert(id + sampl_field_sep + fid);
+		addSampleToSet(all_samps[i], out_set);
 	}
 }
 
-void DataLoader::readMarkerFile(const vector<string>& fn_list, set<string>& out_set) const{
+void DataLoader::readSampleFile(const vector<string>& fn_list, set<string>& out_set){
+	string samp;
+	for(unsigned int i=0; i<fn_list.size(); i++){
+		ifstream f(fn_list[i].c_str());
+		while(getline(f, samp)){
+			boost::algorithm::trim(samp);
+			addSampleToSet(samp, out_set);
+		}
+	}
+}
+
+void DataLoader::readMarkerFile(const vector<string>& fn_list, set<string>& out_set){
 	string marker_id;
 	for(unsigned int i=0; i<fn_list.size(); i++){
 		ifstream f(fn_list[i].c_str());
@@ -1334,6 +1339,20 @@ void DataLoader::readMarkerFile(const vector<string>& fn_list, set<string>& out_
 			out_set.insert(marker_id);
 		}
 	}
+}
+
+void DataLoader::addSampleToSet(const string& samp, set<string>& out_set){
+	stringstream ss(samp);
+	string id, fid;
+	if(ss >> id){
+		fid = id;
+		if(ss >> fid){
+			Logger::log_err("WARNING: Sample '" + samp +
+					"' has more than an 'FID IID', "
+					"ignoring everything after 2nd space!");
+		}
+	}
+	out_set.insert(id + sampl_field_sep + fid);
 }
 
 }
