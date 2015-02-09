@@ -12,6 +12,8 @@ New Features:
 Bug Fixes:
 1. load-trait can now account for files with Windows line endings (CR+LF vs. LF)
 2. Fixed almost certain deadlocking when using the "--one-sided" option in a regression method
+3. Fixed deadlocking when using Weighted encoding + MPI
+4. Fixed potential deadlock when using MPI + threading
 
 == Version 2.0.0 ==
 
