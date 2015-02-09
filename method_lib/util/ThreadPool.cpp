@@ -19,17 +19,10 @@ void ThreadPool::run(boost::function<void()>& f){
 
 	if(tasks.size() - available == 1 && tg.size() < max_threads){
 		createThread();
-		pool_mutex.unlock();
-
-		// give the newly created thread a chance to run
-		boost::this_thread::yield();
-
-		pool_mutex.lock();
-	}
-
-	// Add to the list of available threads
-	if(available){
-		notifier.notify_one();
+	} 
+	
+	if (available > 1) {
+		notifier.notify_all();
 	}
 	pool_mutex.unlock();
 }
@@ -68,13 +61,17 @@ void ThreadPool::pool_main(){
 //	++available;
 //	pool_mutex.unlock();
 
+	boost::unique_lock<boost::mutex> lock(pool_mutex);
+
 	while (running) {
 		// Wait on condition variable while the task is empty and the pool is
 		// still running.
-		boost::unique_lock<boost::mutex> lock(pool_mutex);
+
+		// NOTE: we MUST have acquired the lock here!
 		while (tasks.empty() && running) {
 			notifier.wait(lock);
 		}
+		
 		// If pool is no longer running, break out.
 		if (running){
 			// Copy task locally and remove from the queue.  This is done within
@@ -95,14 +92,13 @@ void ThreadPool::pool_main(){
 			if(tasks.empty()){
 				notifier.notify_all();
 			}
-			lock.unlock();
 		}
 	} // while running
+	
 
 	// thread is exiting, so task is unavailable
-	pool_mutex.lock();
 	--available;
-	pool_mutex.unlock();
+	lock.unlock();
 }
 
 }
