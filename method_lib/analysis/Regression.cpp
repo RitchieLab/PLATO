@@ -2415,6 +2415,7 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			start_regular_workers = true;
 			MPIBroadcastWeights();
 			mgp->reset();
+			retval = nextQuery();
 		} else if(show_uni && !work_map.empty()){
 			// If I'm here, I might generate some post-locking models, so
 			// send a "please wait" message
