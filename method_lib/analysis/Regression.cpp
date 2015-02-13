@@ -843,8 +843,8 @@ void Regression::addResult(Result* r){
 	if(r){
 		_result_mutex.lock();
 
-		for(unsigned int i=0; i<r->perm_pvals.size(); i++){
-			permu_pval_heap.push(r->perm_pvals[i]);
+		for(unsigned int i=r->perm_pvals.size(); i!=0; i--){
+			permu_pval_heap.push(r->perm_pvals[i-1], i-1);
 		}
 
 		if (_lowmem) {
@@ -993,7 +993,7 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait, ofstream&
 	of << "Overall_Pval_(LRT)";
 
 	if(n_perms > 0 && !permu){
-		of << sep << "Model_Permuted_Pval" << sep << "Permuted_Pval";
+		of << sep << "Model_Permuted_Pval" << sep << "Rank_Permuted_Pval" << sep << "Permuted_Pval";
 	}
 
 	// do not print correction headers for the significant permuted results
@@ -1697,6 +1697,7 @@ void Regression::printResults(){
 	vector<size_t> idx_pos;
 	size_t n_results = _lowmem ? result_pvals.size() : results.size();
 	string tmpf_line;
+	vector<float> rank_permu_pvals(n_results);
 
 	if (_lowmem) {
 		idx_pos.reserve(n_results);
@@ -1746,6 +1747,7 @@ void Regression::printResults(){
 			}
 
 			permu_pval = (n_total_pval - permu_pval_heap.size() ) / denom * PVAL_OFFSET;
+			rank_permu_pvals[i] = permu_pval_heap.numLess(n_results - i) / static_cast<float>(n_perms);
 
 			if(_lowmem){
 				result_pvals[idx_pos[i]] = permu_pval;
@@ -1812,10 +1814,16 @@ void Regression::printResults(){
 			tmpf_line = "";
 			std::getline(tmp_f, tmpf_line);
 			out_f << tmpf_line;
+			if(n_perms > 0){
+				out_f << rank_permu_pvals[i] << sep;
+			}
 			out_f << adjust_pval(result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP, gif, adj);
 			tmp_f.clear();
 		} else {
 			printResultLine(*(results[i]), out_f);
+			if(n_perms > 0){
+				out_f << rank_permu_pvals[i] << sep;
+			}
 			out_f << adjust_pval(results[i]->p_val * PVAL_OFFSET_RECIP, gif, adj);
 		}
 

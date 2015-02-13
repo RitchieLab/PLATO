@@ -30,6 +30,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+
 #include "util/MPIUtils.h"
 
 #define BOOST_IOSTREAMS_USE_DEPRECATED
@@ -49,6 +50,8 @@
 
 #include "data/DataSet.h"
 #include "util/ThreadPool.h"
+#include "util/MultiHeap.h"
+
 
 namespace PLATO{
 
@@ -891,7 +894,7 @@ private:
 	std::ofstream permu_pval_f;
 
 	// a min-heap of permutation p-values.
-	std::priority_queue<float, std::deque<float>, std::greater<float> > permu_pval_heap;
+	Utility::MultiHeap<float, std::deque<float>, std::greater<float> > permu_pval_heap;
 
 	// deque of significant pvalues (used in lowmem setting)
 	std::deque<float> sig_permu_pvals;

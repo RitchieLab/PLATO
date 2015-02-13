@@ -53,7 +53,6 @@ protected:
 	static const std::string& doRegister(const std::string& key_in);
 
 protected:
-	//PLATO::Data::DataSet* data_set;
 	std::string _name;
 	std::string _desc;
 };
