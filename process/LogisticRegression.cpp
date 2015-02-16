@@ -38,7 +38,7 @@ using boost::array;
 namespace po=boost::program_options;
 
 
-BOOST_CLASS_EXPORT(PLATO::ProcessLib::LogisticRegression::ExtraData)
+BOOST_CLASS_EXPORT(PLATO::ProcessLib::LogisticRegression::LogisticData)
 
 namespace PLATO{
 namespace ProcessLib{
@@ -119,7 +119,7 @@ Regression::calc_fn& LogisticRegression::getCalcFn() const{
 
 const Regression::ExtraData* LogisticRegression::getExtraData() const{
 	if(!class_data){
-		class_data = new ExtraData(*Regression::getExtraData());
+		class_data = new LogisticData(*Regression::getExtraData());
 		class_data->show_odds = show_odds;
 		class_data->maxIterations = maxIterations;
 	}
@@ -132,7 +132,7 @@ Regression::Result* LogisticRegression::calculate(
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
 		unsigned int n_covars, bool run_null, const Regression::ExtraData* other_data){
 
-	const ExtraData* extra_data = dynamic_cast<const ExtraData*>(other_data);
+	const LogisticData* extra_data = dynamic_cast<const LogisticData*>(other_data);
 	if(!extra_data){
 		// something went VERY wrong here!
 		return 0;

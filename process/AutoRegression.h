@@ -8,10 +8,6 @@
 #include "MPIProcess.h"
 
 #include <boost/array.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/serialization.hpp>
 
 #include <utility>
@@ -77,24 +73,24 @@ public:
 
 	enum AnalysisType {LINEAR, LOGISTIC};
 
-	class ExtraData : public LogisticRegression::ExtraData {
+	class AutoData : public LogisticRegression::LogisticData {
 	public:
 
 		AnalysisType analysis_type;
 
-		ExtraData(unsigned int n=0) : LogisticRegression::ExtraData(n) {}
-		ExtraData(const Regression::ExtraData& o) : LogisticRegression::ExtraData(o) {}
-		virtual ~ExtraData() {}
+		AutoData(unsigned int n=0) : LogisticRegression::LogisticData(n) {}
+		AutoData(const Regression::ExtraData& o) : LogisticRegression::LogisticData(o) {}
+		virtual ~AutoData() {}
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int){
-			ar & boost::serialization::base_object<LogisticRegression::ExtraData>(*this);
+			ar & boost::serialization::base_object<LogisticRegression::LogisticData>(*this);
 			ar & analysis_type;
 		}
 	};
 
 private:
-	mutable ExtraData* class_data;
+	mutable AutoData* class_data;
 	AnalysisType analysis_type;
 
 	std::vector<std::string> linear_traits;

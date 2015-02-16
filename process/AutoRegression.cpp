@@ -35,7 +35,7 @@ using boost::array;
 namespace po=boost::program_options;
 
 
-BOOST_CLASS_EXPORT(PLATO::ProcessLib::AutoRegression::ExtraData)
+BOOST_CLASS_EXPORT(PLATO::ProcessLib::AutoRegression::AutoData)
 
 namespace PLATO{
 namespace ProcessLib{
@@ -152,7 +152,7 @@ Regression::calc_fn& AutoRegression::getCalcFn() const{
 
 const Regression::ExtraData* AutoRegression::getExtraData() const{
 	if(!class_data){
-		class_data = new ExtraData(*LogisticRegression::getExtraData());
+		class_data = new AutoData(*LogisticRegression::getExtraData());
 		class_data->analysis_type = LINEAR;
 	}
 
@@ -164,7 +164,7 @@ Regression::Result* AutoRegression::calculate(
 		unsigned int n_cols, unsigned int n_rows, unsigned int offset,
 		unsigned int n_covars, bool run_null, const Regression::ExtraData* other_data){
 
-	const ExtraData* extra_data = dynamic_cast<const ExtraData*>(other_data);
+	const AutoData* extra_data = dynamic_cast<const AutoData*>(other_data);
 	if(!extra_data){
 		// something went VERY wrong here!
 		return 0;

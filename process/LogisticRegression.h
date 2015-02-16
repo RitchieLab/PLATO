@@ -6,10 +6,6 @@
 #include "MPIProcess.h"
 
 #include <boost/array.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/serialization.hpp>
 
 #include <utility>
@@ -67,20 +63,20 @@ private:
 	unsigned int maxIterations;
 
 public:
-	class ExtraData : public Regression::ExtraData {
+	class LogisticData : public Regression::ExtraData {
 	public:
 		bool show_odds;
 		unsigned int maxIterations;
 
-		ExtraData(unsigned int n=0) : Regression::ExtraData(n) {}
-		ExtraData(const Regression::ExtraData& o) : Regression::ExtraData(o) {
-			const ExtraData* lo = dynamic_cast<const ExtraData*>(&o);
+		LogisticData(unsigned int n=0) : Regression::ExtraData(n) {}
+		LogisticData(const Regression::ExtraData& o) : Regression::ExtraData(o) {
+			const LogisticData* lo = dynamic_cast<const LogisticData*>(&o);
 			if(lo){
 				show_odds = lo->show_odds;
 				maxIterations = lo->maxIterations;
 			}
 		}
-		virtual ~ExtraData() {}
+		virtual ~LogisticData() {}
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int){
@@ -91,7 +87,7 @@ public:
 	};
 
 private:
-	mutable ExtraData* class_data;
+	mutable LogisticData* class_data;
 
 };
 
