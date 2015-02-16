@@ -21,7 +21,7 @@ void ThreadPool::run(boost::function<void()>& f){
 		createThread();
 	} 
 	
-	if (available > 1) {
+	if (available) {
 		notifier.notify_all();
 	}
 	pool_mutex.unlock();
