@@ -37,7 +37,7 @@ public:
 			_superheap.pop();
 		}
 		// If we don't have enough, construct empties until we do!
-		if(idx < _array_of_heaps.size() - 1){
+		if(idx >= _array_of_heaps.size()){
 			_array_of_heaps.insert(_array_of_heaps.end(),
 					idx + 1 - _array_of_heaps.size(), std::priority_queue<T, Cont, Cmp>());
 		}
