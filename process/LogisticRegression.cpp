@@ -7,7 +7,6 @@
 #include <numeric>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/serialization/export.hpp>
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
@@ -38,7 +37,7 @@ using boost::array;
 namespace po=boost::program_options;
 
 
-BOOST_CLASS_EXPORT(PLATO::ProcessLib::LogisticRegression::LogisticData)
+BOOST_CLASS_EXPORT_IMPLEMENT(PLATO::ProcessLib::LogisticRegression::LogisticData)
 
 namespace PLATO{
 namespace ProcessLib{

@@ -30,6 +30,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "util/MPIUtils.h"
 
@@ -1204,5 +1205,7 @@ void Regression::BasicModelGenerator<M_iter>::resetGenerator() {
 
 }
 }
+
+BOOST_CLASS_EXPORT_KEY(PLATO::Analysis::Regression::ExtraData)
 
 #endif /* REGRESSION_H_ */

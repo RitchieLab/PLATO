@@ -73,7 +73,7 @@ using boost::dynamic_bitset;
 namespace po=boost::program_options;
 
 // exports for polymorphic classes passed via MPI
-BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::ExtraData)
+BOOST_CLASS_EXPORT_IMPLEMENT(PLATO::Analysis::Regression::ExtraData)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_data)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_marker)
 BOOST_CLASS_EXPORT(PLATO::Analysis::Regression::mpi_trait)

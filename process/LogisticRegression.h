@@ -7,6 +7,7 @@
 
 #include <boost/array.hpp>
 #include <boost/serialization/serialization.hpp>
+#include <boost/serialization/export.hpp>
 
 #include <utility>
 
@@ -93,5 +94,7 @@ private:
 
 }
 }
+
+BOOST_CLASS_EXPORT_KEY(PLATO::ProcessLib::LogisticRegression::LogisticData)
 
 #endif

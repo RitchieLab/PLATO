@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/serialization/export.hpp>
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
@@ -35,7 +34,7 @@ using boost::array;
 namespace po=boost::program_options;
 
 
-BOOST_CLASS_EXPORT(PLATO::ProcessLib::AutoRegression::AutoData)
+BOOST_CLASS_EXPORT_IMPLEMENT(PLATO::ProcessLib::AutoRegression::AutoData)
 
 namespace PLATO{
 namespace ProcessLib{
