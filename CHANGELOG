@@ -8,6 +8,7 @@ New Features:
 2. Added higher resolution near 0 for displayed p-values in regression methods.
 3. Added a "Model Permuted P-value" column for permuted regression methods
 4. Added the ability to report (and correct for) the genomic inflation factor, by 2 different methods.
+5. Added a "Rank Permuted P-value" column for permuted regression methods.
 
 Bug Fixes:
 1. load-trait can now account for files with Windows line endings (CR+LF vs. LF)
