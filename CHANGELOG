@@ -9,6 +9,7 @@ New Features:
 3. Added a "Model Permuted P-value" column for permuted regression methods
 4. Added the ability to report (and correct for) the genomic inflation factor, by 2 different methods.
 5. Added a "Rank Permuted P-value" column for permuted regression methods.
+6. Added sample pre-filtering to loading of trait and categorical files 
 
 Bug Fixes:
 1. load-trait can now account for files with Windows line endings (CR+LF vs. LF)
