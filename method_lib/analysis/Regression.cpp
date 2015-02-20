@@ -57,8 +57,6 @@ using std::deque;
 using std::multimap;
 using std::pair;
 using std::make_pair;
-using std::push_heap;
-using std::pop_heap;
 using std::ofstream;
 
 using PLATO::Data::DataSet;

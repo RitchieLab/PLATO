@@ -49,9 +49,9 @@ public:
 		}
 		val_idx top_elt = _superheap.top();
 		_superheap.pop();
+		_array_of_heaps[top_elt.second].pop();
 		if(!_array_of_heaps[top_elt.second].empty()){
 			_superheap.push(std::make_pair(_array_of_heaps[top_elt.second].top(), top_elt.second));
-			_array_of_heaps[top_elt.second].pop();
 		}
 	}
 	const T& top() const{
