@@ -328,15 +328,6 @@ Regression::Result* LogisticRegression::calculate(
 
 	// create a set of all of the removed indices
 	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
-/*	gsl_vector* idx_permu = gsl_vector_calloc(n_cols);
-	for(unsigned int i=0; i<n_cols; i++){
-		gsl_vector_set(_bv_work, i, i);
-	}
-	gsl_blas_dgemv(CblasNoTrans, 1.0, P, _bv_work, 0.0, idx_permu);
-	set<unsigned int> permu_idx_set(idx_permu->data + n_indep, idx_permu->data + n_cols);
-
-	gsl_vector_free(idx_permu);
-*/
 	gsl_vector_free(_bv_work);
 
 	unsigned int idx_offset = 1 + extra_data->base_covars;

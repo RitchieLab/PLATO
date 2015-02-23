@@ -1866,7 +1866,7 @@ const Regression::ExtraData* Regression::getExtraData() const{
 		for(map<unsigned int, unsigned int>::const_iterator dfi = _extra_df_map.begin();
 				dfi != _extra_df_map.end(); dfi++){
 			for(unsigned int i=0; i<(*dfi).second; i++){
-				*(colptr++) = (*dfi).second;
+				*(colptr++) = (*dfi).first;
 			}
 		}
 	}
