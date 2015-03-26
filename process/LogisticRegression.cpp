@@ -224,7 +224,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	// get the exponent (and derivative, log and 1-log values) for the
 	// null model (i.e., best fit of the intercept parameter)
-	array<double, 4> null_v = linkFunction(sum_Y / (n_rows - sum_Y));
+	array<double, 4> null_v = linkFunction(log(sum_Y / (n_rows - sum_Y)));
 
 	for(unsigned int i=0; i<n_rows; i++){
 		LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
