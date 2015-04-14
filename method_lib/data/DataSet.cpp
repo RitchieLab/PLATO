@@ -237,8 +237,10 @@ bool DataSet::addCategorical(const std::string& trait, const Sample* samp, unsig
 	if(val != MISSING_CATEGORICAL){
 		// make sure to invalidate the cache if needed
 		map<string, unsigned char>::iterator cache_itr = _categorical_sz.find(trait);
-		if(cache_itr != _categorical_sz.end() &&  val > (*cache_itr).second){
-			_categorical_sz.erase(cache_itr);
+		if(cache_itr == _categorical_sz.end()){
+			_categorical_sz[trait] = val;
+		} else if(val > (*cache_itr).second){
+			(*cache_itr).second = val;
 		}
 	}
 
@@ -283,14 +285,16 @@ unsigned char DataSet::numCategories(const std::string& trait) const{
 	} else if(m_itr == _categorical_map.end()) {
 		return MISSING_CATEGORICAL;
 	} else {
+		// WE SHOULD NOT BE HERE!!!
+
 		unsigned char n_elements = 0;
 		for(std::deque<unsigned char>::const_iterator d_itr = (*m_itr).second.second.begin();
-		    d_itr != (*m_itr).second.second.begin(); d_itr++){
+		    d_itr != (*m_itr).second.second.end(); d_itr++){
 			n_elements = std::max(n_elements,
 					static_cast<unsigned char>((*d_itr) * (*d_itr != MISSING_CATEGORICAL)));
 		}
-		_categorical_sz[trait] = n_elements + 1;
-		return n_elements + 1;
+		_categorical_sz[trait] = n_elements;
+		return n_elements;
 	}
 }
 
