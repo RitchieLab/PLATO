@@ -311,6 +311,7 @@ int master_main(int argc, char** argv) {
 	vector<Process*> process_list;
 
 	if(unrec_opt.size() > 0){
+		Logger::log(PACKAGE_STRING);
 		Logger::log("Commands as given on the the command line:");
 	}
 
