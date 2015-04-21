@@ -50,7 +50,7 @@ protected:
 
 private:
 	static boost::array<double, 4> linkFunction(double v);
-	static std::pair<float, float> calcPVal(Result* r, Result* submodel, unsigned int df, float null_ll);
+	static std::pair<float, float> calcPVal(const Result* r, const Result* submodel, unsigned int df, float null_ll);
 
 	template<class Archive>
 	static void* loadExtraData(const Archive& ar);

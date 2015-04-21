@@ -37,7 +37,7 @@ protected:
 			unsigned int n_covars, bool run_null, const Regression::ExtraData* extra_data);
 
 private:
-	static std::pair<float, float> calcPVal(Result* r, Result* submodel, double chisq, double tss,
+	static std::pair<float, float> calcPVal(const Result* r, const Result* submodel, double chisq, double tss,
 			                         unsigned int n_rows, unsigned int n_indep);
 public:
 	static void calculate_MPI(unsigned int bufsz, const char* buf, 

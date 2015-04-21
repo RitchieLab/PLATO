@@ -296,7 +296,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	} // complete iteration
 
-
+	r->prefix += boost::lexical_cast<string>(numIterations) + extra_data->sep;
 
 
 	// nonconvergence happens if:
@@ -394,7 +394,7 @@ void LogisticRegression::process(DataSet& ds){
 }
 
 void LogisticRegression::printExtraHeader(std::ofstream& of){
-	of << "Num_Cases" << sep << "Converged" << sep;
+	of << "Num_Cases" << sep << "N_Iter" << sep << "Converged" << sep << "Raw_LRT_pval" << sep;
 }
 
 string LogisticRegression::printExtraResults(const Result& r){
@@ -403,7 +403,14 @@ string LogisticRegression::printExtraResults(const Result& r){
 		Logger::log_err("WARNING: One or more logistic regression models did not converge");
 		warned  = true;
 	}
-	return boost::lexical_cast<string>(r.converged) + sep;
+	string pv_str = boost::lexical_cast<string>(r.p_val * PVAL_OFFSET_RECIP);
+	if(!r.converged){
+		pair<float, float> pv_pair = calcPVal(&r, &r, r.df, 0);
+		pv_str = boost::lexical_cast<string>(pv_pair.first * PVAL_OFFSET_RECIP);
+	}
+	return boost::lexical_cast<string>(r.converged) + sep + pv_str + sep;
+
+
 }
 
 array<double, 4> LogisticRegression::linkFunction(double v){
@@ -439,7 +446,7 @@ array<double, 4> LogisticRegression::linkFunction(double v){
 	return retval;
 }
 
-pair<float, float> LogisticRegression::calcPVal(Result* r, Result* curr_res, unsigned int df, float null_ll){
+pair<float, float> LogisticRegression::calcPVal(const Result* r, const Result* curr_res, unsigned int df, float null_ll){
 	pair<float, float> pv_rsq(PVAL_OFFSET,1);
 	double LLn = null_ll;
 
