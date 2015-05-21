@@ -785,6 +785,8 @@ private:
 		return (adjust_inflation && gif_recip != 1) ? adj->correct(pval, gif_recip) : pval;
 	}
 
+	static double getPValue(float pval_in);
+
 	const Model* getNextMPIModel();
 
 	std::pair<unsigned int, const char*> generateMsg(const Model& m);

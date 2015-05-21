@@ -1635,7 +1635,7 @@ void Regression::runPermutations(Result* r, genPermuData& perm_fn, const deque<g
 		}
 	}
 
-	r->suffix += boost::lexical_cast<string>(r->p_val * PVAL_OFFSET_RECIP) + ed->sep +
+	r->suffix += boost::lexical_cast<string>(getPValue(r->p_val)) + ed->sep +
 			boost::lexical_cast<string>(n_better / static_cast<float>(permus.size())) + ed->sep;
 	//r->p_val = n_better / static_cast<float>(permus.size());
 }
@@ -1680,11 +1680,11 @@ void Regression::printResults(){
 				p_tmpf_line = "";
 				std::getline(permu_detail_tmpf, p_tmpf_line);
 				permu_detail_f << p_tmpf_line;
-				permu_detail_f << sig_permu_pvals[p_idx_pos[i]] * PVAL_OFFSET_RECIP;
+				permu_detail_f << getPValue(sig_permu_pvals[p_idx_pos[i]]);
 				permu_detail_tmpf.clear();
 			} else {
 				printResultLine(*(sig_permus[i]), permu_detail_f);
-				permu_detail_f << sig_permus[i]->p_val * PVAL_OFFSET_RECIP;
+				permu_detail_f << getPValue(sig_permus[i]->p_val);
 			}
 
 			permu_detail_f << std::endl;
@@ -1739,7 +1739,7 @@ void Regression::printResults(){
 			while(permu_pval_heap.size() > 0 && permu_pval_heap.top() < curr_pval){
 				// OK, so we need to pop from our heap
 				if(permu_pval_f){
-					permu_pval_f << permu_pval_heap.top() * PVAL_OFFSET_RECIP << std::endl;
+					permu_pval_f << getPValue(permu_pval_heap.top()) << std::endl;
 				}
 				permu_pval_heap.pop();
 			}
@@ -1783,12 +1783,12 @@ void Regression::printResults(){
 		if (_lowmem) {
 			pv_in.reserve(n_results);
 			for(size_t i=0; i<n_results; i++){
-				pv_in.push_back(adjust_pval(result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP, gif, adj));
+				pv_in.push_back(adjust_pval(getPValue(result_pvals[idx_pos[i]]), gif, adj));
 			}
 		} else {
 			pv_in.reserve(n_results);
 			for (size_t i = 0; i < n_results; i++) {
-				pv_in.push_back(adjust_pval(results[i]->p_val * PVAL_OFFSET_RECIP, gif, adj));
+				pv_in.push_back(adjust_pval(getPValue(results[i]->p_val), gif, adj));
 			}
 		}
 
@@ -1815,14 +1815,14 @@ void Regression::printResults(){
 			if(n_perms > 0){
 				out_f << rank_permu_pvals[i] << sep;
 			}
-			out_f << adjust_pval(result_pvals[idx_pos[i]] * PVAL_OFFSET_RECIP, gif, adj);
+			out_f << adjust_pval(getPValue(result_pvals[idx_pos[i]]), gif, adj);
 			tmp_f.clear();
 		} else {
 			printResultLine(*(results[i]), out_f);
 			if(n_perms > 0){
 				out_f << rank_permu_pvals[i] << sep;
 			}
-			out_f << adjust_pval(results[i]->p_val * PVAL_OFFSET_RECIP, gif, adj);
+			out_f << adjust_pval(getPValue(results[i]->p_val), gif, adj);
 		}
 
 		// print some corrected p-values!
@@ -1841,7 +1841,7 @@ void Regression::printResults(){
 	if(n_perms > 0 && permu_pval_f){
 		while(permu_pval_heap.size() >0){
 			// OK, so we need to pop from our heap
-			permu_pval_f << permu_pval_heap.top() * PVAL_OFFSET_RECIP << std::endl;
+			permu_pval_f << getPValue(permu_pval_heap.top()) << std::endl;
 			permu_pval_heap.pop();
 		}
 	}
@@ -1926,7 +1926,7 @@ void Regression::printResult(const Result& r, std::ostream& of){
 	}
 
 	for(unsigned int j=0;j<r.n_vars; j++){
-		of << r.p_vals[j] * PVAL_OFFSET_RECIP << sep
+		of << getPValue(r.p_vals[j]) << sep
 			  << r.coeffs[j] << sep
 			  << r.stderr[j] << sep;
 	}
@@ -1954,10 +1954,23 @@ void Regression::printResultLine(const Result& r, std::ostream& of){
 	}
 
 	printResult(r, of);
-	if(r.submodel && r.submodel->n_vars > 0){\
-		of << r.submodel->p_val * PVAL_OFFSET_RECIP << sep;
+	if(r.submodel && r.submodel->n_vars > 0){
+		of << getPValue(r.submodel->p_val) << sep;
 	}
 	of << r.suffix;
+}
+
+double Regression::getPValue(float pval_in){
+	static bool warned = false;
+	static float const min_p = numeric_limits<float>::min();
+
+	if(!warned && pval_in < min_p){
+		std::cerr << "WARNING: Minimum P-value threshold exceeded! P-value set to "
+			<< min_p * PVAL_OFFSET_RECIP << std::endl;
+		warned = true;
+	}
+
+	return std::max(min_p, pval_in) * PVAL_OFFSET_RECIP;
 }
 
 pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
