@@ -1963,14 +1963,18 @@ void Regression::printResultLine(const Result& r, std::ostream& of){
 double Regression::getPValue(float pval_in){
 	static bool warned = false;
 	static float const min_p = numeric_limits<float>::min();
+	static float const min_denorm_p = numeric_limits<float>::denorm_min();
 
 	if(!warned && pval_in < min_p){
-		std::cerr << "WARNING: Minimum P-value threshold exceeded! P-value set to "
-			<< min_p * PVAL_OFFSET_RECIP << std::endl;
+		std::cerr << "WARNING: Minimum P-value threshold of "
+		          << min_p * PVAL_OFFSET_RECIP <<" exceeded! "
+		          << "P-values below this may lose precision; minimum positive "
+		          << "p-value is " << min_denorm_p * PVAL_OFFSET_RECIP
+		          << std::endl;
 		warned = true;
 	}
 
-	return std::max(min_p, pval_in) * PVAL_OFFSET_RECIP;
+	return std::max(min_denorm_p, pval_in) * PVAL_OFFSET_RECIP;
 }
 
 pair<unsigned int, const char*> Regression::generateMsg(const Model& m){
