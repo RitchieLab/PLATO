@@ -203,7 +203,7 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_matrix_view cov_view = gsl_matrix_submatrix(cov_mat, 0, 0, n_indep, n_indep);
 	gsl_matrix* cov = &cov_view.matrix;
 
-	gsl_matrix* firth_cov = gsl_matrix_alloc(cov->size1, cov->size2);
+	gsl_matrix* firth_cov = gsl_matrix_calloc(cov->size1, cov->size2);
 	gsl_permutation* firth_permu = gsl_permutation_alloc(cov->size1);
 
 	gsl_matrix* A = gsl_matrix_calloc(n_rows, n_cols);
@@ -239,6 +239,32 @@ Regression::Result* LogisticRegression::calculate(
 		LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
 	}
 
+	// this is the offset for the NEXT log-likelihood estimate
+	double LL_offset = 0;
+
+	// I now need to get the log likelihood offset for the null model,
+	// but only if I'm doing a firth regression!
+	if(extra_data->use_firth){
+		// first, I'll need to find X^T * X
+		gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1, &X.matrix, &X.matrix, 0, firth_cov);
+		// Now, scale by the null weight (under the null model, W == k*I)
+		// above, k = null_v[1]
+		gsl_matrix_scale(firth_cov, null_v[1]);
+
+		// Now, get the LU decomposition
+		int tmp_val;
+		gsl_linalg_LU_decomp(firth_cov, firth_permu, &tmp_val);
+
+		// and add the offset
+		// NOTE: the difference between here and below is that now we have
+		// X^T * W * X instead of (X^T * W * X)^-1
+		// so the offset is +1/2 ln(|det|) instead of -1/2 ln(|det|)
+		LL_offset = 0.5 * gsl_linalg_LU_lndet(firth_cov);
+
+		LLn += LL_offset;
+
+	}
+
 	unsigned int numIterations = 0;
 
 	// set the tolerances in single precision, but do work in double precision!
@@ -262,7 +288,7 @@ Regression::Result* LogisticRegression::calculate(
 		gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &b.vector, 0, rhs);
 
 		LLp = LL;
-		LL = 0;
+		LL = LL_offset;
 
 
 		// add to LL for each row
@@ -287,8 +313,6 @@ Regression::Result* LogisticRegression::calculate(
 			// However, if use_firth == false, hat_vec == 0, so no Firth adjustment
 			// will be applied!
 			gsl_vector_set(rhs, i, v + 1/v_arr[1] * (Y[i] - v_arr[0] + gsl_vector_get(hat_vec, i) * (0.5 - v_arr[0])));
-
-			// If we're doing firth regression, make sure to
 
 		}
 
@@ -315,13 +339,13 @@ Regression::Result* LogisticRegression::calculate(
 			// Note: we're subtracting here b/c we ACTUALLY found the log of
 			// (X^T * W * X)^-1, but fortunately, ln(|det(A)|) = -ln(|det(A^-1)|)
 
-			double offset = -0.5 * gsl_linalg_LU_lndet(firth_cov);
+			LL_offset = -0.5 * gsl_linalg_LU_lndet(firth_cov);
 
-			LL += offset;
+			//LL += offset;
 			// If we're on the first iteration, also adjust the null likelihood
-			if(numIterations==1){
-				LLn += offset;
-			}
+			//if(numIterations==1){
+			//	LLn += offset;
+			//}
 
 		}
 
