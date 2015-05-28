@@ -123,6 +123,7 @@ const Regression::ExtraData* LogisticRegression::getExtraData() const{
 		class_data = new LogisticData(*Regression::getExtraData());
 		class_data->show_odds = show_odds;
 		class_data->maxIterations = maxIterations;
+		class_data->use_firth = use_firth;
 
 	}
 
@@ -238,7 +239,6 @@ Regression::Result* LogisticRegression::calculate(
 		LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
 	}
 
-
 	unsigned int numIterations = 0;
 
 	// set the tolerances in single precision, but do work in double precision!
@@ -314,7 +314,15 @@ Regression::Result* LogisticRegression::calculate(
 
 			// Note: we're subtracting here b/c we ACTUALLY found the log of
 			// (X^T * W * X)^-1, but fortunately, ln(|det(A)|) = -ln(|det(A^-1)|)
-			LL -= 0.5 * gsl_linalg_LU_lndet(firth_cov);
+
+			double offset = -0.5 * gsl_linalg_LU_lndet(firth_cov);
+
+			LL += offset;
+			// If we're on the first iteration, also adjust the null likelihood
+			if(numIterations==1){
+				LLn += offset;
+			}
+
 		}
 
 		// check for NaNs here
@@ -344,7 +352,7 @@ Regression::Result* LogisticRegression::calculate(
 	// a submodel did not converge
 	if(!std::isfinite(LL) ||
 	   numIterations >= extra_data->maxIterations ||
-	   LL-LLn > 0 ||
+	   (!extra_data->use_firth && LL-LLn > 0) ||
 	   (r->submodel && !r->submodel->converged)){
 		r->converged = false;
 	}
