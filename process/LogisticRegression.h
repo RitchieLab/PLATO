@@ -9,6 +9,9 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/export.hpp>
 
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
+
 #include <utility>
 
 namespace PLATO{
@@ -25,7 +28,8 @@ private:
 
 public:
 	LogisticRegression() : ProcessImpl<LogisticRegression>(stepname, "Run Logistic Regression"),
-		MPIProcessImpl<LogisticRegression>(MPIname), class_data(0) {};
+		MPIProcessImpl<LogisticRegression>(MPIname),
+		show_odds(false), use_firth(false), maxIterations(30), class_data(0) {};
 	virtual ~LogisticRegression(){if(class_data){delete class_data;}};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
@@ -55,12 +59,15 @@ private:
 	template<class Archive>
 	static void* loadExtraData(const Archive& ar);
 
+	static int calcLeverage(const gsl_matrix*, gsl_vector*);
+
 public:
 	static void calculate_MPI(unsigned int bufsz, const char* buf, 
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv);
 
 private:
 	bool show_odds;
+	bool use_firth;
 	unsigned int maxIterations;
 
 public:
@@ -68,6 +75,7 @@ public:
 	public:
 		bool show_odds;
 		unsigned int maxIterations;
+		bool use_firth;
 
 		LogisticData(unsigned int n=0) : Regression::ExtraData(n) {}
 		LogisticData(const Regression::ExtraData& o) : Regression::ExtraData(o) {
@@ -75,6 +83,7 @@ public:
 			if(lo){
 				show_odds = lo->show_odds;
 				maxIterations = lo->maxIterations;
+				use_firth = lo->use_firth;
 			}
 		}
 		virtual ~LogisticData() {}

@@ -11,6 +11,7 @@
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_linalg.h>
 
 #include "util/Logger.h"
 #include "util/GSLUtils.h"
@@ -57,6 +58,7 @@ po::options_description LogisticRegression::getExtraOptions(){
 	po::options_description logreg_opts("Logistic Regression Options");
 
 	logreg_opts.add_options()
+		("firth", po::bool_switch(&use_firth), "Use Firth bias reduction")
 		("odds-ratio", po::bool_switch(&show_odds), "Display odds ratios")
 		("max-iterations", po::value<unsigned int>(&maxIterations)->default_value(30), "Maximum number of iterations in the logistic regression")
 		;
@@ -121,6 +123,7 @@ const Regression::ExtraData* LogisticRegression::getExtraData() const{
 		class_data = new LogisticData(*Regression::getExtraData());
 		class_data->show_odds = show_odds;
 		class_data->maxIterations = maxIterations;
+
 	}
 
 	return class_data;
@@ -161,7 +164,6 @@ Regression::Result* LogisticRegression::calculate(
 		}
 	}
 
-
 	// val is the value of the logit function
 	// deriv is the derivative of the logit
 	// log_val and log_val_c are log(val) and log(1-val), respectively.
@@ -173,7 +175,6 @@ Regression::Result* LogisticRegression::calculate(
 	// Note: position 0 is reserved for the intercept
 
 	gsl_vector* beta = gsl_vector_calloc(n_cols);
-
 	gsl_vector* weight = gsl_vector_calloc(n_rows);
 
 	// weight vector used for IRLS procedure
@@ -200,8 +201,15 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_matrix_set_all(cov_mat, -1);
 	gsl_matrix_view cov_view = gsl_matrix_submatrix(cov_mat, 0, 0, n_indep, n_indep);
 	gsl_matrix* cov = &cov_view.matrix;
+
+	gsl_matrix* firth_cov = gsl_matrix_alloc(cov->size1, cov->size2);
+	gsl_permutation* firth_permu = gsl_permutation_alloc(cov->size1);
+
 	gsl_matrix* A = gsl_matrix_calloc(n_rows, n_cols);
 	double tmp_chisq;
+
+
+	gsl_vector* hat_vec = gsl_vector_calloc(n_rows);
 
 	// Let's perform our permutation ans set A = data * P
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mat.matrix, P, 0.0, A);
@@ -230,6 +238,7 @@ Regression::Result* LogisticRegression::calculate(
 		LLn -= 2 *(Y[i] * null_v[2] + (1-Y[i]) * null_v[3]);
 	}
 
+
 	unsigned int numIterations = 0;
 
 	// set the tolerances in single precision, but do work in double precision!
@@ -255,6 +264,7 @@ Regression::Result* LogisticRegression::calculate(
 		LLp = LL;
 		LL = 0;
 
+
 		// add to LL for each row
 		for (unsigned int i = 0; i < n_rows; i++) {
 
@@ -272,12 +282,40 @@ Regression::Result* LogisticRegression::calculate(
 			// get the weight and update the rhs for IRLS
 			//weight[i] = v_arr[1];
 			gsl_vector_set(weight, i, v_arr[1] );
-			gsl_vector_set(rhs, i, v + 1/v_arr[1] * (Y[i] - v_arr[0]));
+
+			// NOTE: I've included the Firth adjustment here of hat_vec[i] * (1/2 - v_arr[0])
+			// However, if use_firth == false, hat_vec == 0, so no Firth adjustment
+			// will be applied!
+			gsl_vector_set(rhs, i, v + 1/v_arr[1] * (Y[i] - v_arr[0] + gsl_vector_get(hat_vec, i) * (0.5 - v_arr[0])));
+
+			// If we're doing firth regression, make sure to
 
 		}
 
 		// Look, magic!
 		gsl_multifit_wlinear(&X.matrix, weight, rhs, &b.vector, cov, &tmp_chisq, ws);
+
+		// Now, get the "hat" matrix
+		// SPECIAL NOTE:
+		// At this point ws->A should be the "U" matrix of
+		if(extra_data->use_firth){
+
+			// calculate the leverage so we can use it in the next iteration
+			calcLeverage(ws->A, hat_vec);
+
+			// if we're doing a firth regression, find the ln(|det(X^T * W * X)|)
+			// and add 1/2 of that value to LL
+
+			// 1st copy cov into cov_tmp
+			gsl_matrix_memcpy(firth_cov, cov);
+			// compute the LU decomposition of cov_tmp
+			int signum;
+			gsl_linalg_LU_decomp(firth_cov, firth_permu, &signum);
+
+			// Note: we're subtracting here b/c we ACTUALLY found the log of
+			// (X^T * W * X)^-1, but fortunately, ln(|det(A)|) = -ln(|det(A^-1)|)
+			LL -= 0.5 * gsl_linalg_LU_lndet(firth_cov);
+		}
 
 		// check for NaNs here
 		if(std::isfinite(gsl_blas_dasum(&b.vector))){
@@ -382,12 +420,43 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_vector_free(b_prev);
 	gsl_vector_free(rhs);
 	gsl_matrix_free(cov_mat);
+	gsl_permutation_free(firth_permu);
+	gsl_matrix_free(firth_cov);
 	gsl_matrix_free(P);
 	gsl_multifit_linear_free(ws);
 	gsl_matrix_free(A);
 
 	return r;
 }
+
+// NOTE: blatantly stolen from GSL 1.16 just so we don't have to depend on the
+// version from JUly 2013!
+int LogisticRegression::calcLeverage(const gsl_matrix *U, gsl_vector *h)
+{
+  const size_t M = U->size1;
+
+  if (M != h->size)
+    {
+      GSL_ERROR ("first dimension of matrix U must match size of vector h",
+                 GSL_EBADLEN);
+    }
+  else
+    {
+      size_t i;
+
+      for (i = 0; i < M; ++i)
+        {
+          gsl_vector_const_view v = gsl_matrix_const_row(U, i);
+          double hi;
+
+          gsl_blas_ddot(&v.vector, &v.vector, &hi);
+          gsl_vector_set(h, i, hi);
+        }
+
+      return GSL_SUCCESS;
+    }
+} /* gsl_linalg_SV_leverage() */
+
 
 void LogisticRegression::process(DataSet& ds){
 	runRegression(ds);
