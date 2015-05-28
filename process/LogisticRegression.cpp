@@ -263,6 +263,67 @@ Regression::Result* LogisticRegression::calculate(
 
 		LLn += LL_offset;
 
+		// If we have a submodel, we're going to need to correct the log-likelihood estimate here
+		Result * curr_mod = r;
+		// Note the assignment operator below; this is intentional
+		// the loop should only run at the top level, and whould break when
+		// we have no more submodels to test
+		while(offset == 0 && (curr_mod = curr_mod->submodel)){
+			double LL_sub = 0;
+			gsl_vector* sub_beta = gsl_vector_calloc(n_cols);
+			gsl_vector* sb_tmp = gsl_vector_calloc(n_cols);
+			// copy the betas from the sub-model into sub_beta, leaving the last few empty (i.e., 0)
+			for(unsigned int i=0; i<curr_mod->beta.size(); i++){
+				gsl_vector_set(sub_beta, i, curr_mod->beta[i]);
+			}
+			// Of course, we need to permute and get only the 1st n_indep columns
+			gsl_blas_dgemv(CblasNoTrans, 1, P, sub_beta, 0, sb_tmp);
+			gsl_vector_const_view beta_0 = gsl_vector_const_subvector(sb_tmp,0,n_indep);
+
+			// Now, calculate the weights for each individual, first by calculating
+			// X * beta_0
+			gsl_vector* wt_tmp = gsl_vector_calloc(n_rows);
+			gsl_blas_dgemv(CblasNoTrans, 1, &X.matrix, &beta_0.vector, 0, wt_tmp);
+
+			// Now, iterate over wt_tmp and get the link_function for each one,
+			// setting wt_tmp = sqrt(link[1]), which should be the weight fn.
+
+			for(unsigned int i=0; i<wt_tmp->size; i++){
+				array<double, 4> v_arr = linkFunction(gsl_vector_get(wt_tmp, i));
+				LL_sub -= 2 *(Y[i] * v_arr[2] + (1-Y[i]) * v_arr[3]);
+				gsl_vector_set(wt_tmp, i, sqrt(v_arr[1]));
+			}
+
+			// Now, make a copy of X, and scale each row by the appropriate wt_tmp
+			gsl_matrix* X_tmp = gsl_matrix_alloc(X.matrix.size1, X.matrix.size2);
+			gsl_matrix_memcpy(X_tmp, &X.matrix);
+			for(unsigned int i=0; i<wt_tmp->size; i++){
+				gsl_vector_view X_row = gsl_matrix_row(X_tmp, i);
+				gsl_vector_scale(&X_row.vector, gsl_vector_get(wt_tmp, i));
+			}
+
+			// Now, find X^T W X (note that this is just X_tmp^T * X_tmp)
+			gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1, X_tmp, X_tmp, 0, firth_cov);
+			// Now, get the LU decomposition
+			gsl_linalg_LU_decomp(firth_cov, firth_permu, &tmp_val);
+
+			// and add the offset
+			// NOTE: the difference between here and below is that now we have
+			// X^T * W * X instead of (X^T * W * X)^-1
+			// so the offset is +1/2 ln(|det|) instead of -1/2 ln(|det|)
+			LL_sub += 0.5 * gsl_linalg_LU_lndet(firth_cov);
+
+			curr_mod->log_likelihood = LL_sub;
+
+			// and clean up, please!
+
+			gsl_vector_free(sub_beta);
+			gsl_vector_free(sb_tmp);
+			gsl_vector_free(wt_tmp);
+			gsl_matrix_free(X_tmp);
+
+		}
+
 	}
 
 	unsigned int numIterations = 0;
@@ -399,6 +460,12 @@ Regression::Result* LogisticRegression::calculate(
 	// create a set of all of the removed indices
 	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
 	gsl_vector_free(_bv_work);
+
+	// make r->beta just the right size
+	r->beta.reserve(beta->size);
+	for(unsigned int i=0; i<beta->size; i++){
+		r->beta.push_back(gsl_vector_get(beta, i));
+	}
 
 	unsigned int idx_offset = 1 + extra_data->base_covars;
 	for (unsigned int i = 0; i < n_cols - idx_offset; i++) {
