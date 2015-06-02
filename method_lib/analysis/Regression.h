@@ -330,6 +330,7 @@ protected:
 			// now, the STL types
 			ar & prefix;
 			ar & suffix;
+			ar & beta;
 			// NOTE: do NOT synchronize the unimodel!!
 			// It will always come back empty
 
@@ -356,6 +357,9 @@ protected:
 		float* coeffs;
 		float* p_vals;
 		float* stderr;
+
+		// this holds the coefficients of the final model
+		std::vector<float> beta;
 
 		Result* submodel;
 		std::vector<Result*> unimodel;
