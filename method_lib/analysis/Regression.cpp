@@ -169,6 +169,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("excl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to exclude")
 		("incl-markers", po::value<vector<string> >()->composing(), "Comma-separated list of markers to include")
 		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
+		("allow-missing-traits", po::bool_switch(&_allow_missing_trait), "Ignore any missing traits (covariates / outcomes) in the models")
 		;
 
 	opts.add(model_opts);
@@ -448,7 +449,7 @@ void Regression::runRegression(const DataSet& ds){
 	set<string>::iterator out_itr = outcome_names.begin();
 	while(out_itr != outcome_names.end()){
 		if(!ds.isTrait(*out_itr)){
-			Logger::log_err("WARNING: '" + *out_itr + "' is not a recognized covariate, ignoring.");
+			Logger::log_err("WARNING: '" + *out_itr + "' is not a recognized outcome, ignoring.", !_allow_missing_trait);
 			outcome_names.erase(out_itr++);
 		} else{
 			++out_itr;
@@ -537,7 +538,7 @@ void Regression::runRegression(const DataSet& ds){
 	while (trait_itr != incl_traits.end()) {
 		if (!ds.isTrait(*trait_itr)) {
 			Utility::Logger::log_err("WARNING: '" + *trait_itr
-					+ "' is not a recognized trait, ignoring.");
+					+ "' is not a recognized trait, ignoring.", !_allow_missing_trait);
 			incl_traits.erase(trait_itr++);
 		} else {
 			++trait_itr;
@@ -548,7 +549,7 @@ void Regression::runRegression(const DataSet& ds){
 	while (covar_itr != covar_names.end()) {
 		if (!ds.isTrait(*covar_itr) && ds.numCategories(*covar_itr) == ds.MISSING_CATEGORICAL) {
 			Utility::Logger::log_err("WARNING: '" + *covar_itr
-					+ "' is not a recognized covariate, ignoring.");
+					+ "' is not a recognized covariate, ignoring.", !_allow_missing_trait);
 			covar_names.erase(covar_itr++);
 		} else {
 			++covar_itr;
@@ -559,7 +560,7 @@ void Regression::runRegression(const DataSet& ds){
 	while (covar_itr != const_covar_names.end() && ds.numCategories(*covar_itr) == ds.MISSING_CATEGORICAL) {
 		if (!ds.isTrait(*covar_itr)) {
 			Utility::Logger::log_err("WARNING: '" + *covar_itr
-					+ "' is not a recognized covariate, ignoring.");
+					+ "' is not a recognized covariate, ignoring.", !_allow_missing_trait);
 			const_covar_names.erase(covar_itr++);
 		} else {
 			++covar_itr;

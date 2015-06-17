@@ -693,7 +693,7 @@ public:
 
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), class_data(0), n_perms(0),
+	Regression() :  _use_mpi(false), _lowmem(false), _allow_missing_trait(false), class_data(0), n_perms(0),
 		mgp(0), _targeted(false), msg_id(0), weight_complete(true), wt_marker_itr(0){}
 	virtual ~Regression();
 
@@ -858,6 +858,10 @@ private:
 	//! Do we want to reduce our memory footprint (print to file, keeping
 	// only the p-values, then sort and print individual lines)
 	bool _lowmem;
+
+	// Allow missing traits (covariates / outcomes) - by default will throw an error
+	bool _allow_missing_trait;
+
 	boost::iostreams::stream<boost::iostreams::file_descriptor> tmp_f;
 
 	unsigned int n_threads;
