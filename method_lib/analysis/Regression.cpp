@@ -1966,11 +1966,11 @@ double Regression::getPValue(float pval_in){
 	static float const min_denorm_p = numeric_limits<float>::denorm_min();
 
 	if(!warned && pval_in < min_p){
-		std::cerr << "WARNING: Minimum P-value threshold of "
-		          << min_p * PVAL_OFFSET_RECIP <<" exceeded! "
-		          << "P-values below this may lose precision; minimum positive "
-		          << "p-value is " << min_denorm_p * PVAL_OFFSET_RECIP
-		          << std::endl;
+		Logger::log_err("WARNING: Minimum P-value threshold of " +
+				boost::lexical_cast<string>(min_p * PVAL_OFFSET_RECIP) +
+				" exceeded! P-values below this may lose precision;" +
+				" minimum positive p-value is " +
+				boost::lexical_cast<string>(min_denorm_p * PVAL_OFFSET_RECIP));
 		warned = true;
 	}
 

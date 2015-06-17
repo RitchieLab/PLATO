@@ -1209,7 +1209,15 @@ Marker* DataLoader::parseMap(stringstream& ss) const {
 	if (!_map_no_distance) {
 		ss >> distance;
 	}
-	ss >> bploc;
+
+	static bool warn_bploc = false;
+	if(! (ss >> bploc) ){
+		if(!warn_bploc){
+			Logger::log_err("WARNING: Parse error when reading base pair location; bploc forced to 1.  Potential 3-column map file (use --map3)?");
+		}
+		bploc = 1;
+	}
+
 	if (_map_ref) {
 		ss >> ref;
 	}
