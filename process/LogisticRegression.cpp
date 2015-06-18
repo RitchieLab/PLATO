@@ -493,7 +493,7 @@ Regression::Result* LogisticRegression::calculate(
 			r->p_val = r->converged ? pv_rsq.first : (1.0f * PVAL_OFFSET);
 			r->r_squared = pv_rsq.second;
 		} else if (curr_res->n_vars > 0) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first * PVAL_OFFSET_RECIP) + extra_data->sep;
+			extraSuff = boost::lexical_cast<string>(getPValue(pv_rsq.first)) + extra_data->sep;
 			break;
 		}
 
@@ -561,10 +561,12 @@ string LogisticRegression::printExtraResults(const Result& r){
 		Logger::log_err("WARNING: One or more logistic regression models did not converge");
 		warned  = true;
 	}
-	string pv_str = boost::lexical_cast<string>(r.p_val * PVAL_OFFSET_RECIP);
-	if(!r.converged){
+	string pv_str;
+	if(r.converged){
+		pv_str = boost::lexical_cast<string>(getPValue(r.p_val));
+	}else {
 		pair<float, float> pv_pair = calcPVal(&r, &r, r.df, 0);
-		pv_str = boost::lexical_cast<string>(pv_pair.first * PVAL_OFFSET_RECIP);
+		pv_str = boost::lexical_cast<string>(getPValue(pv_pair.first));
 	}
 	return boost::lexical_cast<string>(r.converged) + sep + pv_str + sep;
 

@@ -229,7 +229,7 @@ Regression::Result* LinearRegression::calculate(
 			r->p_val = pv_rsq.first;
 			r->r_squared = pv_rsq.second;
 		} else if(curr_res->n_vars > 0) {
-			extraSuff = boost::lexical_cast<string>(pv_rsq.first * PVAL_OFFSET_RECIP) + extra_data->sep;
+			extraSuff = boost::lexical_cast<string>(getPValue(pv_rsq.first)) + extra_data->sep;
 			break;
 		}
 
