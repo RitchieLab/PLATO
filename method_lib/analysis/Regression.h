@@ -757,6 +757,8 @@ protected:
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv,
 		calc_fn& func);
 
+	static double getPValue(float pval_in);
+
 private:
 	Result* run(const Model& m);
 
@@ -788,8 +790,6 @@ private:
 		// just return the p-value please!
 		return (adjust_inflation && gif_recip != 1) ? adj->correct(pval, gif_recip) : pval;
 	}
-
-	static double getPValue(float pval_in);
 
 	const Model* getNextMPIModel();
 
