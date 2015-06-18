@@ -175,8 +175,8 @@ Regression::Result* AutoRegression::calculate(
 	if(extra_data->analysis_type == LINEAR){
 		analysis="linear";
 		r = LinearRegression::calculate(Y, data, n_cols, n_rows, offset, n_covars, run_null, other_data);
-		// print "NA" for # of cases!
-		r->prefix = r->prefix + "NA" + extra_data->sep;
+		// print "NA" for # of cases! and "1" for N_iter
+		r->prefix = r->prefix + "NA" + extra_data->sep + "1" + extra_data->sep;
 	} else if (extra_data->analysis_type == LOGISTIC){
 		analysis="logistic";
 		r = LogisticRegression::calculate(Y, data, n_cols, n_rows, offset, n_covars, run_null, other_data);
@@ -201,7 +201,10 @@ void AutoRegression::printExtraHeader(std::ofstream& of){
 }
 
 string AutoRegression::printExtraResults(const Result& r){
-	return boost::lexical_cast<string>(r.converged) + sep;
+	// NOTE: this should work b/c in the linear case, r.converged == true
+	// so we're guaranteed to print "1 <sep> p-val <sep>"
+	// OTOH, if we're in Logistic regression, this will do the Right Thing
+	return LogisticRegression::printExtraResults(r);
 }
 
 void AutoRegression::calculate_MPI(unsigned int bufsz, const char* buf,

@@ -1875,34 +1875,33 @@ const Regression::ExtraData* Regression::getExtraData() const{
 	return class_data;
 }
 
-unsigned int Regression::findDF(const gsl_matrix* P,
+unsigned int Regression::findDF(const gsl_permutation* permu,
 		unsigned int reduced_vars,
 		unsigned int n_dropped,
 		unsigned int* extra_cols,
 		unsigned int n_extra_cols) {
 
-	unsigned int n_cols = P->size1;
+	unsigned int n_cols = permu->size;
 	unsigned int edf = n_cols - reduced_vars;
 
 	// Now, we need to actually find the column indices that were kept, but only
 	// if we dropped any
 	if (n_dropped > 0) {
 		gsl_vector* df_check = gsl_vector_calloc(n_cols);
-		gsl_vector* df_check_t = gsl_vector_calloc(n_cols);
 		for (unsigned int i = reduced_vars; i < n_cols; i++) {
 			gsl_vector_set(df_check, i, 1);
 		}
 
 		// Now, permute the df_check
-		gsl_blas_dgemv(CblasNoTrans, 1.0, P, df_check, 0.0, df_check_t);
+		gsl_permute_vector(permu, df_check);
 
 		// unset the last # dropped
 		for (unsigned int i = 1; i <= n_dropped; i++) {
-			gsl_vector_set(df_check_t, n_cols - i, 0);
+			gsl_vector_set(df_check, n_cols - i, 0);
 		}
 
 		// unpermute
-		gsl_blas_dgemv(CblasTrans, 1.0, P, df_check_t, 0.0, df_check);
+		gsl_permute_vector_inverse(permu, df_check);
 
 		edf = gsl_blas_dasum(df_check);
 
@@ -1911,7 +1910,6 @@ unsigned int Regression::findDF(const gsl_matrix* P,
 			edf += gsl_vector_get(df_check, extra_cols[i]);
 		}
 		gsl_vector_free(df_check);
-		gsl_vector_free(df_check_t);
 	} else if(n_extra_cols > 0) {
 		for (unsigned int i=0; i<n_extra_cols && extra_cols[i] < n_cols; i++){
 			edf += (extra_cols[i] >= reduced_vars);

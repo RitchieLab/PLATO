@@ -10,6 +10,7 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_permute_vector.h>
 
 #include "util/Logger.h"
 #include "util/GSLUtils.h"
@@ -108,14 +109,17 @@ Regression::Result* LinearRegression::calculate(
 
 	gsl_matrix_const_view data_mv = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 
-	gsl_matrix* P = gsl_matrix_alloc(n_cols, n_cols);
-	r->n_dropped = Utility::GSLUtils::checkColinear(&data_mv.matrix, P);
+	//gsl_matrix* P = gsl_matrix_alloc(n_cols, n_cols);
+	gsl_permutation* permu = gsl_permutation_alloc(n_cols);
+	r->n_dropped = Utility::GSLUtils::checkColinear(&data_mv.matrix, permu);
 
 	gsl_matrix* A = gsl_matrix_alloc(n_rows, n_cols);
+	gsl_matrix_memcpy(A, &data_mv.matrix);
 
 	// Now, we're done with all of the SVD nonsense, we can set
 	// A = X * P (remember, X is our original data, but it's const!)
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mv.matrix, P, 0.0, A);
+	//gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mv.matrix, P, 0.0, A);
+	Utility::GSLUtils::applyPermutation(A,permu);
 
 	unsigned int n_indep = n_cols - r->n_dropped;
 
@@ -127,8 +131,9 @@ Regression::Result* LinearRegression::calculate(
 	// Let's set up our other data
 	gsl_vector_const_view y_vec = gsl_vector_const_view_array(Y, n_rows);
 
-	// First, let's make sure to initialize everything to 0, please!
-	gsl_vector* beta = gsl_vector_calloc(n_cols);
+	// First, let's make sure to initialize everything to NaN, please!
+	gsl_vector* beta = gsl_vector_alloc(n_cols);
+	gsl_vector_set_all(beta, std::numeric_limits<double>::quiet_NaN());
 
 	// now, get the proper sized array
 	gsl_vector_view bv = gsl_vector_subvector(beta, 0, n_indep);
@@ -154,17 +159,13 @@ Regression::Result* LinearRegression::calculate(
 
 	// Note: to unpermute, multiply by P transpose!
 	// Also, we need to unpermute both the rows AND columns of cov_mat
-	//bv = gsl_vector_view_array(r->beta_vec, n_cols);
-	gsl_matrix* _cov_work = gsl_matrix_calloc(n_cols, n_cols);
-	// permute columns
-	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, cov_mat, P, 0.0, _cov_work);
-	// permute rows
-	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, P, _cov_work, 0.0, cov_mat);
-	gsl_matrix_free(_cov_work);
+	// unpermute columns
+	Utility::GSLUtils::applyInversePermutation(cov_mat, permu, true);
+	// unpermute rows
+	Utility::GSLUtils::applyInversePermutation(cov_mat, permu, false);
 
-	gsl_vector* _bv_work = gsl_vector_alloc(n_cols);
-	gsl_vector_memcpy(_bv_work, beta);
-	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, beta);
+	// unpermute beta
+	gsl_permute_vector_inverse(permu, beta);
 
 	// create a set of all of the removed indices
 	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
@@ -176,7 +177,8 @@ Regression::Result* LinearRegression::calculate(
 	set<unsigned int> permu_idx_set(idx_permu->data + n_indep, idx_permu->data + n_cols);
 
 	gsl_vector_free(idx_permu);
-*/	gsl_vector_free(_bv_work);
+	gsl_vector_free(_bv_work);
+*/
 
 	unsigned int idx_offset = 1+extra_data->base_covars;
 	for(unsigned int i=0; i<n_cols-idx_offset; i++){
@@ -211,7 +213,7 @@ Regression::Result* LinearRegression::calculate(
 	// (i.e. this isn;t the "null" model)
 
 	// first, start off with just the number of independent columns
-	r->df = findDF(P, reduced_vars, r->n_dropped, extra_data->extra_df_col, extra_data->n_extra_df_col);
+	r->df = findDF(permu, reduced_vars, r->n_dropped, extra_data->extra_df_col, extra_data->n_extra_df_col);
 
 	Result* curr_res = r;
 
@@ -244,7 +246,8 @@ Regression::Result* LinearRegression::calculate(
 
 	gsl_vector_free(beta);
 	gsl_matrix_free(A);
-	gsl_matrix_free(P);
+	//gsl_matrix_free(P);
+	gsl_permutation_free(permu);
 	gsl_vector_free(resid);
 	gsl_matrix_free(cov_mat);
 	gsl_multifit_linear_free(ws);

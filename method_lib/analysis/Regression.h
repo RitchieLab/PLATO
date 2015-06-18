@@ -747,7 +747,7 @@ protected:
 	virtual void printExtraHeader(std::ofstream& of) {}
 	virtual std::string printExtraResults(const Result& r) {return "";}
 
-	static unsigned int findDF(const gsl_matrix* P, unsigned int reduced_vars,
+	static unsigned int findDF(const gsl_permutation* P, unsigned int reduced_vars,
 			unsigned int n_dropped, unsigned int* extra_cols, unsigned int n_extra_cols);
 
 	virtual void processResponse(unsigned int bufsz, const char* in_buf);

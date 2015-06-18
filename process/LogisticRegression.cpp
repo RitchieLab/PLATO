@@ -12,6 +12,7 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
+#include <gsl/gsl_permute_vector.h>
 
 #include "util/Logger.h"
 #include "util/GSLUtils.h"
@@ -176,21 +177,17 @@ Regression::Result* LogisticRegression::calculate(
 	// Note: position 0 is reserved for the intercept
 
 	gsl_vector* beta = gsl_vector_calloc(n_cols);
-	gsl_vector* weight = gsl_vector_calloc(n_rows);
 
 	// weight vector used for IRLS procedure
-	//double weight[n_rows];
+	gsl_vector* weight = gsl_vector_calloc(n_rows);
 
 	gsl_matrix_const_view data_mat = gsl_matrix_const_view_array_with_tda(data, n_rows, n_cols, offset + n_cols);
 
-	gsl_matrix* P = gsl_matrix_alloc(n_cols, n_cols);
 	// First, let's check for colinearity!
-	r->n_dropped = Utility::GSLUtils::checkColinear(&data_mat.matrix, P);
+	gsl_permutation* permu = gsl_permutation_alloc(n_cols);
+	r->n_dropped = Utility::GSLUtils::checkColinear(&data_mat.matrix, permu);
 
 	unsigned int n_indep = n_cols - r->n_dropped;
-
-	// gsl weight vector for IRLS procedure
-	//gsl_vector_view w = gsl_vector_view_array(weight, n_rows);
 
 	// Right-hand side of the IRLS equation.  Defined to be X*w_t + S_t^-1*(y-mu_t)
 	// Or, in our parlance: rhs_i = (X*beta_t)_i + 1/deriv * (y_i - val)
@@ -206,14 +203,16 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_matrix* firth_cov = gsl_matrix_calloc(cov->size1, cov->size2);
 	gsl_permutation* firth_permu = gsl_permutation_alloc(cov->size1);
 
-	gsl_matrix* A = gsl_matrix_calloc(n_rows, n_cols);
-	double tmp_chisq;
+	gsl_matrix* A = gsl_matrix_alloc(n_rows, n_cols);
+	gsl_matrix_memcpy(A, &data_mat.matrix);
 
+	double tmp_chisq;
 
 	gsl_vector* hat_vec = gsl_vector_calloc(n_rows);
 
 	// Let's perform our permutation ans set A = data * P
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mat.matrix, P, 0.0, A);
+	Utility::GSLUtils::applyPermutation(A, permu);
+	//gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, &data_mat.matrix, P, 0.0, A);
 
 	// this is the previous beta vector, for checking convergence
 	gsl_vector* b_prev = gsl_vector_alloc(n_indep);
@@ -271,14 +270,14 @@ Regression::Result* LogisticRegression::calculate(
 		while(offset == 0 && (curr_mod = curr_mod->submodel)){
 			double LL_sub = 0;
 			gsl_vector* sub_beta = gsl_vector_calloc(n_cols);
-			gsl_vector* sb_tmp = gsl_vector_calloc(n_cols);
 			// copy the betas from the sub-model into sub_beta, leaving the last few empty (i.e., 0)
 			for(unsigned int i=0; i<curr_mod->beta.size(); i++){
 				gsl_vector_set(sub_beta, i, curr_mod->beta[i]);
 			}
 			// Of course, we need to permute and get only the 1st n_indep columns
-			gsl_blas_dgemv(CblasNoTrans, 1, P, sub_beta, 0, sb_tmp);
-			gsl_vector_const_view beta_0 = gsl_vector_const_subvector(sb_tmp,0,n_indep);
+			gsl_permute_vector(permu, sub_beta);
+
+			gsl_vector_const_view beta_0 = gsl_vector_const_subvector(sub_beta,0,n_indep);
 
 			// Now, calculate the weights for each individual, first by calculating
 			// X * beta_0
@@ -318,7 +317,6 @@ Regression::Result* LogisticRegression::calculate(
 			// and clean up, please!
 
 			gsl_vector_free(sub_beta);
-			gsl_vector_free(sb_tmp);
 			gsl_vector_free(wt_tmp);
 			gsl_matrix_free(X_tmp);
 
@@ -445,21 +443,12 @@ Regression::Result* LogisticRegression::calculate(
 	// OK, now time to unpermute everything!
 	// Note: to unpermute, multiply by P transpose!
 	// Also, we need to unpermute both the rows AND columns of cov_mat
-	//b = gsl_vector_view_array(r->beta_vec, n_cols);
-	gsl_matrix* _cov_work = gsl_matrix_calloc(n_cols, n_cols);
-	// permute columns
-	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, cov_mat, P, 0.0, _cov_work);
-	// permute rows
-	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, P, _cov_work, 0.0, cov_mat);
-	gsl_matrix_free(_cov_work);
+	// unpermute columns
+	Utility::GSLUtils::applyInversePermutation(cov_mat, permu, true);
+	// unpermute rows
+	Utility::GSLUtils::applyInversePermutation(cov_mat, permu, false);
 
-	gsl_vector* _bv_work = gsl_vector_alloc(n_cols);
-	gsl_vector_memcpy(_bv_work, beta);
-	gsl_blas_dgemv(CblasTrans, 1.0, P, _bv_work, 0.0, beta);
-
-	// create a set of all of the removed indices
-	// I'm going to re-use _bv_work from earlier to save a few bytes of memory
-	gsl_vector_free(_bv_work);
+	gsl_permute_vector_inverse(permu, beta);
 
 	// make r->beta just the right size
 	r->beta.reserve(beta->size);
@@ -488,7 +477,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	}
 
-	r->df = findDF(P, reduced_vars, r->n_dropped, extra_data->extra_df_col, extra_data->n_extra_df_col);
+	r->df = findDF(permu, reduced_vars, r->n_dropped, extra_data->extra_df_col, extra_data->n_extra_df_col);
 	r->log_likelihood = std::isfinite(LL) ? LL : -std::numeric_limits<float>::infinity();
 
 	Result* curr_res = r;
@@ -521,7 +510,8 @@ Regression::Result* LogisticRegression::calculate(
 	gsl_matrix_free(cov_mat);
 	gsl_permutation_free(firth_permu);
 	gsl_matrix_free(firth_cov);
-	gsl_matrix_free(P);
+	//gsl_matrix_free(P);
+	gsl_permutation_free(permu);
 	gsl_multifit_linear_free(ws);
 	gsl_matrix_free(A);
 
