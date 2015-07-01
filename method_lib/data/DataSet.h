@@ -74,7 +74,7 @@ public:
 
 	template <class T>
 	class const_map_iterator: public boost::iterator_facade<
-			const_map_iterator<T>, const std::string&,
+			const_map_iterator<T>, const std::string,
 			boost::forward_traversal_tag> {
 
 	public:
@@ -95,7 +95,7 @@ public:
 
 	template <class T>
 	class map_iterator: public boost::iterator_facade<
-			map_iterator<T>, const std::string&,
+			map_iterator<T>, const std::string,
 			boost::forward_traversal_tag> {
 
 	public:
