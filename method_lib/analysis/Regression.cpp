@@ -189,6 +189,8 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("separator", po::value<string>(&sep)->default_value("\t", "<TAB>"), "Separator to use when outputting results file")
 		("threads", po::value<unsigned int>(&n_threads)->default_value(1), "Number of threads to use in computation")
 		("lowmem", po::bool_switch(&_lowmem), "Reduce the memory footprint (at a potential performance penalty)")
+		("lowmem-file", po::value<string>(), "Filename to use for the low-memory temporary file holding model details")
+		("lowmem-permu-file", po::value<string>(), "Filename to use for the low-memory temporary file holding permutation details")
 		;
 
 	opts.add(regress_opts);
@@ -323,8 +325,23 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 		}
 
 		if(_lowmem){
-			permu_detail_tmpf.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
+
+			if(vm.count("lowmem-permu-file")){
+				permu_detail_tmpf.open(boost::iostreams::file_descriptor(vm["lowmem-permu-file"].as<string>()),
+						std::ios_base::binary | std::ios_base::in | std::ios_base::out);
+
+				if(!permu_detail_tmpf.is_open()){
+					Logger::log_err("WARNING: could not open " +
+							vm["lowmem-permu-file"].as<string>() +
+							" reverting to temporary file", false);
+				}
+			}
+
+			if(!permu_detail_tmpf.is_open()){
+				permu_detail_tmpf.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
 					std::ios_base::binary | std::ios_base::in | std::ios_base::out);
+			}
+
 		}
 
 		if(n_perms > std::numeric_limits<unsigned short>::max()){
@@ -395,8 +412,22 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	}
 
 	if(_lowmem){
-		tmp_f.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
+
+		if(vm.count("lowmem-file")){
+			tmp_f.open(boost::iostreams::file_descriptor(vm["lowmem-file"].as<string>()),
+					std::ios_base::binary | std::ios_base::in | std::ios_base::out);
+
+			if(!tmp_f.is_open()){
+				Logger::log_err("WARNING: could not open " +
+						vm["lowmem-file"].as<string>() +
+						" reverting to temporary file", false);
+			}
+		}
+
+		if(!tmp_f.is_open()){
+			tmp_f.open(boost::iostreams::file_descriptor(fileno(std::tmpfile())),
 				std::ios_base::binary | std::ios_base::in | std::ios_base::out);
+		}
 	}
 
 	// set the bools for which ones to start and should we do weighting?
@@ -797,6 +828,8 @@ void Regression::runRegression(const DataSet& ds){
 				// go here for debugging purposes, i.e. set --threads to 0
 				start();
 			}
+
+			Logger::log("INFO: Processed phenotype '" + *output_itr + "'");
 
 			while(++output_itr != outcome_names.end() && !resetPheno(*output_itr));
 
@@ -2471,6 +2504,9 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 			master_workers.join_all();
 
 			// At this point, I am the only working thread on the master node!
+
+			// Print our "we finished working with this phenotype" log lessage
+			Logger::log("INFO: Processed phenotype '" + *output_itr + "'");
 
 			// Note the empty loop here - we will check and make sure that the
 			// phenotype is good and continue until we either run out or find
