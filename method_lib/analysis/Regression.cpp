@@ -180,6 +180,7 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("interactions", po::bool_switch(&interactions), "Include interactions in the models generated")
 		("covariates", po::value<vector<string> >()->composing(), "A list of covariates to use in the model")
 		("const-covariates", po::value<vector<string> >()->composing(), "A list of covariates to use in the model, without permutation")
+		("gender-covariate", po::bool_switch(&_gender_covar), "Use the gender given in the genetic data (FAM/PED) as a covariate")
 		("outcome", po::value<vector<string> >()->composing(), "Use a given covariate as the regression model outcome")
 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
@@ -613,6 +614,12 @@ void Regression::runRegression(const DataSet& ds){
 	vector<unsigned char> n_col_vec;
 	n_covars = 0;
 
+	if(_gender_covar){
+		_covars.push_back(vector<float>());
+		_covars[_covars.size() - 1].reserve(_pheno.size());
+		++n_covars;
+	}
+
 	for(set<string>::const_iterator cv_itr = covar_names.begin();
 			cv_itr != covar_names.end(); cv_itr++){
 		unsigned char n_cols = ds.numCategories(*cv_itr);
@@ -638,6 +645,8 @@ void Regression::runRegression(const DataSet& ds){
 		}
 	}
 
+	unsigned int n_gender = 0;
+
 	// Now, set up the outcome variable and the covariates
 	while(si != ds.endSample()){
 		// now, set up the covariate vector(s)
@@ -647,6 +656,11 @@ void Regression::runRegression(const DataSet& ds){
 		deque<vector<float> >::iterator val_itr = _covars.begin();
 		vector<unsigned char>::const_iterator colvec_itr = n_col_vec.begin();
 
+		if(_gender_covar){
+			(*val_itr).push_back((*si)->isGenderKnown() ? (*si)->isFemale() : std::numeric_limits<float>::quiet_NaN());
+			++val_itr;
+			n_gender += (*si)->isGenderKnown();
+		}
 
 		while(covar_itr != covar_names.end()){
 			if(ds.isTrait(*covar_itr)){
@@ -688,6 +702,14 @@ void Regression::runRegression(const DataSet& ds){
 			++colvec_itr;
 		}
 		++si;
+	}
+
+	// now, if we wanted to include gender, but we saw none, remove that column
+	if(_gender_covar && n_gender == 0){
+		Logger::log_err("WARNING: --gender-covariate specified, but no sex "
+				"information found in the dataset; dropping the gender covariate", false);
+		_covars.pop_front();
+		--n_covars;
 	}
 
 	// Add in  the extra dfs, along with their column IDs

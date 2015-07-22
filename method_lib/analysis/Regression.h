@@ -693,7 +693,8 @@ public:
 
 public:
 
-	Regression() :  _use_mpi(false), _lowmem(false), _allow_missing_trait(false), class_data(0), n_perms(0),
+	Regression() :  _use_mpi(false), _lowmem(false), _allow_missing_trait(false),
+	    class_data(0), n_perms(0), _gender_covar(false),
 		mgp(0), _targeted(false), msg_id(0), weight_complete(true), wt_marker_itr(0){}
 	virtual ~Regression();
 
@@ -918,6 +919,9 @@ private:
 
 	// vector of all covariates
 	std::deque<std::vector<float> > _covars;
+
+	// use the gender in the genetic data as a covariate
+	bool _gender_covar;
 
 	const Data::DataSet* ds_ptr;
 
