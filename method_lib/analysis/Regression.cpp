@@ -963,7 +963,7 @@ void Regression::printHeader(unsigned int n_snp, unsigned int n_trait, ofstream&
 		of << "Var" << n_snp + i + 1 << "_ID" << sep;
 	}
 
-	of << "Num_Missing" << sep;
+	of << "Num_NonMissing" << sep;
 
 	printExtraHeader(of);
 
@@ -1569,7 +1569,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const Model& m, const gsl_per
 		for(unsigned int i=0; i<numTraits; i++){
 			ss << m.traits[i] << sep;
 		}
-		ss << n_missing << sep;
+		ss << n_samples - n_missing << sep;
 		ret_val->prefix = ss.str();
 		ss.clear();
 	}
