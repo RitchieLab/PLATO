@@ -107,8 +107,14 @@ void RecodeAlleles::process(DataSet& ds){
 				}
 				if(!m){
 					Logger::log_err("WARNING: could not find marker with ID: '" + id + "'");
-				} else if (!m->setRefAllele(ref)) {
-					Logger::log_err("WARNING: could not set reference allele '" + ref + "' for marker '" + id + "'");
+				} else{
+					if(m->getNumAlleles() < 2 && m->getRefAllele() != ref){
+						m->addAllele(ref);
+					}
+
+					if (!m->setRefAllele(ref)) {
+						Logger::log_err("WARNING: could not set reference allele '" + ref + "' for marker '" + id + "'");
+					}
 				}
 			}
 		}
