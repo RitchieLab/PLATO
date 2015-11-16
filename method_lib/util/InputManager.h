@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/range/iterator_range_core.hpp>
 
 namespace PLATO{
 namespace Utility{
@@ -71,13 +72,10 @@ void InputManager::parseInput(const I& cont_in, O& cont_out, const std::string& 
 	typename I::const_iterator itr = cont_in.begin();
 	while(itr != cont_in.end()){
 
-		boost::char_separator<char> tok_sep(sep.c_str());
-
-		boost::tokenizer<boost::char_separator<char> > tok(boost::lexical_cast<std::string>(*itr), tok_sep);
-		boost::tokenizer<boost::char_separator<char> >::iterator t_itr = tok.begin();
-		while(t_itr != tok.end()){
-			cont_out.insert(cont_out.end(), boost::lexical_cast<typename O::value_type>(*t_itr));
-			++t_itr;
+		std::vector<boost::iterator_range<std::string::const_iterator> > tokens;
+		boost::split(tokens, *itr, boost::is_any_of(sep));
+		for(std::vector<boost::iterator_range<std::string::const_iterator> >::const_iterator beg=tokens.begin(); beg!=tokens.end();++beg){
+			cont_out.insert(cont_out.end(), boost::lexical_cast<typename O::value_type>(std::string(beg->begin(), beg->end())));
 		}
 
 		++itr;
