@@ -1421,7 +1421,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gs
 	ret_val->red_vars = n_interact == 0 ? numCovars : ret_val->n_cols - n_interact - 1;
 	ret_val->n_sampl = n_samples - n_missing;
 
-	if(ret_val->n_sampl < ret_val->n_cols){
+	if(ret_val->n_sampl <= ret_val->n_cols){
 		// If this is the case, we CANNOT run this!
 		delete ret_val;
 		ret_val = 0;
