@@ -111,41 +111,46 @@ void FileLoader::load(DataSet& ds){
 			trim(line);
 			split(values, line, is_any_of(" \n\t"), boost::token_compress_on);
 
-			Sample* s = 0;
-			if (no_fid) {
-				s = ds.getSample(values[0]);
+			if(values.size() != header.size()){
+				Logger::log_err("Warning: Column numbers do not match on line " + boost::lexical_cast<string>(lineno), false);
 			} else {
-				s = ds.getSample(values[0], values[1]);
-			}
 
-			if (!s) {
-				++n_extra;
-				if(!(extra_samples || dummy_samples)){
-					Logger::log_err(string("Extra sample found on line ") + boost::lexical_cast<string>(lineno), true);
+				Sample* s = 0;
+				if (no_fid) {
+					s = ds.getSample(values[0]);
+				} else {
+					s = ds.getSample(values[0], values[1]);
 				}
-				if (dummy_samples) {
-					if (no_fid) {
-						if(filterSample(values[0])){
-							s = ds.addSample(values[0]);
-							++n_added;
-						}
-					} else {
-						if(filterSample(values[0], values[1])){
-							s = ds.addSample(values[0], values[1]);
-							++n_added;
+
+				if (!s) {
+					++n_extra;
+					if(!(extra_samples || dummy_samples)){
+						Logger::log_err(string("Extra sample found on line ") + boost::lexical_cast<string>(lineno), true);
+					}
+					if (dummy_samples) {
+						if (no_fid) {
+							if(filterSample(values[0])){
+								s = ds.addSample(values[0]);
+								++n_added;
+							}
+						} else {
+							if(filterSample(values[0], values[1])){
+								s = ds.addSample(values[0], values[1]);
+								++n_added;
+							}
 						}
 					}
+
+				} else {
+					enabled_samples.erase(s);
 				}
 
-			} else {
-				enabled_samples.erase(s);
-			}
-
-			if (s) {
-				for (unsigned int i = (1 + (!no_fid)); i < std::min(
-						values.size(), headers.size()); i++) {
-					if (values[i] != missing_val) {
-						processEntry(ds, headers[i], *s, values[i]);
+				if (s) {
+					for (unsigned int i = (1 + (!no_fid)); i < std::min(
+							values.size(), headers.size()); i++) {
+						if (values[i] != missing_val) {
+							processEntry(ds, headers[i], *s, values[i]);
+						}
 					}
 				}
 			}
