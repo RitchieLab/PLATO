@@ -111,7 +111,7 @@ void FileLoader::load(DataSet& ds){
 			trim(line);
 			split(values, line, is_any_of(" \n\t"), boost::token_compress_on);
 
-			if(values.size() != header.size()){
+			if(values.size() != headers.size()){
 				Logger::log_err("Warning: Column numbers do not match on line " + boost::lexical_cast<string>(lineno), false);
 			} else {
 
