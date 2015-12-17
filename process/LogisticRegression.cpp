@@ -503,6 +503,7 @@ Regression::Result* LogisticRegression::calculate(
 
 	r->suffix += extraSuff;
 
+	gsl_vector_free(hat_vec);
 	gsl_vector_free(weight);
 	gsl_vector_free(beta);
 	gsl_vector_free(b_prev);
