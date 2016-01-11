@@ -10,6 +10,8 @@ New Features:
 4. Added the ability to report (and correct for) the genomic inflation factor, by 2 different methods.
 5. Added a "Rank Permuted P-value" column for permuted regression methods.
 6. Added sample pre-filtering to loading of trait and categorical files 
+7. Added an option to use Firth correction in logistic regression
+8. Added the ability to get the gender from a FAM file
 
 Bug Fixes:
 1. load-trait can now account for files with Windows line endings (CR+LF vs. LF)
@@ -17,6 +19,7 @@ Bug Fixes:
 3. Fixed deadlocking when using Weighted encoding + MPI
 4. Fixed potential deadlock when using MPI + threading
 5. Fixed incorrect reporting of p-values when using single-variable weighted encoding + covariates
+6. Allow the recode-alleles command to give an alternate allele when only one allele is present
 
 == Version 2.0.0 ==
 
