@@ -93,11 +93,11 @@ bool LogisticRegression::initData(){
 	}
 
 	if(uniq_pheno.size() > 2){
-		Utility::Logger::log_err("WARNING: Desired phenotype has more than 2 unique values; logistic regression may not be appropriate");
+		Utility::Logger::log_err("WARNING: Phenotype '" + *output_itr +"' has more than 2 unique values; logistic regression may not be appropriate");
 	}
 
 	if(uniq_pheno.size() < 2){
-		Utility::Logger::log_err("ERROR: Desired phenotype has only " +
+		Utility::Logger::log_err("ERROR: Phenotype '" + *output_itr + "' has only " +
 				boost::lexical_cast<string>(uniq_pheno.size()) +
 				" unique value(s); logistic regression will almost certainly fail!", outcome_names.size() <= 1);
 		good_pheno = false;
