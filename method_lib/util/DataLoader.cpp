@@ -1201,7 +1201,7 @@ Marker* DataLoader::parseMap(stringstream& ss) const {
 	}
 	string id;
 	int bploc;
-	int distance;
+	float distance;
 	string ref;
 	string alt;
 
