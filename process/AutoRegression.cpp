@@ -128,7 +128,7 @@ bool AutoRegression::initData(){
 		} else if(uniq_pheno.size() == 2){
 			analysis_type = class_data->analysis_type = LOGISTIC;
 		} else {
-			Utility::Logger::log_err("ERROR: Desired phenotype has only " +
+			Utility::Logger::log_err("ERROR: Phenotype '" + *output_itr + "' has only " +
 					boost::lexical_cast<string>(uniq_pheno.size()) +
 					" unique value(s); Regression will almost certainly fail!", outcome_names.size() <= 1);
 			good_pheno = false;
