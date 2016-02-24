@@ -22,7 +22,7 @@ class Family;
 class DataSet{
 
 public:
-	DataSet() : _marker_idx(0), _biallelic(false), _phased(false) {}
+	DataSet() : _marker_idx(0), _biallelic(true), _phased(false) {}
 	~DataSet();
 
 	template <class T>
