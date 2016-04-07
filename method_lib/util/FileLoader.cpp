@@ -84,9 +84,7 @@ void FileLoader::parseOptions(const po::variables_map& vm) {
 
 void FileLoader::load(DataSet& ds){
 	vector<string>::const_iterator fn_itr = trait_fns.begin();
-
 	while (fn_itr != trait_fns.end()) {
-
 		ifstream input((*fn_itr).c_str());
 
 		if (!input.is_open()) {
@@ -199,10 +197,11 @@ void FileLoader::readSampleFile(const vector<string>& fn_list, set<string>& out_
 
 void FileLoader::addSampleToSet(const string& samp, set<string>& out_set){
 	stringstream ss(samp);
-	string id, fid;
+	string id, fid, tmp;
 	if(ss >> id){
 		fid = id;
-		if(ss >> fid){
+		ss >> fid; 
+		if(ss >> tmp){
 			Logger::log_err("WARNING: Sample '" + samp +
 					"' has more than an 'FID IID', "
 					"ignoring everything after 2nd space!");

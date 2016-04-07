@@ -137,8 +137,8 @@ po::options_description& DataLoader::addOptions(po::options_description& opts){
 		("excl-marker-fn", value<vector<string> >(&excl_marker_fns)->composing(), "File containing marker ID(s) to exclude")
 		("incl-sample", value<vector<string> >(&incl_sample_str)->composing(), "Sample(s) to include")
 		("excl-sample", value<vector<string> >(&excl_sample_str)->composing(), "Sample(s) to exclude")
-		("incl-sample-fn", value<vector<string> >(&incl_marker_fns)->composing(), "File containing Sample(s) to include")
-		("excl-sample-fn", value<vector<string> >(&excl_marker_fns)->composing(), "File containing Sample(s) to exclude")
+		("incl-sample-fn", value<vector<string> >(&incl_sample_fns)->composing(), "File containing Sample(s) to include")
+		("excl-sample-fn", value<vector<string> >(&excl_sample_fns)->composing(), "File containing Sample(s) to exclude")
 		;
 
 	data_opts.add(filter_opts);
@@ -1315,7 +1315,6 @@ bool DataLoader::filterSample(const string& id, const string& fid) const{
 
 	// Make sure we aren't in the exclude list!
 	toret = toret && (excl_sample_set.empty() || !excl_sample_set.count(id + sampl_field_sep + fid));
-
 	return toret;
 }
 
@@ -1351,10 +1350,11 @@ void DataLoader::readMarkerFile(const vector<string>& fn_list, set<string>& out_
 
 void DataLoader::addSampleToSet(const string& samp, set<string>& out_set){
 	stringstream ss(samp);
-	string id, fid;
+	string id, fid, tmp;
 	if(ss >> id){
 		fid = id;
-		if(ss >> fid){
+                ss >> fid;
+                if(ss >> tmp){
 			Logger::log_err("WARNING: Sample '" + samp +
 					"' has more than an 'FID IID', "
 					"ignoring everything after 2nd space!");
