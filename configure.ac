@@ -9,6 +9,16 @@ AX_CHECK_ENABLE_DEBUG
 #AC_PROG_CPP
 #AC_PROG_CXX
 
+AC_CANONICAL_HOST
+case $host_os in
+  darwin*)
+######  AC_DEFINE([HAVE_OSX],[1],[System is OS X])
+  CPPFLAGS="-DHAVE_OSX"
+  ;;
+  *)
+  ;;
+esac
+
 
 AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],
 [compile with MPI (parallelization) support. If none is found, MPI is not used. Default: auto]) ],

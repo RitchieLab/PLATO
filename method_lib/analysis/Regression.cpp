@@ -125,7 +125,7 @@ Regression::~Regression() {
 		++tu_itr;
 	}
 	_trait_uni_result.clear();
-	
+
 	for(unsigned int i=0; i<_uni_results.size(); i++){
 		delete _uni_results[i];
 	}
@@ -166,7 +166,9 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("pairwise", po::bool_switch(&pairwise),
 			"When auto-generating models, include two variables exhaustively")
 		("incl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to include")
+		("incl-traits-fn", po::value<vector<string> >()->composing(), "File containing list of traits to include")
 		("excl-traits", po::value<vector<string> >()->composing(), "Comma-separated list of traits to exclude")
+		("excl-traits-fn", po::value<vector<string> >()->composing(), "File containing list of traits to exclude")
 		("incl-markers", po::value<vector<string> >()->composing(), "Comma-separated list of markers to include")
 		("one-sided", po::bool_switch(&_onesided), "Generate pairwise models with one side given by the list of included markers or traits")
 		("allow-missing-traits", po::bool_switch(&_allow_missing_trait), "Ignore any missing traits (covariates / outcomes) in the models")
@@ -182,7 +184,8 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("const-covariates", po::value<vector<string> >()->composing(), "A list of covariates to use in the model, without permutation")
 		("gender-covariate", po::bool_switch(&_gender_covar), "Use the gender given in the genetic data (FAM/PED) as a covariate")
 		("outcome", po::value<vector<string> >()->composing(), "Use a given covariate as the regression model outcome")
-		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
+		("outcome-fn",po::value<vector<string> >()->composing(), "File of covariates(s) to use as regression model outcome")
+// 		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
 		("show-univariate", po::bool_switch(&show_uni), "Show univariate results in multivariate models")
 		("phewas", po::bool_switch(&_phewas), "Perform a pheWAS (use all traits not included as covariates or specifically included)")
 		("output", po::value<string>(&out_fn)->default_value("output.txt"), "Name of the file to output results")
@@ -193,6 +196,17 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("lowmem-permu-file", po::value<string>(), "Filename to use for the low-memory temporary file holding permutation details")
 		;
 
+
+#ifdef HAVE_OSX
+	regress_opts.add_options()
+		("encoding", po::value<string>(&encoding_param)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
+	;
+#else
+	regress_opts.add_options()
+		("encoding", po::value<EncodingModel>(&encoding)->default_value("additive"), "Encoding model to use in the regression (additive, dominant, recessive, weighted, codominant)")
+		;
+#endif
+
 	opts.add(regress_opts);
 
 	po::options_description pval_opts("P-value Reporting Options");
@@ -201,8 +215,18 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 		("thresh", po::value<float>(&cutoff_p)->default_value(1.0f), "Threshold for printing resultant models")
 		("inflation", po::bool_switch(&use_inflation), "Report Genomic Inflation Factor")
 		("inflation-adjust", po::bool_switch(&adjust_inflation), "Adjust p-values for Genomic Inflation Factor")
+// 		("inflation-method", po::value(&inflation_method)->default_value(Adjustment::GC), ("Select the method used to adjust for Genomic Inflation Factor (" + Adjustment::listAdjustmentMethods() + ")" ).c_str())
+		;
+
+#ifdef HAVE_OSX
+	pval_opts.add_options()
+		("inflation-method", po::value<string>(&inflation_method_param)->default_value("GC"), ("Select the method used to adjust for Genomic Inflation Factor (" + Adjustment::listAdjustmentMethods() + ")" ).c_str())
+	;
+#else
+	pval_opts.add_options()
 		("inflation-method", po::value(&inflation_method)->default_value(Adjustment::GC), ("Select the method used to adjust for Genomic Inflation Factor (" + Adjustment::listAdjustmentMethods() + ")" ).c_str())
 		;
+#endif
 
 	opts.add(pval_opts);
 
@@ -222,6 +246,17 @@ po::options_description& Regression::addOptions(po::options_description& opts){
 	return opts;
 }
 
+
+void Regression::readListFile(const vector<string>& fn_list, set<string>& out_set){
+	string name;
+	for(unsigned int i=0; i<fn_list.size(); i++){
+		ifstream f(fn_list[i].c_str());
+		while(f >> name){
+			out_set.insert(name);
+		}
+	}
+}
+
 void Regression::printVarHeader(const string& var_name, std::ofstream& of) const{
 	of << var_name << "_Pval" << sep
 		  << var_name << "_beta" << sep
@@ -239,8 +274,28 @@ void Regression::printMarkerHeader(const string& var_name, std::ofstream& of){
 
 void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(vm.count("correction")){
-		InputManager::parseInput(vm["correction"].as<vector<string> >(), corr_methods);
+#ifdef HAVE_OSX
+	InputManager::parseInput(vm["correction"].as<vector<string> >(), corr_method_names);
+	for(std::set<std::string>::iterator iter=corr_method_names.begin(); iter != corr_method_names.end();
+		++iter){
+		corr_methods.insert(CorrectionModel(*iter));
 	}
+#else
+	InputManager::parseInput(vm["correction"].as<vector<string> >(), corr_methods);
+#endif
+	}
+
+#ifdef HAVE_OSX
+	if(vm.count("encoding")){
+		EncodingModel tmpEncoding(vm["encoding"].as<string>());
+		encoding = tmpEncoding;
+	}
+
+	if(vm.count("inflation-method")){
+		AdjustmentModel tmpInflation(vm["inflation-method"].as<string>());
+		inflation_method = tmpInflation;
+	}
+#endif
 
 	if(vm.count("covariates")){
 		InputManager::parseInput(vm["covariates"].as<vector<string> >(), covar_names);
@@ -253,9 +308,17 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	if(vm.count("incl-traits")){
 		InputManager::parseInput(vm["incl-traits"].as<vector<string> >(), incl_traits);
 	}
+	if(vm.count("incl-traits-fn")){
+		InputManager::parseInput(vm["incl-traits-fn"].as<vector<string> >(), incl_traits_fns);
+		readListFile(incl_traits_fns, incl_traits);
+	}
 
 	if(vm.count("excl-traits")){
 		InputManager::parseInput(vm["excl-traits"].as<vector<string> >(), excl_traits);
+	}
+	if(vm.count("excl-traits-fn")){
+		InputManager::parseInput(vm["excl-traits-fn"].as<vector<string> >(), excl_traits_fns);
+		readListFile(excl_traits_fns, excl_traits);
 	}
 
 	if(vm.count("incl-markers")){
@@ -264,6 +327,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 
 	if(vm.count("outcome")){
 		InputManager::parseInput(vm["outcome"].as<vector<string> >(), outcome_names);
+	}
+	if(vm.count("outcome-fn")){
+		InputManager::parseInput(vm["outcome-fn"].as<vector<string> >(), outcome_fns);
+		readListFile(outcome_fns, outcome_names);
 	}
 
 	// If no permutation seed given, generate a "random" seed
@@ -293,10 +360,10 @@ void Regression::parseOptions(const boost::program_options::variables_map& vm){
 	}
 
 	if(_phewas){
-		if(vm.count("outcome")){
+		if(vm.count("outcome") || vm.count("outcome-fn")){
 			Logger::log_err("WARNING: --outcome and --phewas are incompatible, ignoring --phewas");
 			_phewas = false;
-		} else if(include_traits && !vm.count("incl-traits")){
+		} else if(include_traits && !vm.count("incl-traits") && !vm.count("incl-traits-fn")){
 			Logger::log_err("WARNING: --phewas used with --use-traits and without --incl-traits, ignoring --phewas");
 			_phewas = false;
 		}
@@ -1126,11 +1193,11 @@ void Regression::addUnivariate(Result& r, const Model& m){
 	Result* univar_result;
 
 	for (unsigned int i = 0; i < m.markers.size(); i++) {
-		_univar_mmutex.lock();		
+		_univar_mmutex.lock();
 		map<const Marker*, Result*>::const_iterator m_itr =
 				_marker_uni_result.find(m.markers[i]);
 
-				
+
 		// If this is the case, we have not seen this marker before
 		if (m_itr == _marker_uni_result.end()) {
 			_univar_mmutex.unlock();
@@ -1365,7 +1432,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gs
 	unsigned int n_missing = 0;
 
 	for(unsigned int k=0; k<_curr_pheno.size(); k++){
-	
+
 		if(!std::isnan(pheno_perm[n_samples])){
 			covar_data.clear();
 			geno_data.clear();
@@ -1385,7 +1452,7 @@ Regression::calc_matrix* Regression::getCalcMatrix(const mpi_query& mq, const gs
 			for (unsigned int i = 0; i<numLoci; i++){
 				unsigned char g = 2*_marker_data[mq.marker_idx[i]].first[2*n_samples] +
 						_marker_data[mq.marker_idx[i]].first[2*n_samples + 1];
-				
+
 				geno_data.push_back(g == 3? Sample::missing_allele : g);
 				if ((!mq.categorical) && _extra_data->encoding == Encoding::WEIGHTED){
 					geno_weight.push_back(_marker_data[mq.marker_idx[i]].second);
@@ -2392,7 +2459,7 @@ const Regression::Model* Regression::getNextMPIModel(){
 			if(*wt_marker_itr != ds_ptr->endMarker()){
 				curr_m = **wt_marker_itr;
 				++(*wt_marker_itr);
-			
+
 				_marker_itr_mutex.unlock();
 
 				Model* pm = new Model;
@@ -2542,7 +2609,7 @@ pair<unsigned int, const char*> Regression::nextQuery(){
 		}
 	}
 
-	
+
 	return retval;
 }
 
@@ -2550,7 +2617,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 	// Turn this into a msg_id + Result
 	mpi_response resp;
 	MPIUtils::unpack(bufsz, in_buf, resp);
-	
+
 	for(unsigned int msg_result = 0; msg_result< resp.results.size(); msg_result++){
 
 		unsigned int msg = resp.results[msg_result].first;
@@ -2582,7 +2649,7 @@ void Regression::processResponse(unsigned int bufsz, const char* in_buf){
 			--(*((lm_range.first)->second));
 			work_lock_map.erase(lm_range.first++);
 		}
-	
+
 		// if this was a categorical test, add it as appropriate:
 		if(m->categorical && m->markers.size() == 1 && m->traits.size() == 0){
 			addWeight(m->markers[0], r);
@@ -2709,7 +2776,7 @@ void Regression::processBroadcast(){
 #ifdef HAVE_CXX_MPI
 	unsigned int bcast_sz = 0;
 	char* buf = 0;
-	
+
 //	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 	while(bcast_sz > 0){
@@ -2724,7 +2791,7 @@ void Regression::processBroadcast(){
 			// reset the phenotype here
 			_curr_pheno.clear();
 			_curr_pheno = mph->_pheno;
-			_curr_pheno_name = mph->_name;			
+			_curr_pheno_name = mph->_name;
 		} else if(typeid(*env.msg) == typeid(mpi_marker)) {
 			mpi_marker* mm = dynamic_cast<mpi_marker*>(env.msg);
 			_marker_data.push_back(make_pair(mm->data, 0.5f));
@@ -2733,7 +2800,7 @@ void Regression::processBroadcast(){
 			mpi_trait* mt = dynamic_cast<mpi_trait*>(env.msg);
 			_trait_data.push_back(mt->data);
 			_trait_desc.push_back(mt->description);
-		} else if(typeid(*env.msg) == typeid(mpi_weight)) {	
+		} else if(typeid(*env.msg) == typeid(mpi_weight)) {
 			mpi_weight* mw = dynamic_cast<mpi_weight*>(env.msg);
 			// set up weight mapping here
 			for(unsigned int i=0; i<mw->_wt.size(); i++) {
@@ -2765,12 +2832,12 @@ void Regression::processBroadcast(){
 		MPI_Bcast(&bcast_sz, 1, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	}
-	
+
 #endif
 
 	// And we're done, so go ahead and release our lock
 	w_lock.unlock();
-	
+
 }
 
 Regression::Result* Regression::runMPIModel(const mpi_query* mq, calc_fn& func){
@@ -2812,7 +2879,7 @@ Regression::Result* Regression::runMPIModel(const mpi_query* mq, calc_fn& func){
 
 void Regression::runMPIQuerySingleThread(const mpi_query* mq, deque<pair<unsigned int, Result*> >& output_queue, boost::mutex& result_mutex, calc_fn& func){
 	Result* r = runMPIModel(mq, func);
-	
+
 	result_mutex.lock();
 	output_queue.push_back(make_pair(mq->msg_id, r));
 	result_mutex.unlock();
@@ -2837,7 +2904,7 @@ void Regression::runMPIQueryMultiThread(const mpi_query* mq, deque<pair<unsigned
 
 	delete mq;
 }
-	
+
 
 void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv, calc_fn& func){
 
@@ -2850,7 +2917,7 @@ void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pai
 		MPIUtils::unpack(bufsz, in_buf, env);
 
 		pair<unsigned int, const char*> retval(0,0);
-	
+
 		if(typeid(*env.msg) == typeid(mpi_query)){
 			boost::function<void()> f = boost::bind(&runMPIQueryMultiThread, dynamic_cast<mpi_query*>(env.msg), boost::ref(result_queue), boost::ref(result_mutex), boost::ref(cv), boost::ref(func));
 			_mpi_threads.run(f);
@@ -2903,7 +2970,7 @@ void Regression::calculate_MPI(unsigned int bufsz, const char* in_buf, deque<pai
 
 				w_lock.unlock();
 			}
-		
+
 			// NOTE: DO NOT delete the message if we pass it to a thread!!
 			if(env.msg){
 				delete env.msg;

@@ -550,7 +550,7 @@ public:
 			}
 
 		}
-		
+
 	private:
 		unsigned int size;
 
@@ -754,7 +754,7 @@ protected:
 	virtual void processResponse(unsigned int bufsz, const char* in_buf);
 	virtual std::pair<unsigned int, const char*> nextQuery();
 
-	static void calculate_MPI(unsigned int bufsz, const char* in_buf, 
+	static void calculate_MPI(unsigned int bufsz, const char* in_buf,
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv,
 		calc_fn& func);
 
@@ -785,6 +785,8 @@ private:
 
 	void printResult(const Result& r, std::ostream& of);
 	void printResultLine(const Result& r, std::ostream& of);
+
+	void readListFile(const std::vector<std::string>& fn_list, std::set<std::string>& out_set);
 
 	double adjust_pval(double pval, double gif_recip, Adjustment* adj){
 		// If I don't want to adjust OR the genomic inflation factor is EXACTLY 1,
@@ -839,7 +841,7 @@ private:
 
 	static void runPermutations(Result* r, genPermuData& perm_fn,
 			const std::deque<gsl_permutation*>& permus, calc_fn& calculate, const ExtraData* ed);
-			
+
 	/*static void runMPIQuery(const mpi_query* mq,
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv,
 		calc_fn& func);*/
@@ -850,6 +852,15 @@ private:
 
 	//! filename of output
 	std::string out_fn;
+#ifdef HAVE_OSX
+	//! encoding name
+	std::string encoding_param;
+	//! inflation method name
+	std::string inflation_method_param;
+	//! correction method names
+	std::set<std::string> corr_method_names;
+#endif
+
 
 	//! are we threaded?
 	bool _threaded;
@@ -937,7 +948,7 @@ private:
 	// univariate results by marker and trait
 	std::map<const PLATO::Data::Marker*, Result*> _marker_uni_result;
 	std::map<std::string, Result*> _trait_uni_result;
-	
+
 	// we'll need to delete all of these univariate models
 	std::deque<Result*> _uni_results;
 
@@ -1016,7 +1027,7 @@ private:
 	// a set of models currently being processed.
 	// NOTE: synchronize this with _categ_mutex!
 	std::set<std::string> pre_lock_set;
-	
+
 	//! a queue of models that need to be run
 	std::deque<const Model*> model_queue;
 
@@ -1084,6 +1095,12 @@ private:
 protected:
 	//! A string of the outcome name
 	std::set<std::string> outcome_names;
+
+	// Storing file names from options
+	std::vector<std::string> outcome_fns;
+	std::vector<std::string> excl_traits_fns;
+	std::vector<std::string> incl_traits_fns;
+
 	//! Do we want to do a pheWAS??
 	bool _phewas;
 	// Iterator for the current outcome being looked at

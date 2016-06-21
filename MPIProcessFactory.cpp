@@ -20,10 +20,14 @@ const string& MPIProcessFactory::RegisterMPIProcess(const string& key, calcFunc*
 	return key;
 }
 
-void MPIProcessFactory::calculate(unsigned int key_pos, 
-		unsigned int bufsz, const char* buf, 
+void MPIProcessFactory::calculate(unsigned int key_pos,
+		unsigned int bufsz, const char* buf,
 		std::deque<std::pair<unsigned int, const char*> >& resp_queue, boost::mutex& resp_mutex){
+#ifdef HAVE_OSX
+map<const string, calcFunc*>::const_iterator fn_itr = calc_map.begin();
+#else
 	map<string, calcFunc*>::const_iterator fn_itr = calc_map.begin();
+#endif
 	unsigned int i=0;
 	while(fn_itr != calc_map.end() && ++i < key_pos){
 		++fn_itr;

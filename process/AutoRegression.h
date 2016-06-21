@@ -37,8 +37,13 @@ protected:
 
 	using MPIProcessImpl<AutoRegression>::registerMPI;
 	using ProcessImpl<AutoRegression>::doRegister;
+#ifdef HAVE_OSX
+public:
+#endif
 	using ProcessImpl<AutoRegression>::create;
-
+#ifdef HAVE_OSX
+protected:
+#endif
 	virtual const std::string& getName() const{ return ProcessImpl<AutoRegression>::getName(); }
 	virtual const std::string& getDesc() const{ return ProcessImpl<AutoRegression>::getDesc(); }
 
@@ -67,7 +72,7 @@ private:
 	static void* loadExtraData(const Archive& ar);
 
 public:
-	static void calculate_MPI(unsigned int bufsz, const char* buf, 
+	static void calculate_MPI(unsigned int bufsz, const char* buf,
 		std::deque<std::pair<unsigned int, const char*> >& result_queue, boost::mutex& result_mutex, boost::condition_variable& cv);
 
 public:
