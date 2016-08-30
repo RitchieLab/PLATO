@@ -35,6 +35,7 @@ void SampleMissingFilter::process(DataSet& ds){
 	while(si != ds.endSample()){
 		if(1 - Utility::Missing::sampleMissing(ds, **si) < _thresh){
 			(*si)->setEnabled(false);
+			++_n_filtered;
 		}
 
 		++si;

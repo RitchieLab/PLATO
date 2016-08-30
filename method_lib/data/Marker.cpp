@@ -18,7 +18,7 @@ string Marker::_missing_allele = "0";
 
 Marker::Marker(const string& chr, unsigned int loc, const string& id, unsigned int idx) :
 		_chr(InputManager::chrStringToInt(chr) | ENABLED_MASK), _loc(loc), _idx(idx), _id(id){
-	_ref_idx = _alt_idx = static_cast<unsigned char>(-1);
+	_maf = _ref_idx = _alt_idx = static_cast<unsigned char>(-1);
 }
 
 unsigned int Marker::addAllele(const string& allele){
@@ -83,8 +83,10 @@ float Marker::calcRefAF(const DataSet& ds) const{
 	int n_sample = 0;
 	int n_ref_allele = 0;
 	while(si != ds.endSample()){
-		n_ref_allele += 2-(*si)->getAdditiveGeno(*this);
-		++n_sample;
+      		if((*si)->getAdditiveGeno(*this) != Sample::missing_allele){
+      			n_ref_allele += 2-(*si)->getAdditiveGeno(*this);
+      			++n_sample;
+      		}
 		++si;
 	}
 
