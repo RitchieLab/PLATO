@@ -79,6 +79,12 @@ Sample* DataSet::addSample(const std::string& famid, const std::string& id, unsi
 		++t_itr;
 	}
 
+	map<string, pair<bool, deque<unsigned char> > >::iterator c_itr = _categorical_map.begin();	
+	while(c_itr != _categorical_map.end()){
+		(*c_itr).second.second.push_back(MISSING_CATEGORICAL);
+		++c_itr;
+	}
+
 
 	return new_samp;
 }
