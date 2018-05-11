@@ -2086,6 +2086,9 @@ double Regression::getPValue(float pval_in){
 	static float const min_p = numeric_limits<float>::min();
 	static float const min_denorm_p = numeric_limits<float>::denorm_min();
 
+	if(isnan(pval_in)){
+		return pval_in;
+	}
 	if(!warned && pval_in < min_p){
 		Logger::log_err("WARNING: Minimum P-value threshold of " +
 				boost::lexical_cast<string>(min_p * PVAL_OFFSET_RECIP) +
