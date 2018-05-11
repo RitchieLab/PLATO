@@ -30,6 +30,7 @@ public:
 	virtual ~AutoRegression(){if(class_data){delete class_data;}};
 
 	virtual void parseOptions(const boost::program_options::variables_map& vm);
+	using ProcessImpl<AutoRegression>::create;
 
 protected:
 
@@ -37,13 +38,7 @@ protected:
 
 	using MPIProcessImpl<AutoRegression>::registerMPI;
 	using ProcessImpl<AutoRegression>::doRegister;
-#ifdef HAVE_OSX
-public:
-#endif
-	using ProcessImpl<AutoRegression>::create;
-#ifdef HAVE_OSX
-protected:
-#endif
+
 	virtual const std::string& getName() const{ return ProcessImpl<AutoRegression>::getName(); }
 	virtual const std::string& getDesc() const{ return ProcessImpl<AutoRegression>::getDesc(); }
 
