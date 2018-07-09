@@ -13,4 +13,6 @@ configure
 depcomp
 install-sh
 ltmain.sh
-build
+build*
+NOTES.txt
+compile
