@@ -4,6 +4,7 @@
 #include "config.h"
 #include <deque>
 #include <map>
+#include <set>
 #include <utility>
 
 #include <boost/thread/mutex.hpp>
@@ -20,6 +21,8 @@ void MPISendResponses(std::map<int, std::deque<std::pair<unsigned int, const cha
 void MPIProbeInput(std::map<int, std::deque<std::pair<unsigned int, const char*> > >& resp_queue_map, boost::mutex& resp_mutex, bool& running);
 
 void print_steps();
+
+ std::set<std::string> valid_process_names();
 
 /*
 void startProcess(vector<Process*>&, int, InputFilter*);

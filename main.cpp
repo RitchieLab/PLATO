@@ -20,6 +20,7 @@
 #include <utility>
 #include <map>
 
+
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 //#include <boost/thread.hpp>
@@ -31,7 +32,6 @@
 #include "Process.h"
 
 #include "util/InputManager.h"
-#include "util/CommandLineParser.h"
 #include "util/MPIUtils.h"
 #include "data/DataSet.h"
 #include "util/Logger.h"
@@ -54,7 +54,6 @@ using std::map;
 
 using PLATO::Data::DataSet;
 using PLATO::Utility::InputManager;
-using PLATO::Utility::CommandLineParser;
 using PLATO::Utility::Logger;
 
 using PLATO::Process;
@@ -231,6 +230,15 @@ int main(int argc, char** argv){
 int master_main(int argc, char** argv) {
 
 	string logfn;
+	
+	int opt_style = (po::command_line_style::allow_short | 
+		po::command_line_style::short_allow_adjacent |
+		po::command_line_style::short_allow_next |
+		po::command_line_style::allow_long |
+		po::command_line_style::long_allow_adjacent |
+		po::command_line_style::long_allow_next |
+		po::command_line_style::allow_sticky |
+		po::command_line_style::allow_dash_for_short );	
 
 	po::options_description cmd_opts("Command Line Options");
 	cmd_opts.add_options()
@@ -243,7 +251,7 @@ int master_main(int argc, char** argv) {
 	InputManager::addOptions(cmd_opts);
 
 	po::variables_map vm;
-	po::parsed_options parsed = CommandLineParser(argc, argv).options(cmd_opts).run();
+	po::parsed_options parsed = po::command_line_parser(argc, argv).options(cmd_opts).style(opt_style).allow_unregistered().run();
 	po::store(parsed, vm);
 	po::notify(vm);
 
@@ -316,53 +324,52 @@ int master_main(int argc, char** argv) {
 	}
 
 	// OK, now we create the list of processes that we want to create
-	while(unrec_opt.size() > 0){
+	// Updated for compatibility to Boost 1.67.0+
+	size_t unrec_index=0;
+	while(unrec_index < unrec_opt.size()){
+		std::set<string> process_names=valid_process_names();
 		ProcessFactory& f = ProcessFactory::getFactory();
-
-		string cmd_str = unrec_opt[0];
-
+		
+		string cmd_str = unrec_opt[unrec_index++];
 		Process* p = f.Create(cmd_str);
 		if(!p){
 			cout << "ERROR: Unrecognized command '" << cmd_str << "'\n\n";
 			cout << "Please use the 'list-command' option to see a list of commands available\n";
 			return 1;
 		}else{
-
+		
 			// set up the options specific to the process
 			po::options_description subopts;
 			p->addOptions(subopts);
-
-			// pop off the first string, which is the name of the command
-			string cmd_name = unrec_opt[0];
-			unrec_opt.erase(unrec_opt.begin());
-
-			// now, parse the remaining options, stopping at the name of the next command
+			
+			vector<string> subargs;
+			// find next index for a valid command
+			while(unrec_index < unrec_opt.size() && process_names.find(unrec_opt[unrec_index]) == process_names.end()){
+				subargs.push_back(unrec_opt[unrec_index++]);
+			}
+			
+			// now, parse the options for the command
 			po::variables_map subvm;
 			try{
-				po::parsed_options subparsed = CommandLineParser(unrec_opt).options(subopts).run();
+				po::parsed_options subparsed = po::command_line_parser(subargs).options(subopts).style(opt_style).run();
 				po::store(subparsed, subvm);
 				po::notify(subvm);
-				leftover_opts = po::collect_unrecognized(subparsed.options, po::include_positional);
-				Logger::log(cmd_name + " " +
+				Logger::log(cmd_str + " " + 
 					boost::algorithm::join(
-						std::list<string>(unrec_opt.begin(),
-							unrec_opt.begin() + (unrec_opt.size() - leftover_opts.size())),
+						std::list<string>(subargs.begin(), subargs.end()),
 						" "));
-
 				p->parseOptions(subvm);
-
-				unrec_opt = leftover_opts;
-			} catch(boost::program_options::unknown_option& err){
+			}catch(boost::program_options::unknown_option& err){
 				Logger::log_err("ERROR: Command '" + p->getName() + "' reported error: '" + err.what() +"'");
 				return 2;
 			} catch(std::exception& e){
 				Logger::log_err("ERROR: Command '" + p->getName() + "' reported unexpected error: '" + e.what() + "'");
 				return 3;
 			}
+			
 		}
-
-		process_list.push_back(p);
-
+		
+		process_list.push_back(p);		
 	}
 
 	// Log the commands
@@ -390,6 +397,25 @@ int master_main(int argc, char** argv) {
 	// And we're done! (dataset will clean up on its own)
 	return 0;
 }
+
+
+/*
+ *Function: valid_process_names
+ *Return: set<string>
+ *Parameters: 
+ *Description:
+ *Returns a set of valid process names.
+ */
+ std::set<string> valid_process_names(){
+ 	std::set<string> process_set;
+ 	ProcessFactory& f = ProcessFactory::getFactory();
+	for (ProcessFactory::const_iterator s_iter = f.begin(); s_iter != f.end(); s_iter++) {
+		process_set.insert(s_iter->first);
+	} 	
+	return process_set;
+ }
+
+
 
 /*
  *Function: print_steps
